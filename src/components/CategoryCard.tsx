@@ -16,11 +16,11 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   className = ""
 }) => {
   return (
-    <article className={`flex min-w-60 flex-col items-start gap-4 flex-[1_0_0] self-stretch shadow-[0px_0px_4px_0px_rgba(0,0,0,0.10)] bg-neutral-50 rounded-xl max-md:min-w-[200px] max-sm:min-w-[180px] ${className}`}>
+    <article className={`flex min-w-60 flex-col items-start gap-4 flex-[1_0_0] self-stretch shadow-[0px_0px_4px_0px_rgba(0,0,0,0.10)] bg-white rounded-xl max-md:min-w-[200px] max-sm:min-w-[160px] ${className}`}>
       <img
         src={image}
         alt={title}
-        className="h-60 shrink-0 self-stretch rounded-xl max-sm:h-[180px]"
+        className="h-60 shrink-0 self-stretch rounded-t-xl object-cover max-sm:h-[150px]"
       />
       <div className="flex flex-col justify-between items-start flex-[1_0_0] self-stretch pt-0 pb-4 px-4">
         <div className="flex flex-col items-start self-stretch">
@@ -40,7 +40,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
           onClick={onViewClick}
         >
           <span className="self-stretch overflow-hidden text-[#121417] text-center text-ellipsis text-sm font-bold leading-[21px]">
-            View
+            עוד
           </span>
         </button>
       </div>

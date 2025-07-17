@@ -4,6 +4,16 @@ import { SectionTitle } from '@/components/SectionTitle';
 import { QuickSelection } from '@/components/QuickSelection';
 import { CategorySection } from '@/components/CategorySection';
 
+// Import local images
+import kitchenDesignImg from '@/assets/kitchen-design.jpg';
+import kitchenAccessoriesImg from '@/assets/kitchen-accessories.jpg';
+import furnitureImg from '@/assets/furniture.jpg';
+import airConditioningImg from '@/assets/air-conditioning.jpg';
+import renovationImg from '@/assets/renovation.jpg';
+import mortgageAdvisorImg from '@/assets/mortgage-advisor.jpg';
+import movingServicesImg from '@/assets/moving-services.jpg';
+import homeLoansImg from '@/assets/home-loans.jpg';
+
 const Index = () => {
   // Quick selection data
   const quickSelectionItems = [
@@ -39,20 +49,20 @@ const Index = () => {
     {
       id: '1',
       title: 'מטבחים מעוצבים',
-      subtitle: 'Kitchens',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/deaa39cc14e28e578f44dca1d0765d394726daf1?width=480'
+      subtitle: 'מטבחים',
+      image: kitchenDesignImg
     },
     {
       id: '2',
       title: 'אבזור למטבח',
-      subtitle: 'Kitchens',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/6a71d73e6d5706c34f7cef02e61a2717c7a74c77?width=480'
+      subtitle: 'מטבחים',
+      image: kitchenAccessoriesImg
     },
     {
       id: '3',
-      title: 'Kitchen Design',
-      subtitle: 'Kitchens',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'עיצוב מטבחים',
+      subtitle: 'מטבחים',
+      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
     }
   ];
 
@@ -60,21 +70,21 @@ const Index = () => {
   const exclusiveDeals = [
     {
       id: '1',
-      title: 'Exclusive Deals',
-      subtitle: 'Deals',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'מבצעים בלעדיים',
+      subtitle: 'מבצעים',
+      image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=480&h=480&fit=crop'
     },
     {
       id: '2',
-      title: 'Special Offers',
-      subtitle: 'Deals',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'הצעות מיוחדות',
+      subtitle: 'מבצעים',
+      image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=480&h=480&fit=crop'
     },
     {
       id: '3',
-      title: 'Limited Time Discount',
-      subtitle: 'Deals',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'הנחות לזמן מוגבל',
+      subtitle: 'מבצעים',
+      image: 'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=480&h=480&fit=crop'
     }
   ];
 
@@ -82,21 +92,21 @@ const Index = () => {
   const furnitureItems = [
     {
       id: '1',
-      title: 'Modern Furniture',
-      subtitle: 'Furniture',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'ריהוט מודרני',
+      subtitle: 'ריהוט',
+      image: furnitureImg
     },
     {
       id: '2',
-      title: 'Furniture Store',
-      subtitle: 'Furniture',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'חנות רהיטים',
+      subtitle: 'ריהוט',
+      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=480&h=480&fit=crop'
     },
     {
       id: '3',
-      title: 'Furniture Design',
-      subtitle: 'Furniture',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'עיצוב רהיטים',
+      subtitle: 'ריהוט',
+      image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=480&h=480&fit=crop'
     }
   ];
 
@@ -104,21 +114,21 @@ const Index = () => {
   const airConditioningItems = [
     {
       id: '1',
-      title: 'Air Conditioning',
-      subtitle: 'Air Conditioning',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'מיזוג אוויר',
+      subtitle: 'מיזוג',
+      image: airConditioningImg
     },
     {
       id: '2',
-      title: 'Cooling System',
-      subtitle: 'Air Conditioning',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'מערכות קירור',
+      subtitle: 'מיזוג',
+      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=480&h=480&fit=crop'
     },
     {
       id: '3',
-      title: 'HVAC Services',
-      subtitle: 'Air Conditioning',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'שירותי מיזוג',
+      subtitle: 'מיזוג',
+      image: 'https://images.unsplash.com/photo-1634638324170-0cd3b310f2ae?w=480&h=480&fit=crop'
     }
   ];
 
@@ -126,21 +136,21 @@ const Index = () => {
   const renovationItems = [
     {
       id: '1',
-      title: 'Home Renovation',
-      subtitle: 'Renovation',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'שיפוצי בתים',
+      subtitle: 'שיפוצים',
+      image: renovationImg
     },
     {
       id: '2',
-      title: 'Interior Renovation',
-      subtitle: 'Renovation',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'שיפוצים פנימיים',
+      subtitle: 'שיפוצים',
+      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=480&h=480&fit=crop'
     },
     {
       id: '3',
-      title: 'Renovation Design',
-      subtitle: 'Renovation',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'עיצוב שיפוצים',
+      subtitle: 'שיפוצים',
+      image: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=480&h=480&fit=crop'
     }
   ];
 
@@ -148,21 +158,21 @@ const Index = () => {
   const mortgageAdvisors = [
     {
       id: '1',
-      title: 'Mortgage Advisor',
-      subtitle: 'Mortgage Advisors',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'יועץ משכנתאות',
+      subtitle: 'יועצים',
+      image: mortgageAdvisorImg
     },
     {
       id: '2',
-      title: 'Financial Advisor',
-      subtitle: 'Mortgage Advisors',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'יועץ פיננסי',
+      subtitle: 'יועצים',
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=480&h=480&fit=crop'
     },
     {
       id: '3',
-      title: 'Loan Advisor',
-      subtitle: 'Mortgage Advisors',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'יועץ הלוואות',
+      subtitle: 'יועצים',
+      image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=480&h=480&fit=crop'
     }
   ];
 
@@ -170,21 +180,21 @@ const Index = () => {
   const movingServices = [
     {
       id: '1',
-      title: 'Moving Services',
-      subtitle: 'Moving Services',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'שירותי הובלה',
+      subtitle: 'הובלות',
+      image: movingServicesImg
     },
     {
       id: '2',
-      title: 'Relocation Services',
-      subtitle: 'Moving Services',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'שירותי העברה',
+      subtitle: 'הובלות',
+      image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=480&h=480&fit=crop'
     },
     {
       id: '3',
-      title: 'Packing Services',
-      subtitle: 'Moving Services',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'שירותי אריזה',
+      subtitle: 'הובלות',
+      image: 'https://images.unsplash.com/photo-1609942924155-81c0ad76e738?w=480&h=480&fit=crop'
     }
   ];
 
@@ -192,21 +202,21 @@ const Index = () => {
   const homeLoans = [
     {
       id: '1',
-      title: 'Home Loans',
-      subtitle: 'Home Loans',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'הלוואות לדיור',
+      subtitle: 'הלוואות',
+      image: homeLoansImg
     },
     {
       id: '2',
-      title: 'Mortgage Loans',
-      subtitle: 'Home Loans',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'הלוואות משכנתא',
+      subtitle: 'הלוואות',
+      image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=480&h=480&fit=crop'
     },
     {
       id: '3',
-      title: 'Property Loans',
-      subtitle: 'Home Loans',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'הלוואות נדל"ן',
+      subtitle: 'הלוואות',
+      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=480&h=480&fit=crop'
     }
   ];
 
@@ -214,21 +224,21 @@ const Index = () => {
   const localDeals = [
     {
       id: '1',
-      title: 'Local Deals',
-      subtitle: 'Local Deals',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'מבצעים מקומיים',
+      subtitle: 'מבצעים מקומיים',
+      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop'
     },
     {
       id: '2',
-      title: 'Nearby Offers',
-      subtitle: 'Local Deals',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'הצעות בקרבת מקום',
+      subtitle: 'מבצעים מקומיים',
+      image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=480&h=480&fit=crop'
     },
     {
       id: '3',
-      title: 'Community Deals',
-      subtitle: 'Local Deals',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'מבצעי קהילה',
+      subtitle: 'מבצעים מקומיים',
+      image: 'https://images.unsplash.com/photo-1607083206325-cad9886eacb8?w=480&h=480&fit=crop'
     }
   ];
 
@@ -236,21 +246,21 @@ const Index = () => {
   const trendingItems = [
     {
       id: '1',
-      title: 'Trending Products',
-      subtitle: 'Trending Now',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'מוצרים טרנדיים',
+      subtitle: 'פופולרי עכשיו',
+      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop'
     },
     {
       id: '2',
-      title: 'Popular Items',
-      subtitle: 'Trending Now',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'פריטים פופולריים',
+      subtitle: 'פופולרי עכשיו',
+      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
     },
     {
       id: '3',
-      title: 'Hot Deals',
-      subtitle: 'Trending Now',
-      image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=480'
+      title: 'מבצעים חמים',
+      subtitle: 'פופולרי עכשיו',
+      image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=480&h=480&fit=crop'
     }
   ];
 
@@ -264,77 +274,99 @@ const Index = () => {
   };
 
   return (
-    <div className="flex w-[428px] h-[959px] flex-col items-start bg-white max-md:w-full max-md:max-w-screen-md max-sm:w-full max-sm:max-w-full">
-      <main className="flex h-[844px] min-h-[844px] flex-col items-start shrink-0 self-stretch bg-neutral-50">
-        <div className="flex flex-col items-start self-stretch">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-white">
+      <main className="flex flex-col items-start w-full bg-neutral-50 pb-8">
+        <div className="flex flex-col items-start w-full">
           <Header userName="איתן" />
           
-          <SectionTitle title="בחירה מהירה" />
-          <QuickSelection 
-            items={quickSelectionItems} 
-            onItemClick={handleQuickSelectionClick}
-          />
+          <div className="w-full">
+            <SectionTitle title="בחירה מהירה" />
+            <QuickSelection 
+              items={quickSelectionItems} 
+              onItemClick={handleQuickSelectionClick}
+            />
+          </div>
 
-          <SectionTitle title="מטבחים" />
-          <CategorySection 
-            items={kitchenCategories} 
-            onItemClick={handleCategoryClick}
-            fixedWidth={true}
-          />
+          <div className="w-full">
+            <SectionTitle title="מטבחים" />
+            <CategorySection 
+              items={kitchenCategories} 
+              onItemClick={handleCategoryClick}
+              fixedWidth={true}
+            />
+          </div>
 
-          <SectionTitle title="בלעדי לבונים-פה" />
-          <CategorySection 
-            items={exclusiveDeals} 
-            onItemClick={handleCategoryClick}
-          />
+          <div className="w-full">
+            <SectionTitle title="בלעדי לבונים-פה" />
+            <CategorySection 
+              items={exclusiveDeals} 
+              onItemClick={handleCategoryClick}
+            />
+          </div>
 
-          <SectionTitle title="ריהוט" />
-          <CategorySection 
-            items={furnitureItems} 
-            onItemClick={handleCategoryClick}
-          />
+          <div className="w-full">
+            <SectionTitle title="ריהוט" />
+            <CategorySection 
+              items={furnitureItems} 
+              onItemClick={handleCategoryClick}
+            />
+          </div>
 
-          <SectionTitle title="מיזוג אוויר" />
-          <CategorySection 
-            items={airConditioningItems} 
-            onItemClick={handleCategoryClick}
-          />
+          <div className="w-full">
+            <SectionTitle title="מיזוג אוויר" />
+            <CategorySection 
+              items={airConditioningItems} 
+              onItemClick={handleCategoryClick}
+            />
+          </div>
 
-          <SectionTitle title="שיפוצים" />
-          <CategorySection 
-            items={renovationItems} 
-            onItemClick={handleCategoryClick}
-          />
+          <div className="w-full">
+            <SectionTitle title="שיפוצים" />
+            <CategorySection 
+              items={renovationItems} 
+              onItemClick={handleCategoryClick}
+            />
+          </div>
 
-          <SectionTitle title="יועצי משכנתאות וביטוח" />
-          <CategorySection 
-            items={mortgageAdvisors} 
-            onItemClick={handleCategoryClick}
-          />
+          <div className="w-full">
+            <SectionTitle title="יועצי משכנתאות וביטוח" />
+            <CategorySection 
+              items={mortgageAdvisors} 
+              onItemClick={handleCategoryClick}
+            />
+          </div>
 
-          <SectionTitle title="הובלות" />
-          <CategorySection 
-            items={movingServices} 
-            onItemClick={handleCategoryClick}
-          />
+          <div className="w-full">
+            <SectionTitle title="הובלות" />
+            <CategorySection 
+              items={movingServices} 
+              onItemClick={handleCategoryClick}
+            />
+          </div>
 
-          <SectionTitle title="הלוואות" />
-          <CategorySection 
-            items={homeLoans} 
-            onItemClick={handleCategoryClick}
-          />
+          <div className="w-full">
+            <SectionTitle title="הלוואות" />
+            <CategorySection 
+              items={homeLoans} 
+              onItemClick={handleCategoryClick}
+            />
+          </div>
 
-          <SectionTitle title="מבצעים בסביבה" />
-          <CategorySection 
-            items={localDeals} 
-            onItemClick={handleCategoryClick}
-          />
+          <div className="w-full">
+            <SectionTitle title="מבצעים בסביבה" />
+            <CategorySection 
+              items={localDeals} 
+              onItemClick={handleCategoryClick}
+            />
+          </div>
 
-          <SectionTitle title="פופולרי עכשיו" />
-          <CategorySection 
-            items={trendingItems} 
-            onItemClick={handleCategoryClick}
-          />
+          <div className="w-full">
+            <SectionTitle title="פופולרי עכשיו" />
+            <CategorySection 
+              items={trendingItems} 
+              onItemClick={handleCategoryClick}
+            />
+          </div>
         </div>
       </main>
     </div>

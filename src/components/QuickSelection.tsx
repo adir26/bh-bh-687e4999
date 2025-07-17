@@ -13,22 +13,22 @@ interface QuickSelectionProps {
 
 export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemClick }) => {
   return (
-    <div className="flex items-start gap-8 self-stretch overflow-x-auto p-4 max-md:gap-6 max-sm:gap-4 max-sm:p-3">
+    <div className="flex items-start gap-6 w-full overflow-x-auto px-4 py-2 mb-4 max-md:gap-4 max-sm:gap-3 max-sm:px-3">
       {items.map((item) => (
         <button
           key={item.id}
-          className="flex w-32 min-w-32 flex-col items-start gap-4 self-stretch pt-4 rounded-lg max-sm:w-[100px] max-sm:min-w-[100px] hover:bg-gray-50 transition-colors"
+          className="flex w-20 min-w-20 flex-col items-center gap-3 p-2 rounded-lg max-sm:w-16 max-sm:min-w-16 hover:bg-gray-50 transition-colors"
           onClick={() => onItemClick?.(item)}
         >
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center w-full">
             <img
               src={item.image}
               alt={item.title}
-              className="flex-[1_0_0] self-stretch rounded-[64px]"
+              className="w-12 h-12 rounded-full object-cover max-sm:w-10 max-sm:h-10"
             />
           </div>
-          <div className="flex flex-col items-center self-stretch">
-            <span className="self-stretch text-[#121417] text-center text-base font-semibold leading-6 max-sm:text-sm max-sm:leading-5">
+          <div className="flex flex-col items-center w-full">
+            <span className="text-[#121417] text-center text-xs font-medium leading-4 max-sm:text-[10px] max-sm:leading-3">
               {item.title}
             </span>
           </div>
