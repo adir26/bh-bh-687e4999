@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { SectionTitle } from '@/components/SectionTitle';
 import { TopBanner } from '@/components/TopBanner';
@@ -10,6 +12,8 @@ import { ProjectCard } from '@/components/ProjectCard';
 import { BottomCTA } from '@/components/BottomCTA';
 
 const HotNow = () => {
+  const navigate = useNavigate();
+
   // Category tags data
   const categories = [
     { id: 'kitchens', name: 'מטבחים' },
@@ -154,13 +158,24 @@ const HotNow = () => {
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-white">
       <main className="flex flex-col items-start w-full bg-neutral-50 pb-20">
         <div className="flex flex-col items-start w-full">
+          {/* Back Arrow Button */}
+          <div className="w-full px-4 pt-4 pb-2">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-sm border hover:bg-gray-50 transition-colors"
+              aria-label="חזרה"
+            >
+              <ArrowRight className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+          
           <Header userName="איתן" />
           
           {/* Top Banner */}
           <TopBanner 
             title="הפרויקטים המובילים באפליקציה"
             subtitle="גלו את הפרויקטים הכי חמים באפליקציה"
-            backgroundImage="/lovable-uploads/02f7db9b-c10f-4507-8aaa-26782c277e6d.png"
+            backgroundImage="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=400&fit=crop"
           />
           
           {/* Category Tag Navigation */}
