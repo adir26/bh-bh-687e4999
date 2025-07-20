@@ -341,9 +341,15 @@ const Index = () => {
               buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('kitchens')}
             />
-            <SupplierSection 
-              suppliers={kitchenSuppliers} 
-              onSupplierClick={handleSupplierClick}
+            <CategorySection 
+              items={kitchenSuppliers.map(supplier => ({
+                id: supplier.id,
+                title: supplier.name,
+                subtitle: supplier.tagline,
+                image: supplier.logo
+              }))} 
+              onItemClick={(item) => handleSupplierClick(kitchenSuppliers.find(s => s.id === item.id))}
+              fixedWidth={true}
             />
           </div>
 
@@ -361,9 +367,14 @@ const Index = () => {
               buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('furniture')}
             />
-            <SupplierSection 
-              suppliers={furnitureSuppliers} 
-              onSupplierClick={handleSupplierClick}
+            <CategorySection 
+              items={furnitureSuppliers.map(supplier => ({
+                id: supplier.id,
+                title: supplier.name,
+                subtitle: supplier.tagline,
+                image: supplier.logo
+              }))} 
+              onItemClick={(item) => handleSupplierClick(furnitureSuppliers.find(s => s.id === item.id))}
             />
           </div>
 
@@ -373,9 +384,14 @@ const Index = () => {
               buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('air-conditioning')}
             />
-            <SupplierSection 
-              suppliers={airConditioningSuppliers} 
-              onSupplierClick={handleSupplierClick}
+            <CategorySection 
+              items={airConditioningSuppliers.map(supplier => ({
+                id: supplier.id,
+                title: supplier.name,
+                subtitle: supplier.tagline,
+                image: supplier.logo
+              }))} 
+              onItemClick={(item) => handleSupplierClick(airConditioningSuppliers.find(s => s.id === item.id))}
             />
           </div>
 
@@ -385,9 +401,14 @@ const Index = () => {
               buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('renovation')}
             />
-            <SupplierSection 
-              suppliers={renovationSuppliers} 
-              onSupplierClick={handleSupplierClick}
+            <CategorySection 
+              items={renovationSuppliers.map(supplier => ({
+                id: supplier.id,
+                title: supplier.name,
+                subtitle: supplier.tagline,
+                image: supplier.logo
+              }))} 
+              onItemClick={(item) => handleSupplierClick(renovationSuppliers.find(s => s.id === item.id))}
             />
           </div>
 
