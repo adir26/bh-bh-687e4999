@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from './ui/card';
 
@@ -23,7 +24,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
       className="w-60 min-w-60 cursor-pointer hover:shadow-md transition-shadow bg-white"
       onClick={onClick}
     >
-      <CardContent className="p-0">
+      <CardContent className="p-0 flex flex-col">
         <div className="w-full h-32 overflow-hidden rounded-t-lg">
           <img 
             src={image} 
@@ -31,14 +32,14 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="p-4">
-          <h3 className="font-semibold text-sm mb-1 line-clamp-1">{name}</h3>
-          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{description}</p>
+        <div className="p-4 flex flex-col items-center gap-2 text-center">
+          <h3 className="font-semibold text-sm text-center line-clamp-1">{name}</h3>
+          <p className="text-xs text-muted-foreground text-center line-clamp-2">{description}</p>
           {location && (
-            <p className="text-xs text-primary font-medium mb-1">{location}</p>
+            <p className="text-xs text-primary font-medium text-center">{location}</p>
           )}
           {price && (
-            <p className="text-xs font-semibold text-green-600">{price}</p>
+            <p className="text-xs font-semibold text-green-600 text-center">{price}</p>
           )}
         </div>
       </CardContent>
