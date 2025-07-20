@@ -13,6 +13,8 @@ import Profile from "./pages/Profile";
 import TopSuppliers from "./pages/TopSuppliers";
 import NewSuppliers from "./pages/NewSuppliers";
 import HotNow from "./pages/HotNow";
+import SupplierProfile from "./pages/SupplierProfile";
+import CategorySuppliers from "./pages/CategorySuppliers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +35,8 @@ const App = () => (
             <Route path="/top-suppliers" element={<TopSuppliers />} />
             <Route path="/new-suppliers" element={<NewSuppliers />} />
             <Route path="/hot-now" element={<HotNow />} />
+            <Route path="/supplier/:id" element={<SupplierProfile />} />
+            <Route path="/category/:category/suppliers" element={<CategorySuppliers />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

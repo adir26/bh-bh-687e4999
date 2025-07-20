@@ -28,9 +28,22 @@ export const SupplierCard: React.FC<SupplierCardProps> = ({
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <h3 className="font-semibold text-sm text-center line-clamp-1">{name}</h3>
-          <p className="text-xs text-muted-foreground text-center line-clamp-2">{tagline}</p>
+        <div className="flex flex-col items-center gap-3 text-center flex-1">
+          <div className="flex flex-col items-center gap-1">
+            <h3 className="font-semibold text-sm text-center line-clamp-1">{name}</h3>
+            <p className="text-xs text-muted-foreground text-center line-clamp-2">{tagline}</p>
+          </div>
+          <button
+            className="flex h-8 min-w-[60px] max-w-[120px] justify-center items-center bg-[#EBEDF0] px-3 py-0 rounded-lg hover:bg-[#D1D5DB] transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick?.();
+            }}
+          >
+            <span className="text-[#121417] text-center text-xs font-bold leading-[18px]">
+              עוד
+            </span>
+          </button>
         </div>
       </CardContent>
     </Card>

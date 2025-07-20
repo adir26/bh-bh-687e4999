@@ -2,8 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { SectionTitle } from '@/components/SectionTitle';
+import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';
 import { QuickSelection } from '@/components/QuickSelection';
 import { CategorySection } from '@/components/CategorySection';
+import { SupplierSection } from '@/components/SupplierSection';
+import { getSuppliersByCategory } from '@/data/suppliers';
 
 // Import local images
 import kitchenDesignImg from '@/assets/kitchen-design.jpg';
@@ -288,6 +291,12 @@ const Index = () => {
     }
   ];
 
+  // Get suppliers for each category
+  const kitchenSuppliers = getSuppliersByCategory('kitchens');
+  const furnitureSuppliers = getSuppliersByCategory('furniture');
+  const airConditioningSuppliers = getSuppliersByCategory('air-conditioning');
+  const renovationSuppliers = getSuppliersByCategory('renovation');
+
   // Event handlers
   const handleQuickSelectionClick = (item: any) => {
     console.log('Quick selection clicked:', item);
@@ -302,6 +311,14 @@ const Index = () => {
 
   const handleCategoryClick = (item: any) => {
     console.log('Category clicked:', item);
+  };
+
+  const handleSupplierClick = (supplier: any) => {
+    navigate(`/supplier/${supplier.id}`);
+  };
+
+  const handleAllSuppliersClick = (category: string) => {
+    navigate(`/category/${category}/suppliers`);
   };
 
   return (
@@ -319,11 +336,14 @@ const Index = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="מטבחים" />
-            <CategorySection 
-              items={kitchenCategories} 
-              onItemClick={handleCategoryClick}
-              fixedWidth={true}
+            <SectionTitleWithButton 
+              title="מטבחים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('kitchens')}
+            />
+            <SupplierSection 
+              suppliers={kitchenSuppliers} 
+              onSupplierClick={handleSupplierClick}
             />
           </div>
 
@@ -336,26 +356,38 @@ const Index = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="ריהוט" />
-            <CategorySection 
-              items={furnitureItems} 
-              onItemClick={handleCategoryClick}
+            <SectionTitleWithButton 
+              title="ריהוט" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('furniture')}
+            />
+            <SupplierSection 
+              suppliers={furnitureSuppliers} 
+              onSupplierClick={handleSupplierClick}
             />
           </div>
 
           <div className="w-full">
-            <SectionTitle title="מיזוג אוויר" />
-            <CategorySection 
-              items={airConditioningItems} 
-              onItemClick={handleCategoryClick}
+            <SectionTitleWithButton 
+              title="מיזוג אוויר" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('air-conditioning')}
+            />
+            <SupplierSection 
+              suppliers={airConditioningSuppliers} 
+              onSupplierClick={handleSupplierClick}
             />
           </div>
 
           <div className="w-full">
-            <SectionTitle title="שיפוצים" />
-            <CategorySection 
-              items={renovationItems} 
-              onItemClick={handleCategoryClick}
+            <SectionTitleWithButton 
+              title="שיפוצים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('renovation')}
+            />
+            <SupplierSection 
+              suppliers={renovationSuppliers} 
+              onSupplierClick={handleSupplierClick}
             />
           </div>
 
