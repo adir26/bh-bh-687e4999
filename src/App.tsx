@@ -12,6 +12,7 @@ import Orders from "./pages/Orders";
 import Profile from "./pages/Profile";
 import TopSuppliers from "./pages/TopSuppliers";
 import NewSuppliers from "./pages/NewSuppliers";
+import HotNow from "./pages/HotNow";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/top-suppliers" element={<TopSuppliers />} />
             <Route path="/new-suppliers" element={<NewSuppliers />} />
+            <Route path="/hot-now" element={<HotNow />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

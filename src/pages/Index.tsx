@@ -296,8 +296,7 @@ const Index = () => {
     } else if (item.id === '3') { // ספקים חדשים
       navigate('/new-suppliers');
     } else if (item.id === '4') { // חם עכשיו
-      // Navigate to hot now section or page if needed
-      console.log('Hot now clicked');
+      navigate('/hot-now');
     }
   };
 
