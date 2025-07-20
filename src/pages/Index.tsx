@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { SectionTitle } from '@/components/SectionTitle';
 import { QuickSelection } from '@/components/QuickSelection';
@@ -15,6 +16,7 @@ import movingServicesImg from '@/assets/moving-services.jpg';
 import homeLoansImg from '@/assets/home-loans.jpg';
 
 const Index = () => {
+  const navigate = useNavigate();
   // Quick selection data
   const quickSelectionItems = [
     {
@@ -267,6 +269,9 @@ const Index = () => {
   // Event handlers
   const handleQuickSelectionClick = (item: any) => {
     console.log('Quick selection clicked:', item);
+    if (item.id === '5') { // המובילים בspike
+      navigate('/top-suppliers');
+    }
   };
 
   const handleCategoryClick = (item: any) => {
