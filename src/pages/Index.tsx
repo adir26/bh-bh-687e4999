@@ -36,7 +36,7 @@ const Index = () => {
     },
     {
       id: '4',
-      title: 'המומלצים שלכם',
+      title: 'חם עכשיו',
       image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=256'
     },
     {
@@ -244,23 +244,45 @@ const Index = () => {
     }
   ];
 
+  // Hot now items data - חם עכשיו
+  const hotNowItems = [
+    {
+      id: '1',
+      title: 'מוצרים חמים ביותר',
+      subtitle: 'חם עכשיו',
+      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop'
+    },
+    {
+      id: '2',
+      title: 'קטגוריות מחופשות',
+      subtitle: 'חם עכשיו',
+      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
+    },
+    {
+      id: '3',
+      title: 'ספקים פופולרים',
+      subtitle: 'חם עכשיו',
+      image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=480&h=480&fit=crop'
+    }
+  ];
+
   // Trending items data
   const trendingItems = [
     {
       id: '1',
-      title: 'מוצרים טרנדיים',
+      title: 'חמים באזור שלך',
       subtitle: 'פופולרי עכשיו',
       image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop'
     },
     {
       id: '2',
-      title: 'פריטים פופולריים',
+      title: 'מבצעים מיוחדים',
       subtitle: 'פופולרי עכשיו',
       image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
     },
     {
       id: '3',
-      title: 'מבצעים חמים',
+      title: 'המבוקשים ביותר',
       subtitle: 'פופולרי עכשיו',
       image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=480&h=480&fit=crop'
     }
@@ -273,6 +295,9 @@ const Index = () => {
       navigate('/top-suppliers');
     } else if (item.id === '3') { // ספקים חדשים
       navigate('/new-suppliers');
+    } else if (item.id === '4') { // חם עכשיו
+      // Navigate to hot now section or page if needed
+      console.log('Hot now clicked');
     }
   };
 
@@ -363,6 +388,14 @@ const Index = () => {
             <SectionTitle title="מבצעים בסביבה" />
             <CategorySection 
               items={localDeals} 
+              onItemClick={handleCategoryClick}
+            />
+          </div>
+
+          <div className="w-full">
+            <SectionTitle title="חם עכשיו" />
+            <CategorySection 
+              items={hotNowItems} 
               onItemClick={handleCategoryClick}
             />
           </div>
