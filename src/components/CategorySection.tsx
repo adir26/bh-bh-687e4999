@@ -6,6 +6,7 @@ interface CategoryItem {
   title: string;
   subtitle: string;
   image: string;
+  size?: 'small' | 'medium' | 'large';
 }
 
 interface CategorySectionProps {
@@ -29,6 +30,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
             subtitle={item.subtitle}
             image={item.image}
             onViewClick={() => onItemClick?.(item)}
+            size={item.size}
             className={fixedWidth ? "w-60 min-w-60 max-sm:w-52 max-sm:min-w-52" : ""}
           />
         ))}

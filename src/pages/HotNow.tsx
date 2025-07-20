@@ -11,19 +11,22 @@ const HotNow = () => {
       id: '1',
       title: 'מטבחים מעוצבים',
       subtitle: 'מוצרים חמים',
-      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
+      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop',
+      size: 'large' as const
     },
     {
       id: '2',
       title: 'ריהוט מודרני',
       subtitle: 'מוצרים חמים',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=480&h=480&fit=crop'
+      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=480&h=480&fit=crop',
+      size: 'medium' as const
     },
     {
       id: '3',
       title: 'מערכות מיזוג',
       subtitle: 'מוצרים חמים',
-      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=480&h=480&fit=crop'
+      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=480&h=480&fit=crop',
+      size: 'small' as const
     }
   ];
 
@@ -33,19 +36,22 @@ const HotNow = () => {
       id: '1',
       title: 'שיפוצי בתים',
       subtitle: 'קטגוריות פופולריות',
-      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=480&h=480&fit=crop'
+      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=480&h=480&fit=crop',
+      size: 'small' as const
     },
     {
       id: '2',
       title: 'עיצוב פנים',
       subtitle: 'קטגוריות פופולריות',
-      image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=480&h=480&fit=crop'
+      image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=480&h=480&fit=crop',
+      size: 'large' as const
     },
     {
       id: '3',
       title: 'יועצי משכנתאות',
       subtitle: 'קטגוריות פופולריות',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=480&h=480&fit=crop'
+      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=480&h=480&fit=crop',
+      size: 'medium' as const
     }
   ];
 
@@ -147,6 +153,24 @@ const HotNow = () => {
       <main className="flex flex-col items-start w-full bg-neutral-50 pb-20">
         <div className="flex flex-col items-start w-full">
           <Header userName="איתן" />
+          
+          {/* Hero Image */}
+          <div className="w-full relative mb-6">
+            <img 
+              src="/lovable-uploads/02f7db9b-c10f-4507-8aaa-26782c277e6d.png"
+              alt="המובילים באפליקציה"
+              className="w-full h-48 object-cover"
+            />
+            <div className="absolute inset-0 bg-black/40 flex flex-col justify-center items-center text-white">
+              <h1 className="text-2xl font-bold mb-2">המובילים באפליקציה</h1>
+              <p className="text-sm">גלו את הפרקטים הכי חמים באפליקציה</p>
+              <div className="flex mt-2">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i} className="text-yellow-400 text-lg">★</span>
+                ))}
+              </div>
+            </div>
+          </div>
           
           <div className="w-full">
             <SectionTitle title="מוצרים חמים ביותר" />

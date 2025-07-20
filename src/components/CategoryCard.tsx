@@ -6,6 +6,7 @@ interface CategoryCardProps {
   image: string;
   onViewClick?: () => void;
   className?: string;
+  size?: 'small' | 'medium' | 'large';
 }
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({ 
@@ -13,14 +14,36 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   subtitle, 
   image, 
   onViewClick,
-  className = ""
+  className = "",
+  size = "medium"
 }) => {
+  const getSizeClasses = () => {
+    switch (size) {
+      case 'small':
+        return 'min-w-48 h-48 max-md:min-w-[160px] max-sm:min-w-[140px]';
+      case 'large':
+        return 'min-w-72 h-72 max-md:min-w-[240px] max-sm:min-w-[180px]';
+      default:
+        return 'min-w-60 h-60 max-md:min-w-[200px] max-sm:min-w-[160px]';
+    }
+  };
+
+  const getImageSizeClasses = () => {
+    switch (size) {
+      case 'small':
+        return 'h-32 max-sm:h-[100px]';
+      case 'large':
+        return 'h-48 max-sm:h-[180px]';
+      default:
+        return 'h-40 max-sm:h-[150px]';
+    }
+  };
   return (
-    <article className={`flex min-w-60 flex-col items-start gap-4 flex-[1_0_0] self-stretch shadow-[0px_0px_4px_0px_rgba(0,0,0,0.10)] bg-white rounded-xl max-md:min-w-[200px] max-sm:min-w-[160px] ${className}`}>
+    <article className={`flex ${getSizeClasses()} flex-col items-start gap-4 flex-[1_0_0] self-stretch shadow-[0px_0px_4px_0px_rgba(0,0,0,0.10)] bg-white rounded-xl ${className}`}>
       <img
         src={image}
         alt={title}
-        className="h-60 shrink-0 self-stretch rounded-t-xl object-cover max-sm:h-[150px]"
+        className={`${getImageSizeClasses()} shrink-0 self-stretch rounded-t-xl object-cover`}
       />
       <div className="flex flex-col justify-between items-start flex-[1_0_0] self-stretch pt-0 pb-4 px-4">
         <div className="flex flex-col items-start self-stretch">
