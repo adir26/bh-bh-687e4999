@@ -271,6 +271,8 @@ const Index = () => {
     console.log('Quick selection clicked:', item);
     if (item.id === '5') { // המובילים בspike
       navigate('/top-suppliers');
+    } else if (item.id === '3') { // ספקים חדשים
+      navigate('/new-suppliers');
     }
   };
 
