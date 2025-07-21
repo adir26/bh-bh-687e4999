@@ -20,7 +20,8 @@ import projectPlanningImage from '@/assets/project-planning.jpg';
 const projectPlanningSchema = z.object({
   projectTypes: z.array(z.string()).min(1, 'יש לבחור לפחות סוג פרויקט אחד'),
   otherProject: z.string().optional(),
-  startDate: z.date().optional()
+  startDate: z.date().optional(),
+  endDate: z.date().optional()
 });
 
 type ProjectPlanningForm = z.infer<typeof projectPlanningSchema>;
@@ -43,7 +44,8 @@ export default function OnboardingProjectPlanning() {
     defaultValues: {
       projectTypes: [],
       otherProject: '',
-      startDate: undefined
+      startDate: undefined,
+      endDate: undefined
     }
   });
 
@@ -176,6 +178,48 @@ export default function OnboardingProjectPlanning() {
                                !field.value && "text-muted-foreground"
                              )}
                            >
+                            {field.value ? (
+                              format(field.value, "PPP", { locale: he })
+                            ) : (
+                              <span>בחרו תאריך</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+              )}
+              />
+
+              {/* End Date */}
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="text-foreground font-medium">תאריך סיום מתוכנן</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "w-full pl-3 text-left font-normal rounded-xl h-12 bg-muted/50 border-muted",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
                             {field.value ? (
                               format(field.value, "PPP", { locale: he })
                             ) : (

@@ -8,39 +8,53 @@ import interestsImage from '@/assets/interests.jpg';
 
 const interestTopics = [
   {
-    id: 'kitchen',
-    title: 'השראות למטבח',
-    description: 'רעיונות ועיצובים למטבח',
+    id: 'interior-design',
+    title: 'עיצוב פנים',
+    description: 'רעיונות ועיצובים לבית',
     icon: Utensils,
     color: 'bg-orange-100 text-orange-600'
   },
   {
-    id: 'smart-home',
-    title: 'מערכות בית חכם',
-    description: 'טכנולוגיות ופתרונות חכמים',
+    id: 'renovation',
+    title: 'שיפוץ',
+    description: 'שיפוץ ועיצוב חדר',
     icon: Zap,
     color: 'bg-blue-100 text-blue-600'
   },
   {
-    id: 'legal',
-    title: 'מסמכים משפטיים',
-    description: 'מידע משפטי וחוזים',
+    id: 'shading-solutions',
+    title: 'פתרונות הצללה/תריסים',
+    description: 'תריסים ופתרונות הצללה',
     icon: FileText,
     color: 'bg-gray-100 text-gray-600'
   },
   {
-    id: 'tips',
-    title: 'טיפים לקונים',
-    description: 'מדריכים ועצות מעשיות',
+    id: 'construction-extensions',
+    title: 'הרחבות בנייה',
+    description: 'הרחבות ובנייה חדשה',
     icon: Lightbulb,
     color: 'bg-yellow-100 text-yellow-600'
   },
   {
-    id: 'promotions',
-    title: 'מבצעים והנחות',
-    description: 'הצעות מיוחדות ומבצעים',
+    id: 'electrical-plumbing',
+    title: 'חשמל ואינסטלציה',
+    description: 'חשמל ואינסטלציה',
     icon: Tag,
     color: 'bg-green-100 text-green-600'
+  },
+  {
+    id: 'design-inspiration',
+    title: 'השראות לעיצוב',
+    description: 'רעיונות ועיצובים',
+    icon: Lightbulb,
+    color: 'bg-purple-100 text-purple-600'
+  },
+  {
+    id: 'bathroom-renovation',
+    title: 'חידוש חדרי רחצה',
+    description: 'שיפוץ וחידוש חדרי רחצה',
+    icon: Utensils,
+    color: 'bg-teal-100 text-teal-600'
   }
 ];
 
@@ -61,6 +75,7 @@ export default function OnboardingInterests() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['hebrew']);
+  const [userNotes, setUserNotes] = useState('');
 
   const toggleInterest = (interestId: string) => {
     setSelectedInterests(prev => 
@@ -90,7 +105,8 @@ export default function OnboardingInterests() {
     const interestsData = {
       interests: selectedInterests,
       contactChannels: selectedChannels,
-      languages: selectedLanguages
+      languages: selectedLanguages,
+      notes: userNotes
     };
     
     localStorage.setItem('userInterests', JSON.stringify(interestsData));
@@ -137,16 +153,16 @@ export default function OnboardingInterests() {
           {/* Title */}
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-foreground mb-2">
-              מה מעניין אותכם הכי הרבה?
+              נושאים מעניינים
             </h1>
-            <p className="text-muted-foreground">
-              בחרו נושאים שמעניינים אתכם כדי לקבל תוכן מותאם
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              בחרו את התחומים שמעניינים אתכם, כדי שנוכל להציע לכם הצעות מדויקות, תוכן רלוונטי והטבות מותאמות אישית.
             </p>
           </div>
 
           {/* Interest Topics */}
           <div className="mb-8">
-            <h3 className="font-medium text-foreground mb-4">נושאים מעניינים</h3>
+            <h3 className="font-medium text-foreground mb-4">בחרו תחומים</h3>
             <div className="grid grid-cols-2 gap-3">
               {interestTopics.map((topic) => {
                 const Icon = topic.icon;
@@ -223,6 +239,17 @@ export default function OnboardingInterests() {
                 );
               })}
             </div>
+          </div>
+
+          {/* User Notes */}
+          <div className="mb-8">
+            <h3 className="font-medium text-foreground mb-4">הערות נוספות</h3>
+            <textarea
+              value={userNotes}
+              onChange={(e) => setUserNotes(e.target.value)}
+              placeholder="ספרו לנו מה חשוב לכם, איך אנחנו יכולים לעזור לכם..."
+              className="w-full p-4 rounded-xl bg-muted/50 border border-muted text-foreground placeholder:text-muted-foreground resize-none h-24 text-sm"
+            />
           </div>
 
           {/* Finish Button */}
