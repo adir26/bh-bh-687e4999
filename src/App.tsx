@@ -17,6 +17,7 @@ import SupplierProfile from "./pages/SupplierProfile";
 import CategorySuppliers from "./pages/CategorySuppliers";
 import NotFound from "./pages/NotFound";
 import Registration from "./pages/Registration";
+import Login from "./pages/Login";
 import OnboardingWelcome from "./pages/onboarding/Welcome";
 import OnboardingHomeDetails from "./pages/onboarding/HomeDetails";
 import OnboardingProjectPlanning from "./pages/onboarding/ProjectPlanning";
@@ -35,6 +36,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/registration" element={<Registration />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/onboarding/welcome" element={<OnboardingWelcome />} />
             <Route path="/onboarding/home-details" element={<OnboardingHomeDetails />} />
             <Route path="/onboarding/project-planning" element={<OnboardingProjectPlanning />} />
