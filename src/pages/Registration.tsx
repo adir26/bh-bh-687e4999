@@ -62,8 +62,8 @@ export default function Registration() {
       {/* Header Image */}
       <div className="relative h-48 md:h-64">
         <img 
-          src="/lovable-uploads/fff68834-a175-4947-9155-edee5597a68d.png"
-          alt="Building"
+          src="/lovable-uploads/da7497f8-fdbd-4747-ae2e-cbb582d187ff.png"
+          alt="City skyline"
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/20" />
