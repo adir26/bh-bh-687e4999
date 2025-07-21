@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Package } from 'lucide-react';
+import { Package, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import OrderCard, { Order } from '@/components/orders/OrderCard';
 
@@ -81,21 +81,35 @@ const Orders = () => {
     }
   ];
 
+  const activeOrdersCount = orders.filter(o => activeOrderStatuses.includes(o.status)).length;
+
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background pb-20">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-background border-b px-4 py-4">
-        <h1 className="text-xl font-bold text-right">ההזמנות שלי</h1>
+      <div className="bg-white px-6 py-6 rounded-b-3xl shadow-sm">
+        <div className="text-right">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">ההזמנות שלי</h1>
+          {activeOrdersCount > 0 && (
+            <p className="text-gray-600 text-sm flex items-center justify-end gap-1">
+              <Heart className="w-4 h-4 text-red-400" />
+              {activeOrdersCount} פרויקטים בעבודה
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-background border-b px-4">
-        <div className="flex">
+      <div className="bg-white mx-4 mt-4 rounded-2xl shadow-sm overflow-hidden">
+        <div className="flex p-2">
           {tabs.map((tab) => (
             <Button
               key={tab.id}
               variant={activeTab === tab.id ? "default" : "ghost"}
-              className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-primary"
+              className={`flex-1 rounded-xl font-semibold transition-all duration-200 ${
+                activeTab === tab.id 
+                  ? 'bg-primary text-primary-foreground shadow-md' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
               onClick={() => setActiveTab(tab.id)}
             >
               {tab.label} ({tab.count})
@@ -107,16 +121,18 @@ const Orders = () => {
       {/* Orders List */}
       <div className="flex-1 p-4">
         {filteredOrders.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {filteredOrders.map((order) => (
               <OrderCard key={order.id} order={order} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <Package className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-muted-foreground mb-2">אין הזמנות</h3>
-            <p className="text-muted-foreground">
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">אין הזמנות</h3>
+            <p className="text-gray-500 text-lg">
               {activeTab === 'active' ? 'אין לך הזמנות פעילות כרגע' : 'אין לך הזמנות קודמות'}
             </p>
           </div>
