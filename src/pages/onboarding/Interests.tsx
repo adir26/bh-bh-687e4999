@@ -110,7 +110,7 @@ export default function OnboardingInterests() {
     };
     
     localStorage.setItem('userInterests', JSON.stringify(interestsData));
-    navigate('/'); // Navigate to main app
+    navigate('/profile'); // Navigate to profile to see summary
   };
 
   const handleBack = () => {
@@ -148,7 +148,7 @@ export default function OnboardingInterests() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 pb-6">
+      <div className="flex-1 px-6 pb-32">
         <div className="max-w-md mx-auto">
           {/* Title */}
           <div className="mb-8 text-center">
@@ -251,8 +251,12 @@ export default function OnboardingInterests() {
               className="w-full p-4 rounded-xl bg-muted/50 border border-muted text-foreground placeholder:text-muted-foreground resize-none h-24 text-sm"
             />
           </div>
+        </div>
+      </div>
 
-          {/* Finish Button */}
+      {/* Fixed Bottom Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6">
+        <div className="max-w-md mx-auto">
           <Button 
             onClick={handleFinish}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium"
