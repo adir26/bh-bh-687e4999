@@ -142,54 +142,56 @@ const OrderStatus: React.FC = () => {
       </div>
 
       {/* Timeline */}
-      <div className="flex-1 px-6 pb-6">
-        <div className="relative">
+      <div className="flex-1 px-4 pb-6">
+        <div className="relative max-w-full">
           {orderSteps.map((step, index) => {
             const Icon = step.icon;
             return (
-              <div key={step.id} className="relative">
+              <div key={step.id} className="relative mb-6 last:mb-0">
                 {/* Timeline connector */}
                 <div
                   className={`absolute right-6 top-16 w-1 h-20 rounded-full ${getConnectorStyle(step, index)}`}
                 />
                 
                 {/* Step content */}
-                <div className="flex items-start gap-5 pb-8">
+                <div className="flex items-start gap-4">
                   {/* Icon */}
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${getStepStyle(step)}`}>
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${getStepStyle(step)}`}>
                     <Icon className="w-6 h-6" />
                   </div>
                   
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-right bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-                      <h3 className={`font-bold text-lg mb-1 ${step.completed || step.current ? 'text-gray-900' : 'text-gray-500'}`}>
+                  {/* Content - Mobile optimized */}
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 w-full">
+                      <h3 className={`font-bold text-base mb-2 text-right break-words ${step.completed || step.current ? 'text-gray-900' : 'text-gray-500'}`}>
                         {step.title}
                       </h3>
-                      <p className={`text-sm mb-2 ${step.completed || step.current ? 'text-gray-600' : 'text-gray-400'}`}>
+                      <p className={`text-sm mb-2 text-right leading-relaxed break-words ${step.completed || step.current ? 'text-gray-600' : 'text-gray-400'}`}>
                         {step.description}
                       </p>
                       
                       {/* Emotional message */}
                       {(step.completed || step.current) && step.emotionalMessage && (
-                        <p className="text-sm text-primary font-medium italic mb-3">
-                          {step.emotionalMessage}
-                        </p>
+                        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-3 mb-3">
+                          <p className="text-sm text-primary font-medium text-right break-words">
+                            {step.emotionalMessage}
+                          </p>
+                        </div>
                       )}
                       
                       {step.timestamp && (
-                        <p className="text-xs text-gray-500 mb-3 flex items-center justify-end gap-1">
-                          <Clock className="w-3 h-3" />
-                          {step.timestamp}
-                        </p>
+                        <div className="flex items-center justify-end gap-1 mb-3 text-right">
+                          <span className="text-xs text-gray-500 break-words">{step.timestamp}</span>
+                          <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                        </div>
                       )}
                       
                       {/* Progress bar for current step */}
                       {step.current && step.progress && (
                         <div className="mb-4">
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-medium text-gray-600">התקדמות הפרויקט</span>
                             <span className="text-sm font-bold text-primary">{step.progress}%</span>
+                            <span className="text-sm font-medium text-gray-600">התקדמות הפרויקט</span>
                           </div>
                           <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
                             <div
@@ -197,25 +199,34 @@ const OrderStatus: React.FC = () => {
                               style={{ width: `${step.progress}%` }}
                             />
                           </div>
+                          <div className="mt-2 text-right">
+                            <span className="text-xs text-gray-500 font-medium">
+                              נותרו עוד {100 - step.progress}% להשלמה
+                            </span>
+                          </div>
                         </div>
                       )}
                       
                       {/* Attachment button */}
                       {step.hasAttachment && (
-                        <Button variant="outline" size="sm" className="mb-2 rounded-xl font-medium">
-                          <FileText className="w-4 h-4 ml-1" />
-                          {step.attachmentText}
-                        </Button>
+                        <div className="text-right mb-2">
+                          <Button variant="outline" size="sm" className="rounded-xl font-medium text-sm">
+                            <FileText className="w-4 h-4 ml-1 flex-shrink-0" />
+                            <span className="break-words">{step.attachmentText}</span>
+                          </Button>
+                        </div>
                       )}
                       
                       {/* Track button for on_the_way status */}
                       {step.id === 'on_the_way' && step.current && (
-                        <Button 
-                          className="rounded-xl font-semibold shadow-md"
-                          onClick={() => navigate(`/orders/${orderId}/tracking`)}
-                        >
-                          מעקב בזמן אמת
-                        </Button>
+                        <div className="text-right">
+                          <Button 
+                            className="rounded-xl font-semibold shadow-md text-sm"
+                            onClick={() => navigate(`/orders/${orderId}/tracking`)}
+                          >
+                            מעקב בזמן אמת
+                          </Button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -227,15 +238,15 @@ const OrderStatus: React.FC = () => {
       </div>
 
       {/* Bottom Actions */}
-      <div className="px-6 pb-6 bg-white rounded-t-3xl shadow-lg">
-        <div className="pt-4">
+      <div className="px-4 pb-6 bg-white">
+        <div className="pt-4 border-t border-gray-100">
           <Button 
             variant="outline" 
             size="lg" 
-            className="w-full mb-3 rounded-xl font-semibold border-2"
+            className="w-full rounded-xl font-semibold border-2 h-12"
           >
-            <Share2 className="w-5 h-5 ml-2" />
-            שתף סטטוס עם המשפחה
+            <Share2 className="w-5 h-5 ml-2 flex-shrink-0" />
+            <span className="break-words">שתף סטטוס עם המשפחה</span>
           </Button>
         </div>
       </div>

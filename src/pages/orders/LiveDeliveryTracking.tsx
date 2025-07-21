@@ -61,62 +61,92 @@ const LiveDeliveryTracking: React.FC = () => {
       </div>
 
       {/* Map Container */}
-      <div className="relative flex-1 bg-blue-50">
-        {/* Enhanced mock map background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-100">
-          {/* Map placeholder with enhanced route visualization */}
-          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm">
+      <div className="relative flex-1 bg-gray-100">
+        {/* Real-style map background */}
+        <div className="absolute inset-0 bg-gray-200">
+          {/* Map with street-like pattern */}
+          <div className="absolute inset-0 bg-white">
             <div className="w-full h-full relative overflow-hidden">
-              {/* Map grid pattern */}
-              <div className="absolute inset-0 opacity-10">
-                <div className="w-full h-full" style={{
-                  backgroundImage: 'linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px)',
-                  backgroundSize: '20px 20px'
-                }}></div>
+              {/* Street grid pattern */}
+              <div className="absolute inset-0">
+                {/* Horizontal streets */}
+                <div className="absolute top-1/4 left-0 w-full h-1 bg-gray-300"></div>
+                <div className="absolute top-2/4 left-0 w-full h-1.5 bg-gray-400"></div>
+                <div className="absolute top-3/4 left-0 w-full h-1 bg-gray-300"></div>
+                
+                {/* Vertical streets */}
+                <div className="absolute left-1/4 top-0 w-1 h-full bg-gray-300"></div>
+                <div className="absolute left-2/4 top-0 w-1.5 h-full bg-gray-400"></div>
+                <div className="absolute left-3/4 top-0 w-1 h-full bg-gray-300"></div>
+                
+                {/* Building blocks */}
+                <div className="absolute top-[10%] left-[10%] w-[15%] h-[15%] bg-gray-100 rounded-sm"></div>
+                <div className="absolute top-[30%] left-[60%] w-[20%] h-[20%] bg-gray-100 rounded-sm"></div>
+                <div className="absolute top-[60%] left-[20%] w-[25%] h-[15%] bg-gray-100 rounded-sm"></div>
+                <div className="absolute top-[15%] left-[75%] w-[15%] h-[25%] bg-gray-100 rounded-sm"></div>
+                <div className="absolute top-[65%] left-[65%] w-[20%] h-[20%] bg-gray-100 rounded-sm"></div>
               </div>
               
-              {/* Delivery truck with animation */}
-              <div className="absolute top-1/4 right-1/4 transform animate-pulse">
-                <div className="relative">
-                  <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Package className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="absolute -inset-2 bg-indigo-400 rounded-full opacity-30 animate-ping"></div>
-                </div>
-              </div>
-              
-              {/* Route line with animation */}
+              {/* Route path - red like in the reference */}
               <svg className="absolute inset-0 w-full h-full">
                 <defs>
-                  <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor:'#6366f1', stopOpacity:1}} />
-                    <stop offset="100%" style={{stopColor:'#3b82f6', stopOpacity:0.7}} />
-                  </linearGradient>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge> 
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
                 </defs>
                 <path
-                  d="M 80 60 Q 120 80 160 120 T 240 180 Q 280 200 320 240"
-                  stroke="url(#routeGradient)"
+                  d="M 60 320 L 120 320 L 120 240 L 200 240 L 200 160 L 280 160 L 280 80"
+                  stroke="#EF4444"
                   strokeWidth="4"
-                  strokeDasharray="8,4"
                   fill="none"
-                  className="animate-pulse"
+                  filter="url(#glow)"
+                  className="drop-shadow-md"
                 />
               </svg>
               
-              {/* Destination marker with glow */}
-              <div className="absolute bottom-1/4 left-1/3 transform">
+              {/* Delivery truck - red like in reference */}
+              <div className="absolute" style={{ top: '45%', left: '35%' }}>
                 <div className="relative">
-                  <MapPin className="w-8 h-8 text-red-500 drop-shadow-lg" />
-                  <div className="absolute -inset-1 bg-red-400 rounded-full opacity-20 animate-ping"></div>
+                  {/* Red circle background like in reference */}
+                  <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
+                    {/* Truck icon */}
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
+                      <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M15 18H9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="17" cy="18" r="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="7" cy="18" r="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  {/* Animated pulse */}
+                  <div className="absolute -inset-2 bg-red-400 rounded-full opacity-30 animate-ping"></div>
                 </div>
               </div>
               
-              {/* Distance indicator with enhanced styling */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <div className="bg-white rounded-2xl px-4 py-2 shadow-lg border border-indigo-100">
+              {/* Destination marker - red pin */}
+              <div className="absolute" style={{ top: '15%', left: '70%' }}>
+                <div className="relative">
+                  <MapPin className="w-8 h-8 text-red-500 drop-shadow-lg" />
+                  <div className="absolute -inset-1 bg-red-400 rounded-full opacity-20 animate-pulse"></div>
+                </div>
+              </div>
+              
+              {/* Start point marker */}
+              <div className="absolute" style={{ top: '75%', left: '15%' }}>
+                <div className="w-3 h-3 bg-red-500 rounded-full shadow-md"></div>
+              </div>
+              
+              {/* Distance and route info */}
+              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+                <div className="bg-white rounded-2xl px-4 py-2 shadow-lg border border-gray-200">
                   <div className="flex items-center gap-2">
-                    <Navigation className="w-4 h-4 text-indigo-600" />
-                    <span className="text-sm font-bold text-indigo-700">1.2 ק"מ</span>
+                    <Navigation className="w-4 h-4 text-red-500" />
+                    <span className="text-sm font-bold text-gray-800">1.2 ק"מ</span>
+                    <span className="text-xs text-gray-500">• 3 דקות</span>
                   </div>
                 </div>
               </div>
