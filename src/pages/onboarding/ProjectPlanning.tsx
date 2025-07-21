@@ -14,6 +14,8 @@ import { ArrowRight, ChevronRight, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import OnboardingProgress from '@/components/OnboardingProgress';
+import projectPlanningImage from '@/assets/project-planning.jpg';
 
 const projectPlanningSchema = z.object({
   projectTypes: z.array(z.string()).min(1, 'יש לבחור לפחות סוג פרויקט אחד'),
@@ -66,32 +68,44 @@ export default function OnboardingProjectPlanning() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-background flex flex-col" dir="rtl">
       {/* Header */}
-      <div className="p-4 flex justify-between items-center border-b">
+      <div className="p-4 flex justify-between items-center border-b border-border">
         <div className="flex items-center space-x-2">
-          <button onClick={handleBack} className="p-2">
+          <button onClick={handleBack} className="p-2 hover:bg-muted rounded-lg transition-colors">
             <ChevronRight className="w-5 h-5" />
           </button>
-          <div className="text-sm text-gray-500">שלב 3</div>
         </div>
         <button 
           onClick={() => navigate('/')}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-muted-foreground hover:text-foreground text-xl font-light w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
         >
           ×
         </button>
       </div>
 
+      {/* Progress Indicator */}
+      <OnboardingProgress currentStep={3} totalSteps={5} />
+
+      {/* Planning Image */}
+      <div className="relative h-48 mx-6 mb-6 rounded-2xl overflow-hidden">
+        <img 
+          src={projectPlanningImage}
+          alt="תכנון פרויקט"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      </div>
+
       {/* Content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 px-6 pb-6">
         <div className="max-w-md mx-auto">
           {/* Title */}
           <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               מה אתם מתכננים לעשות?
             </h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               מה אתם מתכננים לעשות בדירה?
             </p>
           </div>
@@ -104,9 +118,9 @@ export default function OnboardingProjectPlanning() {
                 control={form.control}
                 name="projectTypes"
                 render={() => (
-                  <FormItem>
-                    <FormLabel className="text-base font-medium">סוגי פרויקטים</FormLabel>
-                    <div className="space-y-3">
+                   <FormItem>
+                     <FormLabel className="text-base font-medium text-foreground">סוגי פרויקטים</FormLabel>
+                     <div className="space-y-3">
                       {projectOptions.map((option) => (
                         <div key={option.id} className="flex items-center space-x-3">
                           <Checkbox
@@ -134,13 +148,13 @@ export default function OnboardingProjectPlanning() {
                   control={form.control}
                   name="otherProject"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>תאר את הפרויקט</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="הכניסו תיאור של הפרויקט" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                   <FormItem>
+                     <FormLabel className="text-foreground font-medium">תאר את הפרויקט</FormLabel>
+                     <FormControl>
+                       <Input {...field} placeholder="הכניסו תיאור של הפרויקט" className="rounded-xl h-12 bg-muted/50 border-muted" />
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
                   )}
                 />
               )}
@@ -149,19 +163,19 @@ export default function OnboardingProjectPlanning() {
               <FormField
                 control={form.control}
                 name="startDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>תאריך התחלה מתוכנן</FormLabel>
+                 render={({ field }) => (
+                   <FormItem className="flex flex-col">
+                     <FormLabel className="text-foreground font-medium">תאריך התחלה מתוכנן</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
+                         <FormControl>
+                           <Button
+                             variant="outline"
+                             className={cn(
+                               "w-full pl-3 text-left font-normal rounded-xl h-12 bg-muted/50 border-muted",
+                               !field.value && "text-muted-foreground"
+                             )}
+                           >
                             {field.value ? (
                               format(field.value, "PPP", { locale: he })
                             ) : (
@@ -190,24 +204,13 @@ export default function OnboardingProjectPlanning() {
               {/* Submit Button */}
               <Button 
                 type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium"
               >
                 המשך
                 <ArrowRight className="w-5 h-5 mr-2" />
               </Button>
             </form>
           </Form>
-        </div>
-      </div>
-
-      {/* Progress Dots */}
-      <div className="flex justify-center pb-6">
-        <div className="flex space-x-2">
-          <div className="w-2 h-2 bg-blue-600 rounded-full" />
-          <div className="w-2 h-2 bg-blue-600 rounded-full" />
-          <div className="w-2 h-2 bg-blue-600 rounded-full" />
-          <div className="w-2 h-2 bg-gray-300 rounded-full" />
-          <div className="w-2 h-2 bg-gray-300 rounded-full" />
         </div>
       </div>
     </div>

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, ChevronRight, Upload, File, X } from 'lucide-react';
+import OnboardingProgress from '@/components/OnboardingProgress';
+import documentsImage from '@/assets/documents.jpg';
 
 interface UploadedFile {
   id: string;
@@ -90,32 +92,44 @@ export default function OnboardingDocuments() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-background flex flex-col" dir="rtl">
       {/* Header */}
-      <div className="p-4 flex justify-between items-center border-b">
+      <div className="p-4 flex justify-between items-center border-b border-border">
         <div className="flex items-center space-x-2">
-          <button onClick={handleBack} className="p-2">
+          <button onClick={handleBack} className="p-2 hover:bg-muted rounded-lg transition-colors">
             <ChevronRight className="w-5 h-5" />
           </button>
-          <div className="text-sm text-gray-500">שלב 4</div>
         </div>
         <button 
           onClick={() => navigate('/')}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-muted-foreground hover:text-foreground text-xl font-light w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
         >
           ×
         </button>
       </div>
 
+      {/* Progress Indicator */}
+      <OnboardingProgress currentStep={4} totalSteps={5} />
+
+      {/* Documents Image */}
+      <div className="relative h-48 mx-6 mb-6 rounded-2xl overflow-hidden">
+        <img 
+          src={documentsImage}
+          alt="ניהול מסמכים דיגיטלי"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      </div>
+
       {/* Content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 px-6 pb-6">
         <div className="max-w-md mx-auto">
           {/* Title */}
           <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               התיקייה הדיגיטלית של הדירה
             </h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               כאן תוכלו לשמור מסמכים חשובים הקשורים לפרויקט
             </p>
           </div>
@@ -127,13 +141,13 @@ export default function OnboardingDocuments() {
               const files = uploadedFiles[category.id] || [];
               
               return (
-                <Card key={category.id} className="border-2 border-dashed border-gray-200 hover:border-blue-300 transition-colors">
+                <Card key={category.id} className="border-2 border-dashed border-border hover:border-primary/50 transition-colors rounded-xl">
                   <CardContent className="p-4">
-                    <div className="flex items-start space-x-3">
-                      <Icon className="w-6 h-6 text-gray-400 mt-1" />
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{category.title}</h3>
-                        <p className="text-sm text-gray-500 mb-3">{category.description}</p>
+                     <div className="flex items-start space-x-3">
+                       <Icon className="w-6 h-6 text-muted-foreground mt-1" />
+                       <div className="flex-1">
+                         <h3 className="font-medium text-foreground">{category.title}</h3>
+                         <p className="text-sm text-muted-foreground mb-3">{category.description}</p>
                         
                         {/* Upload Button */}
                         <label className="cursor-pointer">
@@ -143,27 +157,27 @@ export default function OnboardingDocuments() {
                             accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                             onChange={(e) => handleFileUpload(category.id, e)}
                             className="hidden"
-                          />
-                          <div className="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
-                            <Upload className="w-4 h-4" />
-                            <span className="text-sm">העלו קובץ</span>
-                          </div>
+                           />
+                           <div className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors">
+                             <Upload className="w-4 h-4" />
+                             <span className="text-sm">העלו קובץ</span>
+                           </div>
                         </label>
 
                         {/* Uploaded Files */}
                         {files.length > 0 && (
-                          <div className="mt-3 space-y-2">
-                            {files.map((file) => (
-                              <div key={file.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                <div className="flex-1">
-                                  <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                                  <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
-                                </div>
-                                <button
-                                  onClick={() => removeFile(category.id, file.id)}
-                                  className="text-gray-400 hover:text-red-500"
-                                >
-                                  <X className="w-4 h-4" />
+                           <div className="mt-3 space-y-2">
+                             {files.map((file) => (
+                               <div key={file.id} className="flex items-center justify-between bg-muted/50 p-2 rounded-lg">
+                                 <div className="flex-1">
+                                   <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
+                                   <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+                                 </div>
+                                 <button
+                                   onClick={() => removeFile(category.id, file.id)}
+                                   className="text-muted-foreground hover:text-destructive transition-colors"
+                                 >
+                                   <X className="w-4 h-4" />
                                 </button>
                               </div>
                             ))}
@@ -181,7 +195,7 @@ export default function OnboardingDocuments() {
           <div className="mt-8 space-y-3">
             <Button 
               onClick={handleNext}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium"
             >
               המשך
               <ArrowRight className="w-5 h-5 mr-2" />
@@ -190,22 +204,11 @@ export default function OnboardingDocuments() {
             <Button 
               variant="ghost" 
               onClick={handleNext}
-              className="w-full text-gray-600"
+              className="w-full text-muted-foreground hover:text-foreground"
             >
               דלג לשלב הבא
             </Button>
           </div>
-        </div>
-      </div>
-
-      {/* Progress Dots */}
-      <div className="flex justify-center pb-6">
-        <div className="flex space-x-2">
-          <div className="w-2 h-2 bg-blue-600 rounded-full" />
-          <div className="w-2 h-2 bg-blue-600 rounded-full" />
-          <div className="w-2 h-2 bg-blue-600 rounded-full" />
-          <div className="w-2 h-2 bg-blue-600 rounded-full" />
-          <div className="w-2 h-2 bg-gray-300 rounded-full" />
         </div>
       </div>
     </div>
