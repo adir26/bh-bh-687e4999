@@ -12,6 +12,13 @@ export interface Supplier {
   description: string;
   services: string[];
   gallery: string[];
+  products: {
+    id: string;
+    name: string;
+    price: number;
+    image: string;
+    description?: string;
+  }[];
   reviews: {
     id: string;
     customerName: string;
@@ -39,6 +46,29 @@ export const suppliers: Supplier[] = [
       'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
       'https://images.unsplash.com/photo-1556909109-4096c61c0a45?w=400&h=300&fit=crop'
     ],
+    products: [
+      {
+        id: '1',
+        name: 'מטבח מודרני קלאסיק',
+        price: 25000,
+        image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
+        description: 'מטבח יוקרתי עם גימור עליון'
+      },
+      {
+        id: '2',
+        name: 'מטבח מינימליסטי',
+        price: 18000,
+        image: 'https://images.unsplash.com/photo-1556909109-4096c61c0a45?w=400&h=300&fit=crop',
+        description: 'עיצוב נקי ופונקציונלי'
+      },
+      {
+        id: '3',
+        name: 'מטבח כפרי',
+        price: 22000,
+        image: 'https://images.unsplash.com/photo-1556909106-f06c0620e19c?w=400&h=300&fit=crop',
+        description: 'סטייל כפרי חם ומזמין'
+      }
+    ],
     reviews: [
       {
         id: '1',
@@ -53,6 +83,13 @@ export const suppliers: Supplier[] = [
         rating: 4,
         comment: 'שירות מעולה ואיכות עבודה גבוהה. ממליץ בחום!',
         date: '2024-01-10'
+      },
+      {
+        id: '3',
+        customerName: 'רונן דוד',
+        rating: 5,
+        comment: 'הכי מרוצה מהמטבח החדש! עבודה מעולה ושירות אדיב.',
+        date: '2024-01-08'
       }
     ]
   },
@@ -72,6 +109,22 @@ export const suppliers: Supplier[] = [
       'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
       'https://images.unsplash.com/photo-1556909109-4096c61c0a45?w=400&h=300&fit=crop'
     ],
+    products: [
+      {
+        id: '1',
+        name: 'מטבח חכם',
+        price: 20000,
+        image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
+        description: 'מטבח עם טכנולוגיה חכמה'
+      },
+      {
+        id: '2',
+        name: 'מטבח קומפקטי',
+        price: 15000,
+        image: 'https://images.unsplash.com/photo-1556909109-4096c61c0a45?w=400&h=300&fit=crop',
+        description: 'פתרון מושלם לדירות קטנות'
+      }
+    ],
     reviews: [
       {
         id: '1',
@@ -79,6 +132,13 @@ export const suppliers: Supplier[] = [
         rating: 5,
         comment: 'מטבח מושלם! תודה על השירות המדהים.',
         date: '2024-01-12'
+      },
+      {
+        id: '2',
+        customerName: 'דני כהן',
+        rating: 4,
+        comment: 'שירות מהיר ומקצועי. המטבח נראה נהדר!',
+        date: '2024-01-05'
       }
     ]
   },
@@ -96,6 +156,15 @@ export const suppliers: Supplier[] = [
     services: ['מטבחים יוקרתיים', 'עיצוב אישי', 'התקנה מקצועית'],
     gallery: [
       'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop'
+    ],
+    products: [
+      {
+        id: '1',
+        name: 'מטבח יוקרה פרימיום',
+        price: 35000,
+        image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
+        description: 'מטבח יוקרתי ברמה הגבוהה ביותר'
+      }
     ],
     reviews: []
   },
@@ -116,7 +185,45 @@ export const suppliers: Supplier[] = [
     gallery: [
       'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop'
     ],
-    reviews: []
+    products: [
+      {
+        id: '1',
+        name: 'ספה מודרנית',
+        price: 4500,
+        image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop',
+        description: 'ספה נוחה ומעוצבת'
+      },
+      {
+        id: '2',
+        name: 'שולחן עבודה',
+        price: 2200,
+        image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=300&fit=crop',
+        description: 'שולחן עבודה ארגונומי'
+      }
+    ],
+    reviews: [
+      {
+        id: '1',
+        customerName: 'שרה לוי',
+        rating: 5,
+        comment: 'הריהוט מדהים! איכות עליונה ועיצוב מושלם.',
+        date: '2024-01-14'
+      },
+      {
+        id: '2',
+        customerName: 'יוסי אברהם',
+        rating: 4,
+        comment: 'שירות מעולה והתקנה מקצועית.',
+        date: '2024-01-11'
+      },
+      {
+        id: '3',
+        customerName: 'נטע כהן',
+        rating: 5,
+        comment: 'ממליצה בחום! הרהיטים הפכו את הבית שלנו.',
+        date: '2024-01-09'
+      }
+    ]
   },
   {
     id: 'classic-furniture',
@@ -131,6 +238,15 @@ export const suppliers: Supplier[] = [
     description: 'רהיטים קלאסיים ואיכותיים לבית. מגוון רחב של רהיטי עץ מלא ועיצובים קלאסיים.',
     services: ['רהיטי עץ מלא', 'עיצוב קלאסי', 'שחזור רהיטים'],
     gallery: [],
+    products: [
+      {
+        id: '1',
+        name: 'ארון עץ מלא',
+        price: 3800,
+        image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=300&fit=crop',
+        description: 'ארון עץ מלא בסגנון קלאסי'
+      }
+    ],
     reviews: []
   },
 
@@ -148,6 +264,15 @@ export const suppliers: Supplier[] = [
     description: 'התקנה ותחזוקה של מערכות מיזוג אוויר. שירות זמין 24/7 ואחריות מלאה.',
     services: ['התקנת מיזוג', 'תחזוקת מיזוג', 'שירות 24/7'],
     gallery: [],
+    products: [
+      {
+        id: '1',
+        name: 'מזגן אינוורטר',
+        price: 2800,
+        image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=400&h=300&fit=crop',
+        description: 'מזגן חסכוני ושקט'
+      }
+    ],
     reviews: []
   },
 
@@ -165,6 +290,15 @@ export const suppliers: Supplier[] = [
     description: 'קבלן שיפוצים מקצועי עם ניסיון רב בשיפוצי דירות ובתים פרטיים.',
     services: ['שיפוצי דירות', 'שיפוצי בתים', 'עבודות גמר'],
     gallery: [],
+    products: [
+      {
+        id: '1',
+        name: 'חבילת שיפוץ מלאה',
+        price: 45000,
+        image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=400&h=300&fit=crop',
+        description: 'שיפוץ מלא לדירת 3 חדרים'
+      }
+    ],
     reviews: []
   }
 ];

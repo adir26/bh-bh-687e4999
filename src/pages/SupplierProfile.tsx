@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Star, Phone, MessageCircle, Heart, Share2 } from 'lucide-react';
+import { ArrowRight, Star, Phone, MessageCircle, Heart, Share2, ShoppingBag, Eye } from 'lucide-react';
 import { getSupplierById } from '@/data/suppliers';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -97,6 +97,47 @@ const SupplierProfile = () => {
           </p>
         </div>
 
+        {/* Products */}
+        {supplier.products.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold">המוצרים שלנו</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-blue-600 hover:text-blue-700"
+                onClick={() => {/* TODO: Navigate to full products list */}}
+              >
+                <Eye className="w-4 h-4 ml-1" />
+                צפה בכל המוצרים
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {supplier.products.slice(0, 4).map((product) => (
+                <Card key={product.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                  <CardContent className="p-0">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-24 object-cover rounded-t-lg"
+                    />
+                    <div className="p-3">
+                      <h4 className="font-medium text-sm mb-1 line-clamp-2">{product.name}</h4>
+                      <p className="text-xs text-[#617385] mb-2">{product.description}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-semibold text-green-600">
+                          ₪{product.price.toLocaleString()}
+                        </span>
+                        <ShoppingBag className="w-4 h-4 text-[#617385]" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Services */}
         {supplier.services.length > 0 && (
           <div className="mb-6">
@@ -131,8 +172,21 @@ const SupplierProfile = () => {
         {/* Reviews */}
         {supplier.reviews.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3">ביקורות לקוחות</h3>
-            {supplier.reviews.map((review) => (
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold">ביקורות לקוחות</h3>
+              {supplier.reviews.length > 3 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-blue-600 hover:text-blue-700"
+                  onClick={() => {/* TODO: Navigate to all reviews */}}
+                >
+                  <Eye className="w-4 h-4 ml-1" />
+                  צפה בכל הביקורות
+                </Button>
+              )}
+            </div>
+            {supplier.reviews.slice(0, 3).map((review) => (
               <Card key={review.id} className="mb-3">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -146,6 +200,13 @@ const SupplierProfile = () => {
                 </CardContent>
               </Card>
             ))}
+            {supplier.reviews.length > 3 && (
+              <div className="text-center pt-2">
+                <span className="text-xs text-[#617385]">
+                  ועוד {supplier.reviews.length - 3} ביקורות נוספות
+                </span>
+              </div>
+            )}
           </div>
         )}
 
