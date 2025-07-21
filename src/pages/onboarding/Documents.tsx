@@ -122,7 +122,7 @@ export default function OnboardingDocuments() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 pb-6">
+      <div className="flex-1 px-6 pb-32">
         <div className="max-w-md mx-auto">
           {/* Title */}
           <div className="mb-8 text-center">
@@ -190,25 +190,27 @@ export default function OnboardingDocuments() {
               );
             })}
           </div>
+        </div>
+      </div>
 
-          {/* Skip/Next Button */}
-          <div className="mt-8 space-y-3">
-            <Button 
-              onClick={handleNext}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium"
-            >
-              המשך
-              <ArrowRight className="w-5 h-5 mr-2" />
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              onClick={handleNext}
-              className="w-full text-muted-foreground hover:text-foreground"
-            >
-              דלג לשלב הבא
-            </Button>
-          </div>
+      {/* Fixed Bottom Buttons */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 z-50">
+        <div className="max-w-md mx-auto space-y-3">
+          <Button 
+            onClick={handleNext}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium"
+          >
+            המשך
+            <ArrowRight className="w-5 h-5 mr-2" />
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            onClick={handleNext}
+            className="w-full text-muted-foreground hover:text-foreground"
+          >
+            דלג לשלב הבא
+          </Button>
         </div>
       </div>
     </div>
