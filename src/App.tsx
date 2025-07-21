@@ -23,6 +23,8 @@ import OnboardingHomeDetails from "./pages/onboarding/HomeDetails";
 import OnboardingProjectPlanning from "./pages/onboarding/ProjectPlanning";
 import OnboardingDocuments from "./pages/onboarding/Documents";
 import OnboardingInterests from "./pages/onboarding/Interests";
+import OrderStatus from "./pages/orders/OrderStatus";
+import LiveDeliveryTracking from "./pages/orders/LiveDeliveryTracking";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +47,8 @@ const App = () => (
             <Route path="/search" element={<Search />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/orders" element={<Orders />} />
+            <Route path="/orders/:orderId/status" element={<OrderStatus />} />
+            <Route path="/orders/:orderId/tracking" element={<LiveDeliveryTracking />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/top-suppliers" element={<TopSuppliers />} />
             <Route path="/new-suppliers" element={<NewSuppliers />} />
