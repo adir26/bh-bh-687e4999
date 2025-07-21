@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Star, Phone, MessageCircle, Heart, Share2, ShoppingBag, Eye } from 'lucide-react';
+import { ArrowRight, Star, Phone, MessageCircle, Heart, Share2, ShoppingBag, Eye, Calendar, Bookmark } from 'lucide-react';
 import { getSupplierById } from '@/data/suppliers';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -211,15 +211,34 @@ const SupplierProfile = () => {
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-2 pt-4 border-t">
-          <Button variant="outline" size="sm" className="flex-1">
-            <Heart className="w-4 h-4 ml-2" />
-            שמור ברשימה
-          </Button>
-          <Button variant="outline" size="sm" className="flex-1">
-            <Share2 className="w-4 h-4 ml-2" />
-            שתף
-          </Button>
+        <div className="space-y-3 pt-4 border-t">
+          <div className="flex gap-3">
+            <Button 
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+              onClick={() => {/* TODO: Schedule meeting functionality */}}
+            >
+              <Calendar className="w-4 h-4 ml-2" />
+              קביעת פגישה
+            </Button>
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => {/* TODO: Save to favorites functionality */}}
+            >
+              <Bookmark className="w-4 h-4 ml-2" />
+              שמור ספק
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="flex-1">
+              <Heart className="w-4 h-4 ml-2" />
+              שמור ברשימה
+            </Button>
+            <Button variant="outline" size="sm" className="flex-1">
+              <Share2 className="w-4 h-4 ml-2" />
+              שתף
+            </Button>
+          </div>
         </div>
       </div>
     </div>
