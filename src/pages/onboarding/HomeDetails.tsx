@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ArrowRight, ChevronRight } from 'lucide-react';
+import OnboardingProgress from '@/components/OnboardingProgress';
+import luxuryBuilding from '@/assets/luxury-building.jpg';
 
 const homeDetailsSchema = z.object({
   fullName: z.string().min(2, 'שם מלא חייב להכיל לפחות 2 תווים'),
@@ -45,32 +47,44 @@ export default function OnboardingHomeDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-background flex flex-col" dir="rtl">
       {/* Header */}
-      <div className="p-4 flex justify-between items-center border-b">
+      <div className="p-4 flex justify-between items-center border-b border-border">
         <div className="flex items-center space-x-2">
-          <button onClick={handleBack} className="p-2">
+          <button onClick={handleBack} className="p-2 hover:bg-muted rounded-lg transition-colors">
             <ChevronRight className="w-5 h-5" />
           </button>
-          <div className="text-sm text-gray-500">שלב 2</div>
         </div>
         <button 
           onClick={() => navigate('/')}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-muted-foreground hover:text-foreground text-xl font-light w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
         >
           ×
         </button>
       </div>
 
+      {/* Progress Indicator */}
+      <OnboardingProgress currentStep={2} totalSteps={5} />
+
+      {/* Building Image */}
+      <div className="relative h-48 mx-6 mb-6 rounded-2xl overflow-hidden">
+        <img 
+          src={luxuryBuilding}
+          alt="בניין יוקרתי"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+      </div>
+
       {/* Content */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 px-6 pb-6">
         <div className="max-w-md mx-auto">
           {/* Title */}
           <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-foreground mb-2">
               ספרו לנו על הבית שלכם
             </h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               נצטרך כמה פרטים בסיסיים על הנכס
             </p>
           </div>
@@ -83,13 +97,13 @@ export default function OnboardingHomeDetails() {
                 control={form.control}
                 name="fullName"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>שם מלא</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="הכניסו את השם המלא שלכם" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                   <FormItem>
+                     <FormLabel className="text-foreground font-medium">שם מלא</FormLabel>
+                     <FormControl>
+                       <Input {...field} placeholder="הכניסו את השם המלא שלכם" className="rounded-xl h-12 bg-muted/50 border-muted" />
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
                 )}
               />
 
@@ -98,13 +112,13 @@ export default function OnboardingHomeDetails() {
                 control={form.control}
                 name="apartmentSize"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>גודל הדירה (במ"ר)</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="למשל: 90" type="number" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                   <FormItem>
+                     <FormLabel className="text-foreground font-medium">גודל הדירה (במ"ר)</FormLabel>
+                     <FormControl>
+                       <Input {...field} placeholder="למשל: 90" type="number" className="rounded-xl h-12 bg-muted/50 border-muted" />
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
                 )}
               />
 
@@ -113,13 +127,13 @@ export default function OnboardingHomeDetails() {
                 control={form.control}
                 name="floorNumber"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>קומה</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="למשל: 3" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                   <FormItem>
+                     <FormLabel className="text-foreground font-medium">קומה</FormLabel>
+                     <FormControl>
+                       <Input {...field} placeholder="למשל: 3" className="rounded-xl h-12 bg-muted/50 border-muted" />
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
                 )}
               />
 
@@ -128,13 +142,13 @@ export default function OnboardingHomeDetails() {
                 control={form.control}
                 name="numberOfRooms"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>מספר חדרים</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="למשל: 4" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                   <FormItem>
+                     <FormLabel className="text-foreground font-medium">מספר חדרים</FormLabel>
+                     <FormControl>
+                       <Input {...field} placeholder="למשל: 4" className="rounded-xl h-12 bg-muted/50 border-muted" />
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
                 )}
               />
 
@@ -143,13 +157,13 @@ export default function OnboardingHomeDetails() {
                 control={form.control}
                 name="streetAndBuilding"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>רחוב ומספר בית</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="למשל: רחוב הרצל 25" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                   <FormItem>
+                     <FormLabel className="text-foreground font-medium">רחוב ומספר בית</FormLabel>
+                     <FormControl>
+                       <Input {...field} placeholder="למשל: רחוב הרצל 25" className="rounded-xl h-12 bg-muted/50 border-muted" />
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
                 )}
               />
 
@@ -158,37 +172,26 @@ export default function OnboardingHomeDetails() {
                 control={form.control}
                 name="apartmentNumber"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>מספר דירה (אופציונלי)</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="למשל: 12" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                   <FormItem>
+                     <FormLabel className="text-foreground font-medium">מספר דירה (אופציונלי)</FormLabel>
+                     <FormControl>
+                       <Input {...field} placeholder="למשל: 12" className="rounded-xl h-12 bg-muted/50 border-muted" />
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
                 )}
               />
 
               {/* Submit Button */}
               <Button 
                 type="submit" 
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium"
               >
                 המשך
                 <ArrowRight className="w-5 h-5 mr-2" />
               </Button>
             </form>
           </Form>
-        </div>
-      </div>
-
-      {/* Progress Dots */}
-      <div className="flex justify-center pb-6">
-        <div className="flex space-x-2">
-          <div className="w-2 h-2 bg-blue-600 rounded-full" />
-          <div className="w-2 h-2 bg-blue-600 rounded-full" />
-          <div className="w-2 h-2 bg-gray-300 rounded-full" />
-          <div className="w-2 h-2 bg-gray-300 rounded-full" />
-          <div className="w-2 h-2 bg-gray-300 rounded-full" />
         </div>
       </div>
     </div>
