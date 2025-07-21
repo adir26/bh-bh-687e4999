@@ -1,18 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { User, Settings, Bell, CreditCard, HelpCircle, LogOut, ChevronLeft, Star, MapPin, Home, FileText, Calendar, MessageCircle, Globe, Edit3 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { 
+  User, Settings, Bell, CreditCard, HelpCircle, LogOut, 
+  Edit3, Check, X, Home, Calendar, Star, FileText, 
+  MapPin, MessageCircle, Phone, Mail, Globe
+} from 'lucide-react';
+import profileHero from '@/assets/profile-hero.jpg';
+
+interface UserProfile {
+  fullName: string;
+  email: string;
+  phone?: string;
+}
 
 interface OnboardingData {
   homeDetails?: {
-    address: string;
-    apartmentType: string;
-    roomCount: string;
-    buildingAge: string;
-    residentsCount: string;
-    hasElevator: boolean;
-    hasParking: boolean;
+    fullName: string;
+    apartmentSize: string;
+    floorNumber: string;
+    numberOfRooms: string;
+    streetAndBuilding: string;
+    apartmentNumber?: string;
   };
   projectPlanning?: {
     projectTypes: string[];
@@ -29,7 +43,17 @@ interface OnboardingData {
 }
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const [isEditing, setIsEditing] = useState(false);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({});
+  
+  const form = useForm<UserProfile>({
+    defaultValues: {
+      fullName: 'שירה כהן',
+      email: 'shirakohav1234@gmail.com',
+      phone: '052-1234567'
+    }
+  });
 
   useEffect(() => {
     // Load onboarding data from localStorage
@@ -43,6 +67,17 @@ const Profile = () => {
       userInterests: userInterests ? JSON.parse(userInterests) : null,
     });
   }, []);
+
+  const handleSaveProfile = (data: UserProfile) => {
+    console.log('Saving profile:', data);
+    setIsEditing(false);
+    // Here you would typically save to a backend/localStorage
+  };
+
+  const handleCancelEdit = () => {
+    form.reset();
+    setIsEditing(false);
+  };
 
   const interestLabels: Record<string, string> = {
     'interior-design': 'עיצוב פנים',
@@ -76,18 +111,11 @@ const Profile = () => {
 
   const menuItems = [
     {
-      id: 'personal-info',
-      icon: User,
-      title: 'פרטים אישיים',
-      subtitle: 'עדכן את הפרטים שלך',
-      href: '/profile/personal-info'
-    },
-    {
-      id: 'addresses',
-      icon: MapPin,
-      title: 'כתובות',
-      subtitle: 'נהל את הכתובות שלך',
-      href: '/profile/addresses'
+      id: 'notifications',
+      icon: Bell,
+      title: 'התראות',
+      subtitle: 'נהל העדפות התראות',
+      href: '/profile/notifications'
     },
     {
       id: 'payment',
@@ -95,13 +123,6 @@ const Profile = () => {
       title: 'אמצעי תשלום',
       subtitle: 'כרטיסי אשראי וחשבונות בנק',
       href: '/profile/payment'
-    },
-    {
-      id: 'notifications',
-      icon: Bell,
-      title: 'התראות',
-      subtitle: 'נהל העדפות התראות',
-      href: '/profile/notifications'
     },
     {
       id: 'settings',
@@ -122,19 +143,96 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <div className="max-w-md mx-auto bg-background">
-        {/* Header */}
-        <div className="bg-primary text-primary-foreground px-6 py-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-primary-foreground rounded-full flex items-center justify-center">
-              <User className="w-8 h-8 text-primary" />
+        {/* Hero Section */}
+        <div className="relative h-52 overflow-hidden">
+          <img 
+            src={profileHero}
+            alt="רקע פרופיל"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          
+          {/* Profile Header */}
+          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+            <div className="flex items-end gap-4">
+              <div className="w-20 h-20 bg-white/95 rounded-2xl flex items-center justify-center border-4 border-white/50">
+                <User className="w-10 h-10 text-primary" />
+              </div>
+              <div className="flex-1 pb-2">
+                {isEditing ? (
+                  <Form {...form}>
+                    <div className="space-y-2">
+                      <FormField
+                        control={form.control}
+                        name="fullName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                className="bg-white/90 text-foreground border-0 text-lg font-bold h-8 p-2 rounded-lg"
+                                placeholder="שם מלא"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                className="bg-white/90 text-muted-foreground border-0 text-sm h-7 p-2 rounded-lg"
+                                placeholder="אימייל"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </Form>
+                ) : (
+                  <div>
+                    <h1 className="text-xl font-bold">{form.getValues('fullName')}</h1>
+                    <p className="text-white/90 text-sm">{form.getValues('email')}</p>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2 pb-2">
+                {isEditing ? (
+                  <>
+                    <Button 
+                      size="sm" 
+                      variant="secondary"
+                      onClick={form.handleSubmit(handleSaveProfile)}
+                      className="bg-white/95 hover:bg-white text-primary border-0 h-9 w-9 p-0"
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary"
+                      onClick={handleCancelEdit}
+                      className="bg-white/95 hover:bg-white text-primary border-0 h-9 w-9 p-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    variant="secondary"
+                    onClick={() => setIsEditing(true)}
+                    className="bg-white/95 hover:bg-white text-primary border-0 h-9 w-9 p-0"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </div>
-            <div className="flex-1">
-              <h1 className="text-xl font-bold">שירה כהן</h1>
-              <p className="text-primary-foreground/80 text-sm">shirakohav1234@gmail.com</p>
-            </div>
-            <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-primary-foreground/10">
-              <Edit3 className="w-4 h-4" />
-            </Button>
           </div>
         </div>
 
@@ -142,30 +240,39 @@ const Profile = () => {
         <div className="px-6 pb-6">
           {/* Home Details Section */}
           {onboardingData.homeDetails && (
-            <Card className="mt-6">
+            <Card className="mt-6 border-0 shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Home className="w-5 h-5 text-blue-600" />
+                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                    <Home className="w-6 h-6 text-primary" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">הבית שלי</h3>
-                    <p className="text-sm text-muted-foreground">כתובת: {onboardingData.homeDetails.address}</p>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground text-lg">הבית שלי</h3>
+                    <p className="text-sm text-muted-foreground">{onboardingData.homeDetails.streetAndBuilding}</p>
                   </div>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Edit3 className="w-4 h-4" />
+                  </Button>
                 </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">סוג דירה:</span>
-                    <span className="font-medium">{onboardingData.homeDetails.apartmentType}</span>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground">גודל דירה</span>
+                    <p className="font-medium">{onboardingData.homeDetails.apartmentSize} מ"ר</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">מספר חדרים:</span>
-                    <span className="font-medium">{onboardingData.homeDetails.roomCount}</span>
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground">מספר חדרים</span>
+                    <p className="font-medium">{onboardingData.homeDetails.numberOfRooms}</p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">גיל הבניין:</span>
-                    <span className="font-medium">{onboardingData.homeDetails.buildingAge}</span>
+                  <div className="space-y-1">
+                    <span className="text-muted-foreground">קומה</span>
+                    <p className="font-medium">{onboardingData.homeDetails.floorNumber}</p>
                   </div>
+                  {onboardingData.homeDetails.apartmentNumber && (
+                    <div className="space-y-1">
+                      <span className="text-muted-foreground">מספר דירה</span>
+                      <p className="font-medium">{onboardingData.homeDetails.apartmentNumber}</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -173,28 +280,31 @@ const Profile = () => {
 
           {/* Project Planning Section */}
           {onboardingData.projectPlanning && (
-            <Card className="mt-4">
+            <Card className="mt-4 border-0 shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-orange-600" />
+                  <div className="w-12 h-12 bg-orange-500/10 rounded-2xl flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-orange-600" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">הפרויקטים שלי</h3>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground text-lg">הפרויקטים שלי</h3>
                     <p className="text-sm text-muted-foreground">תכנון ופרויקטים עתידיים</p>
                   </div>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Edit3 className="w-4 h-4" />
+                  </Button>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex flex-wrap gap-2">
                     {onboardingData.projectPlanning.projectTypes.map((project, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
+                      <Badge key={index} variant="secondary" className="bg-orange-500/10 text-orange-700 border-orange-200">
                         {projectLabels[project] || project}
                       </Badge>
                     ))}
                   </div>
                   {onboardingData.projectPlanning.otherProject && (
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">פרויקט נוסף:</span> {onboardingData.projectPlanning.otherProject}
+                    <p className="text-sm bg-muted/50 p-3 rounded-xl">
+                      <span className="font-medium text-muted-foreground">פרויקט נוסף:</span> {onboardingData.projectPlanning.otherProject}
                     </p>
                   )}
                 </div>
@@ -204,23 +314,26 @@ const Profile = () => {
 
           {/* Interests Section */}
           {onboardingData.userInterests && (
-            <Card className="mt-4">
+            <Card className="mt-4 border-0 shadow-sm">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Star className="w-5 h-5 text-purple-600" />
+                  <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center">
+                    <Star className="w-6 h-6 text-purple-600" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">התחומים שלי</h3>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground text-lg">התחומים שלי</h3>
                     <p className="text-sm text-muted-foreground">נושאים מעניינים והעדפות</p>
                   </div>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Edit3 className="w-4 h-4" />
+                  </Button>
                 </div>
                 <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm font-medium text-foreground mb-2">תחומי עניין:</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">תחומי עניין</h4>
                     <div className="flex flex-wrap gap-2">
                       {onboardingData.userInterests.interests.map((interest, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge key={index} variant="outline" className="border-purple-200 text-purple-700">
                           {interestLabels[interest] || interest}
                         </Badge>
                       ))}
@@ -228,10 +341,10 @@ const Profile = () => {
                   </div>
                   
                   <div>
-                    <h4 className="text-sm font-medium text-foreground mb-2">דרכי קשר מועדפות:</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">דרכי קשר מועדפות</h4>
                     <div className="flex flex-wrap gap-2">
                       {onboardingData.userInterests.contactChannels.map((channel, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                        <Badge key={index} variant="secondary" className="bg-blue-500/10 text-blue-700 border-blue-200">
                           {channelLabels[channel] || channel}
                         </Badge>
                       ))}
@@ -239,10 +352,10 @@ const Profile = () => {
                   </div>
 
                   <div>
-                    <h4 className="text-sm font-medium text-foreground mb-2">שפות:</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2">שפות</h4>
                     <div className="flex flex-wrap gap-2">
                       {onboardingData.userInterests.languages.map((language, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                        <Badge key={index} variant="secondary" className="bg-green-500/10 text-green-700 border-green-200">
                           {languageLabels[language] || language}
                         </Badge>
                       ))}
@@ -251,8 +364,8 @@ const Profile = () => {
 
                   {onboardingData.userInterests.notes && (
                     <div>
-                      <h4 className="text-sm font-medium text-foreground mb-2">הערות נוספות:</h4>
-                      <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">הערות נוספות</h4>
+                      <p className="text-sm text-foreground bg-muted/50 p-3 rounded-xl">
                         {onboardingData.userInterests.notes}
                       </p>
                     </div>
@@ -262,116 +375,48 @@ const Profile = () => {
             </Card>
           )}
 
-          {/* Documents Section */}
-          <Card className="mt-4">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-yellow-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">המסמכים שלי</h3>
-                  <p className="text-sm text-muted-foreground">חוזים ומסמכים</p>
-                </div>
-                <ChevronLeft className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-orange-100 rounded-lg p-3 text-center">
-                  <div className="w-8 h-10 bg-orange-300 rounded mx-auto mb-2"></div>
-                  <p className="text-xs text-orange-700 font-medium">מידע הבית ג'וניפר 1 ת"א</p>
-                  <p className="text-xs text-orange-600">PDF</p>
-                </div>
-                <div className="bg-orange-100 rounded-lg p-3 text-center">
-                  <div className="w-8 h-10 bg-orange-300 rounded mx-auto mb-2"></div>
-                  <p className="text-xs text-orange-700 font-medium">מידע הבית ג'וניפר 1 ת"א</p>
-                  <p className="text-xs text-orange-600">PDF</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Suppliers Section */}
+          {/* Quick Actions */}
           <div className="mt-6">
-            <h3 className="font-semibold text-foreground mb-4">ספקים שנתבקשתי</h3>
-            <div className="space-y-3">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                      <div className="w-6 h-6 bg-primary-foreground rounded text-xs flex items-center justify-center font-bold text-primary">
-                        DS
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-foreground">Design Studio X</h4>
-                      <p className="text-sm text-muted-foreground">עיצוב פנים</p>
-                    </div>
-                    <Button variant="outline" size="sm" className="text-xs">
-                      הזמן שירות
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
-                      <div className="w-6 h-6 bg-white rounded text-xs flex items-center justify-center font-bold text-teal-600">
-                        HT
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-foreground">HomeTech Solutions</h4>
-                      <p className="text-sm text-muted-foreground">בית חכם</p>
-                    </div>
-                    <Button variant="outline" size="sm" className="text-xs">
-                      הזמן שירות
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-
-          {/* Personalized Offers */}
-          <div className="mt-6">
-            <h3 className="font-semibold text-foreground mb-4">הצעות מותאמות אישית</h3>
+            <h3 className="font-semibold text-foreground mb-4 text-lg">פעולות מהירות</h3>
             <div className="grid grid-cols-2 gap-3">
-              <Card className="overflow-hidden">
-                <div className="h-24 bg-gradient-to-br from-orange-100 to-orange-200"></div>
-                <CardContent className="p-3">
-                  <h4 className="font-medium text-sm text-foreground">Kitchen Upgrade</h4>
-                  <p className="text-xs text-muted-foreground">Exclusive offer on kitchen appliances</p>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-primary/5">
+                <CardContent className="p-4 text-center">
+                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <FileText className="w-6 h-6 text-primary" />
+                  </div>
+                  <h4 className="font-medium text-sm text-foreground">המסמכים שלי</h4>
+                  <p className="text-xs text-muted-foreground mt-1">חוזים ומסמכים</p>
                 </CardContent>
               </Card>
               
-              <Card className="overflow-hidden">
-                <div className="h-24 bg-gradient-to-br from-green-100 to-green-200"></div>
-                <CardContent className="p-3">
-                  <h4 className="font-medium text-sm text-foreground">Bathroom Renovation</h4>
-                  <p className="text-xs text-muted-foreground">Special discount on bathroom fixtures</p>
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-orange-500/5">
+                <CardContent className="p-4 text-center">
+                  <div className="w-12 h-12 bg-orange-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <MapPin className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h4 className="font-medium text-sm text-foreground">ספקים בקרבתי</h4>
+                  <p className="text-xs text-muted-foreground mt-1">מצא ספקים קרובים</p>
                 </CardContent>
               </Card>
             </div>
           </div>
 
           {/* Menu Items */}
-          <div className="mt-8 space-y-2">
+          <div className="mt-8 space-y-3">
+            <h3 className="font-semibold text-foreground mb-4 text-lg">הגדרות</h3>
             {menuItems.map((item) => {
               const Icon = item.icon;
               return (
-                <Card key={item.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                <Card key={item.id} className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
+                      <div className="w-12 h-12 bg-muted/50 rounded-2xl flex items-center justify-center">
                         <Icon className="w-5 h-5 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
                         <h3 className="font-medium text-foreground">{item.title}</h3>
                         <p className="text-sm text-muted-foreground">{item.subtitle}</p>
                       </div>
-                      <ChevronLeft className="w-5 h-5 text-muted-foreground" />
                     </div>
                   </CardContent>
                 </Card>
@@ -379,17 +424,16 @@ const Profile = () => {
             })}
 
             {/* Logout Button */}
-            <Card className="mt-6 border-destructive/20 hover:shadow-md transition-shadow cursor-pointer">
+            <Card className="mt-6 border-destructive/20 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-destructive/5">
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-destructive/10 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-destructive/10 rounded-2xl flex items-center justify-center">
                     <LogOut className="w-5 h-5 text-destructive" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium text-destructive">התנתק</h3>
                     <p className="text-sm text-destructive/70">התנתק מהחשבון שלך</p>
                   </div>
-                  <ChevronLeft className="w-5 h-5 text-destructive/70" />
                 </div>
               </CardContent>
             </Card>
