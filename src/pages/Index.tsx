@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
+import { HeroSection } from '@/components/HeroSection';
+import { AdBanner } from '@/components/AdBanner';
 import { SectionTitle } from '@/components/SectionTitle';
 import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';
 import { QuickSelection } from '@/components/QuickSelection';
@@ -321,11 +323,23 @@ const Index = () => {
     navigate(`/category/${category}/suppliers`);
   };
 
+  const handleHeroCTA = () => {
+    navigate('/onboarding/welcome');
+  };
+
+  const handleAdClick = () => {
+    // Handle ad click - could navigate to specific supplier or external link
+    console.log('Ad clicked');
+  };
+
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-white">
-      <main className="flex flex-col items-start w-full bg-neutral-50 pb-8">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-background">
+      <main className="flex flex-col items-start w-full bg-muted/30 pb-8">
         <div className="flex flex-col items-start w-full">
           <Header userName="איתן" />
+          
+          {/* Hero Section */}
+          <HeroSection onCTAClick={handleHeroCTA} />
           
           <div className="w-full">
             <SectionTitle title="בחירה מהירה" />
@@ -377,6 +391,9 @@ const Index = () => {
               onItemClick={(item) => handleSupplierClick(furnitureSuppliers.find(s => s.id === item.id))}
             />
           </div>
+
+          {/* Ad Banner */}
+          <AdBanner onAdClick={handleAdClick} />
 
           <div className="w-full">
             <SectionTitleWithButton 
