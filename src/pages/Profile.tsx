@@ -9,7 +9,9 @@ import { useForm } from 'react-hook-form';
 import { 
   User, Settings, Bell, CreditCard, HelpCircle, LogOut, 
   Edit3, Check, X, Home, Calendar, Star, FileText, 
-  MapPin, MessageCircle, Phone, Mail, Globe
+  MapPin, MessageCircle, Phone, Mail, Globe, Clock,
+  Package, ChevronRight, Truck, ShoppingCart, 
+  History, MessageSquare, StarIcon, PenTool
 } from 'lucide-react';
 import profileHero from '@/assets/profile-hero.jpg';
 
@@ -54,6 +56,34 @@ const Profile = () => {
       phone: '052-1234567'
     }
   });
+
+  // Mock data for new sections
+  const [nextDelivery] = useState({
+    date: '28.07.2025',
+    supplier: 'אבי רהיטים',
+    hasDelivery: true
+  });
+
+  const [orderHistory] = useState([
+    { id: 1, supplier: 'אבי רהיטים', date: '15.06.2025', amount: '₪2,500', status: 'הושלם' },
+    { id: 2, supplier: 'חברת הבנייה', date: '01.06.2025', amount: '₪8,900', status: 'הושלם' },
+    { id: 3, supplier: 'קופיקס', date: '20.05.2025', amount: '₪450', status: 'הושלם' }
+  ]);
+
+  const [activeOrders] = useState([
+    { id: 1, supplier: 'אבי רהיטים', status: 'בדרך', deliveryDate: '28.07.2025', amount: '₪3,200' },
+    { id: 2, supplier: 'חברת הבנייה', status: 'אושר', deliveryDate: '02.08.2025', amount: '₪12,500' }
+  ]);
+
+  const [pendingReviews] = useState([
+    { id: 1, supplier: 'אבי רהיטים', orderDate: '15.06.2025', amount: '₪2,500' },
+    { id: 2, supplier: 'חברת הבנייה', orderDate: '01.06.2025', amount: '₪8,900' }
+  ]);
+
+  const [submittedReviews] = useState([
+    { id: 1, supplier: 'קופיקס', rating: 5, date: '25.05.2025', comment: 'שירות מעולה ומהיר' },
+    { id: 2, supplier: 'עולם הרהיטים', rating: 4, date: '10.05.2025', comment: 'מוצרים איכותיים' }
+  ]);
 
   useEffect(() => {
     // Load onboarding data from localStorage
@@ -238,210 +268,241 @@ const Profile = () => {
 
         {/* Content */}
         <div className="px-6 pb-6">
-          {/* Home Details Section */}
-          {onboardingData.homeDetails && (
-            <Card className="mt-6 border-0 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
-                    <Home className="w-6 h-6 text-primary" />
+          {/* My Activity Section */}
+          {nextDelivery.hasDelivery && (
+            <Card className="mt-6 border-0 shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-blue-600/10 rounded-xl flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-foreground text-lg">הבית שלי</h3>
-                    <p className="text-sm text-muted-foreground">{onboardingData.homeDetails.streetAndBuilding}</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                    <Edit3 className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="space-y-1">
-                    <span className="text-muted-foreground">גודל דירה</span>
-                    <p className="font-medium">{onboardingData.homeDetails.apartmentSize} מ"ר</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-muted-foreground">מספר חדרים</span>
-                    <p className="font-medium">{onboardingData.homeDetails.numberOfRooms}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <span className="text-muted-foreground">קומה</span>
-                    <p className="font-medium">{onboardingData.homeDetails.floorNumber}</p>
-                  </div>
-                  {onboardingData.homeDetails.apartmentNumber && (
-                    <div className="space-y-1">
-                      <span className="text-muted-foreground">מספר דירה</span>
-                      <p className="font-medium">{onboardingData.homeDetails.apartmentNumber}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Project Planning Section */}
-          {onboardingData.projectPlanning && (
-            <Card className="mt-4 border-0 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-orange-500/10 rounded-2xl flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground text-lg">הפרויקטים שלי</h3>
-                    <p className="text-sm text-muted-foreground">תכנון ופרויקטים עתידיים</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                    <Edit3 className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    {onboardingData.projectPlanning.projectTypes.map((project, index) => (
-                      <Badge key={index} variant="secondary" className="bg-orange-500/10 text-orange-700 border-orange-200">
-                        {projectLabels[project] || project}
-                      </Badge>
-                    ))}
-                  </div>
-                  {onboardingData.projectPlanning.otherProject && (
-                    <p className="text-sm bg-muted/50 p-3 rounded-xl">
-                      <span className="font-medium text-muted-foreground">פרויקט נוסף:</span> {onboardingData.projectPlanning.otherProject}
+                    <h3 className="font-semibold text-blue-900 text-sm">פעילות שלי</h3>
+                    <p className="text-blue-800 text-xs mt-1">
+                      ההזמנה הבאה שלך מתוכננת להגיע ב: <span className="font-medium">{nextDelivery.date}</span>
                     </p>
-                  )}
+                    <p className="text-blue-700 text-xs">מספק: {nextDelivery.supplier}</p>
+                  </div>
+                  <Truck className="w-5 h-5 text-blue-600" />
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Interests Section */}
-          {onboardingData.userInterests && (
-            <Card className="mt-4 border-0 shadow-sm">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center">
-                    <Star className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground text-lg">התחומים שלי</h3>
-                    <p className="text-sm text-muted-foreground">נושאים מעניינים והעדפות</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                    <Edit3 className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">תחומי עניין</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {onboardingData.userInterests.interests.map((interest, index) => (
-                        <Badge key={index} variant="outline" className="border-purple-200 text-purple-700">
-                          {interestLabels[interest] || interest}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">דרכי קשר מועדפות</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {onboardingData.userInterests.contactChannels.map((channel, index) => (
-                        <Badge key={index} variant="secondary" className="bg-blue-500/10 text-blue-700 border-blue-200">
-                          {channelLabels[channel] || channel}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">שפות</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {onboardingData.userInterests.languages.map((language, index) => (
-                        <Badge key={index} variant="secondary" className="bg-green-500/10 text-green-700 border-green-200">
-                          {languageLabels[language] || language}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {onboardingData.userInterests.notes && (
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-2">הערות נוספות</h4>
-                      <p className="text-sm text-foreground bg-muted/50 p-3 rounded-xl">
-                        {onboardingData.userInterests.notes}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Quick Actions */}
+          {/* Quick Access Tiles */}
           <div className="mt-6">
-            <h3 className="font-semibold text-foreground mb-4 text-lg">פעולות מהירות</h3>
+            <h3 className="font-semibold text-foreground mb-4 text-lg">גישה מהירה</h3>
             <div className="grid grid-cols-2 gap-3">
-              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-primary/5">
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-orange-500/5 rounded-xl">
                 <CardContent className="p-4 text-center">
-                  <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <FileText className="w-6 h-6 text-primary" />
-                  </div>
-                  <h4 className="font-medium text-sm text-foreground">המסמכים שלי</h4>
-                  <p className="text-xs text-muted-foreground mt-1">חוזים ומסמכים</p>
-                </CardContent>
-              </Card>
-              
-              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-orange-500/5">
-                <CardContent className="p-4 text-center">
-                  <div className="w-12 h-12 bg-orange-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <MapPin className="w-6 h-6 text-orange-600" />
                   </div>
                   <h4 className="font-medium text-sm text-foreground">ספקים בקרבתי</h4>
                   <p className="text-xs text-muted-foreground mt-1">מצא ספקים קרובים</p>
                 </CardContent>
               </Card>
+              
+              <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-primary/5 rounded-xl">
+                <CardContent className="p-4 text-center">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <FileText className="w-6 h-6 text-primary" />
+                  </div>
+                  <h4 className="font-medium text-sm text-foreground">המסמכים שלי</h4>
+                  <p className="text-xs text-muted-foreground mt-1">חוזים ומסמכים שהועלו</p>
+                </CardContent>
+              </Card>
             </div>
           </div>
 
-          {/* Menu Items */}
+          {/* Order History Summary */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-foreground text-lg">סיכום הזמנות</h3>
+              <Button variant="ghost" size="sm" className="text-primary">
+                צפה בהיסטוריה המלאה
+                <ChevronRight className="w-4 h-4 mr-1" />
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {orderHistory.slice(0, 3).map((order) => (
+                <Card key={order.id} className="border-0 shadow-sm rounded-xl">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                          <ShoppingCart className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm text-foreground">{order.supplier}</h4>
+                          <p className="text-xs text-muted-foreground">{order.date}</p>
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <p className="font-medium text-sm text-foreground">{order.amount}</p>
+                        <Badge variant="secondary" className="bg-green-500/10 text-green-700 text-xs">
+                          {order.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Track My Orders */}
+          <div className="mt-6">
+            <h3 className="font-semibold text-foreground mb-4 text-lg">מעקב אחרי הזמנות</h3>
+            <div className="space-y-3">
+              {activeOrders.map((order) => (
+                <Card key={order.id} className="border-0 shadow-sm rounded-xl border-l-4 border-l-blue-500">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                          <Package className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm text-foreground">{order.supplier}</h4>
+                          <p className="text-xs text-muted-foreground">משלוח צפוי: {order.deliveryDate}</p>
+                        </div>
+                      </div>
+                      <div className="text-left">
+                        <p className="font-medium text-sm text-foreground">{order.amount}</p>
+                        <Badge variant="outline" className="border-blue-200 text-blue-700 text-xs">
+                          {order.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* My Reviews */}
+          <div className="mt-6">
+            <h3 className="font-semibold text-foreground mb-4 text-lg">הביקורות שלי</h3>
+            
+            {/* Pending Reviews */}
+            {pendingReviews.length > 0 && (
+              <div className="mb-4">
+                <h4 className="font-medium text-muted-foreground mb-3 text-sm">ממתינות לביקורת</h4>
+                <div className="space-y-3">
+                  {pendingReviews.map((review) => (
+                    <Card key={review.id} className="border-0 shadow-sm rounded-xl bg-amber-50 border-amber-200">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center">
+                              <PenTool className="w-5 h-5 text-amber-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-sm text-foreground">{review.supplier}</h4>
+                              <p className="text-xs text-muted-foreground">הזמנה מ-{review.orderDate} • {review.amount}</p>
+                            </div>
+                          </div>
+                          <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg">
+                            כתוב ביקורת
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Submitted Reviews */}
+            <div>
+              <h4 className="font-medium text-muted-foreground mb-3 text-sm">ביקורות שנשלחו</h4>
+              <div className="space-y-3">
+                {submittedReviews.map((review) => (
+                  <Card key={review.id} className="border-0 shadow-sm rounded-xl">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="w-10 h-10 bg-yellow-500/10 rounded-lg flex items-center justify-center">
+                            <StarIcon className="w-5 h-5 text-yellow-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium text-sm text-foreground">{review.supplier}</h4>
+                              <div className="flex">
+                                {[...Array(5)].map((_, i) => (
+                                  <StarIcon 
+                                    key={i} 
+                                    className={`w-3 h-3 ${i < review.rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`} 
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground mb-2">{review.date}</p>
+                            <p className="text-xs text-foreground">{review.comment}</p>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="sm" className="text-muted-foreground">
+                          <Edit3 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Settings */}
           <div className="mt-8 space-y-3">
             <h3 className="font-semibold text-foreground mb-4 text-lg">הגדרות</h3>
             {menuItems.map((item) => {
               const Icon = item.icon;
               return (
-                <Card key={item.id} className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+                <Card key={item.id} className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer rounded-xl">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-muted/50 rounded-2xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-muted/50 rounded-xl flex items-center justify-center">
                         <Icon className="w-5 h-5 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
                         <h3 className="font-medium text-foreground">{item.title}</h3>
                         <p className="text-sm text-muted-foreground">{item.subtitle}</p>
                       </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     </div>
                   </CardContent>
                 </Card>
               );
             })}
-
-            {/* Logout Button */}
-            <Card className="mt-6 border-destructive/20 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-destructive/5">
+            
+            {/* Logout */}
+            <Card className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-red-50 border-red-100 rounded-xl">
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-destructive/10 rounded-2xl flex items-center justify-center">
-                    <LogOut className="w-5 h-5 text-destructive" />
+                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                    <LogOut className="w-5 h-5 text-red-600" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-medium text-destructive">התנתק</h3>
-                    <p className="text-sm text-destructive/70">התנתק מהחשבון שלך</p>
+                    <h3 className="font-medium text-red-700">התנתק</h3>
+                    <p className="text-sm text-red-600">צא מהחשבון שלך</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* App Version */}
-          <div className="text-center text-xs text-muted-foreground mt-8 pb-24">
-            גרסה 1.0.0
+          {/* Footer */}
+          <div className="mt-8 mb-4 text-center pb-24">
+            <p className="text-xs text-muted-foreground">גרסה 1.0.0</p>
+            <div className="flex justify-center gap-4 mt-2">
+              <Button variant="link" size="sm" className="text-xs text-muted-foreground p-0 h-auto">
+                מדיניות פרטיות
+              </Button>
+              <Button variant="link" size="sm" className="text-xs text-muted-foreground p-0 h-auto">
+                תנאי שימוש
+              </Button>
+            </div>
           </div>
         </div>
       </div>
