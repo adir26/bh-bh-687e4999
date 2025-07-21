@@ -16,6 +16,12 @@ import HotNow from "./pages/HotNow";
 import SupplierProfile from "./pages/SupplierProfile";
 import CategorySuppliers from "./pages/CategorySuppliers";
 import NotFound from "./pages/NotFound";
+import Registration from "./pages/Registration";
+import OnboardingWelcome from "./pages/onboarding/Welcome";
+import OnboardingHomeDetails from "./pages/onboarding/HomeDetails";
+import OnboardingProjectPlanning from "./pages/onboarding/ProjectPlanning";
+import OnboardingDocuments from "./pages/onboarding/Documents";
+import OnboardingInterests from "./pages/onboarding/Interests";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +34,12 @@ const App = () => (
         <div className="min-h-screen bg-white">
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/registration" element={<Registration />} />
+            <Route path="/onboarding/welcome" element={<OnboardingWelcome />} />
+            <Route path="/onboarding/home-details" element={<OnboardingHomeDetails />} />
+            <Route path="/onboarding/project-planning" element={<OnboardingProjectPlanning />} />
+            <Route path="/onboarding/documents" element={<OnboardingDocuments />} />
+            <Route path="/onboarding/interests" element={<OnboardingInterests />} />
             <Route path="/search" element={<Search />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/orders" element={<Orders />} />
