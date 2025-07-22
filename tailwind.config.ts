@@ -18,6 +18,21 @@ export default {
 				'2xl': '1400px'
 			}
 		},
+		screens: {
+			'xs': '375px',
+			'sm': '640px',
+			'md': '768px',
+			'lg': '1024px',
+			'xl': '1280px',
+			'2xl': '1536px',
+			// Mobile-first breakpoints
+			'mobile': {'max': '639px'},
+			'tablet': {'min': '640px', 'max': '1023px'},
+			'desktop': {'min': '1024px'},
+			// Touch device specific
+			'touch': {'raw': '(hover: none) and (pointer: coarse)'},
+			'no-touch': {'raw': '(hover: hover) and (pointer: fine)'},
+		},
 		extend: {
 			colors: {
 				border: 'hsl(var(--border))',
@@ -72,10 +87,49 @@ export default {
 					'secondary-foreground': 'hsl(var(--button-secondary-foreground))'
 				}
 			},
+			spacing: {
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-bottom': 'env(safe-area-inset-bottom)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
+				// Mobile-optimized spacing
+				'18': '4.5rem',
+				'88': '22rem',
+				'104': '26rem',
+				'112': '28rem',
+				'128': '32rem',
+			},
+			fontSize: {
+				'2xs': ['0.625rem', '0.75rem'],
+				'mobile-xs': ['0.75rem', '1rem'],
+				'mobile-sm': ['0.875rem', '1.25rem'],
+				'mobile-base': ['1rem', '1.5rem'],
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'4xl': '2rem',
+			},
+			minHeight: {
+				'touch': '44px',
+				'button': '48px',
+				'input': '52px',
+			},
+			minWidth: {
+				'touch': '44px',
+				'button': '88px',
+			},
+			maxWidth: {
+				'mobile': '428px',
+				'tablet': '768px',
+			},
+			animation: {
+				'accordion-down': 'accordion-down 0.2s ease-out',
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fadeIn 0.3s ease-out',
+				'slide-up': 'slideUp 0.3s ease-out',
+				'bounce-gentle': 'bounceGentle 0.6s ease-out',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -93,13 +147,79 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fadeIn': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'slideUp': {
+					'0%': {
+						transform: 'translateY(100%)'
+					},
+					'100%': {
+						transform: 'translateY(0)'
+					}
+				},
+				'bounceGentle': {
+					'0%': {
+						transform: 'scale(0.95)',
+						opacity: '0'
+					},
+					'50%': {
+						transform: 'scale(1.02)'
+					},
+					'100%': {
+						transform: 'scale(1)',
+						opacity: '1'
+					}
 				}
 			},
-			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+			boxShadow: {
+				'mobile': '0 2px 8px -2px rgba(0, 0, 0, 0.1), 0 1px 4px -1px rgba(0, 0, 0, 0.06)',
+				'mobile-lg': '0 4px 16px -4px rgba(0, 0, 0, 0.1), 0 2px 8px -2px rgba(0, 0, 0, 0.06)',
+			},
+			backdropBlur: {
+				'xs': '2px',
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		// Custom plugin for mobile utilities
+		function({ addUtilities, theme, addComponents }: any) {
+			addUtilities({
+				'.scrollbar-hide': {
+					'-ms-overflow-style': 'none',
+					'scrollbar-width': 'none',
+					'&::-webkit-scrollbar': {
+						display: 'none'
+					}
+				},
+				'.tap-highlight-transparent': {
+					'-webkit-tap-highlight-color': 'transparent'
+				}
+			})
+			
+			addComponents({
+				'.mobile-container': {
+					width: '100%',
+					maxWidth: theme('maxWidth.mobile'),
+					marginLeft: 'auto',
+					marginRight: 'auto',
+					paddingLeft: theme('spacing.4'),
+					paddingRight: theme('spacing.4'),
+					'@screen sm': {
+						paddingLeft: theme('spacing.6'),
+						paddingRight: theme('spacing.6'),
+					}
+				}
+			})
+		}
+	],
 } satisfies Config;

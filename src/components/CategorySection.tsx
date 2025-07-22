@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CategoryCard } from './CategoryCard';
 
@@ -21,8 +22,8 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   fixedWidth = false 
 }) => {
   return (
-    <div className="flex items-start w-full mb-4">
-      <div className="flex items-start gap-4 overflow-x-auto px-4 py-2 w-full max-md:gap-3 max-sm:gap-3 max-sm:px-3">
+    <div className="flex items-start w-full mb-4 xs:mb-5 sm:mb-6">
+      <div className="flex items-start gap-3 xs:gap-4 sm:gap-4 overflow-x-auto smooth-scroll scrollbar-hide px-4 xs:px-5 sm:px-6 py-2 xs:py-3 w-full">
         {items.map((item) => (
           <CategoryCard
             key={item.id}
@@ -31,7 +32,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
             image={item.image}
             onViewClick={() => onItemClick?.(item)}
             size={item.size}
-            className={fixedWidth ? "w-60 min-w-60 max-sm:w-52 max-sm:min-w-52" : ""}
+            className={fixedWidth ? "flex-shrink-0" : "flex-shrink-0"}
           />
         ))}
       </div>

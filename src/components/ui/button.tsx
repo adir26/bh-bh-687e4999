@@ -7,12 +7,12 @@ import { ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "mobile-button inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 tap-highlight-transparent",
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        blue: "bg-button-primary text-button-primary-foreground hover:bg-button-primary-hover shadow-sm hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]",
+        blue: "bg-button-primary text-button-primary-foreground hover:bg-button-primary-hover shadow-mobile hover:shadow-mobile-lg transform hover:scale-[1.02] active:scale-[0.98]",
         "blue-secondary": "bg-button-secondary text-button-secondary-foreground hover:bg-button-secondary-hover border border-button-secondary-foreground/20 hover:border-button-secondary-foreground/30",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
@@ -24,10 +24,10 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-11 px-6 py-2",
-        sm: "h-9 rounded-lg px-4",
-        lg: "h-12 rounded-xl px-8",
-        icon: "h-10 w-10",
+        default: "min-h-button h-11 px-6 py-2",
+        sm: "min-h-10 h-9 rounded-lg px-4",
+        lg: "min-h-12 h-12 rounded-xl px-8",
+        icon: "min-h-10 min-w-10 h-10 w-10",
       },
       showArrow: {
         true: "",

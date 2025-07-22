@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface QuickSelectionItem {
@@ -13,22 +14,24 @@ interface QuickSelectionProps {
 
 export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemClick }) => {
   return (
-    <div className="flex items-start gap-8 w-full overflow-x-auto px-6 py-3 mb-6 max-md:gap-5 max-sm:gap-4 max-sm:px-4">
+    <div className="flex items-start gap-4 xs:gap-6 sm:gap-8 w-full overflow-x-auto smooth-scroll scrollbar-hide px-4 xs:px-5 sm:px-6 py-3 xs:py-4 mb-4 xs:mb-5 sm:mb-6">
       {items.map((item) => (
         <button
           key={item.id}
-          className="flex w-24 min-w-24 flex-col items-center gap-4 p-3 rounded-lg max-sm:w-18 max-sm:min-w-18 hover:bg-gray-50 transition-colors"
+          className="touch-target flex w-20 xs:w-24 min-w-20 xs:min-w-24 flex-col items-center gap-2 xs:gap-4 p-2 xs:p-3 rounded-lg hover:bg-accent mobile-transition focus-ring tap-highlight-transparent no-select"
           onClick={() => onItemClick?.(item)}
+          aria-label={item.title}
         >
           <div className="flex flex-col items-center w-full">
             <img
               src={item.image}
               alt={item.title}
-              className="w-16 h-16 rounded-full object-cover max-sm:w-12 max-sm:h-12"
+              className="w-12 h-12 xs:w-16 xs:h-16 rounded-full object-cover"
+              loading="lazy"
             />
           </div>
           <div className="flex flex-col items-center w-full">
-            <span className="text-[#121417] text-center text-sm font-medium leading-5 max-sm:text-xs max-sm:leading-4">
+            <span className="text-foreground text-center text-xs xs:text-sm font-medium leading-tight xs:leading-5 text-wrap-balance">
               {item.title}
             </span>
           </div>
