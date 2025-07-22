@@ -26,6 +26,12 @@ import OnboardingHomeDetails from "./pages/onboarding/HomeDetails";
 import OnboardingProjectPlanning from "./pages/onboarding/ProjectPlanning";
 import OnboardingDocuments from "./pages/onboarding/Documents";
 import OnboardingInterests from "./pages/onboarding/Interests";
+import SupplierWelcome from "./pages/onboarding/SupplierWelcome";
+import SupplierCompanyInfo from "./pages/onboarding/SupplierCompanyInfo";
+import SupplierBranding from "./pages/onboarding/SupplierBranding";
+import SupplierProducts from "./pages/onboarding/SupplierProducts";
+import SupplierSummary from "./pages/onboarding/SupplierSummary";
+import SupplierDashboard from "./pages/SupplierDashboard";
 import OrderStatus from "./pages/orders/OrderStatus";
 import LiveDeliveryTracking from "./pages/orders/LiveDeliveryTracking";
 
@@ -48,6 +54,12 @@ const App = () => (
             <Route path="/onboarding/project-planning" element={<OnboardingProjectPlanning />} />
             <Route path="/onboarding/documents" element={<OnboardingDocuments />} />
             <Route path="/onboarding/interests" element={<OnboardingInterests />} />
+            <Route path="/onboarding/supplier-welcome" element={<SupplierWelcome />} />
+            <Route path="/onboarding/supplier-company-info" element={<SupplierCompanyInfo />} />
+            <Route path="/onboarding/supplier-branding" element={<SupplierBranding />} />
+            <Route path="/onboarding/supplier-products" element={<SupplierProducts />} />
+            <Route path="/onboarding/supplier-summary" element={<SupplierSummary />} />
+            <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
             <Route path="/search" element={<Search />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/orders" element={<Orders />} />

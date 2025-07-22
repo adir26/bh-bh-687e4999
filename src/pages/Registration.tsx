@@ -53,9 +53,14 @@ export default function Registration() {
 
   const onSubmit = (data: RegistrationForm) => {
     console.log('Registration data:', data);
-    // Store registration data and navigate to onboarding
+    // Store registration data and navigate to appropriate onboarding
     localStorage.setItem('registrationData', JSON.stringify(data));
-    navigate('/onboarding/welcome');
+    
+    if (data.role === 'supplier') {
+      navigate('/onboarding/supplier-welcome');
+    } else {
+      navigate('/onboarding/welcome');
+    }
   };
 
   return (
