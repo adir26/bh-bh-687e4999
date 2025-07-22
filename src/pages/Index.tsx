@@ -8,6 +8,7 @@ import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';
 import { QuickSelection } from '@/components/QuickSelection';
 import { CategorySection } from '@/components/CategorySection';
 import { SupplierSection } from '@/components/SupplierSection';
+import { BottomCTA } from '@/components/BottomCTA';
 import { getSuppliersByCategory } from '@/data/suppliers';
 
 // Import local images
@@ -332,6 +333,10 @@ const Index = () => {
     console.log('Ad clicked');
   };
 
+  const handleBottomCTA = () => {
+    navigate('/onboarding/welcome');
+  };
+
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-background">
       <main className="flex flex-col items-start w-full bg-muted/30 pb-8">
@@ -476,6 +481,13 @@ const Index = () => {
               onItemClick={handleCategoryClick}
             />
           </div>
+          
+          {/* Bottom CTA */}
+          <BottomCTA 
+            title="מוכנים להתחיל את הפרויקט שלכם?"
+            buttonText="בואו נתחיל"
+            onButtonClick={handleBottomCTA}
+          />
         </div>
       </main>
     </div>

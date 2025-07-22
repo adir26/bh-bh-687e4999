@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import heroImage from '@/assets/home-hero.jpg';
@@ -27,8 +28,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCTAClick }) => {
           </p>
           <Button 
             onClick={onCTAClick}
-            variant="secondary"
-            className="w-fit bg-white/95 hover:bg-white text-primary border-0 font-medium px-6 py-2 rounded-lg text-sm"
+            variant="blue"
+            size="lg"
+            showArrow={true}
+            className="w-fit"
           >
             התחילו עכשיו
           </Button>
