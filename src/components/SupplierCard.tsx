@@ -37,7 +37,7 @@ export const SupplierCard: React.FC<SupplierCardProps> = ({
           <Button
             variant="blue-secondary"
             size="sm"
-            className="h-8 min-w-[60px] max-w-[120px] text-xs font-bold px-3"
+            className="flex items-center gap-1 h-auto px-3 py-1"
             onClick={(e) => {
               e.stopPropagation();
               onClick?.();
