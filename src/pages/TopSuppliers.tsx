@@ -1,9 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
-import { SectionTitle } from '@/components/SectionTitle';
+import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';
 import { CategorySection } from '@/components/CategorySection';
 
 const TopSuppliers = () => {
+  const navigate = useNavigate();
+
   // קבלני שיפוצים
   const renovationContractors = [
     {
@@ -207,6 +210,10 @@ const TopSuppliers = () => {
     console.log('Supplier clicked:', item);
   };
 
+  const handleAllSuppliersClick = (category: string) => {
+    navigate(`/category/${category}/suppliers`);
+  };
+
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-white">
       <main className="flex flex-col items-start w-full bg-neutral-50 pb-8">
@@ -214,7 +221,11 @@ const TopSuppliers = () => {
           <Header userName="איתן" />
           
           <div className="w-full">
-            <SectionTitle title="קבלני שיפוצים" />
+            <SectionTitleWithButton 
+              title="קבלני שיפוצים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('renovation-contractors')}
+            />
             <CategorySection 
               items={renovationContractors} 
               onItemClick={handleCategoryClick}
@@ -222,7 +233,11 @@ const TopSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="חשמלאים" />
+            <SectionTitleWithButton 
+              title="חשמלאים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('electricians')}
+            />
             <CategorySection 
               items={electricians} 
               onItemClick={handleCategoryClick}
@@ -230,7 +245,11 @@ const TopSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="אינסטלטורים" />
+            <SectionTitleWithButton 
+              title="אינסטלטורים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('plumbers')}
+            />
             <CategorySection 
               items={plumbers} 
               onItemClick={handleCategoryClick}
@@ -238,7 +257,11 @@ const TopSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="מתקיני מיזוג אוויר" />
+            <SectionTitleWithButton 
+              title="מתקיני מיזוג אוויר" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('air-conditioning')}
+            />
             <CategorySection 
               items={airConditioningInstallers} 
               onItemClick={handleCategoryClick}
@@ -246,7 +269,11 @@ const TopSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="קבלני גבס" />
+            <SectionTitleWithButton 
+              title="קבלני גבס" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('drywall-contractors')}
+            />
             <CategorySection 
               items={drywallContractors} 
               onItemClick={handleCategoryClick}
@@ -254,7 +281,11 @@ const TopSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="מעצבי פנים" />
+            <SectionTitleWithButton 
+              title="מעצבי פנים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('interior-designers')}
+            />
             <CategorySection 
               items={interiorDesigners} 
               onItemClick={handleCategoryClick}
@@ -262,7 +293,11 @@ const TopSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="חנויות רהיטים" />
+            <SectionTitleWithButton 
+              title="חנויות רהיטים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('furniture')}
+            />
             <CategorySection 
               items={furnitureStores} 
               onItemClick={handleCategoryClick}
@@ -270,7 +305,11 @@ const TopSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="יועצי משכנתאות" />
+            <SectionTitleWithButton 
+              title="יועצי משכנתאות" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('mortgage-advisors')}
+            />
             <CategorySection 
               items={mortgageAdvisors} 
               onItemClick={handleCategoryClick}
@@ -278,7 +317,11 @@ const TopSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="חברות הובלה" />
+            <SectionTitleWithButton 
+              title="חברות הובלה" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('moving-companies')}
+            />
             <CategorySection 
               items={movingCompanies} 
               onItemClick={handleCategoryClick}

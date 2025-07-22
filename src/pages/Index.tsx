@@ -324,6 +324,14 @@ const Index = () => {
     navigate(`/category/${category}/suppliers`);
   };
 
+  const handleLocalDealsClick = () => {
+    navigate('/local-deals');
+  };
+
+  const handlePopularNowClick = () => {
+    navigate('/popular-now');
+  };
+
   const handleHeroCTA = () => {
     navigate('/onboarding/welcome');
   };
@@ -459,7 +467,11 @@ const Index = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="מבצעים בסביבה" />
+            <SectionTitleWithButton 
+              title="מבצעים בסביבה" 
+              buttonText="לכל המבצעים"
+              onButtonClick={handleLocalDealsClick}
+            />
             <CategorySection 
               items={localDeals} 
               onItemClick={handleCategoryClick}
@@ -467,7 +479,11 @@ const Index = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="חם עכשיו" />
+            <SectionTitleWithButton 
+              title="חם עכשיו" 
+              buttonText="לכל הפרויקטים"
+              onButtonClick={() => navigate('/hot-now')}
+            />
             <CategorySection 
               items={hotNowItems} 
               onItemClick={handleCategoryClick}
@@ -475,7 +491,11 @@ const Index = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="פופולרי עכשיו" />
+            <SectionTitleWithButton 
+              title="פופולרי עכשיו" 
+              buttonText="לכל הספקים"
+              onButtonClick={handlePopularNowClick}
+            />
             <CategorySection 
               items={trendingItems} 
               onItemClick={handleCategoryClick}

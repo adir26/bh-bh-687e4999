@@ -1,9 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
-import { SectionTitle } from '@/components/SectionTitle';
+import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';
 import { CategorySection } from '@/components/CategorySection';
 
 const NewSuppliers = () => {
+  const navigate = useNavigate();
+
   // קבלני שיפוצים חדשים
   const newRenovationContractors = [
     {
@@ -207,6 +210,10 @@ const NewSuppliers = () => {
     console.log('New supplier clicked:', item);
   };
 
+  const handleAllSuppliersClick = (category: string) => {
+    navigate(`/category/${category}/suppliers`);
+  };
+
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-white">
       <main className="flex flex-col items-start w-full bg-neutral-50 pb-8">
@@ -214,7 +221,11 @@ const NewSuppliers = () => {
           <Header userName="איתן" />
           
           <div className="w-full">
-            <SectionTitle title="קבלני שיפוצים חדשים" />
+            <SectionTitleWithButton 
+              title="קבלני שיפוצים חדשים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('renovation-contractors')}
+            />
             <CategorySection 
               items={newRenovationContractors} 
               onItemClick={handleCategoryClick}
@@ -222,7 +233,11 @@ const NewSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="חשמלאים חדשים" />
+            <SectionTitleWithButton 
+              title="חשמלאים חדשים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('electricians')}
+            />
             <CategorySection 
               items={newElectricians} 
               onItemClick={handleCategoryClick}
@@ -230,7 +245,11 @@ const NewSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="אינסטלטורים חדשים" />
+            <SectionTitleWithButton 
+              title="אינסטלטורים חדשים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('plumbers')}
+            />
             <CategorySection 
               items={newPlumbers} 
               onItemClick={handleCategoryClick}
@@ -238,7 +257,11 @@ const NewSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="מתקיני מיזוג אוויר חדשים" />
+            <SectionTitleWithButton 
+              title="מתקיני מיזוג אוויר חדשים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('air-conditioning')}
+            />
             <CategorySection 
               items={newAirConditioningInstallers} 
               onItemClick={handleCategoryClick}
@@ -246,7 +269,11 @@ const NewSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="נגרים חדשים" />
+            <SectionTitleWithButton 
+              title="נגרים חדשים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('carpenters')}
+            />
             <CategorySection 
               items={newCarpenters} 
               onItemClick={handleCategoryClick}
@@ -254,7 +281,11 @@ const NewSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="מעצבי פנים חדשים" />
+            <SectionTitleWithButton 
+              title="מעצבי פנים חדשים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('interior-designers')}
+            />
             <CategorySection 
               items={newInteriorDesigners} 
               onItemClick={handleCategoryClick}
@@ -262,7 +293,11 @@ const NewSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="אדריכלים חדשים" />
+            <SectionTitleWithButton 
+              title="אדריכלים חדשים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('architects')}
+            />
             <CategorySection 
               items={newArchitects} 
               onItemClick={handleCategoryClick}
@@ -270,7 +305,11 @@ const NewSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="מתכנני מטבחים חדשים" />
+            <SectionTitleWithButton 
+              title="מתכנני מטבחים חדשים" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('kitchen-designers')}
+            />
             <CategorySection 
               items={newKitchenDesigners} 
               onItemClick={handleCategoryClick}
@@ -278,7 +317,11 @@ const NewSuppliers = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="חברות ניקיון חדשות" />
+            <SectionTitleWithButton 
+              title="חברות ניקיון חדשות" 
+              buttonText="לכל הספקים"
+              onButtonClick={() => handleAllSuppliersClick('cleaning-companies')}
+            />
             <CategorySection 
               items={newCleaningCompanies} 
               onItemClick={handleCategoryClick}
