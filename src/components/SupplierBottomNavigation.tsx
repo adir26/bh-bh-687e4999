@@ -90,7 +90,7 @@ export const SupplierBottomNavigation: React.FC = () => {
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pb-safe">
-      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-2xl px-4 py-3 shadow-lg shadow-black/10 max-w-sm w-full">
+      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-3xl px-4 py-3 shadow-lg shadow-black/10 max-w-sm w-full">
         <div className="flex items-center justify-between gap-4">
           {/* First two nav items */}
           {navItems.slice(0, 2).map((item) => {
@@ -101,7 +101,7 @@ export const SupplierBottomNavigation: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center gap-1 transition-all duration-200 active:scale-95"
+                className="flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95"
                 onClick={handleNavClick}
                 aria-label={item.label}
               >
@@ -112,7 +112,7 @@ export const SupplierBottomNavigation: React.FC = () => {
                 }`}>
                   <Icon size={20} />
                 </div>
-                <span className={`text-xs font-medium transition-colors duration-200 ${
+                <span className={`text-xs font-medium transition-colors duration-200 text-center ${
                   active ? 'text-primary' : 'text-gray-500'
                 }`}>
                   {item.label}
@@ -168,7 +168,7 @@ export const SupplierBottomNavigation: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center gap-1 transition-all duration-200 active:scale-95"
+                className="flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95"
                 onClick={handleNavClick}
                 aria-label={item.label}
               >
@@ -179,7 +179,7 @@ export const SupplierBottomNavigation: React.FC = () => {
                 }`}>
                   <Icon size={20} />
                 </div>
-                <span className={`text-xs font-medium transition-colors duration-200 ${
+                <span className={`text-xs font-medium transition-colors duration-200 text-center ${
                   active ? 'text-primary' : 'text-gray-500'
                 }`}>
                   {item.label}
