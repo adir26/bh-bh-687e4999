@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				button: {
+					primary: 'hsl(var(--button-primary))',
+					'primary-hover': 'hsl(var(--button-primary-hover))',
+					'primary-foreground': 'hsl(var(--button-primary-foreground))',
+					secondary: 'hsl(var(--button-secondary))',
+					'secondary-hover': 'hsl(var(--button-secondary-hover))',
+					'secondary-foreground': 'hsl(var(--button-secondary-foreground))'
 				}
 			},
 			borderRadius: {

@@ -56,11 +56,11 @@ const Search = () => {
               placeholder="חפש ספקים, שירותים ומוצרים..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pr-10 text-right"
+              className="pr-10 text-right rounded-xl"
               dir="rtl"
             />
           </div>
-          <Button variant="outline" size="icon">
+          <Button variant="blue-secondary" size="icon" className="rounded-xl">
             <Filter size={20} />
           </Button>
         </div>
@@ -69,7 +69,7 @@ const Search = () => {
         <div className="flex items-center gap-2 text-gray-600">
           <MapPin size={16} />
           <span className="text-sm">תל אביב-יפו</span>
-          <Button variant="ghost" size="sm" className="text-primary">
+          <Button variant="ghost" size="sm" className="text-button-secondary-foreground hover:text-button-primary">
             שנה
           </Button>
         </div>
@@ -81,7 +81,7 @@ const Search = () => {
           {searchFilters.map((filter) => (
             <Button
               key={filter.id}
-              variant={selectedFilter === filter.id ? "default" : "outline"}
+              variant={selectedFilter === filter.id ? "blue" : "blue-secondary"}
               size="sm"
               onClick={() => setSelectedFilter(filter.id)}
               className="whitespace-nowrap"
@@ -109,7 +109,7 @@ const Search = () => {
                   <Button
                     key={index}
                     variant="ghost"
-                    className="w-full justify-start text-right hover:bg-gray-50"
+                    className="w-full justify-start text-right hover:bg-button-secondary rounded-xl"
                     onClick={() => setSearchQuery(search)}
                   >
                     <SearchIcon size={16} className="ml-2" />
