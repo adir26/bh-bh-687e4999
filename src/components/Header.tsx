@@ -1,10 +1,18 @@
+
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   userName: string;
 }
 
 export const Header: React.FC<HeaderProps> = ({ userName }) => {
+  const navigate = useNavigate();
+
+  const handleNotificationsClick = () => {
+    navigate('/notifications');
+  };
+
   return (
     <header className="flex justify-between items-center self-stretch bg-neutral-50 pt-4 pb-2 px-4 max-sm:pt-3 max-sm:pb-1.5 max-sm:px-3">
       <div className="flex w-12 h-12 items-center">
@@ -21,8 +29,9 @@ export const Header: React.FC<HeaderProps> = ({ userName }) => {
       </div>
       <div className="flex w-12 justify-end items-center">
         <button 
-          className="flex h-12 max-w-[480px] justify-center items-center gap-2 rounded-xl"
+          className="flex h-12 max-w-[480px] justify-center items-center gap-2 rounded-xl hover:bg-gray-100 transition-colors"
           aria-label="Notifications"
+          onClick={handleNotificationsClick}
         >
           <div className="flex flex-col items-center flex-[1_0_0]">
             <div className="flex-[1_0_0] self-stretch">

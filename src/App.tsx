@@ -18,6 +18,7 @@ import CategorySuppliers from "./pages/CategorySuppliers";
 import NotFound from "./pages/NotFound";
 import Registration from "./pages/Registration";
 import Login from "./pages/Login";
+import Notifications from "./pages/Notifications";
 import OnboardingWelcome from "./pages/onboarding/Welcome";
 import OnboardingHomeDetails from "./pages/onboarding/HomeDetails";
 import OnboardingProjectPlanning from "./pages/onboarding/ProjectPlanning";
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/registration" element={<Registration />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/notifications" element={<Notifications />} />
             <Route path="/onboarding/welcome" element={<OnboardingWelcome />} />
             <Route path="/onboarding/home-details" element={<OnboardingHomeDetails />} />
             <Route path="/onboarding/project-planning" element={<OnboardingProjectPlanning />} />
