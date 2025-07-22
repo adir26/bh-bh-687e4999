@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from './ui/card';
+import { Button } from './ui/button';
 
 interface SupplierCardProps {
   logo: string;
@@ -33,17 +34,17 @@ export const SupplierCard: React.FC<SupplierCardProps> = ({
             <h3 className="font-semibold text-sm text-center line-clamp-1">{name}</h3>
             <p className="text-xs text-muted-foreground text-center line-clamp-2">{tagline}</p>
           </div>
-          <button
-            className="flex h-8 min-w-[60px] max-w-[120px] justify-center items-center bg-[#EBEDF0] px-3 py-0 rounded-lg hover:bg-[#D1D5DB] transition-colors"
+          <Button
+            variant="blue-secondary"
+            size="sm"
+            className="h-8 min-w-[60px] max-w-[120px] text-xs font-bold px-3"
             onClick={(e) => {
               e.stopPropagation();
               onClick?.();
             }}
           >
-            <span className="text-[#121417] text-center text-xs font-bold leading-[18px]">
-              עוד
-            </span>
-          </button>
+            עוד
+          </Button>
         </div>
       </CardContent>
     </Card>
