@@ -1,0 +1,179 @@
+
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye } from 'lucide-react';
+
+export default function SupplierDashboard() {
+  const navigate = useNavigate();
+
+  const stats = [
+    { title: 'לידים חדשים השבוע', value: '8', icon: Users, color: 'text-blue-600' },
+    { title: 'הזמנות פעילות', value: '3', icon: ShoppingBag, color: 'text-green-600' },
+    { title: 'דירוג ממוצע', value: '4.8', icon: Star, color: 'text-yellow-600' },
+    { title: 'הכנסות צפויות החודש', value: '₪12,500', icon: DollarSign, color: 'text-purple-600' },
+  ];
+
+  const quickActions = [
+    { title: 'הוסף מוצר/שירות', icon: Plus, onClick: () => navigate('/supplier/catalog') },
+    { title: 'ערוך פרופיל', icon: Edit, onClick: () => {} },
+    { title: 'העלה תמונות', icon: Upload, onClick: () => {} },
+    { title: 'נהל התראות', icon: Bell, onClick: () => {} },
+  ];
+
+  const needsAttention = [
+    { title: 'לידים חדשים', count: 5, urgent: true },
+    { title: 'הזמנות ממתינות לתגובה', count: 2, urgent: true },
+    { title: 'ביקורות ממתינות למענה', count: 1, urgent: false },
+  ];
+
+  const suggestions = [
+    'שפר את הפרופיל שלך כדי לקבל יותר לידים',
+    'הגדר שעות עבודה כדי להגביר נראות',
+    'הוסף עוד תמונות איכות לגלריה',
+  ];
+
+  return (
+    <div className="min-h-screen bg-background" dir="rtl">
+      {/* Header */}
+      <div className="bg-white border-b border-border sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                חזור לדף הבית
+              </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">שלום, אבי כהן</h1>
+                <p className="text-muted-foreground">הנה מה שקורה השבוע</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map((stat, index) => (
+            <Card key={index} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">{stat.title}</p>
+                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                  </div>
+                  <stat.icon className={`w-8 h-8 ${stat.color}`} />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                פעולות מהירות
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {quickActions.map((action, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={action.onClick}
+                >
+                  <action.icon className="w-4 h-4 ml-2" />
+                  {action.title}
+                </Button>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Mini Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                צפיות בפרופיל השבוע
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-32 flex items-end justify-between gap-2">
+                {[65, 45, 80, 55, 70, 85, 90].map((height, index) => (
+                  <div
+                    key={index}
+                    className="bg-primary/20 hover:bg-primary/30 transition-colors flex-1 rounded-t"
+                    style={{ height: `${height}%` }}
+                  />
+                ))}
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                <span>א'</span>
+                <span>ב'</span>
+                <span>ג'</span>
+                <span>ד'</span>
+                <span>ה'</span>
+                <span>ו'</span>
+                <span>ש'</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Needs Attention */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-orange-600">
+                <AlertCircle className="w-5 h-5" />
+                דורש תשומת לב
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {needsAttention.map((item, index) => (
+                <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <span className="text-sm">{item.title}</span>
+                  <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                    item.urgent ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {item.count}
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Suggestions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>המלצות לשיפור</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {suggestions.map((suggestion, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                  <span className="text-sm text-blue-800">{suggestion}</span>
+                </div>
+              ))}
+            </div>
+            <Button variant="blue" className="mt-4">
+              צפה בכל ההמלצות
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

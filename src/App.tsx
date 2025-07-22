@@ -34,6 +34,9 @@ import SupplierSummary from "./pages/onboarding/SupplierSummary";
 import SupplierDashboard from "./pages/SupplierDashboard";
 import OrderStatus from "./pages/orders/OrderStatus";
 import LiveDeliveryTracking from "./pages/orders/LiveDeliveryTracking";
+import SupplierDashboardNew from "./pages/supplier/Dashboard";
+import LeadManagement from "./pages/supplier/LeadManagement";
+import ProductCatalog from "./pages/supplier/ProductCatalog";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +63,9 @@ const App = () => (
             <Route path="/onboarding/supplier-products" element={<SupplierProducts />} />
             <Route path="/onboarding/supplier-summary" element={<SupplierSummary />} />
             <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
+            <Route path="/supplier/dashboard" element={<SupplierDashboardNew />} />
+            <Route path="/supplier/leads" element={<LeadManagement />} />
+            <Route path="/supplier/catalog" element={<ProductCatalog />} />
             <Route path="/search" element={<Search />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/orders" element={<Orders />} />
