@@ -110,7 +110,7 @@ export default function OnboardingInterests() {
     };
     
     localStorage.setItem('userInterests', JSON.stringify(interestsData));
-    navigate('/profile'); // Navigate to profile to see summary
+    navigate('/profile');
   };
 
   const handleBack = () => {
@@ -148,7 +148,7 @@ export default function OnboardingInterests() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 pb-safe">
+      <div className="flex-1 px-6 content-with-fixed-bottom">
         <div className="max-w-md mx-auto">
           {/* Title */}
           <div className="mb-8 text-center">

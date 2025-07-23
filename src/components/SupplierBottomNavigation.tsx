@@ -89,9 +89,9 @@ export const SupplierBottomNavigation: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 bottom-safe">
-      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-t-3xl px-4 py-4 shadow-lg shadow-black/10 max-w-sm w-full"
-           style={{ paddingBottom: `calc(0.75rem + env(safe-area-inset-bottom))` }}>
+    <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4" 
+         style={{ paddingBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
+      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-t-3xl px-4 py-4 shadow-lg shadow-black/10 max-w-sm w-full">
         <div className="flex items-center justify-between gap-4">
           {/* First two nav items */}
           {navItems.slice(0, 2).map((item) => {
@@ -102,7 +102,7 @@ export const SupplierBottomNavigation: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="bottom-nav-button min-h-[56px] px-2 rounded-xl transition-all duration-200 active:scale-95"
+                className="bottom-nav-button px-2 rounded-xl transition-all duration-200 active:scale-95"
                 onClick={handleNavClick}
                 aria-label={item.label}
               >
@@ -135,12 +135,12 @@ export const SupplierBottomNavigation: React.FC = () => {
                 <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-20" />
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="mx-4 mb-4 rounded-t-2xl" 
+            <DrawerContent className="mx-4 rounded-t-2xl" 
                           style={{ marginBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
               <DrawerHeader className="text-center pb-2">
                 <DrawerTitle className="text-lg font-semibold">פעולות מהירות</DrawerTitle>
               </DrawerHeader>
-              <div className="px-4 pb-6" style={{ paddingBottom: `calc(1.5rem + env(safe-area-inset-bottom))` }}>
+              <div className="px-4" style={{ paddingBottom: `calc(1.5rem + env(safe-area-inset-bottom))` }}>
                 <div className="grid grid-cols-1 gap-3">
                   {quickActions.map((action, index) => {
                     const Icon = action.icon;
@@ -170,7 +170,7 @@ export const SupplierBottomNavigation: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="bottom-nav-button min-h-[56px] px-2 rounded-xl transition-all duration-200 active:scale-95"
+                className="bottom-nav-button px-2 rounded-xl transition-all duration-200 active:scale-95"
                 onClick={handleNavClick}
                 aria-label={item.label}
               >

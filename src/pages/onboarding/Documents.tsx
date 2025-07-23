@@ -123,7 +123,7 @@ export default function OnboardingDocuments() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 pb-safe">
+      <div className="flex-1 px-6 content-with-fixed-bottom">
         <div className="max-w-md mx-auto">
           {/* Title */}
           <div className="mb-8 text-center">

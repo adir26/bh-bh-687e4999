@@ -50,9 +50,9 @@ export const BottomNavigation: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 bottom-safe">
-      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-t-3xl px-2 py-4 shadow-lg shadow-black/10 max-w-md w-full"
-           style={{ paddingBottom: `calc(0.75rem + env(safe-area-inset-bottom))` }}>
+    <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4" 
+         style={{ paddingBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
+      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-t-3xl px-2 py-4 shadow-lg shadow-black/10 max-w-md w-full">
         <div className="flex justify-around items-center">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -62,7 +62,7 @@ export const BottomNavigation: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="bottom-nav-button min-h-[56px] px-2 rounded-xl transition-all duration-200 active:scale-95"
+                className="bottom-nav-button px-2 rounded-xl transition-all duration-200 active:scale-95"
                 onClick={handleNavClick}
                 aria-label={item.label}
               >
