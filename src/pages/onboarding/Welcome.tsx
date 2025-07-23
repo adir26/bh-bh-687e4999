@@ -28,7 +28,7 @@ export default function OnboardingWelcome() {
       <OnboardingProgress currentStep={1} totalSteps={5} />
 
       {/* Content */}
-      <div className="flex-1 flex flex-col pb-safe">
+      <div className="flex-1 flex flex-col pb-24">
         {/* Hero Image */}
         <div className="relative h-64 mx-6 mb-6 rounded-2xl overflow-hidden">
           <img 
