@@ -42,22 +42,22 @@ export const SupplierBottomNavigation: React.FC = () => {
     {
       icon: Package,
       label: 'הוסף מוצר/שירות',
-      action: () => console.log('Add product/service')
-    },
-    {
-      icon: Upload,
-      label: 'העלה תמונה',
-      action: () => console.log('Upload image')
+      action: () => window.location.href = '/supplier/catalog'
     },
     {
       icon: Briefcase,
-      label: 'צור הצעה',
-      action: () => console.log('Create offer')
+      label: 'צור הצעת מחיר',
+      action: () => window.location.href = '/supplier/quotes'
     },
     {
       icon: MessageCircle,
-      label: 'צור קשר עם התמיכה',
-      action: () => console.log('Contact support')
+      label: 'ניהול הזמנות',
+      action: () => window.location.href = '/supplier/orders'
+    },
+    {
+      icon: Upload,
+      label: 'סטטיסטיקות',
+      action: () => window.location.href = '/supplier/analytics'
     }
   ];
 

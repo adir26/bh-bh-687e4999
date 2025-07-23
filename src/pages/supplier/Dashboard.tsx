@@ -3,7 +3,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye } from 'lucide-react';
+import { SupplierHeader } from '@/components/SupplierHeader';
+import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye, FileText, Package2 } from 'lucide-react';
 
 export default function SupplierDashboard() {
   const navigate = useNavigate();
@@ -16,10 +17,10 @@ export default function SupplierDashboard() {
   ];
 
   const quickActions = [
-    { title: 'הוסף מוצר/שירות', icon: Plus, onClick: () => navigate('/supplier/catalog') },
-    { title: 'ערוך פרופיל', icon: Edit, onClick: () => {} },
-    { title: 'העלה תמונות', icon: Upload, onClick: () => {} },
-    { title: 'נהל התראות', icon: Bell, onClick: () => {} },
+    { title: 'צור הצעת מחיר', icon: FileText, onClick: () => navigate('/supplier/quotes') },
+    { title: 'ניהול הזמנות', icon: Package2, onClick: () => navigate('/supplier/orders') },
+    { title: 'נהל לידים', icon: Users, onClick: () => navigate('/supplier/leads') },
+    { title: 'סטטיסטיקות', icon: TrendingUp, onClick: () => navigate('/supplier/analytics') },
   ];
 
   const needsAttention = [
@@ -36,28 +37,12 @@ export default function SupplierDashboard() {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      {/* Header */}
-      <div className="bg-white border-b border-border sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/')}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                חזור לדף הבית
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">שלום, אבי כהן</h1>
-                <p className="text-muted-foreground">הנה מה שקורה השבוע</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SupplierHeader 
+        title="שלום, אבי כהן" 
+        subtitle="הנה מה שקורה השבוע"
+        showBackButton={true}
+        backUrl="/"
+      />
 
       <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         {/* Stats Cards */}
