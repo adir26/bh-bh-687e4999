@@ -113,9 +113,10 @@ const ConditionalNavigation = () => {
   const location = useLocation();
   const isSupplierRoute = location.pathname.startsWith('/supplier/') || location.pathname === '/supplier-dashboard';
   const isOnboardingRoute = location.pathname.startsWith('/onboarding/') || location.pathname === '/registration' || location.pathname === '/login';
+  const isSupportRoute = location.pathname.startsWith('/support/');
   
-  // Don't show navigation during onboarding or auth flows
-  if (isOnboardingRoute) {
+  // Don't show navigation during onboarding, auth flows, or support chat
+  if (isOnboardingRoute || isSupportRoute) {
     return null;
   }
   
