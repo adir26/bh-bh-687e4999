@@ -50,8 +50,9 @@ export const BottomNavigation: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pb-safe">
-      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-3xl px-2 py-3 shadow-lg shadow-black/10 max-w-md w-full">
+    <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 bottom-safe">
+      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-t-3xl px-2 py-4 shadow-lg shadow-black/10 max-w-md w-full"
+           style={{ paddingBottom: `calc(0.75rem + env(safe-area-inset-bottom))` }}>
         <div className="flex justify-around items-center">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -61,22 +62,22 @@ export const BottomNavigation: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center justify-center gap-1 py-2 px-3 min-w-[60px] rounded-xl transition-all duration-200 active:scale-95"
+                className="bottom-nav-button min-h-[56px] px-2 rounded-xl transition-all duration-200 active:scale-95"
                 onClick={handleNavClick}
                 aria-label={item.label}
               >
-                <div className={`p-2 rounded-full transition-all duration-200 ${
+                <div className={`p-2.5 rounded-full transition-all duration-200 ${
                   active 
                     ? 'bg-primary/15 text-primary scale-110' 
                     : 'text-gray-500 hover:text-primary hover:bg-primary/5'
                 }`}>
                   <Icon 
-                    size={20}
+                    size={22}
                     className="transition-colors duration-200"
                   />
                 </div>
                 <span 
-                  className={`text-xs font-medium transition-colors duration-200 text-center ${
+                  className={`text-xs font-medium transition-colors duration-200 text-center leading-tight ${
                     active ? 'text-primary' : 'text-gray-500'
                   }`}
                 >

@@ -235,7 +235,7 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
-  /* Safe area utilities for mobile devices */
+  /* Enhanced safe area utilities for mobile devices */
   .pb-safe {
     padding-bottom: max(env(safe-area-inset-bottom), 1rem);
   }
@@ -252,6 +252,24 @@ All colors MUST be HSL.
     padding-right: max(env(safe-area-inset-right), 1rem);
   }
 
+  /* Bottom UI specific safe area utilities */
+  .bottom-safe {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+  
+  .bottom-safe-lg {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+  
+  /* Bottom navigation specific spacing */
+  .bottom-nav-safe {
+    margin-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+  
+  .bottom-nav-padding {
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom)) 1rem;
+  }
+
   /* Enhanced mobile touch utilities */
   .active\:scale-95:active {
     transform: scale(0.95);
@@ -261,10 +279,21 @@ All colors MUST be HSL.
     transform: scale(0.98);
   }
 
-  /* Better touch targets */
+  /* Improved touch targets for bottom navigation */
   .touch-target {
     min-height: 44px;
     min-width: 44px;
+  }
+  
+  .touch-target-lg {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  .nav-item-touch {
+    min-height: 56px;
+    min-width: 56px;
+    padding: 0.5rem;
   }
 
   /* Mobile-optimized text sizes */
@@ -313,14 +342,25 @@ All colors MUST be HSL.
     @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
   }
 
-  /* Mobile-optimized buttons */
+  /* Mobile-optimized buttons with proper touch targets */
   .mobile-button {
     @apply touch-target rounded-xl font-medium transition-all duration-200 active:scale-95;
+  }
+
+  /* Bottom navigation specific buttons */
+  .bottom-nav-button {
+    @apply nav-item-touch rounded-xl font-medium transition-all duration-200 active:scale-95 flex flex-col items-center justify-center gap-1;
   }
 
   /* Better mobile cards */
   .mobile-card {
     @apply rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md;
+  }
+  
+  /* Fixed bottom containers */
+  .fixed-bottom-container {
+    @apply fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50;
+    padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)) 1rem;
   }
 
   /* Responsive text wrapping */

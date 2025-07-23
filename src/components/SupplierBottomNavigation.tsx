@@ -89,8 +89,9 @@ export const SupplierBottomNavigation: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pb-safe">
-      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-3xl px-4 py-3 shadow-lg shadow-black/10 max-w-sm w-full">
+    <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 bottom-safe">
+      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-t-3xl px-4 py-4 shadow-lg shadow-black/10 max-w-sm w-full"
+           style={{ paddingBottom: `calc(0.75rem + env(safe-area-inset-bottom))` }}>
         <div className="flex items-center justify-between gap-4">
           {/* First two nav items */}
           {navItems.slice(0, 2).map((item) => {
@@ -101,18 +102,18 @@ export const SupplierBottomNavigation: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95"
+                className="bottom-nav-button min-h-[56px] px-2 rounded-xl transition-all duration-200 active:scale-95"
                 onClick={handleNavClick}
                 aria-label={item.label}
               >
-                <div className={`p-2 rounded-full transition-all duration-200 ${
+                <div className={`p-2.5 rounded-full transition-all duration-200 ${
                   active 
                     ? 'bg-primary/15 text-primary scale-110' 
                     : 'text-gray-500 hover:text-primary hover:bg-primary/5'
                 }`}>
-                  <Icon size={20} />
+                  <Icon size={22} />
                 </div>
-                <span className={`text-xs font-medium transition-colors duration-200 text-center ${
+                <span className={`text-xs font-medium transition-colors duration-200 text-center leading-tight ${
                   active ? 'text-primary' : 'text-gray-500'
                 }`}>
                   {item.label}
@@ -126,19 +127,20 @@ export const SupplierBottomNavigation: React.FC = () => {
             <DrawerTrigger asChild>
               <Button
                 size="lg"
-                className="h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 relative"
+                className="h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 relative touch-target-lg"
                 onClick={handleFabClick}
                 aria-label="פעולות מהירות"
               >
-                <Plus size={24} className="text-white" />
+                <Plus size={26} className="text-white" />
                 <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-20" />
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="mx-4 mb-20 rounded-t-2xl">
+            <DrawerContent className="mx-4 mb-4 rounded-t-2xl" 
+                          style={{ marginBottom: `calc(1rem + env(safe-area-inset-bottom))` }}>
               <DrawerHeader className="text-center pb-2">
                 <DrawerTitle className="text-lg font-semibold">פעולות מהירות</DrawerTitle>
               </DrawerHeader>
-              <div className="px-4 pb-6">
+              <div className="px-4 pb-6" style={{ paddingBottom: `calc(1.5rem + env(safe-area-inset-bottom))` }}>
                 <div className="grid grid-cols-1 gap-3">
                   {quickActions.map((action, index) => {
                     const Icon = action.icon;
@@ -146,11 +148,11 @@ export const SupplierBottomNavigation: React.FC = () => {
                       <Button
                         key={index}
                         variant="outline"
-                        className="h-14 justify-between text-right hover:bg-primary/5 transition-all duration-200 active:scale-98"
+                        className="h-16 justify-between text-right hover:bg-primary/5 transition-all duration-200 active:scale-98 touch-target-lg"
                         onClick={() => handleQuickAction(action.action)}
                       >
-                        <span className="font-medium">{action.label}</span>
-                        <Icon size={20} className="text-primary" />
+                        <span className="font-medium text-sm">{action.label}</span>
+                        <Icon size={22} className="text-primary" />
                       </Button>
                     );
                   })}
@@ -168,18 +170,18 @@ export const SupplierBottomNavigation: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95"
+                className="bottom-nav-button min-h-[56px] px-2 rounded-xl transition-all duration-200 active:scale-95"
                 onClick={handleNavClick}
                 aria-label={item.label}
               >
-                <div className={`p-2 rounded-full transition-all duration-200 ${
+                <div className={`p-2.5 rounded-full transition-all duration-200 ${
                   active 
                     ? 'bg-primary/15 text-primary scale-110' 
                     : 'text-gray-500 hover:text-primary hover:bg-primary/5'
                 }`}>
-                  <Icon size={20} />
+                  <Icon size={22} />
                 </div>
-                <span className={`text-xs font-medium transition-colors duration-200 text-center ${
+                <span className={`text-xs font-medium transition-colors duration-200 text-center leading-tight ${
                   active ? 'text-primary' : 'text-gray-500'
                 }`}>
                   {item.label}
