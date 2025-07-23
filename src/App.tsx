@@ -43,6 +43,10 @@ import QuoteBuilder from "./pages/supplier/QuoteBuilder";
 import OrderManagement from "./pages/supplier/OrderManagement";
 import SupplierNotifications from "./pages/supplier/Notifications";
 import SupplierAnalytics from "./pages/supplier/Analytics";
+import Support from "./pages/Support";
+import SupportChat from "./pages/SupportChat";
+import ComplaintForm from "./pages/ComplaintForm";
+import ComplaintDetails from "./pages/ComplaintDetails";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +94,10 @@ const App = () => {
               <Route path="/popular-now" element={<PopularNow />} />
               <Route path="/supplier/:id" element={<SupplierProfile />} />
               <Route path="/category/:category/suppliers" element={<CategorySuppliers />} />
+              <Route path="/support" element={<Support />} />
+              <Route path="/support/chat/:id" element={<SupportChat />} />
+              <Route path="/complaint/:orderId" element={<ComplaintForm />} />
+              <Route path="/support/complaint/:id" element={<ComplaintDetails />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

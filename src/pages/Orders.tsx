@@ -123,7 +123,7 @@ const Orders = () => {
         {filteredOrders.length > 0 ? (
           <div className="space-y-6">
             {filteredOrders.map((order) => (
-              <OrderCard key={order.id} order={order} />
+              <OrderCard key={order.id} order={order} showComplaintButton={true} />
             ))}
           </div>
         ) : (

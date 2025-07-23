@@ -23,9 +23,10 @@ export interface Order {
 
 interface OrderCardProps {
   order: Order;
+  showComplaintButton?: boolean;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
+const OrderCard: React.FC<OrderCardProps> = ({ order, showComplaintButton = false }) => {
   const navigate = useNavigate();
 
   const getStatusIcon = (status: string) => {
@@ -232,6 +233,20 @@ const OrderCard: React.FC<OrderCardProps> = ({ order }) => {
             <Button variant="outline" size="lg" className="w-full mt-3 font-semibold rounded-xl h-12 border-2">
               <Star className="w-5 h-5 ml-2" />
               דרג את השירות
+            </Button>
+          )}
+          
+          {showComplaintButton && isActiveOrder && (
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="w-full mt-3 font-semibold rounded-xl h-12 border-2 border-red-200 text-red-600 hover:bg-red-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/complaint/${order.id}`);
+              }}
+            >
+              דווח על בעיה עם ההזמנה
             </Button>
           )}
         </div>

@@ -166,7 +166,7 @@ const Profile = () => {
       icon: HelpCircle,
       title: 'עזרה ותמיכה',
       subtitle: 'שאלות נפוצות וצור קשר',
-      href: '/profile/help'
+      href: '/support'
     }
   ];
 
