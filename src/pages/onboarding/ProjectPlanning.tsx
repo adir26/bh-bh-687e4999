@@ -100,7 +100,7 @@ export default function OnboardingProjectPlanning() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 pb-safe">
+      <div className="flex-1 px-6" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
         <div className="max-w-md mx-auto">
           {/* Title */}
           <div className="mb-8 text-center">
@@ -250,7 +250,7 @@ export default function OnboardingProjectPlanning() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-safe z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 z-50" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}>
         <div className="max-w-md mx-auto">
           <Button 
             type="submit" 

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -85,7 +84,7 @@ export default function SupplierBranding() {
       <OnboardingProgress currentStep={3} totalSteps={5} />
 
       {/* Content */}
-      <div className="flex-1 flex flex-col pb-safe">
+      <div className="flex-1 flex flex-col" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
         {/* Hero Image */}
         <div className="relative h-48 mx-6 mb-6 rounded-2xl overflow-hidden">
           <img 
@@ -106,7 +105,6 @@ export default function SupplierBranding() {
             </div>
 
             <div className="space-y-6">
-              {/* Logo Upload */}
               <div>
                 <Label>לוגו החברה</Label>
                 <div className="mt-2 border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors cursor-pointer">
@@ -129,7 +127,6 @@ export default function SupplierBranding() {
                 </div>
               </div>
 
-              {/* Banner Upload */}
               <div>
                 <Label>תמונת רקע לעמוד</Label>
                 <div className="mt-2 border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary transition-colors cursor-pointer">
@@ -152,7 +149,6 @@ export default function SupplierBranding() {
                 </div>
               </div>
 
-              {/* Description */}
               <div>
                 <Label htmlFor="description">תיאור שמופיע ללקוחות *</Label>
                 <Textarea
@@ -164,7 +160,6 @@ export default function SupplierBranding() {
                 />
               </div>
 
-              {/* Business Hours */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label className="flex items-center gap-2">
@@ -252,7 +247,7 @@ export default function SupplierBranding() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-safe z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 z-50" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}>
         <div className="max-w-md mx-auto">
           <Button 
             onClick={handleNext}

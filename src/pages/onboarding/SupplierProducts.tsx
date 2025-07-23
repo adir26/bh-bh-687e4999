@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -128,7 +127,7 @@ export default function SupplierProducts() {
       <OnboardingProgress currentStep={4} totalSteps={5} />
 
       {/* Content */}
-      <div className="flex-1 flex flex-col pb-safe">
+      <div className="flex-1 flex flex-col" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
         {/* Hero Image */}
         <div className="relative h-48 mx-6 mb-6 rounded-2xl overflow-hidden">
           <img 
@@ -163,7 +162,6 @@ export default function SupplierProducts() {
                     )}
                   </div>
 
-                  {/* Product Image Upload */}
                   <div>
                     <Label>תמונת המוצר</Label>
                     <div className="mt-2 border-2 border-dashed border-border rounded-xl p-4 text-center hover:border-primary transition-colors cursor-pointer">
@@ -183,7 +181,6 @@ export default function SupplierProducts() {
                     </div>
                   </div>
 
-                  {/* Product Name */}
                   <div>
                     <Label htmlFor={`product-name-${product.id}`}>שם המוצר/שירות *</Label>
                     <Input
@@ -195,7 +192,6 @@ export default function SupplierProducts() {
                     />
                   </div>
 
-                  {/* Product Category */}
                   <div>
                     <Label>קטגוריה *</Label>
                     <Select 
@@ -215,7 +211,6 @@ export default function SupplierProducts() {
                     </Select>
                   </div>
 
-                  {/* Product Price */}
                   <div>
                     <Label htmlFor={`product-price-${product.id}`}>מחיר *</Label>
                     <Input
@@ -227,7 +222,6 @@ export default function SupplierProducts() {
                     />
                   </div>
 
-                  {/* Product Description */}
                   <div>
                     <Label htmlFor={`product-description-${product.id}`}>תיאור (אופציונלי)</Label>
                     <Textarea
@@ -241,7 +235,6 @@ export default function SupplierProducts() {
                 </div>
               ))}
 
-              {/* Add Product Button */}
               <div className="text-center">
                 <button
                   onClick={addProduct}
@@ -257,7 +250,7 @@ export default function SupplierProducts() {
       </div>
 
       {/* Fixed Bottom Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-safe z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 z-50" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}>
         <div className="max-w-md mx-auto space-y-3">
           <Button 
             onClick={handleNext}

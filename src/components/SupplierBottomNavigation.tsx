@@ -89,7 +89,7 @@ export const SupplierBottomNavigation: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pb-safe">
+    <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center" style={{ paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}>
       <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-3xl px-4 py-3 shadow-lg shadow-black/10 max-w-sm w-full">
         <div className="flex items-center justify-between gap-4">
           {/* First two nav items */}
@@ -101,7 +101,7 @@ export const SupplierBottomNavigation: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95"
+                className="flex flex-col items-center justify-center gap-1 min-h-[44px] transition-all duration-200 active:scale-95"
                 onClick={handleNavClick}
                 aria-label={item.label}
               >
@@ -134,7 +134,7 @@ export const SupplierBottomNavigation: React.FC = () => {
                 <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-20" />
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="mx-4 mb-20 rounded-t-2xl">
+            <DrawerContent className="mx-4 rounded-t-2xl" style={{ marginBottom: 'calc(80px + env(safe-area-inset-bottom))' }}>
               <DrawerHeader className="text-center pb-2">
                 <DrawerTitle className="text-lg font-semibold">פעולות מהירות</DrawerTitle>
               </DrawerHeader>
@@ -168,7 +168,7 @@ export const SupplierBottomNavigation: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-col items-center justify-center gap-1 transition-all duration-200 active:scale-95"
+                className="flex flex-col items-center justify-center gap-1 min-h-[44px] transition-all duration-200 active:scale-95"
                 onClick={handleNavClick}
                 aria-label={item.label}
               >
