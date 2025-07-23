@@ -40,23 +40,23 @@ export const SupplierBottomNavigation: React.FC = () => {
 
   const quickActions = [
     {
-      icon: Package,
-      label: 'הוסף מוצר/שירות',
-      action: () => window.location.href = '/supplier/catalog'
-    },
-    {
       icon: Briefcase,
       label: 'צור הצעת מחיר',
       action: () => window.location.href = '/supplier/quotes'
     },
     {
-      icon: MessageCircle,
+      icon: Package,
       label: 'ניהול הזמנות',
       action: () => window.location.href = '/supplier/orders'
     },
     {
+      icon: MessageCircle,
+      label: 'התראות',
+      action: () => window.location.href = '/supplier/notifications'
+    },
+    {
       icon: Upload,
-      label: 'סטטיסטיקות',
+      label: 'אנליטיקס ודוחות',
       action: () => window.location.href = '/supplier/analytics'
     }
   ];
