@@ -252,7 +252,7 @@ export default function SupplierBranding() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed-bottom-container">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-safe z-50">
         <div className="max-w-md mx-auto">
           <Button 
             onClick={handleNext}
