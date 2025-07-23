@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -74,7 +75,7 @@ export default function SupplierCompanyInfo() {
       <OnboardingProgress currentStep={2} totalSteps={5} />
 
       {/* Content */}
-      <div className="flex-1 flex flex-col pb-32">
+      <div className="flex-1 flex flex-col pb-safe">
         {/* Hero Image */}
         <div className="relative h-48 mx-6 mb-6 rounded-2xl overflow-hidden">
           <img 
@@ -184,7 +185,7 @@ export default function SupplierCompanyInfo() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-safe z-50">
         <div className="max-w-md mx-auto">
           <Button 
             onClick={handleNext}

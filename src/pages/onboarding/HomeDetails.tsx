@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -77,7 +78,7 @@ export default function OnboardingHomeDetails() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 pb-32">
+      <div className="flex-1 px-6 pb-safe">
         <div className="max-w-md mx-auto">
           {/* Title */}
           <div className="mb-8 text-center">
@@ -187,7 +188,7 @@ export default function OnboardingHomeDetails() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-safe z-50">
         <div className="max-w-md mx-auto">
           <Button 
             type="submit" 
