@@ -99,11 +99,27 @@ export default {
 				'112': '28rem',
 				'128': '32rem',
 			},
+			fontFamily: {
+				'assistant': ['Assistant', 'Arial', 'sans-serif'],
+				'sans': ['Assistant', 'Arial', 'sans-serif'],
+			},
 			fontSize: {
 				'2xs': ['0.625rem', '0.75rem'],
 				'mobile-xs': ['0.75rem', '1rem'],
 				'mobile-sm': ['0.875rem', '1.25rem'],
 				'mobile-base': ['1rem', '1.5rem'],
+				// Typography system font sizes
+				'h1': ['2rem', '1.25'],      // 32px
+				'h2': ['1.75rem', '1.3'],    // 28px
+				'h3': ['1.5rem', '1.35'],    // 24px
+				'body': ['1rem', '1.5'],     // 16px
+				'body-sm': ['0.875rem', '1.5'], // 14px
+				'label': ['0.875rem', '1.4'],   // 14px
+				'label-sm': ['0.75rem', '1.4'], // 12px
+				'button': ['1rem', '1.25'],     // 16px
+				'button-sm': ['0.875rem', '1.25'], // 14px
+				'nav': ['0.9375rem', '1.3'],    // 15px
+				'nav-sm': ['0.8125rem', '1.3'], // 13px
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
