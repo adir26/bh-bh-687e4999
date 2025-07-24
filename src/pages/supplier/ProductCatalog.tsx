@@ -85,61 +85,68 @@ export default function ProductCatalog() {
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
       <div className="bg-white border-b border-border sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="mobile-container px-4 xs:px-5 sm:px-6 py-3 xs:py-4">
+          <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 xs:gap-4">
+            <div className="flex items-center gap-2 xs:gap-4 w-full xs:w-auto">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/supplier/dashboard')}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 xs:gap-2 h-8 xs:h-9 px-2 xs:px-3"
               >
-                <ArrowLeft className="w-4 h-4" />
-                חזור לדשבורד
+                <ArrowLeft className="w-3 h-3 xs:w-4 xs:h-4" />
+                <span className="text-xs xs:text-sm">חזור</span>
               </Button>
-              <h1 className="text-2xl font-bold text-foreground">קטלוג מוצרים ושירותים</h1>
+              <h1 className="text-lg xs:text-xl sm:text-2xl font-bold text-foreground truncate">
+                קטלוג מוצרים ושירותים
+              </h1>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                <Grid className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                <List className="w-4 h-4" />
-              </Button>
-              <Button variant="blue" className="mr-2">
-                <Plus className="w-4 h-4 ml-1" />
-                הוסף מוצר/שירות
+            <div className="flex items-center gap-1 xs:gap-2 w-full xs:w-auto justify-end">
+              <div className="flex items-center gap-1">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="h-8 w-8 xs:h-9 xs:w-9 p-0"
+                >
+                  <Grid className="w-3 h-3 xs:w-4 xs:h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="h-8 w-8 xs:h-9 xs:w-9 p-0"
+                >
+                  <List className="w-3 h-3 xs:w-4 xs:h-4" />
+                </Button>
+              </div>
+              <Button variant="blue" className="h-8 xs:h-9 text-xs xs:text-sm px-2 xs:px-3">
+                <Plus className="w-3 h-3 xs:w-4 xs:h-4 ml-1" />
+                <span className="hidden xs:inline">הוסף מוצר/שירות</span>
+                <span className="xs:hidden">הוסף</span>
               </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="mobile-container px-4 xs:px-5 sm:px-6 py-4 xs:py-5 sm:py-6">
         {/* Filters */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-6">
-          <div className="flex-1">
+        <div className="flex flex-col gap-3 xs:gap-4 mb-4 xs:mb-5 sm:mb-6">
+          <div className="w-full">
             <div className="relative">
               <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
                 placeholder="חפש מוצרים ושירותים..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10"
+                className="pr-10 h-10 xs:h-11"
               />
             </div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col xs:flex-row gap-2 xs:gap-3">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full xs:w-48 h-10 xs:h-11">
                 <Filter className="w-4 h-4 ml-2" />
                 <SelectValue placeholder="קטגוריה" />
               </SelectTrigger>
@@ -153,7 +160,7 @@ export default function ProductCatalog() {
               </SelectContent>
             </Select>
             <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full xs:w-40 h-10 xs:h-11">
                 <SelectValue placeholder="זמינות" />
               </SelectTrigger>
               <SelectContent>
@@ -166,61 +173,61 @@ export default function ProductCatalog() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">8</div>
-              <div className="text-sm text-muted-foreground">סה"כ מוצרים</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 xs:gap-3 sm:gap-4 mb-4 xs:mb-5 sm:mb-6">
+          <Card className="mobile-card">
+            <CardContent className="p-3 xs:p-4 text-center">
+              <div className="text-lg xs:text-xl sm:text-2xl font-bold text-primary">8</div>
+              <div className="text-xs xs:text-sm text-muted-foreground">סה"כ מוצרים</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">6</div>
-              <div className="text-sm text-muted-foreground">פורסמו</div>
+          <Card className="mobile-card">
+            <CardContent className="p-3 xs:p-4 text-center">
+              <div className="text-lg xs:text-xl sm:text-2xl font-bold text-green-600">6</div>
+              <div className="text-xs xs:text-sm text-muted-foreground">פורסמו</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-yellow-600">2</div>
-              <div className="text-sm text-muted-foreground">מוסתרים</div>
+          <Card className="mobile-card">
+            <CardContent className="p-3 xs:p-4 text-center">
+              <div className="text-lg xs:text-xl sm:text-2xl font-bold text-yellow-600">2</div>
+              <div className="text-xs xs:text-sm text-muted-foreground">מוסתרים</div>
             </CardContent>
           </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">24</div>
-              <div className="text-sm text-muted-foreground">צפיות השבוע</div>
+          <Card className="mobile-card">
+            <CardContent className="p-3 xs:p-4 text-center">
+              <div className="text-lg xs:text-xl sm:text-2xl font-bold text-blue-600">24</div>
+              <div className="text-xs xs:text-sm text-muted-foreground">צפיות השבוע</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Products Display */}
         {viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mobile-grid gap-3 xs:gap-4 sm:gap-5 lg:gap-6">
             {filteredProducts.map((product) => (
-              <Card key={product.id} className="hover:shadow-md transition-shadow">
+              <Card key={product.id} className="mobile-card hover:shadow-md transition-shadow">
                 <div className="relative">
                   <img
                     src={product.image}
                     alt={product.title}
-                    className="w-full h-48 object-cover rounded-t-lg"
+                    className="w-full h-36 xs:h-40 sm:h-48 object-cover rounded-t-lg"
                   />
                   <div className="absolute top-2 left-2">
                     {product.isPublished ? (
-                      <Badge className="bg-green-100 text-green-800">פורסם</Badge>
+                      <Badge className="bg-green-100 text-green-800 text-xs">פורסם</Badge>
                     ) : (
-                      <Badge className="bg-gray-100 text-gray-800">מוסתר</Badge>
+                      <Badge className="bg-gray-100 text-gray-800 text-xs">מוסתר</Badge>
                     )}
                   </div>
                 </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{product.title}</CardTitle>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">{product.category}</span>
-                    <span className="font-bold text-primary">{product.price}</span>
+                <CardHeader className="pb-2 p-3 xs:p-4">
+                  <CardTitle className="text-base xs:text-lg text-wrap-balance">{product.title}</CardTitle>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs xs:text-sm text-muted-foreground truncate">{product.category}</span>
+                    <span className="font-bold text-primary text-xs xs:text-sm shrink-0">{product.price}</span>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground">{product.description}</p>
+                <CardContent className="space-y-2 xs:space-y-3 p-3 xs:p-4 pt-0">
+                  <p className="text-xs xs:text-sm text-muted-foreground text-wrap-balance line-clamp-2">{product.description}</p>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">זמן אספקה:</span>
                     <span className="text-xs font-medium">{product.deliveryTime}</span>
@@ -232,24 +239,24 @@ export default function ProductCatalog() {
                       </Badge>
                     ))}
                   </div>
-                  <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center justify-between pt-2 gap-2">
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={product.isPublished}
                         onCheckedChange={() => toggleProductVisibility(product.id)}
                       />
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs xs:text-sm text-muted-foreground">
                         {product.isPublished ? 'מוצג' : 'מוסתר'}
                       </span>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="h-8 w-8 p-0">
                         <Edit className="w-3 h-3" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="h-8 w-8 p-0">
                         <Upload className="w-3 h-3" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="h-8 w-8 p-0">
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
@@ -259,61 +266,68 @@ export default function ProductCatalog() {
             ))}
           </div>
         ) : (
-          <Card>
+          <Card className="mobile-card">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[700px]">
                   <thead className="border-b">
                     <tr>
-                      <th className="text-right p-4 font-medium">מוצר/שירות</th>
-                      <th className="text-right p-4 font-medium">קטגוריה</th>
-                      <th className="text-right p-4 font-medium">מחיר</th>
-                      <th className="text-right p-4 font-medium">סטטוס</th>
-                      <th className="text-right p-4 font-medium">זמן אספקה</th>
-                      <th className="text-right p-4 font-medium">פעולות</th>
+                      <th className="text-right p-2 xs:p-3 sm:p-4 font-medium text-xs xs:text-sm">מוצר/שירות</th>
+                      <th className="text-right p-2 xs:p-3 sm:p-4 font-medium text-xs xs:text-sm hidden sm:table-cell">קטגוריה</th>
+                      <th className="text-right p-2 xs:p-3 sm:p-4 font-medium text-xs xs:text-sm">מחיר</th>
+                      <th className="text-right p-2 xs:p-3 sm:p-4 font-medium text-xs xs:text-sm">סטטוס</th>
+                      <th className="text-right p-2 xs:p-3 sm:p-4 font-medium text-xs xs:text-sm hidden md:table-cell">זמן אספקה</th>
+                      <th className="text-right p-2 xs:p-3 sm:p-4 font-medium text-xs xs:text-sm">פעולות</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredProducts.map((product) => (
                       <tr key={product.id} className="border-b hover:bg-muted/50">
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
+                        <td className="p-2 xs:p-3 sm:p-4">
+                          <div className="flex items-center gap-2 xs:gap-3">
                             <img
                               src={product.image}
                               alt={product.title}
-                              className="w-12 h-12 object-cover rounded"
+                              className="w-10 h-10 xs:w-12 xs:h-12 object-cover rounded"
                             />
-                            <div>
-                              <div className="font-medium">{product.title}</div>
-                              <div className="text-sm text-muted-foreground truncate max-w-xs">
+                            <div className="min-w-0 flex-1">
+                              <div className="font-medium text-xs xs:text-sm truncate">{product.title}</div>
+                              <div className="text-xs text-muted-foreground truncate sm:hidden">
+                                {product.category}
+                              </div>
+                              <div className="text-xs text-muted-foreground truncate max-w-[150px] xs:max-w-[200px] hidden xs:block sm:block">
                                 {product.description}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="p-4 text-muted-foreground">{product.category}</td>
-                        <td className="p-4 font-medium">{product.price}</td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2">
+                        <td className="p-2 xs:p-3 sm:p-4 text-muted-foreground text-xs xs:text-sm hidden sm:table-cell">{product.category}</td>
+                        <td className="p-2 xs:p-3 sm:p-4 font-medium text-xs xs:text-sm">{product.price}</td>
+                        <td className="p-2 xs:p-3 sm:p-4">
+                          <div className="flex flex-col xs:flex-row items-start xs:items-center gap-1 xs:gap-2">
                             <Switch
                               checked={product.isPublished}
                               onCheckedChange={() => toggleProductVisibility(product.id)}
+                              className="scale-75 xs:scale-100"
                             />
-                            <Badge className={product.isPublished ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
+                            <Badge className={`text-xs ${product.isPublished ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                               {product.isPublished ? 'פורסם' : 'מוסתר'}
                             </Badge>
                           </div>
+                          <div className="text-xs text-muted-foreground mt-1 md:hidden">
+                            {product.deliveryTime}
+                          </div>
                         </td>
-                        <td className="p-4 text-muted-foreground">{product.deliveryTime}</td>
-                        <td className="p-4">
+                        <td className="p-2 xs:p-3 sm:p-4 text-muted-foreground text-xs xs:text-sm hidden md:table-cell">{product.deliveryTime}</td>
+                        <td className="p-2 xs:p-3 sm:p-4">
                           <div className="flex gap-1">
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" className="h-7 w-7 xs:h-8 xs:w-8 p-0">
                               <Edit className="w-3 h-3" />
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" className="h-7 w-7 xs:h-8 xs:w-8 p-0 hidden xs:flex">
                               <Upload className="w-3 h-3" />
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" className="h-7 w-7 xs:h-8 xs:w-8 p-0 hidden xs:flex">
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>

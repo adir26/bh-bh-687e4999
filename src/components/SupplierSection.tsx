@@ -12,8 +12,8 @@ export const SupplierSection: React.FC<SupplierSectionProps> = ({
   onSupplierClick 
 }) => {
   return (
-    <div className="flex items-start w-full mb-4">
-      <div className="flex items-start gap-4 overflow-x-auto px-4 py-2 w-full max-md:gap-3 max-sm:gap-3 max-sm:px-3">
+    <div className="flex items-start w-full mb-3 xs:mb-4 sm:mb-5">
+      <div className="flex items-start gap-2 xs:gap-3 sm:gap-4 overflow-x-auto smooth-scroll scrollbar-hide px-3 xs:px-4 sm:px-5 py-2 xs:py-3 w-full">
         {suppliers.map((supplier) => (
           <SupplierCard
             key={supplier.id}

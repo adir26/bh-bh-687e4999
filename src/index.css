@@ -314,7 +314,13 @@ All colors MUST be HSL.
 
   /* Better mobile grid layouts */
   .mobile-grid {
-    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+    @apply grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4;
+  }
+  
+  /* Responsive auto-fit grid for content adaptation */
+  .mobile-auto-grid {
+    @apply grid gap-3 xs:gap-4 sm:gap-5 lg:gap-6;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 
   /* Mobile-optimized buttons */

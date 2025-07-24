@@ -22,8 +22,8 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
   fixedWidth = false 
 }) => {
   return (
-    <div className="flex items-start w-full mb-4 xs:mb-5 sm:mb-6">
-      <div className="flex items-start gap-3 xs:gap-4 sm:gap-4 overflow-x-auto smooth-scroll scrollbar-hide px-4 xs:px-5 sm:px-6 py-2 xs:py-3 w-full">
+    <div className="flex items-start w-full mb-3 xs:mb-4 sm:mb-5">
+      <div className="flex items-start gap-2 xs:gap-3 sm:gap-4 overflow-x-auto smooth-scroll scrollbar-hide px-3 xs:px-4 sm:px-5 py-2 xs:py-3 w-full">
         {items.map((item) => (
           <CategoryCard
             key={item.id}

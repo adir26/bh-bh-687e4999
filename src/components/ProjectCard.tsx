@@ -21,22 +21,22 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   return (
     <Card 
-      className="w-60 min-w-60 cursor-pointer hover:shadow-md transition-shadow bg-white"
+      className="w-52 min-w-52 xs:w-56 xs:min-w-56 sm:w-60 sm:min-w-60 mobile-card cursor-pointer hover:shadow-md transition-shadow bg-white"
       onClick={onClick}
     >
       <CardContent className="p-0 flex flex-col">
-        <div className="w-full h-32 overflow-hidden rounded-t-lg">
+        <div className="w-full h-28 xs:h-30 sm:h-32 overflow-hidden rounded-t-lg">
           <img 
             src={image} 
             alt={name}
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="p-4 flex flex-col items-center gap-2 text-center">
-          <h3 className="font-semibold text-sm text-center line-clamp-1">{name}</h3>
-          <p className="text-xs text-muted-foreground text-center line-clamp-2">{description}</p>
+        <div className="p-3 xs:p-4 flex flex-col items-center gap-1 xs:gap-2 text-center">
+          <h3 className="font-semibold text-xs xs:text-sm text-center line-clamp-1 text-wrap-balance">{name}</h3>
+          <p className="text-xs text-muted-foreground text-center line-clamp-2 text-wrap-balance">{description}</p>
           {location && (
-            <p className="text-xs text-primary font-medium text-center">{location}</p>
+            <p className="text-xs text-primary font-medium text-center text-wrap-balance">{location}</p>
           )}
           {price && (
             <p className="text-xs font-semibold text-green-600 text-center">{price}</p>
