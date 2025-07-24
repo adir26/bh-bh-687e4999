@@ -213,7 +213,7 @@ export default function SupplierSummary() {
 
       {/* Fixed Bottom Button */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-8 z-50">
-        <div className="max-w-md mx-auto">
+        <div className="max-w-md mx-auto space-y-3">
           <Button 
             onClick={handlePublish}
             disabled={isPublishing}
@@ -221,6 +221,14 @@ export default function SupplierSummary() {
             className="w-full py-4 text-lg rounded-xl h-14 font-medium"
           >
             {isPublishing ? 'מפרסמים את הדף שלכם...' : 'פרסמו את דף החברה שלכם'}
+          </Button>
+          
+          <Button 
+            onClick={() => navigate('/supplier-dashboard')}
+            variant="blue-secondary"
+            className="w-full py-3 text-base rounded-xl h-12 font-medium"
+          >
+            עבור לדשבורד הספק
           </Button>
         </div>
       </div>
