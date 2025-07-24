@@ -55,6 +55,10 @@ All colors MUST be HSL.
     --button-secondary: 214 100% 97%;
     --button-secondary-hover: 214 100% 94%;
     --button-secondary-foreground: 214 100% 40%;
+    
+    /* Search highlight colors */
+    --highlight: 54 100% 62%;
+    --highlight-foreground: 240 10% 3.9%;
   }
 
   .dark {

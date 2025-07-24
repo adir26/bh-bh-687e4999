@@ -1,13 +1,28 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { SearchIcon, Filter, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CategorySection } from '@/components/CategorySection';
+import { SearchResults } from '@/components/SearchResults';
+import { RecentSearches } from '@/components/RecentSearches';
+import { useSearch } from '@/hooks/useSearch';
 
 const Search = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const {
+    query,
+    results,
+    recentSearches,
+    popularSearches,
+    isLoading,
+    selectedFilter,
+    updateQuery,
+    updateSelectedFilter,
+    addToRecentSearches,
+    removeRecentSearch,
+    clearRecentSearches,
+    hasResults
+  } = useSearch();
 
   const searchFilters = [
     { id: 'all', label: 'הכל' },
@@ -16,33 +31,22 @@ const Search = () => {
     { id: 'products', label: 'מוצרים' }
   ];
 
-  const popularCategories = [
-    {
-      id: '1',
-      title: 'מטבחים מעוצבים',
-      subtitle: 'מטבחים',
-      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'שיפוצי בתים',
-      subtitle: 'שיפוצים',
-      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'ריהוט מודרני',
-      subtitle: 'ריהוט',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=480&h=480&fit=crop'
+  const handleSearchSubmit = (searchQuery: string) => {
+    if (searchQuery.trim()) {
+      addToRecentSearches(searchQuery.trim());
     }
-  ];
+  };
 
-  const recentSearches = [
-    'מטבחים בתל אביב',
-    'שיפוצי דירות',
-    'מיזוג אוויר',
-    'יועץ משכנתאות'
-  ];
+  const handleInputKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit(query);
+    }
+  };
+
+  const handleRecentSearchClick = (search: string) => {
+    updateQuery(search);
+    handleSearchSubmit(search);
+  };
 
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white pb-20">
@@ -54,8 +58,9 @@ const Search = () => {
             <Input
               type="text"
               placeholder="חפש ספקים, שירותים ומוצרים..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={query}
+              onChange={(e) => updateQuery(e.target.value)}
+              onKeyDown={handleInputKeyPress}
               className="pr-10 text-right rounded-xl"
               dir="rtl"
             />
@@ -83,7 +88,7 @@ const Search = () => {
               key={filter.id}
               variant={selectedFilter === filter.id ? "blue" : "blue-secondary"}
               size="sm"
-              onClick={() => setSelectedFilter(filter.id)}
+              onClick={() => updateSelectedFilter(filter.id)}
               className="whitespace-nowrap"
             >
               {filter.label}
@@ -94,37 +99,21 @@ const Search = () => {
 
       {/* Search Results or Default Content */}
       <div className="flex-1 px-4 py-4">
-        {searchQuery ? (
-          <div>
-            <p className="text-gray-600 mb-4">מחפש "{searchQuery}"...</p>
-            {/* Search results would go here */}
-          </div>
+        {query.trim() ? (
+          <SearchResults
+            results={results}
+            query={query}
+            isLoading={isLoading}
+            onResultClick={(item) => handleSearchSubmit(item.title)}
+          />
         ) : (
-          <div>
-            {/* Recent Searches */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-3 text-right">חיפושים אחרונים</h3>
-              <div className="space-y-2">
-                {recentSearches.map((search, index) => (
-                  <Button
-                    key={index}
-                    variant="ghost"
-                    className="w-full justify-start text-right hover:bg-button-secondary rounded-xl"
-                    onClick={() => setSearchQuery(search)}
-                  >
-                    <SearchIcon size={16} className="ml-2" />
-                    {search}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Popular Categories */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3 text-right">קטגוריות פופולריות</h3>
-              <CategorySection items={popularCategories} />
-            </div>
-          </div>
+          <RecentSearches
+            searches={recentSearches}
+            popularSearches={popularSearches}
+            onSearchClick={handleRecentSearchClick}
+            onRemoveSearch={removeRecentSearch}
+            onClearAll={clearRecentSearches}
+          />
         )}
       </div>
     </div>

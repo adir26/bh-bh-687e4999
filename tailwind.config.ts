@@ -85,6 +85,10 @@ export default {
 					secondary: 'hsl(var(--button-secondary))',
 					'secondary-hover': 'hsl(var(--button-secondary-hover))',
 					'secondary-foreground': 'hsl(var(--button-secondary-foreground))'
+				},
+				highlight: {
+					DEFAULT: 'hsl(var(--highlight))',
+					foreground: 'hsl(var(--highlight-foreground))'
 				}
 			},
 			spacing: {
