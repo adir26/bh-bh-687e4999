@@ -32,7 +32,7 @@ export const SupplierBottomNavigation: React.FC = () => {
       label: 'הקטלוג שלי'
     },
     {
-      path: '/supplier/1',
+      path: '/supplier/profile/preview',
       icon: User,
       label: 'הפרופיל שלי'
     }

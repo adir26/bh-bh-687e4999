@@ -23,6 +23,7 @@ import NotFound from "./pages/NotFound";
 import Registration from "./pages/Registration";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
+import SupplierProfilePreview from "./pages/SupplierProfilePreview";
 import Notifications from "./pages/Notifications";
 import OnboardingWelcome from "./pages/onboarding/Welcome";
 import OnboardingHomeDetails from "./pages/onboarding/HomeDetails";
@@ -98,6 +99,7 @@ const App = () => {
               <Route path="/local-deals" element={<LocalDeals />} />
               <Route path="/popular-now" element={<PopularNow />} />
               <Route path="/supplier/:id" element={<SupplierProfile />} />
+              <Route path="/supplier/profile/preview" element={<SupplierProfilePreview />} />
               <Route path="/category/:category/suppliers" element={<CategorySuppliers />} />
               <Route path="/support" element={<Support />} />
               <Route path="/support/chat/:id" element={<SupportChat />} />
