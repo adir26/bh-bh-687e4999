@@ -47,6 +47,9 @@ import Support from "./pages/Support";
 import SupportChat from "./pages/SupportChat";
 import ComplaintForm from "./pages/ComplaintForm";
 import ComplaintDetails from "./pages/ComplaintDetails";
+import Settings from "./pages/Settings";
+import FAQ from "./pages/FAQ";
+import NotificationPreferences from "./pages/NotificationPreferences";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +101,11 @@ const App = () => {
               <Route path="/support/chat/:id" element={<SupportChat />} />
               <Route path="/complaint/:orderId" element={<ComplaintForm />} />
               <Route path="/support/complaint/:id" element={<ComplaintDetails />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/supplier/settings" element={<Settings />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/notifications-preferences" element={<NotificationPreferences />} />
+              <Route path="/supplier/notifications-preferences" element={<NotificationPreferences />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
