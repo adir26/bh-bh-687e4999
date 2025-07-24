@@ -39,16 +39,8 @@ export default function SupplierDashboard() {
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
       <div className="mobile-padding border-b border-border pt-safe">
-        <div className="mobile-container flex justify-between items-center">
+        <div className="mobile-container flex justify-center items-center">
           <h1 className="text-lg xs:text-xl font-bold">פאנל ספק</h1>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/')}
-            className="text-xs xs:text-sm"
-          >
-            לדף הבית
-          </Button>
         </div>
       </div>
 
@@ -96,15 +88,6 @@ export default function SupplierDashboard() {
             })}
           </div>
 
-          <div className="pt-6 xs:pt-8">
-            <Button
-              variant="blue"
-              className="w-full h-12 xs:h-14 text-sm xs:text-base font-medium"
-              onClick={() => navigate('/')}
-            >
-              חזרה לדף הבית
-            </Button>
-          </div>
         </div>
       </div>
     </div>
