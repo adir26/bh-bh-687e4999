@@ -14,6 +14,9 @@ import { getSuppliersByCategory } from '@/data/suppliers';
 // Import local images
 import kitchenDesignImg from '@/assets/kitchen-design.jpg';
 import kitchenAccessoriesImg from '@/assets/kitchen-accessories.jpg';
+import kitchenModernImg from '@/assets/kitchen-modern.jpg';
+import kitchenHardwareImg from '@/assets/kitchen-hardware.jpg';
+import kitchenInstallationImg from '@/assets/kitchen-installation.jpg';
 import furnitureImg from '@/assets/furniture.jpg';
 import airConditioningImg from '@/assets/air-conditioning.jpg';
 import renovationImg from '@/assets/renovation.jpg';
@@ -58,19 +61,31 @@ const Index = () => {
       id: '1',
       title: 'מטבחים מעוצבים',
       subtitle: 'מטבחים',
-      image: kitchenDesignImg
+      image: kitchenModernImg
     },
     {
       id: '2',
       title: 'אבזור למטבח',
       subtitle: 'מטבחים',
-      image: kitchenAccessoriesImg
+      image: kitchenHardwareImg
     },
     {
       id: '3',
+      title: 'התקנת מטבחים',
+      subtitle: 'מטבחים',
+      image: kitchenInstallationImg
+    },
+    {
+      id: '4',
       title: 'עיצוב מטבחים',
       subtitle: 'מטבחים',
-      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
+      image: kitchenDesignImg
+    },
+    {
+      id: '5',
+      title: 'אביזרי מטבח',
+      subtitle: 'מטבחים',
+      image: kitchenAccessoriesImg
     }
   ];
 
@@ -369,13 +384,8 @@ const Index = () => {
               onButtonClick={() => handleAllSuppliersClick('kitchens')}
             />
             <CategorySection 
-              items={kitchenSuppliers.map(supplier => ({
-                id: supplier.id,
-                title: supplier.name,
-                subtitle: supplier.tagline,
-                image: supplier.logo
-              }))} 
-              onItemClick={(item) => handleSupplierClick(kitchenSuppliers.find(s => s.id === item.id))}
+              items={kitchenCategories} 
+              onItemClick={handleCategoryClick}
               fixedWidth={true}
             />
           </div>
