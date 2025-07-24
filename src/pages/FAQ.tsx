@@ -11,87 +11,87 @@ const FAQ = () => {
 
   const faqData = [
     {
-      category: "Using the App",
+      category: "שימוש באפליקציה",
       items: [
         {
-          question: "How do I find a supplier?",
-          answer: "You can find suppliers by browsing categories on the home page, using the search function, or checking the 'Top Suppliers' and 'New Suppliers' sections."
+          question: "איך אני מוצא ספק?",
+          answer: "ניתן למצוא ספקים על ידי דפדוף בקטגוריות בעמוד הבית, שימוש בפונקציית החיפוש, או בדיקת הקטגוריות 'ספקים מובילים' ו'ספקים חדשים'."
         },
         {
-          question: "How do I place an order?",
-          answer: "Once you find a supplier, visit their profile, browse their services, and click 'Contact' or 'Get Quote' to start the ordering process."
+          question: "איך אני מבצע הזמנה?",
+          answer: "לאחר שמוצאים ספק, ניתן לבקר בפרופיל שלו, לעיין בשירותים ולחץ על 'צור קשר' או 'קבל הצעת מחיר' כדי להתחיל בתהליך ההזמנה."
         },
         {
-          question: "Can I save suppliers to favorites?",
-          answer: "Yes! Click the heart icon on any supplier card to add them to your favorites. You can access your favorites from the bottom navigation."
+          question: "האם ניתן לשמור ספקים במועדפים?",
+          answer: "כן! לחץ על הלב בכל כרטיס ספק כדי להוסיף אותו למועדפים. ניתן לגשת למועדפים דרך הניווט התחתון."
         }
       ]
     },
     {
-      category: "Payments",
+      category: "תשלומים",
       items: [
         {
-          question: "When and how is payment processed?",
-          answer: "Payment is typically processed after you approve a quote and before work begins. We support credit cards, bank transfers, and other local payment methods."
+          question: "מתי ואיך מעובד התשלום?",
+          answer: "התשלום מעובד בדרך כלל לאחר אישור הצעת המחיר ולפני תחילת העבודה. אנו תומכים בכרטיסי אשראי, העברות בנקאיות ושיטות תשלום מקומיות נוספות."
         },
         {
-          question: "Can I pay directly to the supplier?",
-          answer: "For security and dispute resolution, we recommend using our platform's payment system. Direct payments to suppliers are possible but not covered by our protection policies."
+          question: "האם ניתן לשלם ישירות לספק?",
+          answer: "למען הבטיחות ופתרון מחלוקות, אנו ממליצים להשתמש במערכת התשלומים של הפלטפורמה. תשלומים ישירים לספקים אפשריים אך אינם מכוסים על ידי מדיניות ההגנה שלנו."
         },
         {
-          question: "What if I'm not satisfied with the work?",
-          answer: "We have a dispute resolution system. Contact support within 7 days of completion, and we'll help mediate between you and the supplier."
+          question: "מה אם אני לא מרוצה מהעבודה?",
+          answer: "יש לנו מערכת לפתרון מחלוקות. צרו קשר עם התמיכה תוך 7 ימים מסיום העבודה, ואנחנו נעזור לתווך בינכם לבין הספק."
         }
       ]
     },
     {
-      category: "Quotes",
+      category: "הצעות מחיר",
       items: [
         {
-          question: "How do I send a quote to a client? (Suppliers)",
-          answer: "When a client contacts you, go to your dashboard, find the inquiry, and click 'Send Quote'. Fill in the details including price, timeline, and scope of work."
+          question: "איך שולחים הצעת מחיר ללקוח? (ספקים)",
+          answer: "כאשר לקוח יוצר איתך קשר, עבור ללוח הבקרה, מצא את הפנייה ולחץ על 'שלח הצעת מחיר'. מלא את הפרטים כולל מחיר, לוח זמנים והיקף העבודה."
         },
         {
-          question: "How can I compare quotes?",
-          answer: "You'll receive quotes in your 'Orders' section. You can compare prices, timelines, supplier ratings, and included services side by side."
+          question: "איך ניתן להשוות הצעות מחיר?",
+          answer: "תקבלו הצעות מחיר בקטגוריית 'הזמנות'. ניתן להשוות מחירים, לוחות זמנים, דירוגי ספקים ושירותים כלולים זה לצד זה."
         },
         {
-          question: "How long are quotes valid?",
-          answer: "Most quotes are valid for 30 days unless specified otherwise by the supplier. Check the quote details for the exact expiration date."
+          question: "כמה זמן הצעות מחיר תקפות?",
+          answer: "רוב הצעות המחיר תקפות למשך 30 יום אלא אם צוין אחרת על ידי הספק. בדקו את פרטי הצעת המחיר לתאריך התפוגה המדויק."
         }
       ]
     },
     {
-      category: "Support",
+      category: "תמיכה",
       items: [
         {
-          question: "How to open a support ticket?",
-          answer: "Go to the Support section from the main menu or settings. You can start a live chat, submit a form, or call our support hotline."
+          question: "איך פותחים פנייה לתמיכה?",
+          answer: "עברו לקטגוריית התמיכה מהתפריט הראשי או ההגדרות. ניתן להתחיל צ'אט חי, לשלוח טופס או להתקשר לקו התמיכה שלנו."
         },
         {
-          question: "What happens in case of a dispute?",
-          answer: "Our mediation team will review the case, communicate with both parties, and work towards a fair resolution. This may include partial refunds or completion guarantees."
+          question: "מה קורה במקרה של מחלוקת?",
+          answer: "צוות הגישור שלנו יבחן את המקרה, יתקשר עם שני הצדדים ויפעל לקראת פתרון הוגן. זה עשוי לכלול החזרים חלקיים או ערבויות השלמה."
         },
         {
-          question: "How quickly does support respond?",
-          answer: "We aim to respond to all inquiries within 2 hours during business hours (8 AM - 6 PM). Urgent issues are prioritized."
+          question: "כמה מהר התמיכה מגיבה?",
+          answer: "אנו שואפים להגיב לכל הפניות תוך שעתיים בשעות העבודה (8:00 - 18:00). בעיות דחופות מקבלות עדיפות."
         }
       ]
     },
     {
-      category: "Account Settings",
+      category: "הגדרות חשבון",
       items: [
         {
-          question: "How to update my email?",
-          answer: "Go to Settings > Account Information and update your email address. You'll need to verify the new email before the change takes effect."
+          question: "איך מעדכנים את האימייל?",
+          answer: "עברו להגדרות > פרטי החשבון ועדכנו את כתובת האימייל. תצטרכו לאמת את האימייל החדש לפני שהשינוי ייכנס לתוקף."
         },
         {
-          question: "How to delete my account?",
-          answer: "Contact support to request account deletion. Please note that this action is irreversible and will remove all your data, orders, and reviews."
+          question: "איך מוחקים את החשבון?",
+          answer: "צרו קשר עם התמיכה כדי לבקש מחיקת חשבון. שימו לב שפעולה זו בלתי הפיכה ותסיר את כל הנתונים, ההזמנות והביקורות שלכם."
         },
         {
-          question: "Can I change my account type from client to supplier?",
-          answer: "Yes, contact support and we can help convert your account. You'll need to provide additional business verification documents."
+          question: "האם ניתן לשנות את סוג החשבון מלקוח לספק?",
+          answer: "כן, צרו קשר עם התמיכה ואנחנו נוכל לעזור להמיר את החשבון. תצטרכו לספק מסמכי אימות עסקיים נוספים."
         }
       ]
     }
@@ -106,7 +106,7 @@ const FAQ = () => {
   })).filter(category => category.items.length > 0);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background border-b">
         <div className="flex items-center gap-3 p-4">
@@ -117,7 +117,7 @@ const FAQ = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-semibold">Frequently Asked Questions</h1>
+          <h1 className="text-xl font-semibold">שאלות נפוצות</h1>
         </div>
       </div>
 
@@ -125,12 +125,12 @@ const FAQ = () => {
       <div className="p-4 pb-20">
         {/* Search Bar */}
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search FAQs..."
+            placeholder="חיפוש בשאלות נפוצות..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pr-10"
           />
         </div>
 
@@ -149,10 +149,10 @@ const FAQ = () => {
                       value={`${categoryIndex}-${itemIndex}`}
                       className="border border-border rounded-lg mb-2"
                     >
-                      <AccordionTrigger className="px-4 py-3 text-left hover:no-underline">
+                      <AccordionTrigger className="px-4 py-3 text-right hover:no-underline">
                         <span className="font-medium">{item.question}</span>
                       </AccordionTrigger>
-                      <AccordionContent className="px-4 pb-4 text-muted-foreground">
+                      <AccordionContent className="px-4 pb-4 text-muted-foreground text-right">
                         {item.answer}
                       </AccordionContent>
                     </AccordionItem>
@@ -162,13 +162,13 @@ const FAQ = () => {
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">No FAQs found matching your search.</p>
+              <p className="text-muted-foreground">לא נמצאו שאלות נפוצות התואמות את החיפוש.</p>
               <Button
                 variant="outline"
                 className="mt-4"
                 onClick={() => setSearchQuery("")}
               >
-                Clear Search
+                נקה חיפוש
               </Button>
             </div>
           )}
@@ -177,13 +177,13 @@ const FAQ = () => {
         {/* Contact Support */}
         <div className="mt-8 p-4 bg-muted rounded-lg text-center">
           <p className="text-sm text-muted-foreground mb-3">
-            Can't find what you're looking for?
+            לא מוצאים את מה שאתם מחפשים?
           </p>
           <Button
             onClick={() => navigate('/support')}
             variant="outline"
           >
-            Contact Support
+            צור קשר עם התמיכה
           </Button>
         </div>
       </div>

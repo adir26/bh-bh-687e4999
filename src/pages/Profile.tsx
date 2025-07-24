@@ -145,7 +145,7 @@ const Profile = () => {
       icon: Bell,
       title: 'התראות',
       subtitle: 'נהל העדפות התראות',
-      href: '/profile/notifications'
+      href: '/notifications-preferences'
     },
     {
       id: 'payment',
@@ -159,7 +159,7 @@ const Profile = () => {
       icon: Settings,
       title: 'הגדרות',
       subtitle: 'הגדרות כלליות של האפליקציה',
-      href: '/profile/settings'
+      href: '/settings'
     },
     {
       id: 'help',
@@ -459,7 +459,11 @@ const Profile = () => {
             {menuItems.map((item) => {
               const Icon = item.icon;
               return (
-                <Card key={item.id} className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer rounded-xl">
+                <Card 
+                  key={item.id} 
+                  className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer rounded-xl"
+                  onClick={() => navigate(item.href)}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-muted/50 rounded-xl flex items-center justify-center">

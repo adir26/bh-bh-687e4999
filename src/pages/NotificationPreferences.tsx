@@ -32,45 +32,45 @@ const NotificationPreferences = () => {
   const notificationTypes = [
     {
       key: "newLead",
-      title: "New Lead",
-      description: "When a client contacts you for a quote",
+      title: "פנייה חדשה",
+      description: "כאשר לקוח יוצר איתך קשר לקבלת הצעת מחיר",
       supplierOnly: true
     },
     {
       key: "orderStatus",
-      title: "Order Status Updates",
-      description: "When your order status changes",
+      title: "עדכוני סטטוס הזמנה",
+      description: "כאשר סטטוס ההזמנה שלך משתנה",
       supplierOnly: false
     },
     {
       key: "newReview",
-      title: "New Reviews",
-      description: "When someone leaves a review",
+      title: "ביקורות חדשות",
+      description: "כאשר מישהו משאיר ביקורת",
       supplierOnly: false
     },
     {
       key: "quoteResponse",
-      title: "Quote Responses",
-      description: "When quotes are accepted or rejected",
+      title: "תגובות להצעות מחיר",
+      description: "כאשר הצעות מחיר מתקבלות או נדחות",
       supplierOnly: false
     },
     {
       key: "supportMessages",
-      title: "Support Messages",
-      description: "Messages from customer support",
+      title: "הודעות תמיכה",
+      description: "הודעות משירות הלקוחות",
       supplierOnly: false
     },
     {
       key: "promotions",
-      title: "Promotions & Updates",
-      description: "Marketing emails and app updates",
+      title: "מבצעים ועדכונים",
+      description: "אימיילי שיווק ועדכוני אפליקציה",
       supplierOnly: false
     }
   ];
 
   const channels = [
-    { key: "inApp", label: "In-App", icon: "🔔" },
-    { key: "email", label: "Email", icon: "📧" },
+    { key: "inApp", label: "באפליקציה", icon: "🔔" },
+    { key: "email", label: "אימייל", icon: "📧" },
     { key: "sms", label: "SMS", icon: "📱" }
   ];
 
@@ -89,10 +89,9 @@ const NotificationPreferences = () => {
   };
 
   const handleSave = () => {
-    // Here you would typically save to a backend
     toast({
-      title: "Preferences Saved",
-      description: "Your notification preferences have been updated.",
+      title: "ההעדפות נשמרו",
+      description: "העדפות ההתראות שלך עודכנו.",
     });
   };
 
@@ -105,7 +104,7 @@ const NotificationPreferences = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
       <div className="sticky top-0 z-50 bg-background border-b">
         <div className="flex items-center justify-between p-4">
@@ -117,11 +116,11 @@ const NotificationPreferences = () => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-xl font-semibold">Notification Preferences</h1>
+            <h1 className="text-xl font-semibold">העדפות התראות</h1>
           </div>
           <Button onClick={handleSave} size="sm">
-            <Save className="h-4 w-4 mr-2" />
-            Save
+            <Save className="h-4 w-4 ml-2" />
+            שמור
           </Button>
         </div>
       </div>
@@ -130,18 +129,18 @@ const NotificationPreferences = () => {
       <div className="p-4 space-y-6 pb-20">
         {/* Description */}
         <div className="text-sm text-muted-foreground">
-          Choose how you want to receive notifications for different types of activities.
+          בחרו איך אתם רוצים לקבל התראות עבור סוגים שונים של פעילויות.
         </div>
 
         {/* Notification Settings Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Notification Settings</CardTitle>
+            <CardTitle>הגדרות התראות</CardTitle>
           </CardHeader>
           <CardContent>
             {/* Header Row */}
             <div className="grid grid-cols-4 gap-4 pb-4 border-b border-border mb-4">
-              <div className="font-medium text-sm">Type</div>
+              <div className="font-medium text-sm">סוג</div>
               {channels.map(channel => (
                 <div key={channel.key} className="text-center">
                   <div className="font-medium text-sm mb-2">
@@ -158,7 +157,7 @@ const NotificationPreferences = () => {
                       toggleAll(channel.key, !allEnabled);
                     }}
                   >
-                    All
+                    הכל
                   </Button>
                 </div>
               ))}
@@ -194,14 +193,14 @@ const NotificationPreferences = () => {
         {/* Additional Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>Additional Settings</CardTitle>
+            <CardTitle>הגדרות נוספות</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label>Do Not Disturb Mode</Label>
+                <Label>מצב אל תפריע</Label>
                 <p className="text-sm text-muted-foreground">
-                  Pause all notifications (22:00 - 08:00)
+                  השתק את כל ההתראות (22:00 - 08:00)
                 </p>
               </div>
               <Switch defaultChecked />
@@ -209,9 +208,9 @@ const NotificationPreferences = () => {
             
             <div className="flex items-center justify-between">
               <div>
-                <Label>Group Similar Notifications</Label>
+                <Label>קבץ התראות דומות</Label>
                 <p className="text-sm text-muted-foreground">
-                  Combine multiple notifications of the same type
+                  צרף מספר התראות מאותו סוג
                 </p>
               </div>
               <Switch defaultChecked />
@@ -221,8 +220,8 @@ const NotificationPreferences = () => {
 
         {/* Note */}
         <div className="text-xs text-muted-foreground p-4 bg-muted rounded-lg">
-          <strong>Note:</strong> Critical notifications (like payment confirmations and security alerts) 
-          will always be sent regardless of these settings. SMS charges may apply depending on your carrier.
+          <strong>הערה:</strong> התראות קריטיות (כמו אישורי תשלום והתראות אבטחה) 
+          תישלחנה תמיד ללא קשר להגדרות אלה. עלויות SMS עשויות לחול בהתאם לספק הסלולר.
         </div>
       </div>
     </div>
