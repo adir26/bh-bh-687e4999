@@ -42,6 +42,7 @@ import SupplierDashboardNew from "./pages/supplier/Dashboard";
 import LeadManagement from "./pages/supplier/LeadManagement";
 import ProductCatalog from "./pages/supplier/ProductCatalog";
 import QuoteBuilder from "./pages/supplier/QuoteBuilder";
+import ProposalBuilder from "./pages/supplier/ProposalBuilder";
 import OrderManagement from "./pages/supplier/OrderManagement";
 import SupplierNotifications from "./pages/supplier/Notifications";
 import SupplierAnalytics from "./pages/supplier/Analytics";
@@ -84,6 +85,7 @@ const App = () => {
               <Route path="/supplier/leads" element={<LeadManagement />} />
               <Route path="/supplier/catalog" element={<ProductCatalog />} />
               <Route path="/supplier/quotes" element={<QuoteBuilder />} />
+              <Route path="/supplier/proposals" element={<ProposalBuilder />} />
               <Route path="/supplier/orders" element={<OrderManagement />} />
               <Route path="/supplier/notifications" element={<SupplierNotifications />} />
               <Route path="/supplier/analytics" element={<SupplierAnalytics />} />
