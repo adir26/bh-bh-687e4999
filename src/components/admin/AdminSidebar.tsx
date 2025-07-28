@@ -28,14 +28,11 @@ const navigationItems = [
   { title: "לוח בקרה", url: "/admin/dashboard", icon: Home },
   { title: "אנליטיקה", url: "/admin/analytics", icon: BarChart3 },
   { title: "משתמשים", url: "/admin/users", icon: Users },
+  { title: "ספקים", url: "/admin/suppliers", icon: Users },
   { title: "הזמנות", url: "/admin/orders", icon: ShoppingCart },
   { title: "הצעות מחיר", url: "/admin/quotes", icon: FileText },
-  { title: "הצעות", url: "/admin/proposals", icon: FileText },
   { title: "תלונות", url: "/admin/complaints", icon: MessageSquare },
-  { title: "ביקורות", url: "/admin/reviews", icon: Star },
-  { title: "מוצרים", url: "/admin/products", icon: Package },
   { title: "קטגוריות", url: "/admin/categories", icon: Tag },
-  { title: "התראות", url: "/admin/notifications", icon: Bell },
   { title: "הגדרות", url: "/admin/settings", icon: Settings },
 ];
 

@@ -61,6 +61,10 @@ import UserManagement from "./pages/admin/UserManagement";
 import AdminOrderManagement from "./pages/admin/OrderManagement";
 import AdminAnalytics from "./pages/admin/Analytics";
 import SystemSettings from "./pages/admin/SystemSettings";
+import SupplierManagement from "./pages/admin/SupplierManagement";
+import ComplaintManagement from "./pages/admin/ComplaintManagement";
+import CategoryManagement from "./pages/admin/CategoryManagement";
+import QuoteManagement from "./pages/admin/QuoteManagement";
 import { AdminLayout } from "./components/admin/AdminLayout";
 
 const queryClient = new QueryClient();
@@ -126,7 +130,11 @@ const App = () => {
               <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
               <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
               <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
+              <Route path="/admin/suppliers" element={<AdminLayout><SupplierManagement /></AdminLayout>} />
               <Route path="/admin/orders" element={<AdminLayout><AdminOrderManagement /></AdminLayout>} />
+              <Route path="/admin/quotes" element={<AdminLayout><QuoteManagement /></AdminLayout>} />
+              <Route path="/admin/complaints" element={<AdminLayout><ComplaintManagement /></AdminLayout>} />
+              <Route path="/admin/categories" element={<AdminLayout><CategoryManagement /></AdminLayout>} />
               <Route path="/admin/analytics" element={<AdminLayout><AdminAnalytics /></AdminLayout>} />
               <Route path="/admin/settings" element={<AdminLayout><SystemSettings /></AdminLayout>} />
               

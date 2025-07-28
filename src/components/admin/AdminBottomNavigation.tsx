@@ -9,10 +9,10 @@ const navItems = [
     path: "/admin/dashboard" 
   },
   { 
-    id: "users", 
-    label: "משתמשים", 
+    id: "suppliers", 
+    label: "ספקים", 
     icon: Users, 
-    path: "/admin/users" 
+    path: "/admin/suppliers" 
   },
   { 
     id: "orders", 
