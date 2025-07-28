@@ -25,18 +25,18 @@ import {
 } from "@/components/ui/sidebar";
 
 const navigationItems = [
-  { title: "Dashboard", url: "/admin/dashboard", icon: Home },
-  { title: "Analytics", url: "/admin/analytics", icon: BarChart3 },
-  { title: "Users", url: "/admin/users", icon: Users },
-  { title: "Orders", url: "/admin/orders", icon: ShoppingCart },
-  { title: "Quotes", url: "/admin/quotes", icon: FileText },
-  { title: "Proposals", url: "/admin/proposals", icon: FileText },
-  { title: "Complaints", url: "/admin/complaints", icon: MessageSquare },
-  { title: "Reviews", url: "/admin/reviews", icon: Star },
-  { title: "Products", url: "/admin/products", icon: Package },
-  { title: "Categories", url: "/admin/categories", icon: Tag },
-  { title: "Notifications", url: "/admin/notifications", icon: Bell },
-  { title: "Settings", url: "/admin/settings", icon: Settings },
+  { title: "לוח בקרה", url: "/admin/dashboard", icon: Home },
+  { title: "אנליטיקה", url: "/admin/analytics", icon: BarChart3 },
+  { title: "משתמשים", url: "/admin/users", icon: Users },
+  { title: "הזמנות", url: "/admin/orders", icon: ShoppingCart },
+  { title: "הצעות מחיר", url: "/admin/quotes", icon: FileText },
+  { title: "הצעות", url: "/admin/proposals", icon: FileText },
+  { title: "תלונות", url: "/admin/complaints", icon: MessageSquare },
+  { title: "ביקורות", url: "/admin/reviews", icon: Star },
+  { title: "מוצרים", url: "/admin/products", icon: Package },
+  { title: "קטגוריות", url: "/admin/categories", icon: Tag },
+  { title: "התראות", url: "/admin/notifications", icon: Bell },
+  { title: "הגדרות", url: "/admin/settings", icon: Settings },
 ];
 
 export function AdminSidebar() {
@@ -52,10 +52,10 @@ export function AdminSidebar() {
 
   return (
     <Sidebar className={isCollapsed ? "w-14" : "w-64"} collapsible="icon">
-      <SidebarContent>
+      <SidebarContent className="font-hebrew">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-lg font-semibold text-primary">
-            {!isCollapsed && "Admin Panel"}
+          <SidebarGroupLabel className="text-lg font-semibold text-primary text-right">
+            {!isCollapsed && "פאנל ניהול"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -64,10 +64,10 @@ export function AdminSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink 
                       to={item.url} 
-                      className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${getNavClass(item.url)}`}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${getNavClass(item.url)} text-right`}
                     >
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      <item.icon className="h-4 w-4 ml-2" />
+                      {!isCollapsed && <span className="flex-1 text-right">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

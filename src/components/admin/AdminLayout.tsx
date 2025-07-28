@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
+import { AdminBottomNavigation } from "./AdminBottomNavigation";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -22,20 +23,29 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const isLoginPage = location.pathname === "/admin/login";
 
   if (isLoginPage) {
-    return <>{children}</>;
+    return <div className="admin-rtl">{children}</div>;
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AdminSidebar />
-        <div className="flex-1 flex flex-col">
-          <AdminHeader />
-          <main className="flex-1 p-6 overflow-auto">
-            {children}
-          </main>
+    <div className="admin-rtl">
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-background">
+          {/* Desktop Sidebar */}
+          <div className="hidden md:block">
+            <AdminSidebar />
+          </div>
+          
+          <div className="flex-1 flex flex-col">
+            <AdminHeader />
+            <main className="flex-1 p-4 md:p-6 overflow-auto pb-20 md:pb-6">
+              {children}
+            </main>
+          </div>
+          
+          {/* Mobile Bottom Navigation */}
+          <AdminBottomNavigation />
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   );
 }
