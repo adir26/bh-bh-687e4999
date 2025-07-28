@@ -85,52 +85,52 @@ export default function SupplierManagement() {
   };
 
   return (
-    <div className="space-y-4 md:space-y-6 font-hebrew">
-      <div className="text-right">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">ניהול ספקים</h1>
-        <p className="text-muted-foreground text-sm md:text-base">ניהול וחיפוש ספקים רשומים</p>
+    <div className="space-y-4 md:space-y-6 font-hebrew" dir="rtl">
+      <div className="rtl-text-right">
+        <h1 className="text-xl md:text-3xl font-bold tracking-tight">ניהול ספקים</h1>
+        <p className="text-muted-foreground text-mobile-sm md:text-base">ניהול וחיפוש ספקים רשומים</p>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-        <Card>
+      <div className="responsive-grid-2">
+        <Card className="mobile-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">סה״כ ספקים</CardTitle>
+            <CardTitle className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">סה״כ ספקים</CardTitle>
             <Building className="h-4 w-4 text-blue-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">1,847</div>
-            <p className="text-xs text-muted-foreground text-right">+12% מהחודש הקודם</p>
+          <CardContent className="p-3 md:p-6">
+            <div className="text-lg md:text-2xl font-bold text-right">1,847</div>
+            <p className="text-mobile-xs text-muted-foreground text-right">+12% מהחודש הקודם</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="mobile-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">ספקים פעילים</CardTitle>
+            <CardTitle className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">ספקים פעילים</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">1,623</div>
-            <p className="text-xs text-muted-foreground text-right">87.9% מהכלל</p>
+          <CardContent className="p-3 md:p-6">
+            <div className="text-lg md:text-2xl font-bold text-right">1,623</div>
+            <p className="text-mobile-xs text-muted-foreground text-right">87.9% מהכלל</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="mobile-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">ממתינים לאישור</CardTitle>
+            <CardTitle className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">ממתינים לאישור</CardTitle>
             <Clock className="h-4 w-4 text-yellow-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">67</div>
-            <p className="text-xs text-muted-foreground text-right">דורש טיפול</p>
+          <CardContent className="p-3 md:p-6">
+            <div className="text-lg md:text-2xl font-bold text-right">67</div>
+            <p className="text-mobile-xs text-muted-foreground text-right">דורש טיפול</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="mobile-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">דירוג ממוצע</CardTitle>
+            <CardTitle className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">דירוג ממוצע</CardTitle>
             <Star className="h-4 w-4 text-yellow-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">4.6</div>
-            <p className="text-xs text-muted-foreground text-right">מתוך 5 כוכבים</p>
+          <CardContent className="p-3 md:p-6">
+            <div className="text-lg md:text-2xl font-bold text-right">4.6</div>
+            <p className="text-mobile-xs text-muted-foreground text-right">מתוך 5 כוכבים</p>
           </CardContent>
         </Card>
       </div>
@@ -168,11 +168,11 @@ export default function SupplierManagement() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent className="table-mobile-wrapper">
           {/* Mobile Cards for small screens */}
-          <div className="block md:hidden space-y-4">
+          <div className="block md:hidden space-y-3">
             {filteredSuppliers.map((supplier) => (
-              <Card key={supplier.id} className="p-4">
+              <Card key={supplier.id} className="mobile-card p-4">
                 <div className="space-y-3 text-right">
                   <div className="flex justify-between items-center">
                     <div className="font-bold text-primary">{supplier.id}</div>
@@ -231,7 +231,7 @@ export default function SupplierManagement() {
 
           {/* Desktop Table */}
           <div className="hidden md:block">
-            <Table>
+            <Table className="min-w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-right">מזהה</TableHead>

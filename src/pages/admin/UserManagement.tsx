@@ -86,13 +86,13 @@ export default function UserManagement() {
   return (
     <div className="space-y-4 md:space-y-6 font-hebrew" dir="rtl">
       {/* Header */}
-      <div className="flex flex-col gap-4 px-4 md:px-0">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">ניהול משתמשים</h1>
-            <p className="text-muted-foreground text-sm md:text-base">ניהול לקוחות וספקים</p>
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl md:text-3xl font-bold tracking-tight rtl-text-right">ניהול משתמשים</h1>
+            <p className="text-muted-foreground text-mobile-sm md:text-base rtl-text-right">ניהול לקוחות וספקים</p>
           </div>
-          <Button className="w-full md:w-auto min-h-button font-hebrew">
+          <Button className="w-full sm:w-auto min-h-button font-hebrew">
             <UserPlus className="h-4 w-4 ml-2" />
             הוספת משתמש
           </Button>
@@ -105,46 +105,46 @@ export default function UserManagement() {
             placeholder="חיפוש משתמשים..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pr-10 text-right min-h-input"
+            className="pr-10 text-right min-h-input prevent-zoom"
             dir="rtl"
           />
         </div>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 px-4 md:px-0">
+      <div className="responsive-grid-2">
         <Card className="mobile-card">
-          <CardContent className="p-4 md:p-6">
+          <CardContent className="p-3 md:p-6">
             <div className="text-lg md:text-2xl font-bold text-right">12,459</div>
-            <p className="text-xs md:text-sm font-medium text-muted-foreground text-right">סה״כ משתמשים</p>
-            <p className="text-xs text-green-600 text-right">+12%</p>
+            <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">סה״כ משתמשים</p>
+            <p className="text-mobile-xs text-green-600 text-right">+12%</p>
           </CardContent>
         </Card>
         <Card className="mobile-card">
-          <CardContent className="p-4 md:p-6">
+          <CardContent className="p-3 md:p-6">
             <div className="text-lg md:text-2xl font-bold text-right">1,247</div>
-            <p className="text-xs md:text-sm font-medium text-muted-foreground text-right">ספקים</p>
-            <p className="text-xs text-green-600 text-right">+8%</p>
+            <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">ספקים</p>
+            <p className="text-mobile-xs text-green-600 text-right">+8%</p>
           </CardContent>
         </Card>
         <Card className="mobile-card">
-          <CardContent className="p-4 md:p-6">
+          <CardContent className="p-3 md:p-6">
             <div className="text-lg md:text-2xl font-bold text-right">11,212</div>
-            <p className="text-xs md:text-sm font-medium text-muted-foreground text-right">לקוחות</p>
-            <p className="text-xs text-green-600 text-right">+13%</p>
+            <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">לקוחות</p>
+            <p className="text-mobile-xs text-green-600 text-right">+13%</p>
           </CardContent>
         </Card>
         <Card className="mobile-card">
-          <CardContent className="p-4 md:p-6">
+          <CardContent className="p-3 md:p-6">
             <div className="text-lg md:text-2xl font-bold text-right">2,847</div>
-            <p className="text-xs md:text-sm font-medium text-muted-foreground text-right">פעילים היום</p>
-            <p className="text-xs text-green-600 text-right">+5%</p>
+            <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">פעילים היום</p>
+            <p className="text-mobile-xs text-green-600 text-right">+5%</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Mobile User Cards */}
-      <div className="block md:hidden px-4 space-y-3">
+      <div className="block md:hidden space-y-3">
         {filteredUsers.map((user) => (
           <Card key={user.id} className="mobile-card">
             <CardContent className="p-4">
@@ -212,14 +212,14 @@ export default function UserManagement() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-right font-hebrew">רשימת משתמשים</CardTitle>
-            <Button variant="outline" size="sm" className="font-hebrew">
+            <Button variant="outline" size="sm" className="font-hebrew min-h-button">
               <Filter className="h-4 w-4 ml-2" />
               סינון
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <Table>
+        <CardContent className="table-mobile-wrapper">
+          <Table className="min-w-full">
             <TableHeader>
               <TableRow>
                 <TableHead className="text-right">משתמש</TableHead>
