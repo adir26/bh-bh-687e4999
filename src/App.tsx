@@ -69,6 +69,9 @@ import SupportChatManagement from "./pages/admin/SupportChatManagement";
 import LeadManagement from "./pages/admin/LeadManagement";
 import ContentManagement from "./pages/admin/ContentManagement";
 import ReviewsModeration from "./pages/admin/ReviewsModeration";
+import AdvancedReports from "./pages/admin/AdvancedReports";
+import AutomationCenter from "./pages/admin/AutomationCenter";
+import PermissionsManagement from "./pages/admin/PermissionsManagement";
 import { AdminLayout } from "./components/admin/AdminLayout";
 
 const queryClient = new QueryClient();
@@ -143,6 +146,9 @@ const App = () => {
               <Route path="/admin/leads" element={<AdminLayout><LeadManagement /></AdminLayout>} />
               <Route path="/admin/content" element={<AdminLayout><ContentManagement /></AdminLayout>} />
               <Route path="/admin/reviews" element={<AdminLayout><ReviewsModeration /></AdminLayout>} />
+              <Route path="/admin/reports" element={<AdminLayout><AdvancedReports /></AdminLayout>} />
+              <Route path="/admin/automation" element={<AdminLayout><AutomationCenter /></AdminLayout>} />
+              <Route path="/admin/permissions" element={<AdminLayout><PermissionsManagement /></AdminLayout>} />
               <Route path="/admin/analytics" element={<AdminLayout><AdminAnalytics /></AdminLayout>} />
               <Route path="/admin/settings" element={<AdminLayout><SystemSettings /></AdminLayout>} />
               

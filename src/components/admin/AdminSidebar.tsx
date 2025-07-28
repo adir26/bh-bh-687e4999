@@ -37,6 +37,9 @@ const navigationItems = [
   { title: "לידים", url: "/admin/leads", icon: Star },
   { title: "תוכן", url: "/admin/content", icon: FileText },
   { title: "ביקורות", url: "/admin/reviews", icon: Star },
+  { title: "דוחות מתקדמים", url: "/admin/reports", icon: BarChart3 },
+  { title: "אוטומציה", url: "/admin/automation", icon: Package },
+  { title: "הרשאות", url: "/admin/permissions", icon: Users },
   { title: "הגדרות", url: "/admin/settings", icon: Settings },
 ];
 

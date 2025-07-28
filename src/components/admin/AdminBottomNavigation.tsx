@@ -1,4 +1,4 @@
-import { Home, Users, ShoppingCart, MessageSquare, Settings } from "lucide-react";
+import { Home, BarChart3, Users, Settings, MessageSquare, FileText } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const navItems = [
@@ -9,28 +9,28 @@ const navItems = [
     path: "/admin/dashboard" 
   },
   { 
-    id: "suppliers", 
-    label: "ספקים", 
-    icon: Users, 
-    path: "/admin/suppliers" 
+    id: "analytics", 
+    label: "אנליטיקה", 
+    icon: BarChart3, 
+    path: "/admin/analytics" 
   },
   { 
-    id: "orders", 
-    label: "הזמנות", 
-    icon: ShoppingCart, 
-    path: "/admin/orders" 
+    id: "reports", 
+    label: "דוחות", 
+    icon: FileText, 
+    path: "/admin/reports" 
   },
   { 
-    id: "support", 
-    label: "תמיכה", 
+    id: "automation", 
+    label: "אוטומציה", 
     icon: MessageSquare, 
-    path: "/admin/support" 
+    path: "/admin/automation" 
   },
   { 
-    id: "settings", 
-    label: "הגדרות", 
-    icon: Settings, 
-    path: "/admin/settings" 
+    id: "permissions", 
+    label: "הרשאות", 
+    icon: Users, 
+    path: "/admin/permissions" 
   },
 ];
 
