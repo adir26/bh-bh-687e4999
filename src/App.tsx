@@ -39,7 +39,7 @@ import SupplierDashboard from "./pages/SupplierDashboard";
 import OrderStatus from "./pages/orders/OrderStatus";
 import LiveDeliveryTracking from "./pages/orders/LiveDeliveryTracking";
 import SupplierDashboardNew from "./pages/supplier/Dashboard";
-import LeadManagement from "./pages/supplier/LeadManagement";
+import SupplierLeadManagement from "./pages/supplier/LeadManagement";
 import ProductCatalog from "./pages/supplier/ProductCatalog";
 import QuoteBuilder from "./pages/supplier/QuoteBuilder";
 import ProposalBuilder from "./pages/supplier/ProposalBuilder";
@@ -65,6 +65,10 @@ import SupplierManagement from "./pages/admin/SupplierManagement";
 import ComplaintManagement from "./pages/admin/ComplaintManagement";
 import CategoryManagement from "./pages/admin/CategoryManagement";
 import QuoteManagement from "./pages/admin/QuoteManagement";
+import SupportChatManagement from "./pages/admin/SupportChatManagement";
+import LeadManagement from "./pages/admin/LeadManagement";
+import ContentManagement from "./pages/admin/ContentManagement";
+import ReviewsModeration from "./pages/admin/ReviewsModeration";
 import { AdminLayout } from "./components/admin/AdminLayout";
 
 const queryClient = new QueryClient();
@@ -95,7 +99,7 @@ const App = () => {
               <Route path="/onboarding/supplier-summary" element={<SupplierSummary />} />
               <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
               <Route path="/supplier/dashboard" element={<SupplierDashboardNew />} />
-              <Route path="/supplier/leads" element={<LeadManagement />} />
+              <Route path="/supplier/leads" element={<SupplierLeadManagement />} />
               <Route path="/supplier/catalog" element={<ProductCatalog />} />
               <Route path="/supplier/quotes" element={<QuoteBuilder />} />
               <Route path="/supplier/proposals" element={<ProposalBuilder />} />
@@ -135,6 +139,10 @@ const App = () => {
               <Route path="/admin/quotes" element={<AdminLayout><QuoteManagement /></AdminLayout>} />
               <Route path="/admin/complaints" element={<AdminLayout><ComplaintManagement /></AdminLayout>} />
               <Route path="/admin/categories" element={<AdminLayout><CategoryManagement /></AdminLayout>} />
+              <Route path="/admin/support-chat" element={<AdminLayout><SupportChatManagement /></AdminLayout>} />
+              <Route path="/admin/leads" element={<AdminLayout><LeadManagement /></AdminLayout>} />
+              <Route path="/admin/content" element={<AdminLayout><ContentManagement /></AdminLayout>} />
+              <Route path="/admin/reviews" element={<AdminLayout><ReviewsModeration /></AdminLayout>} />
               <Route path="/admin/analytics" element={<AdminLayout><AdminAnalytics /></AdminLayout>} />
               <Route path="/admin/settings" element={<AdminLayout><SystemSettings /></AdminLayout>} />
               

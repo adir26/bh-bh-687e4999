@@ -33,6 +33,10 @@ const navigationItems = [
   { title: "הצעות מחיר", url: "/admin/quotes", icon: FileText },
   { title: "תלונות", url: "/admin/complaints", icon: MessageSquare },
   { title: "קטגוריות", url: "/admin/categories", icon: Tag },
+  { title: "צ'אטים", url: "/admin/support-chat", icon: MessageSquare },
+  { title: "לידים", url: "/admin/leads", icon: Star },
+  { title: "תוכן", url: "/admin/content", icon: FileText },
+  { title: "ביקורות", url: "/admin/reviews", icon: Star },
   { title: "הגדרות", url: "/admin/settings", icon: Settings },
 ];
 
