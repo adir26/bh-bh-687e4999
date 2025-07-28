@@ -54,6 +54,15 @@ import Settings from "./pages/Settings";
 import FAQ from "./pages/FAQ";
 import NotificationPreferences from "./pages/NotificationPreferences";
 
+// Admin pages
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/Dashboard";
+import UserManagement from "./pages/admin/UserManagement";
+import AdminOrderManagement from "./pages/admin/OrderManagement";
+import AdminAnalytics from "./pages/admin/Analytics";
+import SystemSettings from "./pages/admin/SystemSettings";
+import { AdminLayout } from "./components/admin/AdminLayout";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -112,6 +121,15 @@ const App = () => {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/notifications-preferences" element={<NotificationPreferences />} />
               <Route path="/supplier/notifications-preferences" element={<NotificationPreferences />} />
+              
+              {/* Admin routes */}
+              <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
+              <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+              <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
+              <Route path="/admin/orders" element={<AdminLayout><AdminOrderManagement /></AdminLayout>} />
+              <Route path="/admin/analytics" element={<AdminLayout><AdminAnalytics /></AdminLayout>} />
+              <Route path="/admin/settings" element={<AdminLayout><SystemSettings /></AdminLayout>} />
+              
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
@@ -126,11 +144,12 @@ const App = () => {
 const ConditionalNavigation = () => {
   const location = useLocation();
   const isSupplierRoute = location.pathname.startsWith('/supplier/') || location.pathname === '/supplier-dashboard';
+  const isAdminRoute = location.pathname.startsWith('/admin/');
   const isOnboardingRoute = location.pathname.startsWith('/onboarding/') || location.pathname === '/registration' || location.pathname === '/login';
   const isSupportRoute = location.pathname.startsWith('/support/');
   
-  // Don't show navigation during onboarding, auth flows, or support chat
-  if (isOnboardingRoute || isSupportRoute) {
+  // Don't show navigation during onboarding, auth flows, support chat, or admin panel
+  if (isOnboardingRoute || isSupportRoute || isAdminRoute) {
     return null;
   }
   
