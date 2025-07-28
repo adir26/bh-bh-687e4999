@@ -33,8 +33,12 @@ export default {
 			'touch': {'raw': '(hover: none) and (pointer: coarse)'},
 			'no-touch': {'raw': '(hover: hover) and (pointer: fine)'},
 		},
-		extend: {
-			colors: {
+    extend: {
+      fontFamily: {
+        sans: ['Heebo', 'system-ui', 'sans-serif'],
+        hebrew: ['Heebo', 'Arial', 'sans-serif'],
+      },
+      colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
