@@ -24,14 +24,14 @@ export default function AdminLogin() {
     if (credentials.username === "admin" && credentials.password === "admin123") {
       localStorage.setItem("adminToken", "admin_authenticated");
       toast({
-        title: "Login successful",
-        description: "Welcome to the admin panel",
+        title: "התחברות בוצעה בהצלחה",
+        description: "ברוכים הבאים לפאנל הניהול",
       });
       navigate("/admin/dashboard");
     } else {
       toast({
-        title: "Login failed",
-        description: "Invalid credentials",
+        title: "שגיאה בהתחברות",
+        description: "פרטי הכניסה שגויים",
         variant: "destructive",
       });
     }
@@ -40,40 +40,48 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4" dir="rtl">
+      <Card className="w-full max-w-md mobile-card">
+        <CardHeader className="text-center space-y-4">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <Shield className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Admin Login</CardTitle>
+          <CardTitle className="text-2xl font-hebrew">כניסת מנהלים</CardTitle>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+        <CardContent className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-3">
+              <Label htmlFor="username" className="font-hebrew text-right block">שם משתמש</Label>
               <Input
                 id="username"
                 type="text"
-                placeholder="Enter admin username"
+                placeholder="הזינו שם משתמש"
                 value={credentials.username}
                 onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
                 required
+                className="text-right min-h-input mobile-button"
+                dir="rtl"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div className="space-y-3">
+              <Label htmlFor="password" className="font-hebrew text-right block">סיסמה</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter admin password"
+                placeholder="הזינו סיסמה"
                 value={credentials.password}
                 onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
                 required
+                className="text-right min-h-input mobile-button"
+                dir="rtl"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Logging in..." : "Login"}
+            <Button 
+              type="submit" 
+              className="w-full min-h-button mobile-button font-hebrew text-button" 
+              disabled={loading}
+            >
+              {loading ? "מתחבר..." : "התחברות"}
             </Button>
           </form>
         </CardContent>
