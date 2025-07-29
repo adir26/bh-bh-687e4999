@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { AdBanner } from '@/components/AdBanner';

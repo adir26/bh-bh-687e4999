@@ -8,6 +8,7 @@ import { useLocation } from "react-router-dom";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { SupplierBottomNavigation } from "@/components/SupplierBottomNavigation";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Search from "./pages/Search";
 import Favorites from "./pages/Favorites";
 import Orders from "./pages/Orders";
@@ -86,6 +87,7 @@ const App = () => {
           <div className="min-h-screen bg-white">
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
               <Route path="/registration" element={<Registration />} />
               <Route path="/login" element={<Login />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -167,7 +169,7 @@ const ConditionalNavigation = () => {
   const location = useLocation();
   const isSupplierRoute = location.pathname.startsWith('/supplier/') || location.pathname === '/supplier-dashboard';
   const isAdminRoute = location.pathname.startsWith('/admin/');
-  const isOnboardingRoute = location.pathname.startsWith('/onboarding/') || location.pathname === '/registration' || location.pathname === '/login';
+  const isOnboardingRoute = location.pathname.startsWith('/onboarding/') || location.pathname === '/registration' || location.pathname === '/login' || location.pathname === '/auth';
   const isSupportRoute = location.pathname.startsWith('/support/');
   
   // Don't show navigation during onboarding, auth flows, support chat, or admin panel
