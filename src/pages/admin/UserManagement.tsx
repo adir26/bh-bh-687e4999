@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Filter, UserPlus, MoreHorizontal, Eye, Ban, CheckCircle, Calendar, Mail, ShoppingCart } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { profilesService, adminService, ordersService } from "@/services/supabaseService";
+import { toast } from "sonner";
 
 const mockUsers = [
   {
@@ -52,7 +54,47 @@ const mockUsers = [
 
 export default function UserManagement() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [users] = useState(mockUsers);
+  const [users, setUsers] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    suppliers: 0,
+    clients: 0,
+    activeToday: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [profiles, adminStats] = await Promise.all([
+          profilesService.getAllProfiles(),
+          adminService.getStats()
+        ]);
+
+        // Transform profiles to match the UI format
+        const transformedUsers = profiles.map(profile => ({
+          id: profile.id,
+          name: profile.full_name || 'משתמש',
+          email: profile.email,
+          role: profile.role === 'supplier' ? 'ספק' : 'לקוח',
+          status: 'פעיל', // All users are active for now
+          joinDate: new Date(profile.created_at).toLocaleDateString('he-IL'),
+          lastActive: new Date(profile.updated_at).toLocaleDateString('he-IL'),
+          orders: 0 // Will be populated separately if needed
+        }));
+
+        setUsers(transformedUsers);
+        setStats(adminStats.users);
+      } catch (error) {
+        console.error('Error loading users:', error);
+        toast.error('שגיאה בטעינת המשתמשים');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -82,6 +124,17 @@ export default function UserManagement() {
         return <Badge variant="outline">{role}</Badge>;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">טוען נתוני משתמשים...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 md:space-y-6 font-hebrew" dir="rtl">
@@ -115,30 +168,26 @@ export default function UserManagement() {
       <div className="responsive-grid-2">
         <Card className="mobile-card">
           <CardContent className="p-3 md:p-6">
-            <div className="text-lg md:text-2xl font-bold text-right">12,459</div>
+            <div className="text-lg md:text-2xl font-bold text-right">{stats.total.toLocaleString()}</div>
             <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">סה״כ משתמשים</p>
-            <p className="text-mobile-xs text-green-600 text-right">+12%</p>
           </CardContent>
         </Card>
         <Card className="mobile-card">
           <CardContent className="p-3 md:p-6">
-            <div className="text-lg md:text-2xl font-bold text-right">1,247</div>
+            <div className="text-lg md:text-2xl font-bold text-right">{stats.suppliers.toLocaleString()}</div>
             <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">ספקים</p>
-            <p className="text-mobile-xs text-green-600 text-right">+8%</p>
           </CardContent>
         </Card>
         <Card className="mobile-card">
           <CardContent className="p-3 md:p-6">
-            <div className="text-lg md:text-2xl font-bold text-right">11,212</div>
+            <div className="text-lg md:text-2xl font-bold text-right">{stats.clients.toLocaleString()}</div>
             <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">לקוחות</p>
-            <p className="text-mobile-xs text-green-600 text-right">+13%</p>
           </CardContent>
         </Card>
         <Card className="mobile-card">
           <CardContent className="p-3 md:p-6">
-            <div className="text-lg md:text-2xl font-bold text-right">2,847</div>
+            <div className="text-lg md:text-2xl font-bold text-right">{stats.activeToday.toLocaleString()}</div>
             <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">פעילים היום</p>
-            <p className="text-mobile-xs text-green-600 text-right">+5%</p>
           </CardContent>
         </Card>
       </div>

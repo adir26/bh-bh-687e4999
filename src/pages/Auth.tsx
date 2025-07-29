@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import loginImage from '@/assets/login-interior.jpg';
 
 const Auth: React.FC = () => {
@@ -16,18 +17,34 @@ const Auth: React.FC = () => {
     email: '', 
     password: '', 
     fullName: '', 
-    role: 'client' 
+    role: 'client' as 'client' | 'supplier',
+    phone: ''
   });
   
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState('login');
 
-  // Redirect authenticated users
+  // Handle tab switching and prefill data
   useEffect(() => {
     if (user) {
       navigate('/');
+      return;
     }
-  }, [user, navigate]);
+
+    const tab = searchParams.get('tab');
+    if (tab === 'signup') {
+      setActiveTab('signup');
+      // Load signup data if coming from registration
+      const signupData = localStorage.getItem('signupData');
+      if (signupData) {
+        const data = JSON.parse(signupData);
+        setSignupForm(data);
+        localStorage.removeItem('signupData');
+      }
+    }
+  }, [user, navigate, searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,12 +63,20 @@ const Auth: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    const { error } = await signUp(
-      signupForm.email, 
-      signupForm.password, 
-      signupForm.fullName,
-      signupForm.role
-    );
+    try {
+      const { error } = await signUp(
+        signupForm.email, 
+        signupForm.password, 
+        signupForm.fullName,
+        signupForm.role
+      );
+      
+      if (!error) {
+        toast.success('נרשמת בהצלחה! בדוק את האימייל שלך לאישור החשבון.');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+    }
     
     setIsLoading(false);
   };
@@ -83,7 +108,7 @@ const Auth: React.FC = () => {
             </p>
           </div>
 
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">התחברות</TabsTrigger>
               <TabsTrigger value="signup">הרשמה</TabsTrigger>
@@ -172,10 +197,20 @@ const Auth: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-2">
+                      <Label htmlFor="signup-phone">מספר טלפון</Label>
+                      <Input
+                        id="signup-phone"
+                        type="tel"
+                        placeholder="052-123-4567"
+                        value={signupForm.phone}
+                        onChange={(e) => setSignupForm({ ...signupForm, phone: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="signup-role">סוג המשתמש</Label>
                       <Select 
                         value={signupForm.role} 
-                        onValueChange={(value) => setSignupForm({ ...signupForm, role: value })}
+                        onValueChange={(value: 'client' | 'supplier') => setSignupForm({ ...signupForm, role: value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="בחרו סוג משתמש" />

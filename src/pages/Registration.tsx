@@ -51,15 +51,21 @@ export default function Registration() {
     }
   });
 
-  const onSubmit = (data: RegistrationForm) => {
-    console.log('Registration data:', data);
-    // Store registration data and navigate to appropriate onboarding
-    localStorage.setItem('registrationData', JSON.stringify(data));
-    
-    if (data.role === 'supplier') {
-      navigate('/onboarding/supplier-welcome');
-    } else {
-      navigate('/onboarding/welcome');
+  const onSubmit = async (data: RegistrationForm) => {
+    try {
+      // Redirect to Auth page with signup data
+      const signupData = {
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName,
+        role: data.role,
+        phone: `${data.phonePrefix}${data.phoneNumber}`
+      };
+      
+      localStorage.setItem('signupData', JSON.stringify(signupData));
+      navigate('/auth?tab=signup');
+    } catch (error) {
+      console.error('Registration error:', error);
     }
   };
 

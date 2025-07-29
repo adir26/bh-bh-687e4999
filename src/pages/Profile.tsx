@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
+import { useAuth } from '@/contexts/AuthContext';
+import { profilesService, ordersService } from '@/services/supabaseService';
+import { toast } from 'sonner';
 import { 
   User, Settings, Bell, CreditCard, HelpCircle, LogOut, 
   Edit3, Check, X, Home, Calendar, Star, FileText, 
@@ -46,62 +49,102 @@ interface OnboardingData {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({});
+  const [userOrders, setUserOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const form = useForm<UserProfile>({
     defaultValues: {
-      fullName: 'שירה כהן',
-      email: 'shirakohav1234@gmail.com',
-      phone: '052-1234567'
+      fullName: profile?.full_name || '',
+      email: profile?.email || '',
+      phone: profile?.phone || ''
     }
   });
 
-  // Mock data for new sections
-  const [nextDelivery] = useState({
-    date: '28.07.2025',
-    supplier: 'אבי רהיטים',
-    hasDelivery: true
-  });
+  // Process user orders for display
+  const activeOrders = userOrders.filter(order => 
+    !['completed', 'cancelled'].includes(order.status)
+  );
+  
+  const orderHistory = userOrders.filter(order => 
+    ['completed', 'cancelled'].includes(order.status)
+  ).slice(0, 3);
+  
+  const nextDelivery = activeOrders.find(order => 
+    order.status === 'confirmed' || order.status === 'in_progress'
+  );
+  
+  const pendingReviews = orderHistory.filter(order => 
+    order.status === 'completed'
+  ).slice(0, 2);
 
-  const [orderHistory] = useState([
-    { id: 1, supplier: 'אבי רהיטים', date: '15.06.2025', amount: '₪2,500', status: 'הושלם' },
-    { id: 2, supplier: 'חברת הבנייה', date: '01.06.2025', amount: '₪8,900', status: 'הושלם' },
-    { id: 3, supplier: 'קופיקס', date: '20.05.2025', amount: '₪450', status: 'הושלם' }
-  ]);
-
-  const [activeOrders] = useState([
-    { id: 1, supplier: 'אבי רהיטים', status: 'בדרך', deliveryDate: '28.07.2025', amount: '₪3,200' },
-    { id: 2, supplier: 'חברת הבנייה', status: 'אושר', deliveryDate: '02.08.2025', amount: '₪12,500' }
-  ]);
-
-  const [pendingReviews] = useState([
-    { id: 1, supplier: 'אבי רהיטים', orderDate: '15.06.2025', amount: '₪2,500' },
-    { id: 2, supplier: 'חברת הבנייה', orderDate: '01.06.2025', amount: '₪8,900' }
-  ]);
-
-  const [submittedReviews] = useState([
-    { id: 1, supplier: 'קופיקס', rating: 5, date: '25.05.2025', comment: 'שירות מעולה ומהיר' },
-    { id: 2, supplier: 'עולם הרהיטים', rating: 4, date: '10.05.2025', comment: 'מוצרים איכותיים' }
-  ]);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">טוען...</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
-    // Load onboarding data from localStorage
-    const homeDetails = localStorage.getItem('homeDetails');
-    const projectPlanning = localStorage.getItem('projectPlanning');
-    const userInterests = localStorage.getItem('userInterests');
+    const loadData = async () => {
+      if (!user) return;
+      
+      setLoading(true);
+      try {
+        // Load user orders
+        const orders = await ordersService.getByUserId(user.id);
+        setUserOrders(orders);
 
-    setOnboardingData({
-      homeDetails: homeDetails ? JSON.parse(homeDetails) : null,
-      projectPlanning: projectPlanning ? JSON.parse(projectPlanning) : null,
-      userInterests: userInterests ? JSON.parse(userInterests) : null,
-    });
-  }, []);
+        // Update form with profile data
+        if (profile) {
+          form.reset({
+            fullName: profile.full_name || '',
+            email: profile.email || '',
+            phone: profile.phone || ''
+          });
+        }
 
-  const handleSaveProfile = (data: UserProfile) => {
-    console.log('Saving profile:', data);
-    setIsEditing(false);
-    // Here you would typically save to a backend/localStorage
+        // Load onboarding data from localStorage
+        const homeDetails = localStorage.getItem('homeDetails');
+        const projectPlanning = localStorage.getItem('projectPlanning');
+        const userInterests = localStorage.getItem('userInterests');
+
+        setOnboardingData({
+          homeDetails: homeDetails ? JSON.parse(homeDetails) : null,
+          projectPlanning: projectPlanning ? JSON.parse(projectPlanning) : null,
+          userInterests: userInterests ? JSON.parse(userInterests) : null,
+        });
+      } catch (error) {
+        console.error('Error loading profile data:', error);
+        toast.error('שגיאה בטעינת הנתונים');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [user, profile, form]);
+
+  const handleSaveProfile = async (data: UserProfile) => {
+    if (!user) return;
+    
+    try {
+      await profilesService.updateProfile(user.id, {
+        full_name: data.fullName,
+        phone: data.phone
+      });
+      toast.success('הפרופיל עודכן בהצלחה');
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('שגיאה בעדכון הפרופיל');
+    }
   };
 
   const handleCancelEdit = () => {
@@ -269,7 +312,7 @@ const Profile = () => {
         {/* Content */}
         <div className="px-6 pb-6">
           {/* My Activity Section */}
-          {nextDelivery.hasDelivery && (
+          {nextDelivery && (
             <Card className="mt-6 border-0 shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
@@ -279,9 +322,9 @@ const Profile = () => {
                   <div className="flex-1">
                     <h3 className="font-semibold text-blue-900 text-sm">פעילות שלי</h3>
                     <p className="text-blue-800 text-xs mt-1">
-                      ההזמנה הבאה שלך מתוכננת להגיע ב: <span className="font-medium">{nextDelivery.date}</span>
+                      ההזמנה הבאה שלך: <span className="font-medium">{nextDelivery.title}</span>
                     </p>
-                    <p className="text-blue-700 text-xs">מספק: {nextDelivery.supplier}</p>
+                    <p className="text-blue-700 text-xs">סכום: ₪{Number(nextDelivery.amount).toLocaleString()}</p>
                   </div>
                   <Truck className="w-5 h-5 text-blue-600" />
                 </div>
@@ -325,7 +368,7 @@ const Profile = () => {
               </Button>
             </div>
             <div className="space-y-3">
-              {orderHistory.slice(0, 3).map((order) => (
+              {orderHistory.map((order) => (
                 <Card key={order.id} className="border-0 shadow-sm rounded-xl">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
@@ -334,14 +377,14 @@ const Profile = () => {
                           <ShoppingCart className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
-                          <h4 className="font-medium text-sm text-foreground">{order.supplier}</h4>
-                          <p className="text-xs text-muted-foreground">{order.date}</p>
+                          <h4 className="font-medium text-sm text-foreground">{order.title}</h4>
+                          <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString('he-IL')}</p>
                         </div>
                       </div>
                       <div className="text-left">
-                        <p className="font-medium text-sm text-foreground">{order.amount}</p>
+                        <p className="font-medium text-sm text-foreground">₪{Number(order.amount).toLocaleString()}</p>
                         <Badge variant="secondary" className="bg-green-500/10 text-green-700 text-xs">
-                          {order.status}
+                          {order.status === 'completed' ? 'הושלם' : 'בוטל'}
                         </Badge>
                       </div>
                     </div>
@@ -364,14 +407,16 @@ const Profile = () => {
                           <Package className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                          <h4 className="font-medium text-sm text-foreground">{order.supplier}</h4>
-                          <p className="text-xs text-muted-foreground">משלוח צפוי: {order.deliveryDate}</p>
+                          <h4 className="font-medium text-sm text-foreground">{order.title}</h4>
+                          <p className="text-xs text-muted-foreground">
+                            {order.due_date ? `צפוי: ${new Date(order.due_date).toLocaleDateString('he-IL')}` : 'בתהליך'}
+                          </p>
                         </div>
                       </div>
                       <div className="text-left">
-                        <p className="font-medium text-sm text-foreground">{order.amount}</p>
+                        <p className="font-medium text-sm text-foreground">₪{Number(order.amount).toLocaleString()}</p>
                         <Badge variant="outline" className="border-blue-200 text-blue-700 text-xs">
-                          {order.status}
+                          {order.status === 'pending' ? 'ממתין' : order.status === 'confirmed' ? 'אושר' : 'בעבודה'}
                         </Badge>
                       </div>
                     </div>
@@ -399,8 +444,10 @@ const Profile = () => {
                               <PenTool className="w-5 h-5 text-amber-600" />
                             </div>
                             <div>
-                              <h4 className="font-medium text-sm text-foreground">{review.supplier}</h4>
-                              <p className="text-xs text-muted-foreground">הזמנה מ-{review.orderDate} • {review.amount}</p>
+                              <h4 className="font-medium text-sm text-foreground">{review.title}</h4>
+                              <p className="text-xs text-muted-foreground">
+                                הזמנה מ-{new Date(review.created_at).toLocaleDateString('he-IL')} • ₪{Number(review.amount).toLocaleString()}
+                              </p>
                             </div>
                           </div>
                           <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white rounded-lg">
@@ -418,7 +465,8 @@ const Profile = () => {
             <div>
               <h4 className="font-medium text-muted-foreground mb-3 text-sm">ביקורות שנשלחו</h4>
               <div className="space-y-3">
-                {submittedReviews.map((review) => (
+                {/* Mock submitted reviews - will be replaced with real data later */}
+                {[].map((review: any) => (
                   <Card key={review.id} className="border-0 shadow-sm rounded-xl">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">

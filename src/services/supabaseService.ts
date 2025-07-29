@@ -322,6 +322,151 @@ export const reviewsService = {
   }
 };
 
+// Profiles Service
+export const profilesService = {
+  async getProfile(userId: string) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  },
+
+  async updateProfile(userId: string, updates: any) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async getAllProfiles() {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data;
+  }
+};
+
+// Admin Service
+export const adminService = {
+  async getStats() {
+    const { data: users, error: usersError } = await supabase
+      .from('profiles')
+      .select('id, role, created_at')
+      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+    
+    if (usersError) throw usersError;
+
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('*');
+    
+    if (ordersError) throw ordersError;
+
+    const { data: allUsers, error: allUsersError } = await supabase
+      .from('profiles')
+      .select('id, role');
+    
+    if (allUsersError) throw allUsersError;
+
+    const totalUsers = allUsers.length;
+    const suppliers = allUsers.filter(user => user.role === 'supplier').length;
+    const clients = allUsers.filter(user => user.role === 'client').length;
+    const newUsersThisMonth = users.length;
+    const activeToday = Math.floor(totalUsers * 0.23); // Mock active today percentage
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + Number(order.amount), 0);
+    const pendingOrders = orders.filter(order => order.status === 'pending').length;
+    const completedOrders = orders.filter(order => order.status === 'completed').length;
+
+    return {
+      users: {
+        total: totalUsers,
+        suppliers,
+        clients,
+        newThisMonth: newUsersThisMonth,
+        activeToday
+      },
+      orders: {
+        total: totalOrders,
+        revenue: totalRevenue,
+        pending: pendingOrders,
+        completed: completedOrders
+      }
+    };
+  }
+};
+
+// Supplier Service
+export const supplierService = {
+  async getSupplierStats(supplierId: string) {
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('supplier_id', supplierId);
+    
+    if (ordersError) throw ordersError;
+
+    const { data: reviews, error: reviewsError } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('reviewed_id', supplierId);
+    
+    if (reviewsError) throw reviewsError;
+
+    const { data: company, error: companyError } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('owner_id', supplierId)
+      .single();
+    
+    if (companyError && companyError.code !== 'PGRST116') throw companyError;
+
+    const thisWeekStart = new Date();
+    thisWeekStart.setDate(thisWeekStart.getDate() - 7);
+    
+    const newLeadsThisWeek = orders.filter(order => 
+      new Date(order.created_at) >= thisWeekStart && order.status === 'pending'
+    ).length;
+    
+    const activeOrders = orders.filter(order => 
+      !['completed', 'cancelled'].includes(order.status)
+    ).length;
+    
+    const avgRating = reviews.length > 0 
+      ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length 
+      : 0;
+    
+    const thisMonthRevenue = orders
+      .filter(order => {
+        const orderDate = new Date(order.created_at);
+        const currentMonth = new Date();
+        return orderDate.getMonth() === currentMonth.getMonth() && 
+               orderDate.getFullYear() === currentMonth.getFullYear();
+      })
+      .reduce((sum, order) => sum + Number(order.amount), 0);
+
+    return {
+      newLeadsThisWeek,
+      activeOrders,
+      avgRating: avgRating.toFixed(1),
+      thisMonthRevenue,
+      company
+    };
+  }
+};
+
 // Storage Service
 export const storageService = {
   async uploadAvatar(userId: string, file: File) {

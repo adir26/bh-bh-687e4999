@@ -1,61 +1,56 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Package, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { ordersService } from '@/services/supabaseService';
+import { toast } from 'sonner';
 import OrderCard, { Order } from '@/components/orders/OrderCard';
 
 const Orders = () => {
   const [activeTab, setActiveTab] = useState('active');
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
-  const orders: Order[] = [
-    {
-      id: 'ORD-001',
-      invoiceNumber: '12A394',
-      supplierName: 'מטבחי פרימיום',
-      serviceName: 'עיצוב והתקנת מטבח',
-      status: 'in_production',
-      orderDate: '2024-01-15',
-      estimatedCompletion: '2024-02-15',
-      totalAmount: 45000,
-      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=300&h=200&fit=crop',
-      progress: 65
-    },
-    {
-      id: 'ORD-002',
-      invoiceNumber: '78B456',
-      supplierName: 'מיזוג הצפון',
-      serviceName: 'התקנת מיזוג אוויר',
-      status: 'delivered',
-      orderDate: '2024-01-10',
-      completionDate: '2024-01-12',
-      totalAmount: 2500,
-      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=300&h=200&fit=crop',
-      rating: 5
-    },
-    {
-      id: 'ORD-003',
-      invoiceNumber: '34C789',
-      supplierName: 'שיפוצי יהודה',
-      serviceName: 'שיפוץ חדר אמבטיה',
-      status: 'order_received',
-      orderDate: '2024-01-20',
-      estimatedCompletion: '2024-01-25',
-      totalAmount: 15000,
-      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=300&h=200&fit=crop',
-      progress: 20
-    },
-    {
-      id: 'ORD-004',
-      invoiceNumber: '56D012',
-      supplierName: 'מובילי הצפון',
-      serviceName: 'שירותי הובלה ופינוי',
-      status: 'on_the_way',
-      orderDate: '2024-01-22',
-      totalAmount: 1200,
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=200&fit=crop',
-      eta: '12 דקות'
-    }
-  ];
+  useEffect(() => {
+    const loadOrders = async () => {
+      if (!user) return;
+      
+      try {
+        const userOrders = await ordersService.getByUserId(user.id);
+        
+        // Transform database orders to match OrderCard interface
+        const transformedOrders: Order[] = userOrders.map(order => ({
+          id: order.id,
+          invoiceNumber: order.id.substring(0, 8),
+          supplierName: 'ספק', // We'll need to join with companies table later
+          serviceName: order.title,
+          status: order.status === 'pending' ? 'order_received' : 
+                 order.status === 'confirmed' ? 'in_production' :
+                 order.status === 'in_progress' ? 'in_production' :
+                 order.status === 'completed' ? 'delivered' : 'order_received',
+          orderDate: new Date(order.created_at).toISOString().split('T')[0],
+          estimatedCompletion: order.due_date || undefined,
+          completionDate: order.completed_at ? new Date(order.completed_at).toISOString().split('T')[0] : undefined,
+          totalAmount: Number(order.amount),
+          image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=300&h=200&fit=crop',
+          progress: order.status === 'pending' ? 10 : 
+                   order.status === 'confirmed' ? 30 :
+                   order.status === 'in_progress' ? 60 : 100
+        }));
+        
+        setOrders(transformedOrders);
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        toast.error('שגיאה בטעינת ההזמנות');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, [user]);
 
 
   const filteredOrders = orders.filter(order => {
@@ -82,6 +77,15 @@ const Orders = () => {
   ];
 
   const activeOrdersCount = orders.filter(o => activeOrderStatuses.includes(o.status)).length;
+
+  if (loading) {
+    return (
+      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-20 items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p className="mt-4 text-muted-foreground">טוען הזמנות...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-20">

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Filter, Eye, MoreHorizontal, DollarSign, ShoppingCart, Clock, CheckCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ordersService, adminService, profilesService } from "@/services/supabaseService";
+import { toast } from "sonner";
 
 const mockOrders = [
   {
@@ -39,7 +41,56 @@ const mockOrders = [
 
 export default function AdminOrderManagement() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [orders] = useState(mockOrders);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    revenue: 0,
+    pending: 0,
+    completed: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [allOrders, adminStats, profiles] = await Promise.all([
+          ordersService.getAll(),
+          adminService.getStats(),
+          profilesService.getAllProfiles()
+        ]);
+
+        // Create a map of user IDs to names
+        const userMap = profiles.reduce((acc, profile) => {
+          acc[profile.id] = profile.full_name || 'משתמש';
+          return acc;
+        }, {} as Record<string, string>);
+
+        // Transform orders to match the UI format
+        const transformedOrders = allOrders.map(order => ({
+          id: order.id.substring(0, 8),
+          customer: userMap[order.client_id] || 'לקוח',
+          supplier: userMap[order.supplier_id] || 'ספק',
+          amount: Number(order.amount),
+          status: order.status === 'pending' ? 'ממתין' :
+                 order.status === 'confirmed' ? 'בטיפול' :
+                 order.status === 'in_progress' ? 'בטיפול' :
+                 order.status === 'completed' ? 'נמסר' : 'בוטל',
+          date: new Date(order.created_at).toLocaleDateString('he-IL'),
+          items: 1 // Mock items count
+        }));
+
+        setOrders(transformedOrders);
+        setStats(adminStats.orders);
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        toast.error('שגיאה בטעינת ההזמנות');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const filteredOrders = orders.filter(order =>
     order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -62,6 +113,17 @@ export default function AdminOrderManagement() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">טוען נתוני הזמנות...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 md:space-y-6 font-hebrew">
       <div className="text-right">
@@ -77,8 +139,8 @@ export default function AdminOrderManagement() {
             <ShoppingCart className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">1,247</div>
-            <p className="text-xs text-muted-foreground text-right">+8% מהחודש הקודם</p>
+            <div className="text-xl md:text-2xl font-bold text-right">{stats.total.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground text-right">סה״כ הזמנות</p>
           </CardContent>
         </Card>
         <Card>
@@ -87,8 +149,8 @@ export default function AdminOrderManagement() {
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">₪89,432</div>
-            <p className="text-xs text-muted-foreground text-right">+15% מהחודש הקודם</p>
+            <div className="text-xl md:text-2xl font-bold text-right">₪{stats.revenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground text-right">סה״כ הכנסות</p>
           </CardContent>
         </Card>
         <Card>
@@ -97,8 +159,8 @@ export default function AdminOrderManagement() {
             <Clock className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">34</div>
-            <p className="text-xs text-muted-foreground text-right">-12% מאתמול</p>
+            <div className="text-xl md:text-2xl font-bold text-right">{stats.pending}</div>
+            <p className="text-xs text-muted-foreground text-right">הזמנות פתוחות</p>
           </CardContent>
         </Card>
         <Card>
@@ -107,8 +169,8 @@ export default function AdminOrderManagement() {
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">1,189</div>
-            <p className="text-xs text-muted-foreground text-right">+9% מהחודש הקודם</p>
+            <div className="text-xl md:text-2xl font-bold text-right">{stats.completed}</div>
+            <p className="text-xs text-muted-foreground text-right">הזמנות שהושלמו</p>
           </CardContent>
         </Card>
       </div>

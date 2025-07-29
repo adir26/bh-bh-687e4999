@@ -1,20 +1,24 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SupplierHeader } from '@/components/SupplierHeader';
+import { useAuth } from '@/contexts/AuthContext';
+import { supplierService } from '@/services/supabaseService';
+import { toast } from 'sonner';
 import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye, FileText, Package2 } from 'lucide-react';
 
 export default function SupplierDashboard() {
   const navigate = useNavigate();
-
-  const stats = [
-    { title: 'לידים חדשים השבוע', value: '8', icon: Users, color: 'text-blue-600' },
-    { title: 'הזמנות פעילות', value: '3', icon: ShoppingBag, color: 'text-green-600' },
-    { title: 'דירוג ממוצע', value: '4.8', icon: Star, color: 'text-yellow-600' },
-    { title: 'הכנסות צפויות החודש', value: '₪12,500', icon: DollarSign, color: 'text-purple-600' },
-  ];
+  const { user, profile } = useAuth();
+  const [stats, setStats] = useState([
+    { title: 'לידים חדשים השבוע', value: '0', icon: Users, color: 'text-blue-600' },
+    { title: 'הזמנות פעילות', value: '0', icon: ShoppingBag, color: 'text-green-600' },
+    { title: 'דירוג ממוצע', value: '0', icon: Star, color: 'text-yellow-600' },
+    { title: 'הכנסות צפויות החודש', value: '₪0', icon: DollarSign, color: 'text-purple-600' },
+  ]);
+  const [loading, setLoading] = useState(true);
 
   const quickActions = [
     { title: 'צור הצעת מחיר', icon: FileText, onClick: () => navigate('/supplier/quotes') },
@@ -35,10 +39,45 @@ export default function SupplierDashboard() {
     'הוסף עוד תמונות איכות לגלריה',
   ];
 
+  useEffect(() => {
+    const loadSupplierData = async () => {
+      if (!user) return;
+      
+      try {
+        const supplierStats = await supplierService.getSupplierStats(user.id);
+        
+        setStats([
+          { title: 'לידים חדשים השבוע', value: supplierStats.newLeadsThisWeek.toString(), icon: Users, color: 'text-blue-600' },
+          { title: 'הזמנות פעילות', value: supplierStats.activeOrders.toString(), icon: ShoppingBag, color: 'text-green-600' },
+          { title: 'דירוג ממוצע', value: supplierStats.avgRating, icon: Star, color: 'text-yellow-600' },
+          { title: 'הכנסות צפויות החודש', value: `₪${supplierStats.thisMonthRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-purple-600' },
+        ]);
+      } catch (error) {
+        console.error('Error loading supplier stats:', error);
+        toast.error('שגיאה בטעינת הנתונים');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSupplierData();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">טוען נתוני הספק...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <SupplierHeader 
-        title="שלום, אבי כהן" 
+        title={`שלום, ${profile?.full_name || 'ספק'}`}
         subtitle="הנה מה שקורה השבוע"
         showBackButton={true}
         backUrl="/"
