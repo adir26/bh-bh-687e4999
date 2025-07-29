@@ -111,6 +111,42 @@ export type Database = {
           },
         ]
       }
+      homepage_content: {
+        Row: {
+          block_name: string
+          content_data: Json
+          created_at: string
+          display_order: number
+          end_date: string | null
+          id: string
+          is_enabled: boolean
+          start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          block_name: string
+          content_data?: Json
+          created_at?: string
+          display_order?: number
+          end_date?: string | null
+          id?: string
+          is_enabled?: boolean
+          start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          block_name?: string
+          content_data?: Json
+          created_at?: string
+          display_order?: number
+          end_date?: string | null
+          id?: string
+          is_enabled?: boolean
+          start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

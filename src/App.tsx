@@ -73,6 +73,7 @@ import ReviewsModeration from "./pages/admin/ReviewsModeration";
 import AdvancedReports from "./pages/admin/AdvancedReports";
 import AutomationCenter from "./pages/admin/AutomationCenter";
 import PermissionsManagement from "./pages/admin/PermissionsManagement";
+import { HomepageContentManagement } from "./pages/admin/HomepageContentManagement";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -153,6 +154,7 @@ const App = () => {
                 <Route path="/admin/reports" element={<AdminLayout><AdvancedReports /></AdminLayout>} />
                 <Route path="/admin/automation" element={<AdminLayout><AutomationCenter /></AdminLayout>} />
                 <Route path="/admin/permissions" element={<AdminLayout><PermissionsManagement /></AdminLayout>} />
+                <Route path="/admin/homepage-content" element={<AdminLayout><HomepageContentManagement /></AdminLayout>} />
                 <Route path="/admin/analytics" element={<AdminLayout><AdminAnalytics /></AdminLayout>} />
                 <Route path="/admin/settings" element={<AdminLayout><SystemSettings /></AdminLayout>} />
                 

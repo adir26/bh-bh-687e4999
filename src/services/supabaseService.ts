@@ -82,6 +82,18 @@ export interface Review {
   created_at: string;
 }
 
+export interface HomepageContent {
+  id: string;
+  block_name: string;
+  content_data: any;
+  is_enabled: boolean;
+  display_order: number;
+  start_date?: string;
+  end_date?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Categories Service
 export const categoriesService = {
   async getAll() {
@@ -467,6 +479,76 @@ export const supplierService = {
   }
 };
 
+// Homepage Content Service
+export const homepageContentService = {
+  async getAll() {
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .select('*')
+      .order('display_order');
+    
+    if (error) throw error;
+    return data as HomepageContent[];
+  },
+
+  async getEnabled() {
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .select('*')
+      .eq('is_enabled', true)
+      .order('display_order');
+    
+    if (error) throw error;
+    return data as HomepageContent[];
+  },
+
+  async getByBlockName(blockName: string) {
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .select('*')
+      .eq('block_name', blockName)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error;
+    return data as HomepageContent | null;
+  },
+
+  async update(id: string, updates: Partial<HomepageContent>) {
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as HomepageContent;
+  },
+
+  async updateByBlockName(blockName: string, updates: Partial<HomepageContent>) {
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .update(updates)
+      .eq('block_name', blockName)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as HomepageContent;
+  },
+
+  async create(content: Omit<HomepageContent, 'id' | 'created_at' | 'updated_at'>) {
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .insert(content)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as HomepageContent;
+  }
+};
+
 // Storage Service
 export const storageService = {
   async uploadAvatar(userId: string, file: File) {
@@ -515,6 +597,23 @@ export const storageService = {
     
     const { data } = supabase.storage
       .from('project-documents')
+      .getPublicUrl(fileName);
+    
+    return data.publicUrl;
+  },
+
+  async uploadMarketingBanner(file: File) {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `banners/${Date.now()}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('company-logos') // Using existing public bucket
+      .upload(fileName, file);
+    
+    if (uploadError) throw uploadError;
+    
+    const { data } = supabase.storage
+      .from('company-logos')
       .getPublicUrl(fileName);
     
     return data.publicUrl;
