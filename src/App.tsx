@@ -74,93 +74,96 @@ import AdvancedReports from "./pages/admin/AdvancedReports";
 import AutomationCenter from "./pages/admin/AutomationCenter";
 import PermissionsManagement from "./pages/admin/PermissionsManagement";
 import { AdminLayout } from "./components/admin/AdminLayout";
+import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="min-h-screen bg-white">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/registration" element={<Registration />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/notifications" element={<Notifications />} />
-              <Route path="/onboarding/welcome" element={<OnboardingWelcome />} />
-              <Route path="/onboarding/home-details" element={<OnboardingHomeDetails />} />
-              <Route path="/onboarding/project-planning" element={<OnboardingProjectPlanning />} />
-              <Route path="/onboarding/documents" element={<OnboardingDocuments />} />
-              <Route path="/onboarding/interests" element={<OnboardingInterests />} />
-              <Route path="/onboarding/supplier-welcome" element={<SupplierWelcome />} />
-              <Route path="/onboarding/supplier-company-info" element={<SupplierCompanyInfo />} />
-              <Route path="/onboarding/supplier-branding" element={<SupplierBranding />} />
-              <Route path="/onboarding/supplier-products" element={<SupplierProducts />} />
-              <Route path="/onboarding/supplier-summary" element={<SupplierSummary />} />
-              <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
-              <Route path="/supplier/dashboard" element={<SupplierDashboardNew />} />
-              <Route path="/supplier/leads" element={<SupplierLeadManagement />} />
-              <Route path="/supplier/catalog" element={<ProductCatalog />} />
-              <Route path="/supplier/quotes" element={<QuoteBuilder />} />
-              <Route path="/supplier/proposals" element={<ProposalBuilder />} />
-              <Route path="/supplier/orders" element={<OrderManagement />} />
-              <Route path="/supplier/notifications" element={<SupplierNotifications />} />
-              <Route path="/supplier/analytics" element={<SupplierAnalytics />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/favorites" element={<Favorites />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/orders/:orderId/status" element={<OrderStatus />} />
-              <Route path="/orders/:orderId/tracking" element={<LiveDeliveryTracking />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/top-suppliers" element={<TopSuppliers />} />
-              <Route path="/new-suppliers" element={<NewSuppliers />} />
-              <Route path="/hot-now" element={<HotNow />} />
-              <Route path="/local-deals" element={<LocalDeals />} />
-              <Route path="/popular-now" element={<PopularNow />} />
-              <Route path="/supplier/:id" element={<SupplierProfile />} />
-              <Route path="/supplier/profile/preview" element={<SupplierProfilePreview />} />
-              <Route path="/category/:category/suppliers" element={<CategorySuppliers />} />
-              <Route path="/support" element={<Support />} />
-              <Route path="/support/chat/:id" element={<SupportChat />} />
-              <Route path="/complaint/:orderId" element={<ComplaintForm />} />
-              <Route path="/support/complaint/:id" element={<ComplaintDetails />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/supplier/settings" element={<Settings />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/notifications-preferences" element={<NotificationPreferences />} />
-              <Route path="/supplier/notifications-preferences" element={<NotificationPreferences />} />
-              
-              {/* Admin routes */}
-              <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
-              <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
-              <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
-              <Route path="/admin/suppliers" element={<AdminLayout><SupplierManagement /></AdminLayout>} />
-              <Route path="/admin/orders" element={<AdminLayout><AdminOrderManagement /></AdminLayout>} />
-              <Route path="/admin/quotes" element={<AdminLayout><QuoteManagement /></AdminLayout>} />
-              <Route path="/admin/complaints" element={<AdminLayout><ComplaintManagement /></AdminLayout>} />
-              <Route path="/admin/categories" element={<AdminLayout><CategoryManagement /></AdminLayout>} />
-              <Route path="/admin/support-chat" element={<AdminLayout><SupportChatManagement /></AdminLayout>} />
-              <Route path="/admin/leads" element={<AdminLayout><LeadManagement /></AdminLayout>} />
-              <Route path="/admin/content" element={<AdminLayout><ContentManagement /></AdminLayout>} />
-              <Route path="/admin/reviews" element={<AdminLayout><ReviewsModeration /></AdminLayout>} />
-              <Route path="/admin/reports" element={<AdminLayout><AdvancedReports /></AdminLayout>} />
-              <Route path="/admin/automation" element={<AdminLayout><AutomationCenter /></AdminLayout>} />
-              <Route path="/admin/permissions" element={<AdminLayout><PermissionsManagement /></AdminLayout>} />
-              <Route path="/admin/analytics" element={<AdminLayout><AdminAnalytics /></AdminLayout>} />
-              <Route path="/admin/settings" element={<AdminLayout><SystemSettings /></AdminLayout>} />
-              
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <ConditionalNavigation />
-          </div>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <div className="min-h-screen bg-white">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/registration" element={<Registration />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/notifications" element={<Notifications />} />
+                <Route path="/onboarding/welcome" element={<OnboardingWelcome />} />
+                <Route path="/onboarding/home-details" element={<OnboardingHomeDetails />} />
+                <Route path="/onboarding/project-planning" element={<OnboardingProjectPlanning />} />
+                <Route path="/onboarding/documents" element={<OnboardingDocuments />} />
+                <Route path="/onboarding/interests" element={<OnboardingInterests />} />
+                <Route path="/onboarding/supplier-welcome" element={<SupplierWelcome />} />
+                <Route path="/onboarding/supplier-company-info" element={<SupplierCompanyInfo />} />
+                <Route path="/onboarding/supplier-branding" element={<SupplierBranding />} />
+                <Route path="/onboarding/supplier-products" element={<SupplierProducts />} />
+                <Route path="/onboarding/supplier-summary" element={<SupplierSummary />} />
+                <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
+                <Route path="/supplier/dashboard" element={<SupplierDashboardNew />} />
+                <Route path="/supplier/leads" element={<SupplierLeadManagement />} />
+                <Route path="/supplier/catalog" element={<ProductCatalog />} />
+                <Route path="/supplier/quotes" element={<QuoteBuilder />} />
+                <Route path="/supplier/proposals" element={<ProposalBuilder />} />
+                <Route path="/supplier/orders" element={<OrderManagement />} />
+                <Route path="/supplier/notifications" element={<SupplierNotifications />} />
+                <Route path="/supplier/analytics" element={<SupplierAnalytics />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/favorites" element={<Favorites />} />
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/orders/:orderId/status" element={<OrderStatus />} />
+                <Route path="/orders/:orderId/tracking" element={<LiveDeliveryTracking />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/top-suppliers" element={<TopSuppliers />} />
+                <Route path="/new-suppliers" element={<NewSuppliers />} />
+                <Route path="/hot-now" element={<HotNow />} />
+                <Route path="/local-deals" element={<LocalDeals />} />
+                <Route path="/popular-now" element={<PopularNow />} />
+                <Route path="/supplier/:id" element={<SupplierProfile />} />
+                <Route path="/supplier/profile/preview" element={<SupplierProfilePreview />} />
+                <Route path="/category/:category/suppliers" element={<CategorySuppliers />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/support/chat/:id" element={<SupportChat />} />
+                <Route path="/complaint/:orderId" element={<ComplaintForm />} />
+                <Route path="/support/complaint/:id" element={<ComplaintDetails />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/supplier/settings" element={<Settings />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/notifications-preferences" element={<NotificationPreferences />} />
+                <Route path="/supplier/notifications-preferences" element={<NotificationPreferences />} />
+                
+                {/* Admin routes */}
+                <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
+                <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+                <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
+                <Route path="/admin/suppliers" element={<AdminLayout><SupplierManagement /></AdminLayout>} />
+                <Route path="/admin/orders" element={<AdminLayout><AdminOrderManagement /></AdminLayout>} />
+                <Route path="/admin/quotes" element={<AdminLayout><QuoteManagement /></AdminLayout>} />
+                <Route path="/admin/complaints" element={<AdminLayout><ComplaintManagement /></AdminLayout>} />
+                <Route path="/admin/categories" element={<AdminLayout><CategoryManagement /></AdminLayout>} />
+                <Route path="/admin/support-chat" element={<AdminLayout><SupportChatManagement /></AdminLayout>} />
+                <Route path="/admin/leads" element={<AdminLayout><LeadManagement /></AdminLayout>} />
+                <Route path="/admin/content" element={<AdminLayout><ContentManagement /></AdminLayout>} />
+                <Route path="/admin/reviews" element={<AdminLayout><ReviewsModeration /></AdminLayout>} />
+                <Route path="/admin/reports" element={<AdminLayout><AdvancedReports /></AdminLayout>} />
+                <Route path="/admin/automation" element={<AdminLayout><AutomationCenter /></AdminLayout>} />
+                <Route path="/admin/permissions" element={<AdminLayout><PermissionsManagement /></AdminLayout>} />
+                <Route path="/admin/analytics" element={<AdminLayout><AdminAnalytics /></AdminLayout>} />
+                <Route path="/admin/settings" element={<AdminLayout><SystemSettings /></AdminLayout>} />
+                
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <ConditionalNavigation />
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };
