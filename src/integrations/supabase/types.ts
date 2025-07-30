@@ -111,6 +111,44 @@ export type Database = {
           },
         ]
       }
+      company_analytics: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_date: string
+          metric_name: string
+          metric_value: number
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date: string
+          metric_name: string
+          metric_value: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_name?: string
+          metric_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_company_analytics_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       homepage_content: {
         Row: {
           block_name: string
@@ -146,6 +184,133 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      lead_activities: {
+        Row: {
+          activity_type: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          lead_id: string
+          next_action: string | null
+          outcome: string | null
+          scheduled_for: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id: string
+          next_action?: string | null
+          outcome?: string | null
+          scheduled_for?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id?: string
+          next_action?: string | null
+          outcome?: string | null
+          scheduled_for?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_lead_activities_lead"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          assigned_to: string | null
+          client_id: string
+          contact_method: string | null
+          converted_at: string | null
+          created_at: string
+          estimated_value: number | null
+          expected_close_date: string | null
+          id: string
+          last_contact_date: string | null
+          lead_number: string
+          lost_reason: string | null
+          next_follow_up_date: string | null
+          notes: string | null
+          priority: string | null
+          probability: number | null
+          project_id: string | null
+          source: string | null
+          status: string | null
+          supplier_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          client_id: string
+          contact_method?: string | null
+          converted_at?: string | null
+          created_at?: string
+          estimated_value?: number | null
+          expected_close_date?: string | null
+          id?: string
+          last_contact_date?: string | null
+          lead_number: string
+          lost_reason?: string | null
+          next_follow_up_date?: string | null
+          notes?: string | null
+          priority?: string | null
+          probability?: number | null
+          project_id?: string | null
+          source?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          client_id?: string
+          contact_method?: string | null
+          converted_at?: string | null
+          created_at?: string
+          estimated_value?: number | null
+          expected_close_date?: string | null
+          id?: string
+          last_contact_date?: string | null
+          lead_number?: string
+          lost_reason?: string | null
+          next_follow_up_date?: string | null
+          notes?: string | null
+          priority?: string | null
+          probability?: number | null
+          project_id?: string | null
+          source?: string | null
+          status?: string | null
+          supplier_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_leads_project"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -254,6 +419,41 @@ export type Database = {
         }
         Relationships: []
       }
+      order_status_history: {
+        Row: {
+          changed_by: string
+          created_at: string
+          id: string
+          notes: string | null
+          order_id: string
+          status: string
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id: string
+          status: string
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_order_status_history_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           amount: number
@@ -317,6 +517,42 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_categories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          product_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_product_categories_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_product_categories_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -688,6 +924,48 @@ export type Database = {
           },
         ]
       }
+      search_history: {
+        Row: {
+          clicked_result_id: string | null
+          clicked_result_type: string | null
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          results_count: number | null
+          search_filters: Json | null
+          search_query: string
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          clicked_result_id?: string | null
+          clicked_result_type?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          results_count?: number | null
+          search_filters?: Json | null
+          search_query: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          clicked_result_id?: string | null
+          clicked_result_type?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          results_count?: number | null
+          search_filters?: Json | null
+          search_query?: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       support_messages: {
         Row: {
           attachments: string[] | null
@@ -804,11 +1082,69 @@ export type Database = {
           },
         ]
       }
+      user_analytics: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          metric_name?: string
+          metric_value?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      generate_lead_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_quote_number: {
         Args: Record<PropertyKey, never>
         Returns: string
