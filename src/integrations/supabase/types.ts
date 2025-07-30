@@ -212,6 +212,48 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          action_url: string | null
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean | null
+          metadata: Json | null
+          priority: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          priority?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          priority?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           amount: number
@@ -275,6 +317,84 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category_id: string | null
+          company_id: string | null
+          created_at: string
+          delivery_time_days: number | null
+          description: string | null
+          id: string
+          images: string[] | null
+          is_published: boolean | null
+          is_service: boolean | null
+          minimum_order: number | null
+          name: string
+          price: number | null
+          price_unit: string | null
+          specifications: Json | null
+          stock_quantity: number | null
+          supplier_id: string
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          delivery_time_days?: number | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_published?: boolean | null
+          is_service?: boolean | null
+          minimum_order?: number | null
+          name: string
+          price?: number | null
+          price_unit?: string | null
+          specifications?: Json | null
+          stock_quantity?: number | null
+          supplier_id: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          delivery_time_days?: number | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_published?: boolean | null
+          is_service?: boolean | null
+          minimum_order?: number | null
+          name?: string
+          price?: number | null
+          price_unit?: string | null
+          specifications?: Json | null
+          stock_quantity?: number | null
+          supplier_id?: string
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_products_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_products_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -375,6 +495,134 @@ export type Database = {
           },
         ]
       }
+      quote_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          product_id: string | null
+          quantity: number
+          quote_id: string
+          subtotal: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          product_id?: string | null
+          quantity?: number
+          quote_id: string
+          subtotal: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          product_id?: string | null
+          quantity?: number
+          quote_id?: string
+          subtotal?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_quote_items_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_quote_items_quote"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string | null
+          discount_amount: number | null
+          id: string
+          notes: string | null
+          project_id: string | null
+          quote_number: string
+          responded_at: string | null
+          sent_at: string | null
+          status: string | null
+          subtotal: number
+          supplier_id: string
+          tax_amount: number | null
+          terms_conditions: string | null
+          title: string
+          total_amount: number
+          updated_at: string
+          valid_until: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: string | null
+          discount_amount?: number | null
+          id?: string
+          notes?: string | null
+          project_id?: string | null
+          quote_number: string
+          responded_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subtotal?: number
+          supplier_id: string
+          tax_amount?: number | null
+          terms_conditions?: string | null
+          title: string
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          discount_amount?: number | null
+          id?: string
+          notes?: string | null
+          project_id?: string | null
+          quote_number?: string
+          responded_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subtotal?: number
+          supplier_id?: string
+          tax_amount?: number | null
+          terms_conditions?: string | null
+          title?: string
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_quotes_project"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           content: string | null
@@ -440,11 +688,135 @@ export type Database = {
           },
         ]
       }
+      support_messages: {
+        Row: {
+          attachments: string[] | null
+          content: string
+          created_at: string
+          id: string
+          is_internal: boolean | null
+          sender_id: string
+          ticket_id: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          content: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          sender_id: string
+          ticket_id: string
+        }
+        Update: {
+          attachments?: string[] | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          sender_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_support_messages_ticket"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          assigned_to: string | null
+          closed_at: string | null
+          created_at: string
+          description: string
+          id: string
+          order_id: string | null
+          priority: string | null
+          project_id: string | null
+          rating: number | null
+          rating_feedback: string | null
+          resolution: string | null
+          resolved_at: string | null
+          status: string | null
+          ticket_number: string
+          title: string
+          type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          closed_at?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          order_id?: string | null
+          priority?: string | null
+          project_id?: string | null
+          rating?: number | null
+          rating_feedback?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          ticket_number: string
+          title: string
+          type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          closed_at?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          order_id?: string | null
+          priority?: string | null
+          project_id?: string | null
+          rating?: number | null
+          rating_feedback?: string | null
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          ticket_number?: string
+          title?: string
+          type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_support_tickets_order"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_support_tickets_project"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      generate_quote_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_ticket_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
