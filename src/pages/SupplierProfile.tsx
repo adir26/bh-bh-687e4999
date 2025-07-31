@@ -1,21 +1,80 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Star, Phone, MessageCircle, Heart, Share2, ShoppingBag, Eye, Calendar, Bookmark } from 'lucide-react';
 import { getSupplierById } from '@/data/suppliers';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { showToast } from '@/utils/toast';
+import { ContactSupplierModal } from '@/components/modals/ContactSupplierModal';
+import { ScheduleMeetingModal } from '@/components/modals/ScheduleMeetingModal';
+import { supabase } from '@/integrations/supabase/client';
 
 const SupplierProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
   const supplier = id ? getSupplierById(id) : undefined;
+  
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isMeetingModalOpen, setIsMeetingModalOpen] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [hasExistingLead, setHasExistingLead] = useState(false);
+  const [hasExistingMeeting, setHasExistingMeeting] = useState(false);
   
   // This is a public supplier profile view - never show as "own profile" 
   // since this route is for clients to view supplier information
   const isOwnProfile = false;
+  
+  useEffect(() => {
+    if (user && id) {
+      checkExistingInteractions();
+    }
+    
+    // Auto-open contact modal if ?contact=true in URL
+    if (searchParams.get('contact') === 'true') {
+      setIsContactModalOpen(true);
+    }
+  }, [user, id, searchParams]);
+
+  const checkExistingInteractions = async () => {
+    if (!user || !id) return;
+    
+    try {
+      // Check if supplier is favorited
+      const { data: favoriteData } = await supabase
+        .from('favorites')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('supplier_id', id)
+        .maybeSingle();
+      
+      setIsFavorited(!!favoriteData);
+      
+      // Check for existing leads
+      const { data: leadData } = await supabase
+        .from('leads')
+        .select('id')
+        .eq('client_id', user.id)
+        .eq('supplier_id', id)
+        .maybeSingle();
+      
+      setHasExistingLead(!!leadData);
+      
+      // Check for existing meetings
+      const { data: meetingData } = await supabase
+        .from('meetings')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('supplier_id', id)
+        .maybeSingle();
+      
+      setHasExistingMeeting(!!meetingData);
+    } catch (error) {
+      console.error('Error checking existing interactions:', error);
+    }
+  };
 
   if (!supplier) {
     return (
@@ -27,6 +86,89 @@ const SupplierProfile = () => {
       </div>
     );
   }
+
+  const handleContactSupplier = () => {
+    if (!user) {
+      showToast.error('יש להתחבר כדי ליצור קשר עם ספק');
+      navigate('/login');
+      return;
+    }
+    setIsContactModalOpen(true);
+  };
+
+  const handleScheduleMeeting = () => {
+    if (!user) {
+      showToast.error('יש להתחבר כדי לקבוע פגישה');
+      navigate('/login');
+      return;
+    }
+    setIsMeetingModalOpen(true);
+  };
+
+  const handleToggleFavorite = async () => {
+    if (!user) {
+      showToast.error('יש להתחבר כדי לשמור ספק');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      if (isFavorited) {
+        // Remove from favorites
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('supplier_id', id);
+
+        if (error) throw error;
+        setIsFavorited(false);
+        showToast.success('הספק הוסר מהמועדפים');
+      } else {
+        // Add to favorites
+        const { error } = await supabase
+          .from('favorites')
+          .insert({
+            user_id: user.id,
+            supplier_id: id
+          });
+
+        if (error) throw error;
+        setIsFavorited(true);
+        showToast.success('הספק נוסף למועדפים');
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      showToast.error('שגיאה בעדכון המועדפים');
+    }
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const title = `${supplier?.name} - ספק מומלץ`;
+    const text = supplier?.tagline || '';
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url });
+      } catch (error) {
+        // User cancelled or error occurred
+        if (error.name !== 'AbortError') {
+          fallbackShare(url);
+        }
+      }
+    } else {
+      fallbackShare(url);
+    }
+  };
+
+  const fallbackShare = (url: string) => {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast.success('הקישור הועתק ללוח');
+    }).catch(() => {
+      showToast.error('לא ניתן להעתיק את הקישור');
+    });
+  };
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -92,15 +234,15 @@ const SupplierProfile = () => {
         <div className="flex gap-3 mb-6">
           <Button 
             className="flex-1 bg-blue-600 hover:bg-blue-700"
-            onClick={() => showToast.comingSoon("יצירת קשר ישיר")}
+            onClick={handleContactSupplier}
           >
             <MessageCircle className="w-4 h-4 ml-2" />
-            צור קשר
+            {hasExistingLead ? 'צור קשר נוסף' : 'צור קשר'}
           </Button>
           <Button 
             variant="outline" 
             className="flex-1"
-            onClick={() => showToast.comingSoon("פרטים נוספים")}
+            onClick={() => navigate(`/supplier/${id}/products`)}
           >
             פרטים נוספים
           </Button>
@@ -123,7 +265,7 @@ const SupplierProfile = () => {
                 variant="ghost" 
                 size="sm" 
                 className="text-blue-600 hover:text-blue-700"
-                onClick={() => showToast.comingSoon("קטלוג מוצרים מלא")}
+                onClick={() => navigate(`/supplier/${id}/products`)}
               >
                 <Eye className="w-4 h-4 ml-1" />
                 צפה בכל המוצרים
@@ -196,7 +338,7 @@ const SupplierProfile = () => {
                   variant="ghost" 
                   size="sm" 
                   className="text-blue-600 hover:text-blue-700"
-                  onClick={() => showToast.comingSoon("כל הביקורות")}
+                  onClick={() => navigate(`/supplier/${id}/reviews`)}
                 >
                   <Eye className="w-4 h-4 ml-1" />
                   צפה בכל הביקורות
@@ -232,18 +374,18 @@ const SupplierProfile = () => {
           <div className="flex gap-3">
             <Button 
               className="flex-1 bg-blue-600 hover:bg-blue-700"
-              onClick={() => showToast.comingSoon("קביעת פגישות")}
+              onClick={handleScheduleMeeting}
             >
               <Calendar className="w-4 h-4 ml-2" />
-              קביעת פגישה
+              {hasExistingMeeting ? 'קבע פגישה נוספת' : 'קביעת פגישה'}
             </Button>
             <Button 
               variant="outline" 
               className="flex-1"
-              onClick={() => showToast.success("הספק נשמר ברשימת המועדפים")}
+              onClick={handleToggleFavorite}
             >
-              <Bookmark className="w-4 h-4 ml-2" />
-              שמור ספק
+              <Bookmark className={`w-4 h-4 ml-2 ${isFavorited ? 'fill-current' : ''}`} />
+              {isFavorited ? 'בטל שמירה' : 'שמור ספק'}
             </Button>
           </div>
           <div className="flex gap-2">
@@ -251,27 +393,16 @@ const SupplierProfile = () => {
               variant="outline" 
               size="sm" 
               className="flex-1"
-              onClick={() => showToast.success("נוסף לרשימת המועדפים")}
+              onClick={handleToggleFavorite}
             >
-              <Heart className="w-4 h-4 ml-2" />
-              שמור ברשימה
+              <Heart className={`w-4 h-4 ml-2 ${isFavorited ? 'fill-current text-red-500' : ''}`} />
+              {isFavorited ? 'הוסר מהמועדפים' : 'הוסף למועדפים'}
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               className="flex-1"
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: `${supplier.name} - ספק מומלץ`,
-                    text: supplier.tagline,
-                    url: window.location.href
-                  });
-                } else {
-                  navigator.clipboard.writeText(window.location.href);
-                  showToast.success("הקישור הועתק ללוח");
-                }
-              }}
+              onClick={handleShare}
             >
               <Share2 className="w-4 h-4 ml-2" />
               שתף
@@ -279,6 +410,24 @@ const SupplierProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      {supplier && (
+        <>
+          <ContactSupplierModal
+            isOpen={isContactModalOpen}
+            onClose={() => setIsContactModalOpen(false)}
+            supplierId={supplier.id}
+            supplierName={supplier.name}
+          />
+          <ScheduleMeetingModal
+            isOpen={isMeetingModalOpen}
+            onClose={() => setIsMeetingModalOpen(false)}
+            supplierId={supplier.id}
+            supplierName={supplier.name}
+          />
+        </>
+      )}
     </div>
   );
 };

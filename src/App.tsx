@@ -78,6 +78,11 @@ import { HomepageContentManagement } from "./pages/admin/HomepageContentManageme
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import MyMessages from "./pages/MyMessages";
+import MyMeetings from "./pages/MyMeetings";
+import SavedSuppliers from "./pages/SavedSuppliers";
+import SupplierProductsView from "./pages/SupplierProducts";
+import SupplierReviews from "./pages/SupplierReviews";
 
 const queryClient = new QueryClient();
 
@@ -164,6 +169,8 @@ const App = () => {
                 <Route path="/local-deals" element={<LocalDeals />} />
                 <Route path="/popular-now" element={<PopularNow />} />
                 <Route path="/supplier/:id" element={<SupplierProfile />} />
+                <Route path="/supplier/:id/products" element={<SupplierProductsView />} />
+                <Route path="/supplier/:id/reviews" element={<SupplierReviews />} />
                 <Route path="/supplier/profile/preview" element={
                   <ProtectedRoute allowedRoles={['supplier']}>
                     <SupplierProfilePreview />
@@ -185,6 +192,21 @@ const App = () => {
                 <Route path="/supplier/notifications-preferences" element={
                   <ProtectedRoute allowedRoles={['supplier']}>
                     <NotificationPreferences />
+                  </ProtectedRoute>
+                } />
+                <Route path="/my-messages" element={
+                  <ProtectedRoute allowedRoles={['client']}>
+                    <MyMessages />
+                  </ProtectedRoute>
+                } />
+                <Route path="/my-meetings" element={
+                  <ProtectedRoute allowedRoles={['client']}>
+                    <MyMeetings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/saved-suppliers" element={
+                  <ProtectedRoute allowedRoles={['client']}>
+                    <SavedSuppliers />
                   </ProtectedRoute>
                 } />
                 
