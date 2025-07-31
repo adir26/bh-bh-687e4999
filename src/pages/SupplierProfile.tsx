@@ -1,19 +1,20 @@
 import React from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowRight, Star, Phone, MessageCircle, Heart, Share2, ShoppingBag, Eye, Calendar, Bookmark, Edit, Settings } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowRight, Star, Phone, MessageCircle, Heart, Share2, ShoppingBag, Eye, Calendar, Bookmark } from 'lucide-react';
 import { getSupplierById } from '@/data/suppliers';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 const SupplierProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
+  const { user, profile } = useAuth();
   const supplier = id ? getSupplierById(id) : undefined;
   
-  // Check if this is the supplier viewing their own profile
-  // This is a simple check - in a real app you'd check against logged-in user
-  const isOwnProfile = location.pathname.startsWith('/supplier/') && id === '1';
+  // This is a public supplier profile view - never show as "own profile" 
+  // since this route is for clients to view supplier information
+  const isOwnProfile = false;
 
   if (!supplier) {
     return (
@@ -45,31 +46,11 @@ const SupplierProfile = () => {
           <ArrowRight className="w-6 h-6" />
         </button>
         <span className="text-lg font-semibold">
-          {isOwnProfile ? 'הפרופיל שלי' : 'פרופיל ספק'}
+          פרופיל ספק
         </span>
-        {isOwnProfile ? (
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={() => navigate('/supplier/profile/edit')}
-            className="p-2"
-          >
-            <Edit className="w-5 h-5" />
-          </Button>
-        ) : (
-          <div className="w-10" />
-        )}
+        <div className="w-10" />
       </div>
 
-      {/* Own Profile Notice */}
-      {isOwnProfile && (
-        <div className="mx-4 mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            <Eye className="w-4 h-4 inline ml-1" />
-            כך הפרופיל שלך נראה ללקוחות. לחץ על כפתור העריכה למעלה לעדכון הפרטים.
-          </p>
-        </div>
-      )}
 
       {/* Supplier Info */}
       <div className="p-4">
