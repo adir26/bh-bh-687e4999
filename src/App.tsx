@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { SupplierBottomNavigation } from "@/components/SupplierBottomNavigation";
 import Index from "./pages/Index";
@@ -76,6 +77,7 @@ import PermissionsManagement from "./pages/admin/PermissionsManagement";
 import { HomepageContentManagement } from "./pages/admin/HomepageContentManagement";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -105,15 +107,51 @@ const App = () => {
                 <Route path="/onboarding/supplier-branding" element={<SupplierBranding />} />
                 <Route path="/onboarding/supplier-products" element={<SupplierProducts />} />
                 <Route path="/onboarding/supplier-summary" element={<SupplierSummary />} />
-                <Route path="/supplier-dashboard" element={<SupplierDashboard />} />
-                <Route path="/supplier/dashboard" element={<SupplierDashboardNew />} />
-                <Route path="/supplier/leads" element={<SupplierLeadManagement />} />
-                <Route path="/supplier/catalog" element={<ProductCatalog />} />
-                <Route path="/supplier/quotes" element={<QuoteBuilder />} />
-                <Route path="/supplier/proposals" element={<ProposalBuilder />} />
-                <Route path="/supplier/orders" element={<OrderManagement />} />
-                <Route path="/supplier/notifications" element={<SupplierNotifications />} />
-                <Route path="/supplier/analytics" element={<SupplierAnalytics />} />
+                <Route path="/supplier-dashboard" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <SupplierDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/supplier/dashboard" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <SupplierDashboardNew />
+                  </ProtectedRoute>
+                } />
+                <Route path="/supplier/leads" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <SupplierLeadManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/supplier/catalog" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <ProductCatalog />
+                  </ProtectedRoute>
+                } />
+                <Route path="/supplier/quotes" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <QuoteBuilder />
+                  </ProtectedRoute>
+                } />
+                <Route path="/supplier/proposals" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <ProposalBuilder />
+                  </ProtectedRoute>
+                } />
+                <Route path="/supplier/orders" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <OrderManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/supplier/notifications" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <SupplierNotifications />
+                  </ProtectedRoute>
+                } />
+                <Route path="/supplier/analytics" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <SupplierAnalytics />
+                  </ProtectedRoute>
+                } />
                 <Route path="/search" element={<Search />} />
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/orders" element={<Orders />} />
@@ -126,17 +164,29 @@ const App = () => {
                 <Route path="/local-deals" element={<LocalDeals />} />
                 <Route path="/popular-now" element={<PopularNow />} />
                 <Route path="/supplier/:id" element={<SupplierProfile />} />
-                <Route path="/supplier/profile/preview" element={<SupplierProfilePreview />} />
+                <Route path="/supplier/profile/preview" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <SupplierProfilePreview />
+                  </ProtectedRoute>
+                } />
                 <Route path="/category/:category/suppliers" element={<CategorySuppliers />} />
                 <Route path="/support" element={<Support />} />
                 <Route path="/support/chat/:id" element={<SupportChat />} />
                 <Route path="/complaint/:orderId" element={<ComplaintForm />} />
                 <Route path="/support/complaint/:id" element={<ComplaintDetails />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/supplier/settings" element={<Settings />} />
+                <Route path="/supplier/settings" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/notifications-preferences" element={<NotificationPreferences />} />
-                <Route path="/supplier/notifications-preferences" element={<NotificationPreferences />} />
+                <Route path="/supplier/notifications-preferences" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <NotificationPreferences />
+                  </ProtectedRoute>
+                } />
                 
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
@@ -172,6 +222,7 @@ const App = () => {
 
 const ConditionalNavigation = () => {
   const location = useLocation();
+  const { profile } = useAuth();
   const isSupplierRoute = location.pathname.startsWith('/supplier/') || location.pathname === '/supplier-dashboard';
   const isAdminRoute = location.pathname.startsWith('/admin/');
   const isOnboardingRoute = location.pathname.startsWith('/onboarding/') || location.pathname === '/registration' || location.pathname === '/login' || location.pathname === '/auth';
@@ -182,7 +233,13 @@ const ConditionalNavigation = () => {
     return null;
   }
   
-  return isSupplierRoute ? <SupplierBottomNavigation /> : <BottomNavigation />;
+  // Show supplier navigation only if user is actually a supplier and on supplier routes
+  if (isSupplierRoute && profile?.role === 'supplier') {
+    return <SupplierBottomNavigation />;
+  }
+  
+  // Show regular navigation for all other cases (including when non-suppliers access public supplier routes)
+  return <BottomNavigation />;
 };
 
 export default App;
