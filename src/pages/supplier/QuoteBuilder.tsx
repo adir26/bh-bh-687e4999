@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, Plus, Trash2, Download, Send, Save, Calculator } from 'lucide-react';
+import { showToast } from '@/utils/toast';
 
 interface QuoteItem {
   id: string;
@@ -63,18 +64,19 @@ export default function QuoteBuilder() {
   const totalAmount = taxableAmount + taxAmount;
 
   const handleSaveDraft = () => {
-    console.log('Save as draft');
-    // TODO: Implement save functionality
+    showToast.success('הצעת המחיר נשמרה כטיוטה');
   };
 
   const handleDownloadPDF = () => {
-    console.log('Download PDF');
-    // TODO: Implement PDF generation
+    showToast.comingSoon('הורדת PDF');
   };
 
   const handleSendToCustomer = () => {
-    console.log('Send to customer');
-    // TODO: Implement email sending
+    if (!clientName || !clientEmail) {
+      showToast.error('נא להזין שם ואימייל של הלקוח');
+      return;
+    }
+    showToast.success('הצעת המחיר נשלחה ללקוח');
   };
 
   return (

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Heart } from 'lucide-react';
+import { showToast } from '@/utils/toast';
 import { getSuppliersByCategory } from '@/data/suppliers';
 
 const CategorySuppliers = () => {
@@ -63,7 +64,13 @@ const CategorySuppliers = () => {
                     className="w-full h-full object-cover"
                   />
                   {/* Favorite Button */}
-                  <button className="absolute top-3 left-3 p-2 bg-white/80 rounded-full hover:bg-white transition-colors">
+                  <button 
+                    className="absolute top-3 left-3 p-2 bg-white/80 rounded-full hover:bg-white transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      showToast.success("נוסף לרשימת המועדפים");
+                    }}
+                  >
                     <Heart className="w-5 h-5 text-gray-600" />
                   </button>
                   

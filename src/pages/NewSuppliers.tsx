@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';
 import { CategorySection } from '@/components/CategorySection';
+import { showToast } from '@/utils/toast';
 
 const NewSuppliers = () => {
   const navigate = useNavigate();
@@ -207,7 +208,7 @@ const NewSuppliers = () => {
 
   // Event handlers
   const handleCategoryClick = (item: any) => {
-    console.log('New supplier clicked:', item);
+    showToast.comingSoon(`פרופיל ${item.title}`);
   };
 
   const handleAllSuppliersClick = (category: string) => {

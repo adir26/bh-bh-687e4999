@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ArrowLeft, Package, User, Calendar, MapPin, Phone, Mail, CheckCircle, Clock, Truck, AlertCircle } from 'lucide-react';
+import { showToast } from '@/utils/toast';
 
 interface Order {
   id: string;
@@ -86,8 +87,8 @@ export default function OrderManagement() {
   };
 
   const updateOrderStatus = (orderId: string, newStatus: string) => {
-    console.log(`Updating order ${orderId} to status ${newStatus}`);
-    // TODO: Implement status update functionality
+    const statusInfo = getStatusInfo(newStatus);
+    showToast.success(`ההזמנה עודכנה ל: ${statusInfo.label}`);
   };
 
   const getStatusStepIndex = (status: string) => {

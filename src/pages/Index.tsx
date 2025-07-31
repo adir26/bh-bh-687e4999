@@ -11,6 +11,7 @@ import { CategorySection } from '@/components/CategorySection';
 import { SupplierSection } from '@/components/SupplierSection';
 import { BottomCTA } from '@/components/BottomCTA';
 import { getSuppliersByCategory } from '@/data/suppliers';
+import { showToast } from '@/utils/toast';
 
 // Import local images
 import kitchenDesignImg from '@/assets/kitchen-design.jpg';
@@ -329,7 +330,7 @@ const Index = () => {
   };
 
   const handleCategoryClick = (item: any) => {
-    console.log('Category clicked:', item);
+    showToast.comingSoon(`קטגוריה: ${item.title}`);
   };
 
   const handleSupplierClick = (supplier: any) => {
@@ -353,8 +354,7 @@ const Index = () => {
   };
 
   const handleAdClick = () => {
-    // Handle ad click - could navigate to specific supplier or external link
-    console.log('Ad clicked');
+    showToast.comingSoon('פרטי המבצע');
   };
 
   const handleBottomCTA = () => {

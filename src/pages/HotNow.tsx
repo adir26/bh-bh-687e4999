@@ -10,6 +10,7 @@ import { CategorySection } from '@/components/CategorySection';
 import { SupplierCard } from '@/components/SupplierCard';
 import { ProjectCard } from '@/components/ProjectCard';
 import { BottomCTA } from '@/components/BottomCTA';
+import { showToast } from '@/utils/toast';
 
 const HotNow = () => {
   const navigate = useNavigate();
@@ -135,23 +136,23 @@ const HotNow = () => {
 
   // Event handlers
   const handleCategorySelect = (categoryId: string) => {
-    console.log('Category selected:', categoryId);
+    showToast.info(`סונן לפי קטגוריה: ${categories.find(c => c.id === categoryId)?.name}`);
   };
 
   const handleCategoryClick = (item: any) => {
-    console.log('Category item clicked:', item);
+    showToast.comingSoon(`פרטי פריט: ${item.title}`);
   };
 
   const handleSupplierClick = (supplier: any) => {
-    console.log('Supplier clicked:', supplier);
+    showToast.comingSoon(`פרופיל ספק: ${supplier.name}`);
   };
 
   const handleProjectClick = (project: any) => {
-    console.log('Project clicked:', project);
+    showToast.comingSoon(`פרטי פרויקט: ${project.name}`);
   };
 
   const handleCTAClick = () => {
-    console.log('CTA clicked');
+    navigate('/onboarding/welcome');
   };
 
   return (

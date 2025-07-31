@@ -7,6 +7,7 @@ import { SupplierHeader } from '@/components/SupplierHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { supplierService } from '@/services/supabaseService';
 import { toast } from 'sonner';
+import { showToast } from '@/utils/toast';
 import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye, FileText, Package2 } from 'lucide-react';
 
 export default function SupplierDashboard() {
@@ -192,7 +193,11 @@ export default function SupplierDashboard() {
                 </div>
               ))}
             </div>
-            <Button variant="blue" className="mt-4">
+            <Button 
+              variant="blue" 
+              className="mt-4"
+              onClick={() => showToast.comingSoon("המלצות מתקדמות")}
+            >
               צפה בכל ההמלצות
             </Button>
           </CardContent>

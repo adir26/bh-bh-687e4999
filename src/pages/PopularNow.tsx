@@ -7,6 +7,7 @@ import { SectionTitle } from '@/components/SectionTitle';
 import { CategorySection } from '@/components/CategorySection';
 import { SupplierCard } from '@/components/SupplierCard';
 import { BottomCTA } from '@/components/BottomCTA';
+import { showToast } from '@/utils/toast';
 
 const PopularNow = () => {
   const navigate = useNavigate();
@@ -103,15 +104,15 @@ const PopularNow = () => {
 
   // Event handlers
   const handleSupplierClick = (supplier: any) => {
-    console.log('Popular supplier clicked:', supplier);
+    showToast.comingSoon(`פרופיל ספק: ${supplier.name}`);
   };
 
   const handleCategoryClick = (item: any) => {
-    console.log('Popular category clicked:', item);
+    showToast.comingSoon(`קטגוריה: ${item.title}`);
   };
 
   const handleCTAClick = () => {
-    console.log('CTA clicked');
+    navigate('/onboarding/welcome');
   };
 
   return (

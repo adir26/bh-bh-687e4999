@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Search, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin, User } from 'lucide-react';
+import { showToast } from '@/utils/toast';
 
 interface Lead {
   id: string;
@@ -214,17 +215,34 @@ export default function LeadManagement() {
                     </p>
                   </div>
                   <div className="flex gap-2 pt-2">
-                    <Button variant="blue" size="sm" className="flex-1">
+                    <Button 
+                      variant="blue" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => navigate('/supplier/quotes')}
+                    >
                       <FileText className="w-4 h-4 ml-1" />
                       שלח הצעת מחיר
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => showToast.comingSoon('התקשרות ישירה')}
+                    >
                       <Phone className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => showToast.comingSoon('צ\'אט עם לקוח')}
+                    >
                       <MessageSquare className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => showToast.info('הליד סומן כלא רלוונטי')}
+                    >
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
@@ -263,13 +281,25 @@ export default function LeadManagement() {
                         <td className="p-4 text-muted-foreground">{lead.location}</td>
                         <td className="p-4">
                           <div className="flex gap-1">
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => navigate('/supplier/quotes')}
+                            >
                               <FileText className="w-3 h-3" />
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => showToast.comingSoon('התקשרות ישירה')}
+                            >
                               <Phone className="w-3 h-3" />
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => showToast.comingSoon('צ\'אט עם לקוח')}
+                            >
                               <MessageSquare className="w-3 h-3" />
                             </Button>
                           </div>

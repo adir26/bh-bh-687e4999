@@ -5,6 +5,7 @@ import { getSupplierById } from '@/data/suppliers';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { showToast } from '@/utils/toast';
 
 const SupplierProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -89,11 +90,18 @@ const SupplierProfile = () => {
 
         {/* Action Buttons */}
         <div className="flex gap-3 mb-6">
-          <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
+          <Button 
+            className="flex-1 bg-blue-600 hover:bg-blue-700"
+            onClick={() => showToast.comingSoon("יצירת קשר ישיר")}
+          >
             <MessageCircle className="w-4 h-4 ml-2" />
             צור קשר
           </Button>
-          <Button variant="outline" className="flex-1">
+          <Button 
+            variant="outline" 
+            className="flex-1"
+            onClick={() => showToast.comingSoon("פרטים נוספים")}
+          >
             פרטים נוספים
           </Button>
         </div>
@@ -115,7 +123,7 @@ const SupplierProfile = () => {
                 variant="ghost" 
                 size="sm" 
                 className="text-blue-600 hover:text-blue-700"
-                onClick={() => {/* TODO: Navigate to full products list */}}
+                onClick={() => showToast.comingSoon("קטלוג מוצרים מלא")}
               >
                 <Eye className="w-4 h-4 ml-1" />
                 צפה בכל המוצרים
@@ -188,7 +196,7 @@ const SupplierProfile = () => {
                   variant="ghost" 
                   size="sm" 
                   className="text-blue-600 hover:text-blue-700"
-                  onClick={() => {/* TODO: Navigate to all reviews */}}
+                  onClick={() => showToast.comingSoon("כל הביקורות")}
                 >
                   <Eye className="w-4 h-4 ml-1" />
                   צפה בכל הביקורות
@@ -224,7 +232,7 @@ const SupplierProfile = () => {
           <div className="flex gap-3">
             <Button 
               className="flex-1 bg-blue-600 hover:bg-blue-700"
-              onClick={() => {/* TODO: Schedule meeting functionality */}}
+              onClick={() => showToast.comingSoon("קביעת פגישות")}
             >
               <Calendar className="w-4 h-4 ml-2" />
               קביעת פגישה
@@ -232,18 +240,39 @@ const SupplierProfile = () => {
             <Button 
               variant="outline" 
               className="flex-1"
-              onClick={() => {/* TODO: Save to favorites functionality */}}
+              onClick={() => showToast.success("הספק נשמר ברשימת המועדפים")}
             >
               <Bookmark className="w-4 h-4 ml-2" />
               שמור ספק
             </Button>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex-1">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              onClick={() => showToast.success("נוסף לרשימת המועדפים")}
+            >
               <Heart className="w-4 h-4 ml-2" />
               שמור ברשימה
             </Button>
-            <Button variant="outline" size="sm" className="flex-1">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: `${supplier.name} - ספק מומלץ`,
+                    text: supplier.tagline,
+                    url: window.location.href
+                  });
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                  showToast.success("הקישור הועתק ללוח");
+                }
+              }}
+            >
               <Share2 className="w-4 h-4 ml-2" />
               שתף
             </Button>

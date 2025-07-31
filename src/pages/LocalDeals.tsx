@@ -6,6 +6,7 @@ import { Header } from '@/components/Header';
 import { SectionTitle } from '@/components/SectionTitle';
 import { CategorySection } from '@/components/CategorySection';
 import { BottomCTA } from '@/components/BottomCTA';
+import { showToast } from '@/utils/toast';
 
 const LocalDeals = () => {
   const navigate = useNavigate();
@@ -97,11 +98,11 @@ const LocalDeals = () => {
 
   // Event handlers
   const handleDealClick = (deal: any) => {
-    console.log('Deal clicked:', deal);
+    showToast.comingSoon(`מבצע: ${deal.title}`);
   };
 
   const handleCTAClick = () => {
-    console.log('CTA clicked');
+    navigate('/onboarding/welcome');
   };
 
   return (
