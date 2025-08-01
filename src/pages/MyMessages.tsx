@@ -36,11 +36,20 @@ const MyMessages = () => {
         .eq('client_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setLeads(data || []);
+      if (error) {
+        console.error('Error fetching leads:', error);
+        // If table doesn't exist, show empty state instead of error
+        if (error.code === 'PGRST116' || error.message.includes('relation') || error.message.includes('does not exist')) {
+          setLeads([]);
+        } else {
+          showToast.error('שגיאה בטעינת ההודעות');
+        }
+      } else {
+        setLeads(data || []);
+      }
     } catch (error) {
       console.error('Error fetching leads:', error);
-      showToast.error('שגיאה בטעינת ההודעות');
+      setLeads([]);
     } finally {
       setLoading(false);
     }

@@ -36,11 +36,20 @@ const MyMeetings = () => {
         .eq('user_id', user?.id)
         .order('datetime', { ascending: true });
 
-      if (error) throw error;
-      setMeetings(data || []);
+      if (error) {
+        console.error('Error fetching meetings:', error);
+        // If table doesn't exist, show empty state instead of error
+        if (error.code === 'PGRST116' || error.message.includes('relation') || error.message.includes('does not exist')) {
+          setMeetings([]);
+        } else {
+          showToast.error('שגיאה בטעינת הפגישות');
+        }
+      } else {
+        setMeetings(data || []);
+      }
     } catch (error) {
       console.error('Error fetching meetings:', error);
-      showToast.error('שגיאה בטעינת הפגישות');
+      setMeetings([]);
     } finally {
       setLoading(false);
     }

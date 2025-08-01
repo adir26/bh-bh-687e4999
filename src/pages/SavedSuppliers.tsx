@@ -33,11 +33,20 @@ const SavedSuppliers = () => {
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setFavorites(data || []);
+      if (error) {
+        console.error('Error fetching favorites:', error);
+        // If table doesn't exist, show empty state instead of error
+        if (error.code === 'PGRST116' || error.message.includes('relation') || error.message.includes('does not exist')) {
+          setFavorites([]);
+        } else {
+          showToast.error('שגיאה בטעינת הספקים השמורים');
+        }
+      } else {
+        setFavorites(data || []);
+      }
     } catch (error) {
       console.error('Error fetching favorites:', error);
-      showToast.error('שגיאה בטעינת הספקים השמורים');
+      setFavorites([]);
     } finally {
       setLoading(false);
     }

@@ -80,17 +80,6 @@ const Profile = () => {
     order.status === 'completed'
   ).slice(0, 2);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">טוען...</p>
-        </div>
-      </div>
-    );
-  }
-
   useEffect(() => {
     const loadData = async () => {
       if (!user) return;
@@ -130,6 +119,17 @@ const Profile = () => {
 
     loadData();
   }, [user, profile, form]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">טוען...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSaveProfile = async (data: UserProfile) => {
     if (!user) return;
