@@ -24,11 +24,17 @@ export function HomepageContentManagement() {
       setContentBlocks(blocks);
     } catch (error) {
       console.error('Error loading content blocks:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load content blocks",
-        variant: "destructive",
-      });
+      // If table doesn't exist, show empty state instead of error
+      if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+        setContentBlocks([]);
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to load content blocks",
+          variant: "destructive",
+        });
+        setContentBlocks([]);
+      }
     } finally {
       setLoading(false);
     }

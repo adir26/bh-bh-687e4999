@@ -15,7 +15,10 @@ const Orders = () => {
 
   useEffect(() => {
     const loadOrders = async () => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       
       try {
         const userOrders = await ordersService.getByUserId(user.id);
@@ -43,7 +46,13 @@ const Orders = () => {
         setOrders(transformedOrders);
       } catch (error) {
         console.error('Error loading orders:', error);
-        toast.error('שגיאה בטעינת ההזמנות');
+        // If table doesn't exist or service error, show empty state instead of error
+        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          setOrders([]);
+        } else {
+          toast.error('שגיאה בטעינת ההזמנות');
+          setOrders([]);
+        }
       } finally {
         setLoading(false);
       }

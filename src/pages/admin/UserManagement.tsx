@@ -87,7 +87,15 @@ export default function UserManagement() {
         setStats(adminStats.users);
       } catch (error) {
         console.error('Error loading users:', error);
-        toast.error('שגיאה בטעינת המשתמשים');
+        // If services fail due to missing tables, show empty state
+        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          setUsers([]);
+          setStats({ total: 0, suppliers: 0, clients: 0, activeToday: 0 });
+        } else {
+          toast.error('שגיאה בטעינת המשתמשים');
+          setUsers([]);
+          setStats({ total: 0, suppliers: 0, clients: 0, activeToday: 0 });
+        }
       } finally {
         setLoading(false);
       }

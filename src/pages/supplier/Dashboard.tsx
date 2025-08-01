@@ -42,7 +42,10 @@ export default function SupplierDashboard() {
 
   useEffect(() => {
     const loadSupplierData = async () => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       
       try {
         const supplierStats = await supplierService.getSupplierStats(user.id);
@@ -55,7 +58,12 @@ export default function SupplierDashboard() {
         ]);
       } catch (error) {
         console.error('Error loading supplier stats:', error);
-        toast.error('שגיאה בטעינת הנתונים');
+        // If service fails due to missing tables/functions, use default values
+        if (error.message?.includes('relation') || error.message?.includes('does not exist') || error.message?.includes('function')) {
+          // Keep default stats values already set in useState
+        } else {
+          toast.error('שגיאה בטעינת הנתונים');
+        }
       } finally {
         setLoading(false);
       }

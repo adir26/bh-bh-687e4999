@@ -83,7 +83,15 @@ export default function AdminOrderManagement() {
         setStats(adminStats.orders);
       } catch (error) {
         console.error('Error loading orders:', error);
-        toast.error('שגיאה בטעינת ההזמנות');
+        // If services fail due to missing tables, show empty state
+        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          setOrders([]);
+          setStats({ total: 0, revenue: 0, pending: 0, completed: 0 });
+        } else {
+          toast.error('שגיאה בטעינת ההזמנות');
+          setOrders([]);
+          setStats({ total: 0, revenue: 0, pending: 0, completed: 0 });
+        }
       } finally {
         setLoading(false);
       }
