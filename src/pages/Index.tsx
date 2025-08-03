@@ -320,12 +320,16 @@ const Index = () => {
   // Event handlers
   const handleQuickSelectionClick = (item: any) => {
     console.log('Quick selection clicked:', item);
-    if (item.id === '5') { // המובילים בspike
-      navigate('/top-suppliers');
+    if (item.id === '1') { // מטבחים
+      navigate('/category/kitchens/suppliers');
+    } else if (item.id === '2') { // בלעדי לאפליקציה
+      navigate('/app-exclusive');
     } else if (item.id === '3') { // ספקים חדשים
       navigate('/new-suppliers');
     } else if (item.id === '4') { // חם עכשיו
       navigate('/hot-now');
+    } else if (item.id === '5') { // המובילים בspike
+      navigate('/top-suppliers');
     }
   };
 

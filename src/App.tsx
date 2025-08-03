@@ -83,6 +83,7 @@ import MyMeetings from "./pages/MyMeetings";
 import SavedSuppliers from "./pages/SavedSuppliers";
 import SupplierProductsView from "./pages/SupplierProducts";
 import SupplierReviews from "./pages/SupplierReviews";
+import AppExclusive from "./pages/AppExclusive";
 
 const queryClient = new QueryClient();
 
@@ -97,6 +98,7 @@ const App = () => {
             <div className="min-h-screen bg-white">
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/app-exclusive" element={<AppExclusive />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/registration" element={<Registration />} />
                 <Route path="/login" element={<Login />} />
