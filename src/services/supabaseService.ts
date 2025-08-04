@@ -225,14 +225,35 @@ export const ordersService = {
   },
 
   async getByUserId(userId: string) {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .or(`client_id.eq.${userId},supplier_id.eq.${userId}`)
-      .order('created_at', { ascending: false });
-    
-    if (error) throw error;
-    return data as Order[];
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .or(`client_id.eq.${userId},supplier_id.eq.${userId}`)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        // Enhanced error logging and handling
+        console.error('Supabase orders query error:', error);
+        
+        // Handle specific error codes
+        if (error.code === '42P01' || error.message?.includes('does not exist')) {
+          console.log('Orders table does not exist, returning empty array');
+          return [];
+        }
+        if (error.code === 'PGRST301' || error.message?.includes('permission denied')) {
+          console.log('Permission denied for orders table, returning empty array');
+          return [];
+        }
+        
+        throw error;
+      }
+      
+      return (data as Order[]) || [];
+    } catch (error) {
+      console.error('Error in ordersService.getByUserId:', error);
+      throw error;
+    }
   },
 
   async create(order: Omit<Order, 'id' | 'created_at' | 'updated_at'>) {

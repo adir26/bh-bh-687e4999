@@ -43,36 +43,64 @@ const SupplierProfile = () => {
     
     try {
       // Check if supplier is favorited
-      const { data: favoriteData } = await supabase
-        .from('favorites')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('supplier_id', id)
-        .maybeSingle();
-      
-      setIsFavorited(!!favoriteData);
+      try {
+        const { data: favoriteData, error: favoriteError } = await supabase
+          .from('favorites')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('supplier_id', id)
+          .maybeSingle();
+        
+        if (favoriteError && favoriteError.code !== 'PGRST116') {
+          console.error('Error checking favorites:', favoriteError);
+        } else {
+          setIsFavorited(!!favoriteData);
+        }
+      } catch (error) {
+        console.error('Error in favorites query:', error);
+        // Continue with default state if favorites check fails
+      }
       
       // Check for existing leads
-      const { data: leadData } = await supabase
-        .from('leads')
-        .select('id')
-        .eq('client_id', user.id)
-        .eq('supplier_id', id)
-        .maybeSingle();
-      
-      setHasExistingLead(!!leadData);
+      try {
+        const { data: leadData, error: leadError } = await supabase
+          .from('leads')
+          .select('id')
+          .eq('client_id', user.id)
+          .eq('supplier_id', id)
+          .maybeSingle();
+        
+        if (leadError && leadError.code !== 'PGRST116') {
+          console.error('Error checking leads:', leadError);
+        } else {
+          setHasExistingLead(!!leadData);
+        }
+      } catch (error) {
+        console.error('Error in leads query:', error);
+        // Continue with default state if leads check fails
+      }
       
       // Check for existing meetings
-      const { data: meetingData } = await supabase
-        .from('meetings')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('supplier_id', id)
-        .maybeSingle();
-      
-      setHasExistingMeeting(!!meetingData);
+      try {
+        const { data: meetingData, error: meetingError } = await supabase
+          .from('meetings')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('supplier_id', id)
+          .maybeSingle();
+        
+        if (meetingError && meetingError.code !== 'PGRST116') {
+          console.error('Error checking meetings:', meetingError);
+        } else {
+          setHasExistingMeeting(!!meetingData);
+        }
+      } catch (error) {
+        console.error('Error in meetings query:', error);
+        // Continue with default state if meetings check fails
+      }
     } catch (error) {
-      console.error('Error checking existing interactions:', error);
+      console.error('Critical error in checkExistingInteractions:', error);
+      // All checks failed, but component should still work with default states
     }
   };
 

@@ -23,6 +23,13 @@ const Orders = () => {
       try {
         const userOrders = await ordersService.getByUserId(user.id);
         
+        // Ensure userOrders is an array
+        if (!Array.isArray(userOrders)) {
+          console.warn('ordersService.getByUserId returned non-array:', userOrders);
+          setOrders([]);
+          return;
+        }
+        
         // Transform database orders to match OrderCard interface
         const transformedOrders: Order[] = userOrders.map(order => ({
           id: order.id,
@@ -46,10 +53,16 @@ const Orders = () => {
         setOrders(transformedOrders);
       } catch (error) {
         console.error('Error loading orders:', error);
-        // If table doesn't exist or service error, show empty state instead of error
-        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+        // Enhanced error handling for different error types
+        if (error.message?.includes('relation') || 
+            error.message?.includes('does not exist') ||
+            error.message?.includes('permission denied') ||
+            error.code === 'PGRST301' ||
+            error.code === '42P01') {
+          console.log('Orders table not accessible, setting empty array');
           setOrders([]);
         } else {
+          console.error('Unexpected orders error:', error);
           toast.error('שגיאה בטעינת ההזמנות');
           setOrders([]);
         }

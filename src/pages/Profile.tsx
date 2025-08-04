@@ -82,13 +82,32 @@ const Profile = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
       
       setLoading(true);
       try {
-        // Load user orders
-        const orders = await ordersService.getByUserId(user.id);
-        setUserOrders(orders);
+        // Load user orders with comprehensive error handling
+        try {
+          const orders = await ordersService.getByUserId(user.id);
+          setUserOrders(orders || []);
+        } catch (ordersError) {
+          console.error('Error loading orders:', ordersError);
+          // Handle missing table or permission errors gracefully
+          if (ordersError.message?.includes('relation') || 
+              ordersError.message?.includes('does not exist') ||
+              ordersError.message?.includes('permission')) {
+            console.log('Orders table not accessible, setting empty array');
+            setUserOrders([]);
+          } else {
+            // For other errors, still set empty array but log the error
+            console.error('Unexpected orders error:', ordersError);
+            setUserOrders([]);
+            toast.error('לא ניתן לטעון את ההזמנות כרגע');
+          }
+        }
 
         // Update form with profile data
         if (profile) {
@@ -100,19 +119,26 @@ const Profile = () => {
         }
 
         // Load onboarding data from localStorage
-        const homeDetails = localStorage.getItem('homeDetails');
-        const projectPlanning = localStorage.getItem('projectPlanning');
-        const userInterests = localStorage.getItem('userInterests');
+        try {
+          const homeDetails = localStorage.getItem('homeDetails');
+          const projectPlanning = localStorage.getItem('projectPlanning');
+          const userInterests = localStorage.getItem('userInterests');
 
-        setOnboardingData({
-          homeDetails: homeDetails ? JSON.parse(homeDetails) : null,
-          projectPlanning: projectPlanning ? JSON.parse(projectPlanning) : null,
-          userInterests: userInterests ? JSON.parse(userInterests) : null,
-        });
+          setOnboardingData({
+            homeDetails: homeDetails ? JSON.parse(homeDetails) : null,
+            projectPlanning: projectPlanning ? JSON.parse(projectPlanning) : null,
+            userInterests: userInterests ? JSON.parse(userInterests) : null,
+          });
+        } catch (storageError) {
+          console.error('Error loading localStorage data:', storageError);
+          // Continue with empty onboarding data if localStorage fails
+          setOnboardingData({});
+        }
       } catch (error) {
-        console.error('Error loading profile data:', error);
+        console.error('Critical error in loadData:', error);
         toast.error('שגיאה בטעינת הנתונים');
       } finally {
+        // Always ensure loading is set to false
         setLoading(false);
       }
     };
