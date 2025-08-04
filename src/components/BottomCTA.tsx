@@ -14,7 +14,7 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
   onButtonClick 
 }) => {
   return (
-    <div className="w-full bg-button-secondary py-8 px-4 text-center">
+    <div className="w-full bg-button-secondary py-8 px-4 pb-nav-safe text-center">
       <h2 className="text-lg font-semibold text-gray-800 mb-4">
         {title}
       </h2>

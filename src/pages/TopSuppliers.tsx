@@ -217,7 +217,7 @@ const TopSuppliers = () => {
 
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-white">
-      <main className="flex flex-col items-start w-full bg-neutral-50 pb-8">
+      <main className="flex flex-col items-start w-full bg-neutral-50 pb-nav-safe">
         <div className="flex flex-col items-start w-full">
           <Header userName="איתן" />
           

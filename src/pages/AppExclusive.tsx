@@ -84,7 +84,7 @@ const AppExclusive = () => {
 
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-background">
-      <main className="flex flex-col items-start w-full bg-muted/30 pb-8">
+      <main className="flex flex-col items-start w-full bg-muted/30 pb-nav-safe">
         <div className="flex flex-col items-start w-full">
           <Header userName="איתן" />
           
