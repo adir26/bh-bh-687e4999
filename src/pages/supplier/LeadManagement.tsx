@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Search, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin, User } from 'lucide-react';
+import { ArrowLeft, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin, User } from 'lucide-react';
+import { SearchInput } from '@/components/ui/search-input';
 import { showToast } from '@/utils/toast';
 
 interface Lead {
@@ -123,13 +124,12 @@ export default function LeadManagement() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
+          <div className="flex-1">
+            <SearchInput
               placeholder="חפש לפי שם לקוח או שירות..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10"
+              onClear={() => setSearchTerm("")}
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>

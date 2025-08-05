@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { ArrowLeft, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchInput } from "@/components/ui/search-input";
+import { PageHeader } from "@/components/ui/page-header";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const FAQ = () => {
@@ -107,30 +107,20 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-background border-b">
-        <div className="flex items-center gap-3 p-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-xl font-semibold">שאלות נפוצות</h1>
-        </div>
-      </div>
+      <PageHeader 
+        title="שאלות נפוצות" 
+        variant="minimal"
+      />
 
       {/* Content */}
       <div className="p-4 pb-20">
         {/* Search Bar */}
-        <div className="relative mb-6">
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
+        <div className="mb-6">
+          <SearchInput
             placeholder="חיפוש בשאלות נפוצות..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pr-10"
+            onClear={() => setSearchQuery("")}
           />
         </div>
 

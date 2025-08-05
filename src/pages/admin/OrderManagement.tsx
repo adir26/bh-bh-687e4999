@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Filter, Eye, MoreHorizontal, DollarSign, ShoppingCart, Clock, CheckCircle } from "lucide-react";
+import { Filter, Eye, MoreHorizontal, DollarSign, ShoppingCart, Clock, CheckCircle } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ordersService, adminService, profilesService } from "@/services/supabaseService";
 import { toast } from "sonner";
@@ -187,13 +188,13 @@ export default function AdminOrderManagement() {
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <div className="relative flex-1 max-w-sm order-2 sm:order-1">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
+            <div className="flex-1 max-w-sm order-2 sm:order-1">
+              <SearchInput
                 placeholder="חיפוש הזמנות..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10 text-right"
+                onClear={() => setSearchTerm("")}
+                className="text-right"
                 dir="rtl"
               />
             </div>

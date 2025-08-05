@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Plus, Search, Filter, Edit, Upload, Trash2, Eye, EyeOff, Grid, List } from 'lucide-react';
+import { ArrowLeft, Plus, Filter, Edit, Upload, Trash2, Eye, EyeOff, Grid, List } from 'lucide-react';
+import { SearchInput } from '@/components/ui/search-input';
 
 interface Product {
   id: string;
@@ -134,15 +135,13 @@ export default function ProductCatalog() {
         {/* Filters */}
         <div className="flex flex-col gap-3 xs:gap-4 mb-4 xs:mb-5 sm:mb-6">
           <div className="w-full">
-            <div className="relative">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="חפש מוצרים ושירותים..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pr-10 h-10 xs:h-11"
-              />
-            </div>
+            <SearchInput
+              placeholder="חפש מוצרים ושירותים..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClear={() => setSearchTerm("")}
+              className="h-10 xs:h-11"
+            />
           </div>
           <div className="flex flex-col xs:flex-row gap-2 xs:gap-3">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>

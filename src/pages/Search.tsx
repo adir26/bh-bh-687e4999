@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { SearchIcon, Filter, MapPin } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Filter, MapPin } from 'lucide-react';
+import { SearchInput } from '@/components/ui/search-input';
 import { Button } from '@/components/ui/button';
 import { CategorySection } from '@/components/CategorySection';
 import { SearchResults } from '@/components/SearchResults';
@@ -53,15 +53,15 @@ const Search = () => {
       {/* Header */}
       <div className="bg-white border-b px-4 py-4">
         <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 relative">
-            <SearchIcon className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <Input
+          <div className="flex-1">
+            <SearchInput
               type="text"
               placeholder="חפש ספקים, שירותים ומוצרים..."
               value={query}
               onChange={(e) => updateQuery(e.target.value)}
               onKeyDown={handleInputKeyPress}
-              className="pr-10 text-right rounded-xl"
+              onClear={() => updateQuery("")}
+              className="text-right rounded-xl"
               dir="rtl"
             />
           </div>
