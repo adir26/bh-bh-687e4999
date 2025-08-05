@@ -278,7 +278,7 @@ All colors MUST be HSL.
 
   /* Enhanced mobile navigation spacing - prevents bottom nav overlap */
   .pb-nav-safe {
-    padding-bottom: max(env(safe-area-inset-bottom) + 5rem, 6rem);
+    padding-bottom: max(env(safe-area-inset-bottom) + 6rem, 7rem);
   }
 
   /* Enhanced mobile touch utilities */
