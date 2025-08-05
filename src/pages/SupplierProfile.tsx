@@ -224,7 +224,7 @@ const SupplierProfile = () => {
 
 
       {/* Supplier Info */}
-      <div className="p-4">
+      <div className="p-4 pb-nav-safe">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-16 h-16 rounded-full overflow-hidden bg-muted">
             <img 
