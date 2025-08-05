@@ -110,7 +110,7 @@ const Orders = () => {
   }
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-20">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-nav-safe">
       {/* Header */}
       <div className="bg-white px-6 py-6 rounded-b-3xl shadow-sm">
         <div className="text-right">

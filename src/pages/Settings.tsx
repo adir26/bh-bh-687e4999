@@ -68,7 +68,7 @@ const Settings = () => {
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-6 pb-20">
+      <div className="p-4 space-y-6 pb-nav-safe">
         {/* Account Information */}
         <Card>
           <CardHeader>

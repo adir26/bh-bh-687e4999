@@ -336,7 +336,7 @@ const Profile = () => {
         </div>
 
         {/* Content */}
-        <div className="px-6 pb-6">
+        <div className="px-6 pb-nav-safe">
           {/* My Activity Section */}
           {nextDelivery && (
             <Card className="mt-6 border-0 shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">

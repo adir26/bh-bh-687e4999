@@ -58,7 +58,7 @@ const Favorites = () => {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      <div className="max-w-md mx-auto bg-background pb-20">
+      <div className="max-w-md mx-auto bg-background pb-nav-safe">
         {/* Header */}
         <div className="bg-background border-b border-border px-6 py-6">
           <h1 className="text-2xl font-bold text-foreground text-right">המועדפים שלי</h1>

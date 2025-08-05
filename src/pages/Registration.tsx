@@ -96,7 +96,7 @@ export default function Registration() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 pb-32">
+      <div className="flex-1 px-6 pb-nav-safe">
         <div className="max-w-md mx-auto">
           {/* Title */}
           <div className="mb-8 text-center">

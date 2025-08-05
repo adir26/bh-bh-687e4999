@@ -113,7 +113,7 @@ const FAQ = () => {
       />
 
       {/* Content */}
-      <div className="p-4 pb-20">
+      <div className="p-4 pb-nav-safe">
         {/* Search Bar */}
         <div className="mb-6">
           <SearchInput

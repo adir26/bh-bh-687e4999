@@ -131,7 +131,7 @@ export default function ProductCatalog() {
         </div>
       </div>
 
-      <div className="mobile-container px-4 xs:px-5 sm:px-6 py-4 xs:py-5 sm:py-6">
+      <div className="mobile-container px-4 xs:px-5 sm:px-6 py-4 xs:py-5 sm:py-6 pb-nav-safe">
         {/* Filters */}
         <div className="flex flex-col gap-3 xs:gap-4 mb-4 xs:mb-5 sm:mb-6">
           <div className="w-full">

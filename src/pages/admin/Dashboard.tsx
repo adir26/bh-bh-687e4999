@@ -43,7 +43,7 @@ const recentActivity = [
 
 export default function AdminDashboard() {
   return (
-    <div className="space-y-4 md:space-y-6 font-hebrew" dir="rtl">
+    <div className="space-y-4 md:space-y-6 font-hebrew pb-nav-safe" dir="rtl">
       <div>
         <h1 className="text-xl md:text-3xl font-bold tracking-tight rtl-text-right">לוח בקרה</h1>
         <p className="text-muted-foreground text-mobile-sm md:text-base rtl-text-right">סקירה כללית של ביצועי הפלטפורמה</p>

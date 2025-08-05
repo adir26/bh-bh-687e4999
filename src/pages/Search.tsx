@@ -49,7 +49,7 @@ const Search = () => {
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white pb-20">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white pb-nav-safe">
       {/* Header */}
       <div className="bg-white border-b px-4 py-4">
         <div className="flex items-center gap-3 mb-4">

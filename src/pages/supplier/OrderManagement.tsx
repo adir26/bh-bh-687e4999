@@ -115,7 +115,7 @@ export default function OrderManagement() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 pb-nav-safe">
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           {orderStatuses.map((status) => {

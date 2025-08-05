@@ -82,7 +82,7 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex pb-nav-safe">
       {/* Right side - Image */}
       <div className="hidden lg:flex lg:w-1/2 relative">
         <img
