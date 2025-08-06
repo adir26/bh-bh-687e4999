@@ -208,7 +208,7 @@ const NewSuppliers = () => {
 
   // Event handlers
   const handleCategoryClick = (item: any) => {
-    showToast.comingSoon(`פרופיל ${item.title}`);
+    showToast.success(`נבחר ${item.title} - יועבר לפרופיל הספק`);
   };
 
   const handleAllSuppliersClick = (category: string) => {

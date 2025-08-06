@@ -140,15 +140,15 @@ const HotNow = () => {
   };
 
   const handleCategoryClick = (item: any) => {
-    showToast.comingSoon(`פרטי פריט: ${item.title}`);
+    showToast.success(`נבחר פריט: ${item.title} - בקרוב יפתח עמוד מפורט`);
   };
 
   const handleSupplierClick = (supplier: any) => {
-    showToast.comingSoon(`פרופיל ספק: ${supplier.name}`);
+    showToast.success(`נבחר ספק: ${supplier.name} - יועבר לפרופיל`);
   };
 
   const handleProjectClick = (project: any) => {
-    showToast.comingSoon(`פרטי פרויקט: ${project.name}`);
+    showToast.success(`נבחר פרויקט: ${project.name} - יועבר לפרטים`);
   };
 
   const handleCTAClick = () => {

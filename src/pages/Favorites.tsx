@@ -137,7 +137,12 @@ const Favorites = () => {
                       </div>
 
                       <div className="flex gap-3">
-                        <Button variant="outline" size="sm" className="flex-1 rounded-xl h-11">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 rounded-xl h-11"
+                          onClick={() => window.open(`tel:${supplier.phone}`, '_self')}
+                        >
                           <Phone className="w-4 h-4 ml-2" />
                           התקשר
                         </Button>

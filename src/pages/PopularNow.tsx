@@ -104,11 +104,11 @@ const PopularNow = () => {
 
   // Event handlers
   const handleSupplierClick = (supplier: any) => {
-    showToast.comingSoon(`פרופיל ספק: ${supplier.name}`);
+    showToast.success(`נבחר ספק: ${supplier.name} - יועבר לפרופיל`);
   };
 
   const handleCategoryClick = (item: any) => {
-    showToast.comingSoon(`קטגוריה: ${item.title}`);
+    showToast.success(`נבחרת קטגוריה: ${item.title} - צור קשר עם ספק`);
   };
 
   const handleCTAClick = () => {

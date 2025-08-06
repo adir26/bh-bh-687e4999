@@ -214,7 +214,29 @@ const SupplierProfilePreview = () => {
           <div className="flex items-center gap-2 mb-2">
             <Phone className="w-4 h-4 text-[#617385]" />
             <div className="flex-1">
-              {renderEditableField('phone', supplier.phone)}
+              {editingField === 'phone' ? (
+                renderEditableField('phone', supplier.phone)
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-sm p-0 h-auto text-left group"
+                  onClick={() => window.open(`tel:${supplier.phone}`, '_self')}
+                >
+                  <span className="flex-1">{supplier.phone}</span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startEditing('phone', supplier.phone);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 ml-2"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                </Button>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 text-sm text-[#617385]">

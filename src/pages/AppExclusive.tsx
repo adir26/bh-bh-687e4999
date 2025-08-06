@@ -75,7 +75,7 @@ const AppExclusive = () => {
   ];
 
   const handleOfferClick = (offer: any) => {
-    showToast.comingSoon(`מבצע: ${offer.title}`);
+    showToast.success(`נבחר מבצע: ${offer.title} - צור קשר עם ספק`);
   };
 
   const handleBottomCTA = () => {

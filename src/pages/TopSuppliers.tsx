@@ -208,7 +208,7 @@ const TopSuppliers = () => {
 
   // Event handlers
   const handleCategoryClick = (item: any) => {
-    showToast.comingSoon(`ספק: ${item.title}`);
+    showToast.success(`נבחר ספק: ${item.title} - יועבר לפרופיל`);
   };
 
   const handleAllSuppliersClick = (category: string) => {

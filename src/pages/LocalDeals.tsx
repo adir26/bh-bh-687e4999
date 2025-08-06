@@ -98,7 +98,7 @@ const LocalDeals = () => {
 
   // Event handlers
   const handleDealClick = (deal: any) => {
-    showToast.comingSoon(`מבצע: ${deal.title}`);
+    showToast.success(`נבחר מבצע: ${deal.title} - צור קשר עם הספק`);
   };
 
   const handleCTAClick = () => {

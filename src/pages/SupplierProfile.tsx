@@ -251,7 +251,14 @@ const SupplierProfile = () => {
         <div className="bg-[#F8F9FA] rounded-lg p-3 mb-4">
           <div className="flex items-center gap-2 mb-2">
             <Phone className="w-4 h-4 text-[#617385]" />
-            <span className="text-sm">{supplier.phone}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-sm p-0 h-auto text-left"
+              onClick={() => window.open(`tel:${supplier.phone}`, '_self')}
+            >
+              {supplier.phone}
+            </Button>
           </div>
           <div className="text-sm text-[#617385]">
             📍 {supplier.location}
