@@ -307,7 +307,6 @@ export default function ProductCatalog() {
                             <Switch
                               checked={product.isPublished}
                               onCheckedChange={() => toggleProductVisibility(product.id)}
-                              className="scale-75 xs:scale-100"
                             />
                             <Badge className={`text-xs ${product.isPublished ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                               {product.isPublished ? 'פורסם' : 'מוסתר'}
