@@ -9,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Plus, Filter, Edit, Upload, Trash2, Eye, EyeOff, Grid, List } from 'lucide-react';
 import { SearchInput } from '@/components/ui/search-input';
+import { features } from '@/config/features';
+import LiveProductCatalogContent from './LiveProductCatalogContent';
 
 interface Product {
   id: string;
@@ -28,6 +30,9 @@ export default function ProductCatalog() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [availabilityFilter, setAvailabilityFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  if (features.supplier_catalog_live) {
+    return <LiveProductCatalogContent />;
+  }
 
   const products: Product[] = [
     {

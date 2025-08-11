@@ -707,6 +707,7 @@ export type Database = {
           category_id: string | null
           company_id: string | null
           created_at: string
+          currency: string
           delivery_time_days: number | null
           description: string | null
           id: string
@@ -727,6 +728,7 @@ export type Database = {
           category_id?: string | null
           company_id?: string | null
           created_at?: string
+          currency?: string
           delivery_time_days?: number | null
           description?: string | null
           id?: string
@@ -747,6 +749,7 @@ export type Database = {
           category_id?: string | null
           company_id?: string | null
           created_at?: string
+          currency?: string
           delivery_time_days?: number | null
           description?: string | null
           id?: string
