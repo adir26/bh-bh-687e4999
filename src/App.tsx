@@ -48,6 +48,7 @@ import ProposalBuilder from "./pages/supplier/ProposalBuilder";
 import OrderManagement from "./pages/supplier/OrderManagement";
 import SupplierNotifications from "./pages/supplier/Notifications";
 import SupplierAnalytics from "./pages/supplier/Analytics";
+import SupplierCRM from "./pages/supplier/CRM";
 import Support from "./pages/Support";
 import SupportChat from "./pages/SupportChat";
 import ComplaintForm from "./pages/ComplaintForm";
@@ -127,6 +128,11 @@ const App = () => {
                 <Route path="/supplier/leads" element={
                   <ProtectedRoute allowedRoles={['supplier']}>
                     <SupplierLeadManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/supplier/crm" element={
+                  <ProtectedRoute allowedRoles={['supplier']}>
+                    <SupplierCRM />
                   </ProtectedRoute>
                 } />
                 <Route path="/supplier/catalog" element={
