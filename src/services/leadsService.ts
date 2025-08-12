@@ -62,7 +62,7 @@ export const leadsService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data || []) as Lead[];
+    return (data || []) as unknown as Lead[];
   },
 
   async updateLeadStatus(id: string, status: LeadStatus) {
@@ -73,7 +73,7 @@ export const leadsService = {
       .select()
       .maybeSingle();
     if (error) throw error;
-    return data as Lead | null;
+    return data as unknown as Lead | null;
   },
 
   async addLeadNote(leadId: string, note: string) {
@@ -107,25 +107,26 @@ export const leadsService = {
     // Load lead to get client_id and name
     const { data: lead, error: leadErr } = await supabase
       .from('leads')
-      .select('client_id, name, notes')
+      .select('*')
       .eq('id', leadId)
       .maybeSingle();
     if (leadErr) throw leadErr;
-    if (!lead?.client_id) throw new Error('Lead has no client');
+    const leadData = lead as unknown as { client_id: string; name: string | null; notes: string | null };
+    if (!leadData?.client_id) throw new Error('Lead has no client');
 
     // Generate quote number (in case trigger is not attached)
     const { data: quoteNo, error: genErr } = await supabase.rpc('generate_quote_number');
     if (genErr) throw genErr;
 
-    const title = `Quote for ${lead.name || 'lead'}`;
+    const title = `Quote for ${leadData.name || 'lead'}`;
 
     const { data: quote, error: quoteErr } = await supabase
       .from('quotes')
       .insert({
         supplier_id: supplierId,
-        client_id: lead.client_id,
+        client_id: leadData.client_id,
         title,
-        description: lead.notes || null,
+        description: leadData.notes || null,
         subtotal: 0,
         total_amount: 0,
         discount_amount: 0,
