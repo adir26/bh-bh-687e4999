@@ -12,6 +12,25 @@ import { ProjectCard } from '@/components/ProjectCard';
 import { BottomCTA } from '@/components/BottomCTA';
 import { showToast } from '@/utils/toast';
 
+// Import luxury images
+import hotNowHero from '@/assets/hot-now-hero.jpg';
+import luxuryFurnitureSmart from '@/assets/luxury-furniture-smart.jpg';
+import smartAppliancesLuxury from '@/assets/smart-appliances-luxury.jpg';
+import designerLightingLuxury from '@/assets/designer-lighting-luxury.jpg';
+import luxuryRenovationKfarSaba from '@/assets/luxury-renovation-kfar-saba.jpg';
+import luxuryKitchenTelAviv from '@/assets/luxury-kitchen-tel-aviv.jpg';
+import luxuryBathroomRamatGan from '@/assets/luxury-bathroom-ramat-gan.jpg';
+import luxuryContractorLogo from '@/assets/luxury-contractor-logo.jpg';
+import kitchenDesignerLogo from '@/assets/kitchen-designer-logo.jpg';
+import furnitureShowroomLogo from '@/assets/furniture-showroom-logo.jpg';
+import hvacSystemsLogo from '@/assets/hvac-systems-logo.jpg';
+import luxuryPenthouseProject from '@/assets/luxury-penthouse-project.jpg';
+import luxuryRusticKitchen from '@/assets/luxury-rustic-kitchen.jpg';
+import luxuryRooftopGarden from '@/assets/luxury-rooftop-garden.jpg';
+import luxuryBedroomRenovation from '@/assets/luxury-bedroom-renovation.jpg';
+import premiumLaminateFlooring from '@/assets/premium-laminate-flooring.jpg';
+import luxuryBathroomAccessories from '@/assets/luxury-bathroom-accessories.jpg';
+
 const HotNow = () => {
   const navigate = useNavigate();
 
@@ -31,19 +50,19 @@ const HotNow = () => {
       id: '1',
       title: 'רהיטים איכותיים',
       subtitle: 'המלצות חכמות עבורך',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=480&h=480&fit=crop'
+      image: luxuryFurnitureSmart
     },
     {
       id: '2',
       title: 'מכשירי בית חכמים',
       subtitle: 'המלצות חכמות עבורך',
-      image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=480&h=480&fit=crop'
+      image: smartAppliancesLuxury
     },
     {
       id: '3',
       title: 'גופי תאורה מעוצבים',
       subtitle: 'המלצות חכמות עבורך',
-      image: 'https://images.unsplash.com/photo-1524484485831-a92ffc0de03f?w=480&h=480&fit=crop'
+      image: designerLightingLuxury
     }
   ];
 
@@ -51,21 +70,21 @@ const HotNow = () => {
   const topPicksInArea = [
     {
       name: 'שיפוץ דירה כפר סבא',
-      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=480&h=480&fit=crop',
+      image: luxuryRenovationKfarSaba,
       description: 'שיפוץ מקיף של דירת 4 חדרים',
       location: 'כפר סבא',
       price: '₪150,000'
     },
     {
       name: 'מטבח חדש תל אביב',
-      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop',
+      image: luxuryKitchenTelAviv,
       description: 'מטבח מעוצב בסגנון מודרני',
       location: 'תל אביב',
       price: '₪80,000'
     },
     {
       name: 'חדר רחצה יוקרתי',
-      image: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=480&h=480&fit=crop',
+      image: luxuryBathroomRamatGan,
       description: 'חדר רחצה עם חומרים איכותיים',
       location: 'רמת גן',
       price: '₪45,000'
@@ -75,22 +94,22 @@ const HotNow = () => {
   // High priority suppliers data
   const highPrioritySuppliers = [
     {
-      logo: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=100&h=100&fit=crop',
+      logo: luxuryContractorLogo,
       name: 'קבלן שיפוצים מוביל',
       tagline: 'מומחים בשיפוצי יוקרה'
     },
     {
-      logo: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=100&h=100&fit=crop',
+      logo: kitchenDesignerLogo,
       name: 'מעצב מטבחים מוביל',
       tagline: 'מטבחים מותאמים אישית'
     },
     {
-      logo: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=100&h=100&fit=crop',
+      logo: furnitureShowroomLogo,
       name: 'רהיטים מעוצבים',
       tagline: 'ריהוט איכותי ומעוצב'
     },
     {
-      logo: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=100&h=100&fit=crop',
+      logo: hvacSystemsLogo,
       name: 'מערכות מיזוג',
       tagline: 'פתרונות מיזוג מתקדמים'
     }
@@ -100,17 +119,17 @@ const HotNow = () => {
   const trendingThisWeek = [
     {
       name: 'פרויקט שיפוץ פנטהאוס',
-      image: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=480&h=480&fit=crop',
+      image: luxuryPenthouseProject,
       description: 'פרויקט שיפוץ יוקרתי במרכז תל אביב'
     },
     {
       name: 'מטבח בסגנון כפרי',
-      image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=480&h=480&fit=crop',
+      image: luxuryRusticKitchen,
       description: 'מטבח בסגנון כפרי מודרני'
     },
     {
       name: 'גינה על הגג',
-      image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=480&h=480&fit=crop',
+      image: luxuryRooftopGarden,
       description: 'פרויקט גינה על גג הבניין'
     }
   ];
@@ -119,17 +138,17 @@ const HotNow = () => {
   const trendingForYou = [
     {
       name: 'שיפוץ חדר שינה',
-      image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=480&h=480&fit=crop',
+      image: luxuryBedroomRenovation,
       description: 'רעיונות עיצוב לחדר שינה מושלם'
     },
     {
       name: 'פרקט למינציה איכותי',
-      image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=480&h=480&fit=crop',
+      image: premiumLaminateFlooring,
       description: 'פרקט במגוון צבעים וטקסטורות'
     },
     {
       name: 'אביזרי אמבטיה מעוצבים',
-      image: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=480&h=480&fit=crop',
+      image: luxuryBathroomAccessories,
       description: 'אביזרי אמבטיה בעיצוב מודרני'
     }
   ];
@@ -176,7 +195,7 @@ const HotNow = () => {
           <TopBanner 
             title="הפרויקטים המובילים באפליקציה"
             subtitle="גלו את הפרויקטים הכי חמים באפליקציה"
-            backgroundImage="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=400&fit=crop"
+            backgroundImage={hotNowHero}
           />
           
           {/* Category Tag Navigation */}
