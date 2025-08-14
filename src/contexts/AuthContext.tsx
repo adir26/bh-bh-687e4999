@@ -63,14 +63,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up auth state listener
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Fetch profile data
+          // Defer Supabase calls to prevent deadlock
           setTimeout(async () => {
             const profileData = await fetchProfile(session.user.id);
             setProfile(profileData);
@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Check for existing session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -117,9 +117,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
+      let errorMessage = "שגיאה בהרשמה";
+      if (error.message.includes('User already registered')) {
+        errorMessage = "המשתמש כבר רשום במערכת";
+      } else if (error.message.includes('Password should be at least')) {
+        errorMessage = "הסיסמה חייבת להכיל לפחות 6 תווים";
+      } else if (error.message.includes('Unable to validate email address')) {
+        errorMessage = "כתובת האימייל לא תקינה";
+      }
+      
       toast({
         title: "שגיאה בהרשמה",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
     } else {
@@ -139,9 +148,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
+      let errorMessage = "שגיאה בהתחברות";
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage = "פרטי ההתחברות שגויים";
+      } else if (error.message.includes('Email not confirmed')) {
+        errorMessage = "אנא אמת את כתובת האימייל שלך";
+      }
+      
       toast({
         title: "שגיאה בהתחברות",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive"
       });
     } else {

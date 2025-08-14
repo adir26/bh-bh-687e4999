@@ -48,12 +48,23 @@ const Auth: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!loginForm.email || !loginForm.password) {
+      toast.error('אנא מלא את כל השדות');
+      return;
+    }
+    
     setIsLoading(true);
     
-    const { error } = await signIn(loginForm.email, loginForm.password);
-    
-    if (!error) {
-      navigate('/');
+    try {
+      const { error } = await signIn(loginForm.email, loginForm.password);
+      
+      if (!error) {
+        // Success toast is handled in AuthContext
+        // Navigation will happen automatically via auth state change
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('שגיאה בהתחברות');
     }
     
     setIsLoading(false);
@@ -61,6 +72,18 @@ const Auth: React.FC = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Form validation
+    if (!signupForm.email || !signupForm.password || !signupForm.fullName) {
+      toast.error('אנא מלא את כל השדות הדרושים');
+      return;
+    }
+    
+    if (signupForm.password.length < 6) {
+      toast.error('הסיסמה חייבת להכיל לפחות 6 תווים');
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
@@ -72,10 +95,13 @@ const Auth: React.FC = () => {
       );
       
       if (!error) {
-        toast.success('נרשמת בהצלחה! בדוק את האימייל שלך לאישור החשבון.');
+        // Success toast is handled in AuthContext
+        setActiveTab('login');
+        setLoginForm({ email: signupForm.email, password: '' });
       }
     } catch (error) {
       console.error('Signup error:', error);
+      toast.error('שגיאה בהרשמה');
     }
     
     setIsLoading(false);
