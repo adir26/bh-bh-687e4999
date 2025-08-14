@@ -118,7 +118,7 @@ const SupplierProfile = () => {
   const handleContactSupplier = () => {
     if (!user) {
       showToast.error('יש להתחבר כדי ליצור קשר עם ספק');
-      navigate('/login');
+      navigate('/auth');
       return;
     }
     setIsContactModalOpen(true);
@@ -127,7 +127,7 @@ const SupplierProfile = () => {
   const handleScheduleMeeting = () => {
     if (!user) {
       showToast.error('יש להתחבר כדי לקבוע פגישה');
-      navigate('/login');
+      navigate('/auth');
       return;
     }
     setIsMeetingModalOpen(true);
@@ -136,7 +136,7 @@ const SupplierProfile = () => {
   const handleToggleFavorite = async () => {
     if (!user) {
       showToast.error('יש להתחבר כדי לשמור ספק');
-      navigate('/login');
+      navigate('/auth');
       return;
     }
 

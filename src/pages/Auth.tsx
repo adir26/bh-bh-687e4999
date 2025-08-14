@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,15 +21,18 @@ const Auth: React.FC = () => {
     phone: ''
   });
   
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('login');
 
-  // Handle tab switching and prefill data
+  // Handle authentication state changes and redirects
   useEffect(() => {
-    if (user) {
-      navigate('/');
+    if (user && profile) {
+      // Get intended destination from location state, or default based on role
+      const from = location.state?.from?.pathname || getDefaultRoute(profile.role);
+      navigate(from, { replace: true });
       return;
     }
 
@@ -44,7 +47,19 @@ const Auth: React.FC = () => {
         localStorage.removeItem('signupData');
       }
     }
-  }, [user, navigate, searchParams]);
+  }, [user, profile, navigate, searchParams, location.state]);
+
+  const getDefaultRoute = (role: string) => {
+    switch (role) {
+      case 'supplier':
+        return '/supplier-dashboard';
+      case 'admin':
+        return '/admin/dashboard';
+      case 'client':
+      default:
+        return '/';
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,8 +123,8 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex pb-nav-safe">
-      {/* Right side - Image */}
+    <div className="min-h-screen flex pb-safe">
+      {/* Right side - Image (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative">
         <img
           src={loginImage}
@@ -125,11 +140,11 @@ const Auth: React.FC = () => {
       </div>
 
       {/* Left side - Auth Forms */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 lg:p-8 relative z-10">
         <div className="w-full max-w-md space-y-6">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold tracking-tight">התחברות לחשבון</h1>
-            <p className="text-muted-foreground mt-2">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">התחברות לחשבון</h1>
+            <p className="text-muted-foreground text-sm lg:text-base">
               הזינו את פרטיכם להתחברות או הרשמה
             </p>
           </div>
@@ -159,6 +174,8 @@ const Auth: React.FC = () => {
                         value={loginForm.email}
                         onChange={(e) => setLoginForm({ ...loginForm, email: e.target.value })}
                         required
+                        className="h-12 text-base"
+                        autoComplete="email"
                       />
                     </div>
                     <div className="space-y-2">
@@ -169,9 +186,11 @@ const Auth: React.FC = () => {
                         value={loginForm.password}
                         onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                         required
+                        className="h-12 text-base"
+                        autoComplete="current-password"
                       />
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full h-12 text-base" disabled={isLoading}>
                       {isLoading ? 'מתחבר...' : 'התחברות'}
                     </Button>
                   </form>
@@ -198,6 +217,8 @@ const Auth: React.FC = () => {
                         value={signupForm.fullName}
                         onChange={(e) => setSignupForm({ ...signupForm, fullName: e.target.value })}
                         required
+                        className="h-12 text-base"
+                        autoComplete="name"
                       />
                     </div>
                     <div className="space-y-2">
@@ -209,6 +230,8 @@ const Auth: React.FC = () => {
                         value={signupForm.email}
                         onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
                         required
+                        className="h-12 text-base"
+                        autoComplete="email"
                       />
                     </div>
                     <div className="space-y-2">
@@ -216,20 +239,25 @@ const Auth: React.FC = () => {
                       <Input
                         id="signup-password"
                         type="password"
-                        placeholder="בחרו סיסמה חזקה"
+                        placeholder="בחרו סיסמה חזקה (לפחות 6 תווים)"
                         value={signupForm.password}
                         onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
                         required
+                        className="h-12 text-base"
+                        autoComplete="new-password"
+                        minLength={6}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-phone">מספר טלפון</Label>
+                      <Label htmlFor="signup-phone">מספר טלפון (אופציונלי)</Label>
                       <Input
                         id="signup-phone"
                         type="tel"
                         placeholder="052-123-4567"
                         value={signupForm.phone}
                         onChange={(e) => setSignupForm({ ...signupForm, phone: e.target.value })}
+                        className="h-12 text-base"
+                        autoComplete="tel"
                       />
                     </div>
                     <div className="space-y-2">
@@ -238,7 +266,7 @@ const Auth: React.FC = () => {
                         value={signupForm.role} 
                         onValueChange={(value: 'client' | 'supplier') => setSignupForm({ ...signupForm, role: value })}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="h-12">
                           <SelectValue placeholder="בחרו סוג משתמש" />
                         </SelectTrigger>
                         <SelectContent>
@@ -247,7 +275,7 @@ const Auth: React.FC = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button type="submit" className="w-full h-12 text-base" disabled={isLoading}>
                       {isLoading ? 'נרשם...' : 'הרשמה'}
                     </Button>
                   </form>

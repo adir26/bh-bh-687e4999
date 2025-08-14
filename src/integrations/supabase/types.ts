@@ -1475,6 +1475,10 @@ export type Database = {
       }
     }
     Functions: {
+      check_user_role: {
+        Args: { user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       generate_lead_number: {
         Args: Record<PropertyKey, never>
         Returns: string

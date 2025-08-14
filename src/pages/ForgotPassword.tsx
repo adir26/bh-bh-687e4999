@@ -52,7 +52,7 @@ const ForgotPassword = () => {
                   שלח שוב
                 </Button>
                 
-                <Link to="/login">
+                <Link to="/auth">
                   <Button variant="ghost" className="w-full">
                     חזור להתחברות
                   </Button>
@@ -71,7 +71,7 @@ const ForgotPassword = () => {
       <div className="bg-background border-b px-4 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-right">שכחתי סיסמה</h1>
-          <Link to="/login">
+           <Link to="/auth">
             <Button variant="ghost" size="icon">
               <ArrowRight size={20} />
             </Button>
@@ -116,7 +116,7 @@ const ForgotPassword = () => {
                 {isLoading ? 'שולח...' : 'שלח הוראות איפוס'}
               </Button>
 
-              <Link to="/login">
+              <Link to="/auth">
                 <Button variant="ghost" className="w-full">
                   חזור להתחברות
                 </Button>
@@ -127,7 +127,7 @@ const ForgotPassword = () => {
           <div className="mt-8 pt-6 border-t">
             <p className="text-xs text-muted-foreground text-center">
               זוכר את הסיסמה?{' '}
-              <Link to="/login" className="text-button-primary hover:underline font-medium">
+              <Link to="/auth" className="text-button-primary hover:underline font-medium">
                 התחבר כאן
               </Link>
             </p>

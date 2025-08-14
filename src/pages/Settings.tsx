@@ -42,7 +42,7 @@ const Settings = () => {
       title: "התנתקת מהמערכת",
       description: "התנתקת בהצלחה מהמערכת.",
     });
-    navigate("/login");
+    navigate("/auth");
   };
 
   return (

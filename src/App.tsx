@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { BottomNavigation } from "@/components/BottomNavigation";
@@ -103,7 +103,8 @@ const App = () => {
                 <Route path="/app-exclusive" element={<AppExclusive />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/registration" element={<Registration />} />
-                <Route path="/login" element={<Login />} />
+                {/* Redirect /login to /auth for consistency */}
+                <Route path="/login" element={<Navigate to="/auth" replace />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/onboarding/welcome" element={<OnboardingWelcome />} />
@@ -257,7 +258,7 @@ const ConditionalNavigation = () => {
   const { profile } = useAuth();
   const isSupplierRoute = location.pathname.startsWith('/supplier/') || location.pathname === '/supplier-dashboard';
   const isAdminRoute = location.pathname.startsWith('/admin/');
-  const isOnboardingRoute = location.pathname.startsWith('/onboarding/') || location.pathname === '/registration' || location.pathname === '/login' || location.pathname === '/auth';
+  const isOnboardingRoute = location.pathname.startsWith('/onboarding/') || location.pathname === '/registration' || location.pathname === '/auth';
   const isSupportRoute = location.pathname.startsWith('/support/');
   
   // Don't show navigation during onboarding, auth flows, support chat, or admin panel

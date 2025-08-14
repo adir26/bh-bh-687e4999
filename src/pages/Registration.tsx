@@ -259,7 +259,7 @@ export default function Registration() {
             <p className="text-muted-foreground text-sm">
               כבר יש לכם חשבון?{' '}
               <button 
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/auth')}
                 className="text-primary hover:underline font-medium"
               >
                 התחברו כאן
