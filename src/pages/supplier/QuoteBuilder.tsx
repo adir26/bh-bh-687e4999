@@ -623,25 +623,25 @@ export default function QuoteBuilder() {
               <div className="space-y-2 text-left">
                 <div className="flex justify-between">
                   <span>סכום ביניים:</span>
-                  <span>₪{subtotalAmount.toLocaleString('he-IL')}</span>
+                  <span>₪{calculations.subtotal.toLocaleString('he-IL')}</span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span>הנחה ({discount}%):</span>
-                    <span>-₪{discountAmount.toLocaleString('he-IL')}</span>
+                    <span>-₪{calculations.discountAmount.toLocaleString('he-IL')}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span>לפני מע"ם:</span>
-                  <span>₪{taxableAmount.toLocaleString('he-IL')}</span>
+                  <span>₪{calculations.taxableAmount.toLocaleString('he-IL')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>מע"ם ({taxRate}%):</span>
-                  <span>₪{taxAmount.toLocaleString('he-IL')}</span>
+                  <span>מע"מ ({taxRate}%):</span>
+                  <span>₪{calculations.taxAmount.toLocaleString('he-IL')}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2">
                   <span>סה"כ:</span>
-                  <span>₪{totalAmount.toLocaleString('he-IL')}</span>
+                  <span>₪{calculations.totalAmount.toLocaleString('he-IL')}</span>
                 </div>
               </div>
             </div>

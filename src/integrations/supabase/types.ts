@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -316,7 +316,9 @@ export type Database = {
         Row: {
           assigned_to: string | null
           client_id: string
+          contact_email: string | null
           contact_method: string | null
+          contact_phone: string | null
           converted_at: string | null
           created_at: string
           estimated_value: number | null
@@ -325,6 +327,7 @@ export type Database = {
           last_contact_date: string | null
           lead_number: string
           lost_reason: string | null
+          name: string | null
           next_follow_up_date: string | null
           notes: string | null
           priority: string | null
@@ -338,7 +341,9 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           client_id: string
+          contact_email?: string | null
           contact_method?: string | null
+          contact_phone?: string | null
           converted_at?: string | null
           created_at?: string
           estimated_value?: number | null
@@ -347,6 +352,7 @@ export type Database = {
           last_contact_date?: string | null
           lead_number: string
           lost_reason?: string | null
+          name?: string | null
           next_follow_up_date?: string | null
           notes?: string | null
           priority?: string | null
@@ -360,7 +366,9 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           client_id?: string
+          contact_email?: string | null
           contact_method?: string | null
+          contact_phone?: string | null
           converted_at?: string | null
           created_at?: string
           estimated_value?: number | null
@@ -369,6 +377,7 @@ export type Database = {
           last_contact_date?: string | null
           lead_number?: string
           lost_reason?: string | null
+          name?: string | null
           next_follow_up_date?: string | null
           notes?: string | null
           priority?: string | null
@@ -1483,7 +1492,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"]
       }
       log_performance_metric: {
-        Args: { p_metric_name: string; p_metric_value: number; p_labels?: Json }
+        Args: { p_labels?: Json; p_metric_name: string; p_metric_value: number }
         Returns: undefined
       }
       refresh_all_analytics: {

@@ -49,6 +49,7 @@ import OrderManagement from "./pages/supplier/OrderManagement";
 import SupplierNotifications from "./pages/supplier/Notifications";
 import SupplierAnalytics from "./pages/supplier/Analytics";
 import SupplierCRM from "./pages/supplier/CRM";
+import QuoteView from "./pages/QuoteView";
 import Support from "./pages/Support";
 import SupportChat from "./pages/SupportChat";
 import ComplaintForm from "./pages/ComplaintForm";
@@ -165,6 +166,7 @@ const App = () => {
                     <SupplierAnalytics />
                   </ProtectedRoute>
                 } />
+                <Route path="/quotes/:quoteId" element={<QuoteView />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/favorites" element={<Favorites />} />
                 <Route path="/orders" element={<Orders />} />

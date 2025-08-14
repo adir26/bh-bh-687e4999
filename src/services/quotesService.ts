@@ -66,17 +66,18 @@ export interface UpdateQuoteItemPayload {
 
 export const quotesService = {
   async createQuote(payload: CreateQuotePayload): Promise<Quote> {
+    const userId = (await supabase.auth.getUser()).data.user?.id;
+    
     const { data, error } = await supabase
       .from('quotes')
       .insert({
-        supplier_id: (await supabase.auth.getUser()).data.user?.id,
-        title: payload.title,
+        supplier_id: userId,
         client_id: payload.client_id,
+        title: payload.title,
         notes: payload.notes,
         subtotal: 0,
         total_amount: 0,
-        status: 'draft' as const,
-      })
+      } as any)
       .select()
       .maybeSingle();
 
