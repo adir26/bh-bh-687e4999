@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,52 +9,49 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin, User } from 'lucide-react';
 import { SearchInput } from '@/components/ui/search-input';
 import { showToast } from '@/utils/toast';
-
-interface Lead {
-  id: string;
-  customerName: string;
-  location: string;
-  service: string;
-  message: string;
-  date: string;
-  status: 'new' | 'in-progress' | 'closed' | 'not-relevant';
-}
+import { leadsService, Lead, LeadStatus } from '@/services/leadsService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LeadManagement() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const leads: Lead[] = [
-    {
-      id: '1',
-      customerName: 'שרה לוי',
-      location: 'תל אביב',
-      service: 'עיצוב מטבח',
-      message: 'אני מעוניינת בעיצוב מטבח חדש לדירה בת 4 חדרים. המטבח קיים כרגע ישן וצריך חידוש מלא.',
-      date: '2024-01-15',
-      status: 'new'
-    },
-    {
-      id: '2',
-      customerName: 'דוד כהן',
-      location: 'ירושלים',
-      service: 'שיפוץ חדר אמבטיה',
-      message: 'רוצה לשפץ חדר אמבטיה, להחליף אריחים ואבזרים. התקציב עד 50,000 ש"ח.',
-      date: '2024-01-14',
-      status: 'in-progress'
-    },
-    {
-      id: '3',
-      customerName: 'מיכל אברהם',
-      location: 'חיפה',
-      service: 'תכנון סלון',
-      message: 'מתכננת לעצב מחדש את הסלון, מעוניינת בפגישה לייעוץ וקבלת הצעת מחיר.',
-      date: '2024-01-13',
-      status: 'new'
-    },
-  ];
+  useEffect(() => {
+    const fetchLeads = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const data = await leadsService.listLeads(user.id, {
+          status: statusFilter === 'all' ? undefined : statusFilter as LeadStatus,
+          search: searchTerm || undefined
+        });
+        setLeads(data);
+      } catch (error) {
+        console.error('Error fetching leads:', error);
+        showToast.error('שגיאה בטעינת הלידים');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeads();
+  }, [user?.id, statusFilter, searchTerm]);
+
+  const handleCall = (phone: string) => {
+    if (!phone) {
+      showToast.error('מספר טלפון לא זמין');
+      return;
+    }
+    
+    // Format phone number for tel: link
+    const formattedPhone = phone.startsWith('+') ? phone : `+972${phone.replace(/^0/, '')}`;
+    window.location.href = `tel:${formattedPhone}`;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -76,12 +73,7 @@ export default function LeadManagement() {
     }
   };
 
-  const filteredLeads = leads.filter(lead => {
-    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
-    const matchesSearch = lead.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.service.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
+  const filteredLeads = leads;
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
@@ -182,38 +174,47 @@ export default function LeadManagement() {
               <Card key={lead.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        {lead.customerName}
-                      </CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {lead.location}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(lead.date).toLocaleDateString('he-IL')}
-                        </span>
-                      </div>
-                    </div>
+                     <div className="space-y-1">
+                       <CardTitle className="text-lg flex items-center gap-2">
+                         <User className="w-4 h-4" />
+                         {lead.name || 'לקוח ללא שם'}
+                       </CardTitle>
+                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                         {lead.contact_phone && (
+                           <a 
+                             href={`tel:${lead.contact_phone.startsWith('+') ? lead.contact_phone : `+972${lead.contact_phone.replace(/^0/, '')}`}`}
+                             className="flex items-center gap-1 hover:text-primary transition-colors"
+                           >
+                             <Phone className="w-3 h-3" />
+                             {lead.contact_phone}
+                           </a>
+                         )}
+                         <span className="flex items-center gap-1">
+                           <Calendar className="w-3 h-3" />
+                           {new Date(lead.created_at).toLocaleDateString('he-IL')}
+                         </span>
+                       </div>
+                     </div>
                     <Badge className={getStatusColor(lead.status)}>
                       {getStatusText(lead.status)}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-medium text-sm text-muted-foreground mb-1">שירות מבוקש:</h4>
-                    <p className="font-medium">{lead.service}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-sm text-muted-foreground mb-1">הודעה:</h4>
-                    <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">
-                      {lead.message}
-                    </p>
-                  </div>
+                 <CardContent className="space-y-4">
+                   {lead.source && (
+                     <div>
+                       <h4 className="font-medium text-sm text-muted-foreground mb-1">מקור:</h4>
+                       <p className="font-medium">{lead.source}</p>
+                     </div>
+                   )}
+                   {lead.notes && (
+                     <div>
+                       <h4 className="font-medium text-sm text-muted-foreground mb-1">הערות:</h4>
+                       <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">
+                         {lead.notes}
+                       </p>
+                     </div>
+                   )}
                   <div className="flex gap-2 pt-2">
                     <Button 
                       variant="blue" 
@@ -224,13 +225,14 @@ export default function LeadManagement() {
                       <FileText className="w-4 h-4 ml-1" />
                       שלח הצעת מחיר
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => showToast.comingSoon('התקשרות ישירה')}
-                    >
-                      <Phone className="w-4 h-4" />
-                    </Button>
+                     <Button 
+                       variant="outline" 
+                       size="sm"
+                       onClick={() => handleCall(lead.contact_phone)}
+                       disabled={!lead.contact_phone}
+                     >
+                       <Phone className="w-4 h-4" />
+                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -257,28 +259,41 @@ export default function LeadManagement() {
                 <table className="w-full">
                   <thead className="border-b">
                     <tr>
-                      <th className="text-right p-4 font-medium">שם לקוח</th>
-                      <th className="text-right p-4 font-medium">תאריך</th>
-                      <th className="text-right p-4 font-medium">סטטוס</th>
-                      <th className="text-right p-4 font-medium">שירות</th>
-                      <th className="text-right p-4 font-medium">מיקום</th>
-                      <th className="text-right p-4 font-medium">פעולות</th>
+                       <th className="text-right p-4 font-medium">שם לקוח</th>
+                       <th className="text-right p-4 font-medium">תאריך</th>
+                       <th className="text-right p-4 font-medium">סטטוס</th>
+                       <th className="text-right p-4 font-medium">טלפון</th>
+                       <th className="text-right p-4 font-medium">מקור</th>
+                       <th className="text-right p-4 font-medium">פעולות</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredLeads.map((lead) => (
-                      <tr key={lead.id} className="border-b hover:bg-muted/50">
-                        <td className="p-4 font-medium">{lead.customerName}</td>
-                        <td className="p-4 text-muted-foreground">
-                          {new Date(lead.date).toLocaleDateString('he-IL')}
-                        </td>
-                        <td className="p-4">
-                          <Badge className={getStatusColor(lead.status)}>
-                            {getStatusText(lead.status)}
-                          </Badge>
-                        </td>
-                        <td className="p-4">{lead.service}</td>
-                        <td className="p-4 text-muted-foreground">{lead.location}</td>
+                       <tr key={lead.id} className="border-b hover:bg-muted/50">
+                         <td className="p-4 font-medium">{lead.name || 'לקוח ללא שם'}</td>
+                         <td className="p-4 text-muted-foreground">
+                           {new Date(lead.created_at).toLocaleDateString('he-IL')}
+                         </td>
+                         <td className="p-4">
+                           <Badge className={getStatusColor(lead.status)}>
+                             {getStatusText(lead.status)}
+                           </Badge>
+                         </td>
+                         <td className="p-4">
+                           {lead.contact_phone ? (
+                             <a 
+                               href={`tel:${lead.contact_phone.startsWith('+') ? lead.contact_phone : `+972${lead.contact_phone.replace(/^0/, '')}`}`}
+                               className="hover:text-primary transition-colors"
+                             >
+                               {lead.contact_phone}
+                             </a>
+                           ) : (
+                             <span className="text-muted-foreground">לא זמין</span>
+                           )}
+                         </td>
+                         <td className="p-4 text-muted-foreground">
+                           {lead.source || '-'}
+                         </td>
                         <td className="p-4">
                           <div className="flex gap-1">
                             <Button 
@@ -288,13 +303,14 @@ export default function LeadManagement() {
                             >
                               <FileText className="w-3 h-3" />
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => showToast.comingSoon('התקשרות ישירה')}
-                            >
-                              <Phone className="w-3 h-3" />
-                            </Button>
+                             <Button 
+                               variant="outline" 
+                               size="sm"
+                               onClick={() => handleCall(lead.contact_phone)}
+                               disabled={!lead.contact_phone}
+                             >
+                               <Phone className="w-3 h-3" />
+                             </Button>
                             <Button 
                               variant="outline" 
                               size="sm"

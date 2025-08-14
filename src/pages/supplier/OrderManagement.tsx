@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,21 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ArrowLeft, Package, User, Calendar, MapPin, Phone, Mail, CheckCircle, Clock, Truck, AlertCircle } from 'lucide-react';
 import { showToast } from '@/utils/toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Order {
   id: string;
+  client_id: string;
   clientName: string;
   clientEmail: string;
   clientPhone: string;
-  orderDate: string;
-  deliveryAddress: string;
-  status: 'received' | 'production' | 'ready' | 'shipping' | 'delivered';
-  totalAmount: number;
-  items: {
-    name: string;
-    quantity: number;
-    price: number;
-  }[];
+  title: string;
+  description: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  due_date: string;
 }
 
 const orderStatuses = [
@@ -34,51 +34,67 @@ const orderStatuses = [
 
 export default function OrderManagement() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const orders: Order[] = [
-    {
-      id: '001',
-      clientName: 'שרה לוי',
-      clientEmail: 'sarah@email.com',
-      clientPhone: '050-1234567',
-      orderDate: '2024-01-15',
-      deliveryAddress: 'רח\' הרצל 45, תל אביב',
-      status: 'production',
-      totalAmount: 15000,
-      items: [
-        { name: 'עיצוב מטבח מלא', quantity: 1, price: 12000 },
-        { name: 'התקנה', quantity: 1, price: 3000 },
-      ]
-    },
-    {
-      id: '002',
-      clientName: 'דוד כהן',
-      clientEmail: 'david@email.com',
-      clientPhone: '052-7654321',
-      orderDate: '2024-01-12',
-      deliveryAddress: 'רח\' יפו 123, ירושלים',
-      status: 'ready',
-      totalAmount: 8500,
-      items: [
-        { name: 'שיפוץ חדר אמבטיה', quantity: 1, price: 8500 },
-      ]
-    },
-    {
-      id: '003',
-      clientName: 'מיכל אברהם',
-      clientEmail: 'michal@email.com',
-      clientPhone: '053-9876543',
-      orderDate: '2024-01-10',
-      deliveryAddress: 'רח\' הנשיא 78, חיפה',
-      status: 'shipping',
-      totalAmount: 5200,
-      items: [
-        { name: 'עיצוב סלון', quantity: 1, price: 4500 },
-        { name: 'ייעוץ צבעים', quantity: 1, price: 700 },
-      ]
-    },
-  ];
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!user?.id) return;
+      
+      try {
+        // Fetch orders for this supplier with client profile information
+        const { data: ordersData, error } = await supabase
+          .from('orders')
+          .select(`
+            *,
+            profiles!orders_client_id_fkey (
+              full_name,
+              email,
+              phone
+            )
+          `)
+          .eq('supplier_id', user.id);
+
+        if (error) throw error;
+
+        const formattedOrders = ordersData?.map(order => ({
+          id: order.id,
+          client_id: order.client_id,
+          clientName: order.profiles?.full_name || 'לקוח ללא שם',
+          clientEmail: order.profiles?.email || '',
+          clientPhone: order.profiles?.phone || '',
+          title: order.title,
+          description: order.description,
+          amount: order.amount,
+          status: order.status,
+          created_at: order.created_at,
+          due_date: order.due_date
+        })) || [];
+
+        setOrders(formattedOrders);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        showToast.error('שגיאה בטעינת ההזמנות');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user?.id]);
+
+  const handleCall = (phone: string) => {
+    if (!phone) {
+      showToast.error('מספר טלפון לא זמין');
+      return;
+    }
+    
+    // Format phone number for tel: link
+    const formattedPhone = phone.startsWith('+') ? phone : `+972${phone.replace(/^0/, '')}`;
+    window.location.href = `tel:${formattedPhone}`;
+  };
 
   const selectedOrder = selectedOrderId ? orders.find(o => o.id === selectedOrderId) : null;
 
@@ -156,12 +172,12 @@ export default function OrderManagement() {
                           {statusInfo.label}
                         </Badge>
                       </div>
-                      <div className="text-left">
-                        <div className="font-bold text-lg">₪{order.totalAmount.toLocaleString('he-IL')}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(order.orderDate).toLocaleDateString('he-IL')}
-                        </div>
-                      </div>
+                       <div className="text-left">
+                         <div className="font-bold text-lg">₪{order.amount.toLocaleString('he-IL')}</div>
+                         <div className="text-sm text-muted-foreground">
+                           {new Date(order.created_at).toLocaleDateString('he-IL')}
+                         </div>
+                       </div>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -170,21 +186,38 @@ export default function OrderManagement() {
                           <User className="w-4 h-4 text-muted-foreground" />
                           <span className="font-medium">{order.clientName}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Phone className="w-4 h-4" />
-                          <span>{order.clientPhone}</span>
-                        </div>
+                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                           <Phone className="w-4 h-4" />
+                           {order.clientPhone ? (
+                             <a 
+                               href={`tel:${order.clientPhone.startsWith('+') ? order.clientPhone : `+972${order.clientPhone.replace(/^0/, '')}`}`}
+                               className="hover:text-primary transition-colors"
+                               onClick={(e) => {
+                                 e.preventDefault();
+                                 handleCall(order.clientPhone);
+                               }}
+                             >
+                               {order.clientPhone}
+                             </a>
+                           ) : (
+                             <span>לא זמין</span>
+                           )}
+                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Mail className="w-4 h-4" />
                           <span>{order.clientEmail}</span>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-start gap-2 text-sm">
-                          <MapPin className="w-4 h-4 text-muted-foreground mt-0.5" />
-                          <span>{order.deliveryAddress}</span>
-                        </div>
-                      </div>
+                       <div className="space-y-2">
+                         <div className="flex items-start gap-2 text-sm">
+                           <div className="font-medium">{order.title}</div>
+                         </div>
+                         {order.description && (
+                           <div className="text-sm text-muted-foreground">
+                             {order.description}
+                           </div>
+                         )}
+                       </div>
                     </div>
 
                     <div className="flex items-center justify-between">
@@ -251,25 +284,22 @@ export default function OrderManagement() {
                                 </Select>
                               </div>
 
-                              {/* Order Items */}
-                              <div>
-                                <h3 className="font-semibold mb-3">פריטים בהזמנה</h3>
-                                <div className="space-y-2">
-                                  {selectedOrder.items.map((item, index) => (
-                                    <div key={index} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                                      <div>
-                                        <div className="font-medium">{item.name}</div>
-                                        <div className="text-sm text-muted-foreground">כמות: {item.quantity}</div>
-                                      </div>
-                                      <div className="font-bold">₪{item.price.toLocaleString('he-IL')}</div>
-                                    </div>
-                                  ))}
-                                  <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-                                    <div className="font-bold">סה"כ</div>
-                                    <div className="font-bold text-lg">₪{selectedOrder.totalAmount.toLocaleString('he-IL')}</div>
-                                  </div>
-                                </div>
-                              </div>
+                               {/* Order Details */}
+                               <div>
+                                 <h3 className="font-semibold mb-3">פרטי הזמנה</h3>
+                                 <div className="space-y-3">
+                                   <div className="p-3 bg-muted/50 rounded-lg">
+                                     <div className="font-medium">{selectedOrder.title}</div>
+                                     {selectedOrder.description && (
+                                       <div className="text-sm text-muted-foreground mt-1">{selectedOrder.description}</div>
+                                     )}
+                                   </div>
+                                   <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+                                     <div className="font-bold">סה"כ</div>
+                                     <div className="font-bold text-lg">₪{selectedOrder.amount.toLocaleString('he-IL')}</div>
+                                   </div>
+                                 </div>
+                               </div>
                             </div>
                           )}
                         </DialogContent>
