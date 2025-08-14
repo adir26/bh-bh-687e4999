@@ -7,6 +7,18 @@ import { BottomCTA } from '@/components/BottomCTA';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '@/utils/toast';
 
+// Import premium images
+import appExclusiveHero from '@/assets/app-exclusive-hero.jpg';
+import exclusiveKitchenOffer from '@/assets/exclusive-kitchen-offer.jpg';
+import exclusiveRenovation from '@/assets/exclusive-renovation.jpg';
+import exclusiveMortgageAdvisor from '@/assets/exclusive-mortgage-advisor.jpg';
+import premiumSupplierAccess from '@/assets/premium-supplier-access.jpg';
+import realTimePricing from '@/assets/real-time-pricing.jpg';
+import personalConsultation from '@/assets/personal-consultation.jpg';
+import luxuryFurnitureDeal from '@/assets/luxury-furniture-deal.jpg';
+import premiumAcInstallation from '@/assets/premium-ac-installation.jpg';
+import premiumMovingServices from '@/assets/premium-moving-services.jpg';
+
 const AppExclusive = () => {
   const navigate = useNavigate();
 
@@ -16,19 +28,19 @@ const AppExclusive = () => {
       id: '1',
       title: 'הנחה 20% למטבחים',
       subtitle: 'בלעדי לאפליקציה',
-      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
+      image: exclusiveKitchenOffer
     },
     {
       id: '2',
       title: 'שיפוצים עם הנחה מיוחדת',
       subtitle: 'בלעדי לאפליקציה',
-      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=480&h=480&fit=crop'
+      image: exclusiveRenovation
     },
     {
       id: '3',
       title: 'יועץ משכנתאות בחינם',
       subtitle: 'בלעדי לאפליקציה',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=480&h=480&fit=crop'
+      image: exclusiveMortgageAdvisor
     }
   ];
 
@@ -37,19 +49,19 @@ const AppExclusive = () => {
       id: '1',
       title: 'גישה מיידית לספקים',
       subtitle: 'יתרונות פרימיום',
-      image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=480&h=480&fit=crop'
+      image: premiumSupplierAccess
     },
     {
       id: '2',
       title: 'הערכות מחיר בזמן אמת',
       subtitle: 'יתרונות פרימיום',
-      image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=480&h=480&fit=crop'
+      image: realTimePricing
     },
     {
       id: '3',
       title: 'ייעוץ אישי ללא עלות',
       subtitle: 'יתרונות פרימיום',
-      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=480&h=480&fit=crop'
+      image: personalConsultation
     }
   ];
 
@@ -58,19 +70,19 @@ const AppExclusive = () => {
       id: '1',
       title: 'ריהוט בהנחה של 30%',
       subtitle: 'מבצעים בלעדיים',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=480&h=480&fit=crop'
+      image: luxuryFurnitureDeal
     },
     {
       id: '2',
       title: 'מיזוג אוויר - התקנה חינם',
       subtitle: 'מבצעים בלעדיים',
-      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=480&h=480&fit=crop'
+      image: premiumAcInstallation
     },
     {
       id: '3',
       title: 'חבילת שירותי הובלה',
       subtitle: 'מבצעים בלעדיים',
-      image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=480&h=480&fit=crop'
+      image: premiumMovingServices
     }
   ];
 
@@ -92,7 +104,7 @@ const AppExclusive = () => {
           <TopBanner
             title="בלעדי לאפליקציה"
             subtitle="הטבות מיוחדות ומבצעים בלעדיים רק למשתמשי האפליקציה"
-            backgroundImage="https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=800&h=400&fit=crop"
+            backgroundImage={appExclusiveHero}
           />
 
           <div className="w-full">
