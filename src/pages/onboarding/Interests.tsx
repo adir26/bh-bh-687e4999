@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, ChevronRight, Utensils, Zap, FileText, Lightbulb, Tag, Phone, MessageCircle, Mail } from 'lucide-react';
 import OnboardingProgress from '@/components/OnboardingProgress';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import interestsImage from '@/assets/interests.jpg';
 
 const interestTopics = [
@@ -72,6 +74,7 @@ const languages = [
 
 export default function OnboardingInterests() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['hebrew']);
@@ -101,7 +104,7 @@ export default function OnboardingInterests() {
     );
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     const interestsData = {
       interests: selectedInterests,
       contactChannels: selectedChannels,
@@ -109,7 +112,43 @@ export default function OnboardingInterests() {
       notes: userNotes
     };
     
-    localStorage.setItem('userInterests', JSON.stringify(interestsData));
+    // Get additional onboarding data from localStorage
+    const homeDetails = localStorage.getItem('homeDetails');
+    const projectPlanning = localStorage.getItem('projectPlanning');
+    const documents = localStorage.getItem('documents');
+    
+    const fullOnboardingData = {
+      ...interestsData,
+      homeDetails: homeDetails ? JSON.parse(homeDetails) : undefined,
+      projectPlanning: projectPlanning ? JSON.parse(projectPlanning) : undefined,
+      documents: documents ? JSON.parse(documents) : undefined
+    };
+    
+    try {
+      // Import the service
+      const { onboardingService } = await import('@/services/onboardingService');
+      
+      if (user) {
+        const result = await onboardingService.saveClientOnboarding(user.id, fullOnboardingData);
+        if (result.success) {
+          // Clear localStorage after successful save
+          localStorage.removeItem('userInterests');
+          localStorage.removeItem('homeDetails');
+          localStorage.removeItem('projectPlanning');
+          localStorage.removeItem('documents');
+          
+          toast.success('האונבורדינג הושלם בהצלחה!');
+        } else {
+          toast.error('שגיאה בשמירת הנתונים');
+        }
+      } else {
+        toast.error('משתמש לא מחובר');
+      }
+    } catch (error) {
+      console.error('Error saving onboarding data:', error);
+      toast.error('שגיאה בשמירת הנתונים');
+    }
+    
     navigate('/profile'); // Navigate to profile to see summary
   };
 

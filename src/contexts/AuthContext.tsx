@@ -19,7 +19,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName?: string, role?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName?: string, role?: string) => Promise<{ error: any, data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
@@ -104,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, fullName?: string, role?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -132,13 +132,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "destructive"
       });
     } else {
-      toast({
-        title: "הרשמה בוצעה בהצלחה",
-        description: "אנא בדוק את האימייל שלך לאישור החשבון"
-      });
+      // Check if user is immediately available (no email confirmation required)
+      if (data.user && data.session) {
+        toast({
+          title: "הרשמה בוצעה בהצלחה",
+          description: "ברוך הבא!"
+        });
+      } else {
+        toast({
+          title: "הרשמה בוצעה בהצלחה",
+          description: "אנא בדוק את האימייל שלך לאישור החשבון"
+        });
+      }
     }
 
-    return { error };
+    return { error, data };
   };
 
   const signIn = async (email: string, password: string) => {

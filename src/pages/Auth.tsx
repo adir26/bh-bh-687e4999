@@ -31,7 +31,7 @@ const Auth: React.FC = () => {
   useEffect(() => {
     if (user && profile) {
       // Get intended destination from location state, or default based on role
-      const from = location.state?.from?.pathname || getDefaultRoute(profile.role);
+      const from = location.state?.from?.pathname || getDefaultRoute(profile.role, false);
       navigate(from, { replace: true });
       return;
     }
@@ -49,7 +49,19 @@ const Auth: React.FC = () => {
     }
   }, [user, profile, navigate, searchParams, location.state]);
 
-  const getDefaultRoute = (role: string) => {
+  const getDefaultRoute = (role: string, isNewUser = false) => {
+    // If user is new (just signed up), redirect to onboarding
+    if (isNewUser) {
+      switch (role) {
+        case 'supplier':
+          return '/onboarding/supplier-welcome';
+        case 'client':
+        default:
+          return '/onboarding/welcome';
+      }
+    }
+    
+    // For existing users (login), redirect to dashboard
     switch (role) {
       case 'supplier':
         return '/supplier-dashboard';
@@ -102,17 +114,25 @@ const Auth: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await signUp(
+      const { error, data } = await signUp(
         signupForm.email, 
         signupForm.password, 
         signupForm.fullName,
         signupForm.role
       );
       
-      if (!error) {
-        // Success toast is handled in AuthContext
-        setActiveTab('login');
-        setLoginForm({ email: signupForm.email, password: '' });
+      if (!error && data) {
+        // Check if user is immediately available (no email confirmation required)
+        if (data.user && data.session) {
+          // User is logged in immediately, redirect to onboarding
+          const onboardingRoute = getDefaultRoute(signupForm.role, true);
+          navigate(onboardingRoute, { replace: true });
+        } else {
+          // Email confirmation required, show message and switch to login tab
+          setActiveTab('login');
+          setLoginForm({ email: signupForm.email, password: '' });
+          toast.success('הרשמה בוצעה בהצלחה! אנא בדוק את האימייל שלך לאישור החשבון ולאחר מכן התחבר.');
+        }
       }
     } catch (error) {
       console.error('Signup error:', error);

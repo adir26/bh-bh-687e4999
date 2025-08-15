@@ -5,61 +5,109 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import OnboardingProgress from '@/components/OnboardingProgress';
 import { ChevronRight, Building2, MapPin, Phone, Mail, Clock, Package, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import supplierSuccessImage from '@/assets/supplier-success.jpg';
 
 interface OnboardingData {
-  companyInfo?: {
+  companyInfo: {
     companyName: string;
     category: string;
     operatingArea: string;
     contactName: string;
     phone: string;
     email: string;
-    website: string;
+    website?: string;
   };
   branding?: {
-    description: string;
-    showBusinessHours: boolean;
-    businessHours: any;
+    description?: string;
+    showBusinessHours?: boolean;
+    businessHours?: any;
   };
   products?: Array<{
     name: string;
     category: string;
-    price: string;
+    price: number;
     description: string;
   }>;
 }
 
 export default function SupplierSummary() {
   const navigate = useNavigate();
-  const [onboardingData, setOnboardingData] = useState<OnboardingData>({});
+  const { user } = useAuth();
+  const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
 
   useEffect(() => {
     const savedData = localStorage.getItem('supplierOnboarding');
     if (savedData) {
-      setOnboardingData(JSON.parse(savedData));
+      const data = JSON.parse(savedData);
+      // Ensure companyInfo exists
+      if (data.companyInfo) {
+        setOnboardingData(data);
+      } else {
+        toast.error('נתונים חסרים. אנא השלם את תהליך ההרשמה.');
+        navigate('/onboarding/supplier-welcome');
+      }
+    } else {
+      toast.error('נתונים חסרים. אנא השלם את תהליך ההרשמה.');
+      navigate('/onboarding/supplier-welcome');
     }
-  }, []);
+  }, [navigate]);
 
   const handlePublish = async () => {
     setIsPublishing(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Import services
+      const { onboardingService } = await import('@/services/onboardingService');
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
+      if (!onboardingData) {
+        throw new Error('No onboarding data found');
+      }
+      
+      const result = await onboardingService.saveSupplierOnboarding(user.id, onboardingData);
+      
+      if (result.success) {
+        // Clear onboarding data
+        localStorage.removeItem('supplierOnboarding');
+        toast.success('הפרופיל פורסם בהצלחה!');
+        
+        // Redirect to success or supplier dashboard
+        navigate('/supplier-dashboard');
+      } else {
+        throw new Error('Failed to save onboarding data');
+      }
+    } catch (error) {
+      console.error('Error publishing supplier profile:', error);
+      toast.error('שגיאה בפרסום הפרופיל');
+    }
     
-    // Clear onboarding data
-    localStorage.removeItem('supplierOnboarding');
-    
-    // Redirect to success or supplier dashboard
-    navigate('/supplier-dashboard');
+    setIsPublishing(false);
   };
 
   const handleBack = () => {
     navigate('/onboarding/supplier-products');
   };
 
-  const { companyInfo, branding, products } = onboardingData;
+  const companyInfo = onboardingData?.companyInfo;
+  const branding = onboardingData?.branding;
+  const products = onboardingData?.products;
+
+  if (!onboardingData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">טוען נתונים...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col" dir="rtl">
