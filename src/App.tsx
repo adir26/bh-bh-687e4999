@@ -10,6 +10,7 @@ import { BottomNavigation } from "@/components/BottomNavigation";
 import { SupplierBottomNavigation } from "@/components/SupplierBottomNavigation";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import Search from "./pages/Search";
 import Favorites from "./pages/Favorites";
 import Orders from "./pages/Orders";
@@ -102,6 +103,7 @@ const App = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/app-exclusive" element={<AppExclusive />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/registration" element={<Registration />} />
                 {/* Redirect /login to /auth for consistency */}
                 <Route path="/login" element={<Navigate to="/auth" replace />} />

@@ -21,7 +21,7 @@ const Auth: React.FC = () => {
     phone: ''
   });
   
-  const { signIn, signUp, user, profile } = useAuth();
+  const { signIn, signUp, user, profile, getRoute } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -83,11 +83,13 @@ const Auth: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await signIn(loginForm.email, loginForm.password);
+      const { error, data } = await signIn(loginForm.email, loginForm.password);
       
-      if (!error) {
-        // Success toast is handled in AuthContext
-        // Navigation will happen automatically via auth state change
+      if (!error && data?.user) {
+        // Wait a moment for profile to be fetched
+        setTimeout(() => {
+          navigate(getRoute());
+        }, 100);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -117,16 +119,20 @@ const Auth: React.FC = () => {
       const { error, data } = await signUp(
         signupForm.email, 
         signupForm.password, 
-        signupForm.fullName,
-        signupForm.role
+        { 
+          full_name: signupForm.fullName, 
+          role: signupForm.role,
+          phone: signupForm.phone
+        }
       );
       
       if (!error && data) {
         // Check if user is immediately available (no email confirmation required)
         if (data.user && data.session) {
           // User is logged in immediately, redirect to onboarding
-          const onboardingRoute = getDefaultRoute(signupForm.role, true);
-          navigate(onboardingRoute, { replace: true });
+          setTimeout(() => {
+            navigate(getRoute(true));
+          }, 100);
         } else {
           // Email confirmation required, show message and switch to login tab
           setActiveTab('login');

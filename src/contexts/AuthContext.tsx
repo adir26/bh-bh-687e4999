@@ -10,8 +10,9 @@ interface Profile {
   phone?: string;
   role: 'client' | 'supplier' | 'admin';
   avatar_url?: string;
-  created_at: string;
-  updated_at: string;
+  onboarding_completed?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface AuthContextType {
@@ -19,10 +20,11 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName?: string, role?: string) => Promise<{ error: any, data?: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data?: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any, data?: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
+  getRoute: (isNewUser?: boolean) => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, full_name, phone, avatar_url, role, onboarding_completed')
         .eq('id', userId)
         .single();
 
@@ -101,37 +103,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName?: string, role?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          role: role || 'client'
+  const signUp = async (email: string, password: string, metadata?: any) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            ...metadata,
+            full_name: metadata?.full_name || metadata?.fullName || '',
+            role: metadata?.role || 'client'
+          }
         }
-      }
-    });
-
-    if (error) {
-      let errorMessage = "שגיאה בהרשמה";
-      if (error.message.includes('User already registered')) {
-        errorMessage = "המשתמש כבר רשום במערכת";
-      } else if (error.message.includes('Password should be at least')) {
-        errorMessage = "הסיסמה חייבת להכיל לפחות 6 תווים";
-      } else if (error.message.includes('Unable to validate email address')) {
-        errorMessage = "כתובת האימייל לא תקינה";
-      }
-      
-      toast({
-        title: "שגיאה בהרשמה",
-        description: errorMessage,
-        variant: "destructive"
       });
-    } else {
+
+      if (error) {
+        let errorMessage = "שגיאה בהרשמה";
+        if (error.message.includes('User already registered')) {
+          errorMessage = "המשתמש כבר רשום במערכת";
+        } else if (error.message.includes('Password should be at least')) {
+          errorMessage = "הסיסמה חייבת להכיל לפחות 6 תווים";
+        } else if (error.message.includes('Unable to validate email address')) {
+          errorMessage = "כתובת האימייל לא תקינה";
+        }
+        
+        toast({
+          title: "שגיאה בהרשמה",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        return { error };
+      }
+
       // Check if user is immediately available (no email confirmation required)
       if (data.user && data.session) {
         toast({
@@ -144,38 +149,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: "אנא בדוק את האימייל שלך לאישור החשבון"
         });
       }
-    }
 
-    return { error, data };
+      return { data, error: null };
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      return { error };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      let errorMessage = "שגיאה בהתחברות";
-      if (error.message.includes('Invalid login credentials')) {
-        errorMessage = "פרטי ההתחברות שגויים";
-      } else if (error.message.includes('Email not confirmed')) {
-        errorMessage = "אנא אמת את כתובת האימייל שלך";
-      }
-      
-      toast({
-        title: "שגיאה בהתחברות",
-        description: errorMessage,
-        variant: "destructive"
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
       });
-    } else {
+
+      if (error) {
+        let errorMessage = "שגיאה בהתחברות";
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = "פרטי ההתחברות שגויים";
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = "אנא אמת את כתובת האימייל שלך";
+        }
+        
+        toast({
+          title: "שגיאה בהתחברות",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        return { error };
+      }
+
+      // Fetch profile after successful login
+      if (data.user) {
+        const userProfile = await fetchProfile(data.user.id);
+        setProfile(userProfile);
+      }
+
       toast({
         title: "התחברת בהצלחה",
         description: "ברוך הבא!"
       });
-    }
 
-    return { error };
+      return { data, error: null };
+    } catch (error: any) {
+      console.error('Login error:', error);
+      return { error };
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signOut = async () => {
@@ -220,6 +245,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
+  const getRoute = (isNewUser?: boolean) => {
+    if (!profile) return '/auth';
+    
+    const { role, onboarding_completed } = profile;
+    
+    if (isNewUser || !onboarding_completed) {
+      return role === 'supplier' ? '/onboarding/supplier-welcome' : '/onboarding/welcome';
+    }
+    
+    if (role === 'supplier') return '/supplier-dashboard';
+    if (role === 'admin') return '/admin/dashboard';
+    return '/'; // client dashboard/home
+  };
+
   const value = {
     user,
     session,
@@ -228,7 +267,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
-    updateProfile
+    updateProfile,
+    getRoute
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
