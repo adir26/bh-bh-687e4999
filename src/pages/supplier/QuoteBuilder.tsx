@@ -41,7 +41,7 @@ export default function QuoteBuilder() {
   const [selectedClientId, setSelectedClientId] = useState('');
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
-  const [clientPhone, setClientPhone] = useState('');
+  
   const [items, setItems] = useState<LocalQuoteItem[]>([
     { id: crypto.randomUUID(), name: '', description: '', quantity: 1, unit_price: 0, total: 0, sort_order: 0 }
   ]);
@@ -60,7 +60,7 @@ export default function QuoteBuilder() {
         // Load clients for the dropdown
         const { data: clientsData } = await supabase
           .from('profiles')
-          .select('id, full_name, email, phone')
+          .select('id, full_name, email')
           .eq('role', 'client');
         
         setClients(clientsData || []);
@@ -95,14 +95,13 @@ export default function QuoteBuilder() {
             if (quote.client_id) {
               const { data: clientData } = await supabase
                 .from('profiles')
-                .select('full_name, email, phone')
+                .select('full_name, email')
                 .eq('id', quote.client_id)
                 .maybeSingle();
                 
               if (clientData) {
                 setClientName(clientData.full_name || '');
                 setClientEmail(clientData.email || '');
-                setClientPhone(clientData.phone || '');
               }
             }
           }
@@ -123,7 +122,6 @@ export default function QuoteBuilder() {
             }
             setClientName(lead.name || '');
             setClientEmail(lead.contact_email || '');
-            setClientPhone(lead.contact_phone || '');
             setNotes(lead.notes || '');
           }
         }
@@ -285,14 +283,12 @@ export default function QuoteBuilder() {
 
       const supplierInfo = {
         name: profile.full_name || 'ספק',
-        phone: profile.phone,
         email: profile.email
       };
 
       const clientInfo = {
         name: clientName,
-        email: clientEmail,
-        phone: clientPhone
+        email: clientEmail
       };
 
       const doc = (
@@ -362,7 +358,6 @@ export default function QuoteBuilder() {
     if (client) {
       setClientName(client.full_name || '');
       setClientEmail(client.email || '');
-      setClientPhone(client.phone || '');
     }
   };
 
@@ -480,7 +475,7 @@ export default function QuoteBuilder() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">שם הלקוח</label>
                 <Input
@@ -496,14 +491,6 @@ export default function QuoteBuilder() {
                   value={clientEmail}
                   onChange={(e) => setClientEmail(e.target.value)}
                   placeholder="client@example.com"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">טלפון</label>
-                <Input
-                  value={clientPhone}
-                  onChange={(e) => setClientPhone(e.target.value)}
-                  placeholder="050-1234567"
                 />
               </div>
             </div>

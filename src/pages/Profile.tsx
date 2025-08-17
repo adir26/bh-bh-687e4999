@@ -58,8 +58,7 @@ const Profile = () => {
   const form = useForm<UserProfile>({
     defaultValues: {
       fullName: profile?.full_name || '',
-      email: profile?.email || '',
-      phone: profile?.phone || ''
+      email: profile?.email || ''
     }
   });
 
@@ -113,8 +112,7 @@ const Profile = () => {
         if (profile) {
           form.reset({
             fullName: profile.full_name || '',
-            email: profile.email || '',
-            phone: profile.phone || ''
+            email: profile.email || ''
           });
         }
 
@@ -162,8 +160,7 @@ const Profile = () => {
     
     try {
       await profilesService.updateProfile(user.id, {
-        full_name: data.fullName,
-        phone: data.phone
+        full_name: data.fullName
       });
       toast.success('הפרופיל עודכן בהצלחה');
       setIsEditing(false);

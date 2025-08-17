@@ -51,25 +51,15 @@ export interface SupplierOnboardingData {
 class OnboardingService {
   async saveClientOnboarding(userId: string, data: ClientOnboardingData) {
     try {
-      // Update profile to mark onboarding as completed
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ 
-          onboarding_completed: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId);
-
-      if (profileError) throw profileError;
-
-      // Save interests and preferences as user analytics
-      const analyticsData = {
+      // Save client profile data
+      const clientProfileData = {
         user_id: userId,
-        metric_name: 'onboarding_completion',
-        metric_value: 1,
-        metric_date: new Date().toISOString().split('T')[0],
-        metadata: {
-          type: 'client_onboarding',
+        interests: data.interests || [],
+        home_type: data.homeDetails?.homeType || '',
+        property_size: data.homeDetails?.homeSize || '',
+        budget_range: data.projectPlanning?.budget || '',
+        project_timeline: data.projectPlanning?.timeline || '',
+        preferences: {
           interests: data.interests,
           contactChannels: data.contactChannels,
           languages: data.languages,
@@ -81,11 +71,22 @@ class OnboardingService {
         }
       };
 
-      const { error: analyticsError } = await supabase
-        .from('user_analytics')
-        .insert(analyticsData);
+      const { error: clientProfileError } = await supabase
+        .from('client_profiles')
+        .upsert(clientProfileData);
 
-      if (analyticsError) throw analyticsError;
+      if (clientProfileError) throw clientProfileError;
+
+      // Update profile to mark onboarding as completed
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ 
+          onboarding_completed: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+
+      if (profileError) throw profileError;
 
       return { success: true };
     } catch (error) {
@@ -99,16 +100,15 @@ class OnboardingService {
       // Create company record first
       const { data: company, error: companyError } = await supabase
         .from('companies')
-        .insert({
+        .upsert({
           owner_id: userId,
           name: data.companyInfo.companyName,
           description: data.branding?.description || '',
           website: data.companyInfo.website || null,
           city: data.companyInfo.operatingArea,
-          phone: data.companyInfo.phone,
           email: data.companyInfo.email,
           logo_url: data.branding?.logo || null
-        })
+        }, { onConflict: 'owner_id' })
         .select()
         .single();
 
@@ -179,17 +179,14 @@ class OnboardingService {
   async getClientOnboardingData(userId: string) {
     try {
       const { data, error } = await supabase
-        .from('user_analytics')
+        .from('client_profiles')
         .select('*')
         .eq('user_id', userId)
-        .eq('metric_name', 'onboarding_interests')
-        .order('created_at', { ascending: false })
-        .limit(1)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
 
-      return { data: data?.metadata, error: null };
+      return { data, error: null };
     } catch (error) {
       console.error('Error getting client onboarding data:', error);
       return { data: null, error };

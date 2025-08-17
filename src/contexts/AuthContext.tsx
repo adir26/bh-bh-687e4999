@@ -7,12 +7,10 @@ interface Profile {
   id: string;
   email: string;
   full_name?: string;
-  phone?: string;
   role: 'client' | 'supplier' | 'admin';
-  avatar_url?: string;
-  onboarding_completed?: boolean;
-  created_at?: string;
-  updated_at?: string;
+  onboarding_completed: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface AuthContextType {
@@ -48,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, full_name, phone, avatar_url, role, onboarding_completed')
+        .select('id, email, full_name, role, onboarding_completed, created_at, updated_at')
         .eq('id', userId)
         .single();
 
@@ -112,7 +110,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
-            ...metadata,
             full_name: metadata?.full_name || metadata?.fullName || '',
             role: metadata?.role || 'client'
           }
@@ -250,10 +247,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     const { role, onboarding_completed } = profile;
     
+    // Force onboarding for new users or incomplete onboarding
     if (isNewUser || !onboarding_completed) {
       return role === 'supplier' ? '/onboarding/supplier-welcome' : '/onboarding/welcome';
     }
     
+    // Redirect to appropriate dashboard based on role
     if (role === 'supplier') return '/supplier-dashboard';
     if (role === 'admin') return '/admin/dashboard';
     return '/'; // client dashboard/home

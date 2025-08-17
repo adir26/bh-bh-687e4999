@@ -98,6 +98,53 @@ export type Database = {
           },
         ]
       }
+      client_profiles: {
+        Row: {
+          budget_range: string | null
+          created_at: string
+          home_type: string | null
+          id: string
+          interests: string[] | null
+          preferences: Json | null
+          project_timeline: string | null
+          property_size: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_range?: string | null
+          created_at?: string
+          home_type?: string | null
+          id?: string
+          interests?: string[] | null
+          preferences?: Json | null
+          project_timeline?: string | null
+          property_size?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_range?: string | null
+          created_at?: string
+          home_type?: string | null
+          id?: string
+          interests?: string[] | null
+          preferences?: Json | null
+          project_timeline?: string | null
+          property_size?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           address: string | null
@@ -808,35 +855,29 @@ export type Database = {
       }
       profiles: {
         Row: {
-          avatar_url: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
           onboarding_completed: boolean | null
-          phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
         Insert: {
-          avatar_url?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id: string
           onboarding_completed?: boolean | null
-          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Update: {
-          avatar_url?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
           onboarding_completed?: boolean | null
-          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }

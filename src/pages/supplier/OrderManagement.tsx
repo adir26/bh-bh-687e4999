@@ -15,7 +15,6 @@ interface Order {
   client_id: string;
   clientName: string;
   clientEmail: string;
-  clientPhone: string;
   title: string;
   description: string;
   amount: number;
@@ -51,8 +50,7 @@ export default function OrderManagement() {
             *,
             profiles!orders_client_id_fkey (
               full_name,
-              email,
-              phone
+              email
             )
           `)
           .eq('supplier_id', user.id);
@@ -64,7 +62,6 @@ export default function OrderManagement() {
           client_id: order.client_id,
           clientName: order.profiles?.full_name || 'לקוח ללא שם',
           clientEmail: order.profiles?.email || '',
-          clientPhone: order.profiles?.phone || '',
           title: order.title,
           description: order.description,
           amount: order.amount,
@@ -188,20 +185,7 @@ export default function OrderManagement() {
                         </div>
                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
                            <Phone className="w-4 h-4" />
-                           {order.clientPhone ? (
-                             <a 
-                               href={`tel:${order.clientPhone.startsWith('+') ? order.clientPhone : `+972${order.clientPhone.replace(/^0/, '')}`}`}
-                               className="hover:text-primary transition-colors"
-                               onClick={(e) => {
-                                 e.preventDefault();
-                                 handleCall(order.clientPhone);
-                               }}
-                             >
-                               {order.clientPhone}
-                             </a>
-                           ) : (
-                             <span>לא זמין</span>
-                           )}
+                           <span>לא זמין</span>
                          </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Mail className="w-4 h-4" />

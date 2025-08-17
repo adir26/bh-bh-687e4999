@@ -31,7 +31,7 @@ export const Header: React.FC<HeaderProps> = ({ userName }) => {
       <div className="flex w-10 h-10 xs:w-12 xs:h-12 items-center">
         {user ? (
           <img
-            src={profile?.avatar_url || "https://api.builder.io/api/v1/image/assets/TEMP/25232c54ada7ccb23c097ee9c1cf936b2eb0aece?width=64"}
+            src="https://api.builder.io/api/v1/image/assets/TEMP/25232c54ada7ccb23c097ee9c1cf936b2eb0aece?width=64"
             alt="User avatar"
             className="w-7 h-7 xs:w-8 xs:h-8 shrink-0 rounded-2xl object-cover"
           />

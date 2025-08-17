@@ -45,7 +45,7 @@ export default function QuoteView() {
         // Load supplier info
         const { data: supplier } = await supabase
           .from('profiles')
-          .select('full_name, email, phone')
+          .select('full_name, email')
           .eq('id', quote.supplier_id)
           .maybeSingle();
 
@@ -97,8 +97,7 @@ export default function QuoteView() {
 
       const clientInfo = {
         name: profile.full_name || 'לקוח',
-        email: profile.email || '',
-        phone: profile.phone || ''
+        email: profile.email || ''
       };
 
       const doc = (

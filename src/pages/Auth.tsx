@@ -17,8 +17,7 @@ const Auth: React.FC = () => {
     email: '', 
     password: '', 
     fullName: '', 
-    role: 'client' as 'client' | 'supplier',
-    phone: ''
+    role: 'client' as 'client' | 'supplier'
   });
   
   const { signIn, signUp, user, profile, getRoute } = useAuth();
@@ -121,8 +120,7 @@ const Auth: React.FC = () => {
         signupForm.password, 
         { 
           full_name: signupForm.fullName, 
-          role: signupForm.role,
-          phone: signupForm.phone
+          role: signupForm.role
         }
       );
       
@@ -272,18 +270,6 @@ const Auth: React.FC = () => {
                         className="h-12 text-base"
                         autoComplete="new-password"
                         minLength={6}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-phone">מספר טלפון (אופציונלי)</Label>
-                      <Input
-                        id="signup-phone"
-                        type="tel"
-                        placeholder="052-123-4567"
-                        value={signupForm.phone}
-                        onChange={(e) => setSignupForm({ ...signupForm, phone: e.target.value })}
-                        className="h-12 text-base"
-                        autoComplete="tel"
                       />
                     </div>
                     <div className="space-y-2">
