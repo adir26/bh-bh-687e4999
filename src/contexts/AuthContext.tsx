@@ -66,6 +66,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('[AUTH] State change:', { 
+          event, 
+          hasSession: !!session, 
+          userId: session?.user?.id,
+          origin: window.location.origin 
+        });
+        
         setSession(session);
         setUser(session?.user ?? null);
 
@@ -85,6 +92,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('[AUTH] Initial session check:', { 
+        hasSession: !!session, 
+        userId: session?.user?.id 
+      });
+      
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -104,8 +116,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, metadata?: any) => {
     setLoading(true);
     try {
+      // Sanitize email - strip RTL marks, spaces, and normalize
+      const cleanEmail = email?.replace(/\u200F|\u200E/g, '').trim().toLowerCase();
+      
+      console.log('[AUTH] SignUp attempt:', { 
+        email: cleanEmail, 
+        role: metadata?.role, 
+        origin: window.location.origin 
+      });
+
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: cleanEmail,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
@@ -159,8 +180,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
+      // Sanitize email - strip RTL marks, spaces, and normalize
+      const cleanEmail = email?.replace(/\u200F|\u200E/g, '').trim().toLowerCase();
+      
+      console.log('[AUTH] SignIn attempt:', { 
+        email: cleanEmail, 
+        origin: window.location.origin 
+      });
+
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: cleanEmail,
         password
       });
 
@@ -246,6 +275,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!profile) return '/auth';
     
     const { role, onboarding_completed } = profile;
+    
+    console.log('[AUTH] Route decision:', { 
+      role, 
+      onboarding_completed, 
+      isNewUser 
+    });
     
     // Force onboarding for new users or incomplete onboarding
     if (isNewUser || !onboarding_completed) {

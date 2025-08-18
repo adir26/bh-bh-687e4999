@@ -79,16 +79,26 @@ const Auth: React.FC = () => {
       return;
     }
     
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(loginForm.email.trim())) {
+      toast.error('כתובת האימייל לא תקינה');
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       const { error, data } = await signIn(loginForm.email, loginForm.password);
       
       if (!error && data?.user) {
+        console.log('[AUTH_PAGE] Login successful, waiting for profile...');
         // Wait a moment for profile to be fetched
         setTimeout(() => {
-          navigate(getRoute());
-        }, 100);
+          const route = getRoute(false); // Not a new user
+          console.log('[AUTH_PAGE] Login navigation to:', route);
+          navigate(route);
+        }, 200);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -107,14 +117,32 @@ const Auth: React.FC = () => {
       return;
     }
     
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(signupForm.email.trim())) {
+      toast.error('כתובת האימייל לא תקינה');
+      return;
+    }
+    
     if (signupForm.password.length < 6) {
       toast.error('הסיסמה חייבת להכיל לפחות 6 תווים');
+      return;
+    }
+    
+    if (!signupForm.fullName.trim() || signupForm.fullName.trim().length < 2) {
+      toast.error('אנא הזן שם מלא תקין');
       return;
     }
     
     setIsLoading(true);
     
     try {
+      console.log('[AUTH_PAGE] Starting signup for:', { 
+        email: signupForm.email, 
+        role: signupForm.role,
+        fullName: signupForm.fullName 
+      });
+
       const { error, data } = await signUp(
         signupForm.email, 
         signupForm.password, 
@@ -125,14 +153,23 @@ const Auth: React.FC = () => {
       );
       
       if (!error && data) {
+        console.log('[AUTH_PAGE] Signup result:', { 
+          hasUser: !!data.user, 
+          hasSession: !!data.session 
+        });
+        
         // Check if user is immediately available (no email confirmation required)
         if (data.user && data.session) {
           // User is logged in immediately, redirect to onboarding
+          console.log('[AUTH_PAGE] Immediate signup success, navigating to onboarding');
           setTimeout(() => {
-            navigate(getRoute(true));
-          }, 100);
+            const route = getRoute(true);
+            console.log('[AUTH_PAGE] Signup navigation to:', route);
+            navigate(route);
+          }, 200);
         } else {
           // Email confirmation required, show message and switch to login tab
+          console.log('[AUTH_PAGE] Email confirmation required');
           setActiveTab('login');
           setLoginForm({ email: signupForm.email, password: '' });
           toast.success('הרשמה בוצעה בהצלחה! אנא בדוק את האימייל שלך לאישור החשבון ולאחר מכן התחבר.');

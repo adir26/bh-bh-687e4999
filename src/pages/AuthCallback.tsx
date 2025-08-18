@@ -10,24 +10,38 @@ const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        console.log('[AUTH_CALLBACK] Starting callback process:', {
+          url: window.location.href,
+          hash: window.location.hash,
+          search: window.location.search
+        });
+
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Auth callback error:', error);
+          console.error('[AUTH_CALLBACK] Session error:', error);
           navigate('/auth');
           return;
         }
 
         if (data.session?.user) {
-          // Wait for auth context to update
+          console.log('[AUTH_CALLBACK] User authenticated:', {
+            userId: data.session.user.id,
+            email: data.session.user.email
+          });
+          
+          // Wait for auth context to update and fetch profile
           setTimeout(() => {
-            navigate(getRoute(true));
-          }, 1000);
+            const route = getRoute(true); // Mark as new user from callback
+            console.log('[AUTH_CALLBACK] Navigating to:', route);
+            navigate(route);
+          }, 1500); // Increased wait time for profile fetch
         } else {
+          console.log('[AUTH_CALLBACK] No session found, redirecting to auth');
           navigate('/auth');
         }
       } catch (error) {
-        console.error('Auth callback error:', error);
+        console.error('[AUTH_CALLBACK] Unexpected error:', error);
         navigate('/auth');
       }
     };
