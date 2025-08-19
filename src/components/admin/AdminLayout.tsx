@@ -4,6 +4,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { AdminBottomNavigation } from "./AdminBottomNavigation";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -14,10 +15,39 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
 
   useEffect(() => {
-    const adminToken = localStorage.getItem("adminToken");
-    if (!adminToken && location.pathname !== "/admin/login") {
-      navigate("/admin/login");
-    }
+    const checkAdminAuth = async () => {
+      if (location.pathname === "/admin/login") return;
+      
+      const adminAuth = localStorage.getItem("adminAuthenticated");
+      const adminUserId = localStorage.getItem("adminUserId");
+      
+      if (!adminAuth || !adminUserId) {
+        navigate("/admin/login");
+        return;
+      }
+
+      // Verify session is still valid
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session || session.user.id !== adminUserId) {
+        // Clear invalid session
+        localStorage.removeItem("adminAuthenticated");
+        localStorage.removeItem("adminUserId");
+        navigate("/admin/login");
+        return;
+      }
+
+      // Double-check admin status
+      const { data: isAdmin } = await supabase.rpc('is_admin', { user_id: session.user.id });
+      if (!isAdmin) {
+        localStorage.removeItem("adminAuthenticated");
+        localStorage.removeItem("adminUserId");
+        await supabase.auth.signOut();
+        navigate("/admin/login");
+      }
+    };
+
+    checkAdminAuth();
   }, [navigate, location.pathname]);
 
   const isLoginPage = location.pathname === "/admin/login";

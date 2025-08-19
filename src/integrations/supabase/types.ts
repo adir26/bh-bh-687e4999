@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_credentials: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           changed_fields: string[] | null
@@ -1539,8 +1560,16 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       log_performance_metric: {
         Args: { p_labels?: Json; p_metric_name: string; p_metric_value: number }
+        Returns: undefined
+      }
+      promote_to_admin: {
+        Args: { target_user_id: string }
         Returns: undefined
       }
       refresh_all_analytics: {

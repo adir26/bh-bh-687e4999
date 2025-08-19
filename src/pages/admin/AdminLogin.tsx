@@ -6,37 +6,100 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function AdminLogin() {
   const [credentials, setCredentials] = useState({
-    username: "",
+    email: "",
     password: ""
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const sanitizeEmail = (email: string) => {
+    return email?.replace(/\u200F|\u200E/g, '').trim().toLowerCase();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simple admin authentication - in production this would be proper backend auth
-    if (credentials.username === "admin" && credentials.password === "admin123") {
-      localStorage.setItem("adminToken", "admin_authenticated");
+    try {
+      const cleanEmail = sanitizeEmail(credentials.email);
+      
+      // Authenticate with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: credentials.password,
+      });
+
+      if (error) {
+        console.error('[ADMIN_AUTH] Error:', error);
+        toast({
+          title: "שגיאה בהתחברות",
+          description: error.message === "Invalid login credentials" 
+            ? "פרטי הכניסה שגויים" 
+            : "שגיאה בהתחברות, נסו שנית",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!data.user) {
+        toast({
+          title: "שגיאה בהתחברות", 
+          description: "לא ניתן לאמת את המשתמש",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check if user is admin
+      const { data: isAdminResult, error: adminError } = await supabase
+        .rpc('is_admin', { user_id: data.user.id });
+
+      if (adminError) {
+        console.error('[ADMIN_AUTH] Admin check error:', adminError);
+        toast({
+          title: "שגיאה בהרשאות",
+          description: "לא ניתן לאמת הרשאות מנהל",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!isAdminResult) {
+        toast({
+          title: "גישה נדחתה",
+          description: "אין לכם הרשאות מנהל",
+          variant: "destructive",
+        });
+        // Sign out the user since they're not an admin
+        await supabase.auth.signOut();
+        return;
+      }
+
+      // Store session securely
+      localStorage.setItem("adminAuthenticated", "true");
+      localStorage.setItem("adminUserId", data.user.id);
+      
       toast({
         title: "התחברות בוצעה בהצלחה",
         description: "ברוכים הבאים לפאנל הניהול",
       });
+      
       navigate("/admin/dashboard");
-    } else {
+    } catch (error) {
+      console.error('[ADMIN_AUTH] Unexpected error:', error);
       toast({
         title: "שגיאה בהתחברות",
-        description: "פרטי הכניסה שגויים",
+        description: "שגיאה לא צפויה, נסו שנית",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
   return (
@@ -51,13 +114,13 @@ export default function AdminLogin() {
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
-              <Label htmlFor="username" className="font-hebrew text-right block">שם משתמש</Label>
+              <Label htmlFor="email" className="font-hebrew text-right block">אימייל</Label>
               <Input
-                id="username"
-                type="text"
-                placeholder="הזינו שם משתמש"
-                value={credentials.username}
-                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
+                id="email"
+                type="email"
+                placeholder="הזינו כתובת אימייל"
+                value={credentials.email}
+                onChange={(e) => setCredentials(prev => ({ ...prev, email: e.target.value }))}
                 required
                 className="text-right min-h-input mobile-button"
                 dir="rtl"
