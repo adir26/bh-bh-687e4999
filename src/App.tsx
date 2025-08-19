@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import Registration from "./pages/Registration";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import SupplierProfilePreview from "./pages/SupplierProfilePreview";
 import Notifications from "./pages/Notifications";
 import OnboardingWelcome from "./pages/onboarding/Welcome";
@@ -108,6 +109,7 @@ const App = () => {
                 {/* Redirect /login to /auth for consistency */}
                 <Route path="/login" element={<Navigate to="/auth" replace />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/onboarding/welcome" element={<OnboardingWelcome />} />
                 <Route path="/onboarding/home-details" element={<OnboardingHomeDetails />} />
