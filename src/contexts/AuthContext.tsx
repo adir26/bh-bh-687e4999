@@ -23,6 +23,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
   getRoute: (isNewUser?: boolean) => string;
+  storeIntendedRoute: (route: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [intendedRoute, setIntendedRoute] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchProfile = async (userId: string) => {
@@ -63,6 +65,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    let debounceTimeout: NodeJS.Timeout;
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -82,6 +86,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const profileData = await fetchProfile(session.user.id);
             setProfile(profileData);
             setLoading(false);
+            
+            // Handle navigation for returning users (not through callback)
+            if (event === 'SIGNED_IN' && !window.location.pathname.includes('/auth/callback')) {
+              // Clear any existing timeout
+              if (debounceTimeout) clearTimeout(debounceTimeout);
+              
+              // Debounced navigation to prevent multiple redirects
+              debounceTimeout = setTimeout(() => {
+                if (profileData && !profileData.onboarding_completed && profileData.role !== 'admin') {
+                  const onboardingRoute = profileData.role === 'supplier' 
+                    ? '/onboarding/supplier-welcome' 
+                    : '/onboarding/welcome';
+                  
+                  console.log('[AUTH] Redirecting to onboarding:', onboardingRoute);
+                  window.location.href = onboardingRoute;
+                } else if (profileData?.onboarding_completed && intendedRoute) {
+                  // Restore intended route if user had tried to access protected content
+                  console.log('[AUTH] Restoring intended route:', intendedRoute);
+                  window.location.href = intendedRoute;
+                  setIntendedRoute(null);
+                }
+              }, 500);
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -110,8 +137,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+      if (debounceTimeout) clearTimeout(debounceTimeout);
+    };
+  }, [intendedRoute]);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     setLoading(true);
@@ -282,6 +312,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isNewUser 
     });
     
+    // Admin users bypass onboarding
+    if (role === 'admin') return '/admin/dashboard';
+    
     // Force onboarding for new users or incomplete onboarding
     if (isNewUser || !onboarding_completed) {
       return role === 'supplier' ? '/onboarding/supplier-welcome' : '/onboarding/welcome';
@@ -289,8 +322,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Redirect to appropriate dashboard based on role
     if (role === 'supplier') return '/supplier-dashboard';
-    if (role === 'admin') return '/admin/dashboard';
     return '/'; // client dashboard/home
+  };
+
+  const storeIntendedRoute = (route: string) => {
+    setIntendedRoute(route);
   };
 
   const value = {
@@ -302,7 +338,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     updateProfile,
-    getRoute
+    getRoute,
+    storeIntendedRoute
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

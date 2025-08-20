@@ -82,6 +82,8 @@ import { HomepageContentManagement } from "./pages/admin/HomepageContentManageme
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { OnboardingGuard } from "./components/OnboardingGuard";
+import { CompletedOnboardingGuard } from "./components/CompletedOnboardingGuard";
 import MyMessages from "./pages/MyMessages";
 import MyMeetings from "./pages/MyMeetings";
 import SavedSuppliers from "./pages/SavedSuppliers";
@@ -111,65 +113,125 @@ const App = () => {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/notifications" element={<Notifications />} />
-                <Route path="/onboarding/welcome" element={<OnboardingWelcome />} />
-                <Route path="/onboarding/home-details" element={<OnboardingHomeDetails />} />
-                <Route path="/onboarding/project-planning" element={<OnboardingProjectPlanning />} />
-                <Route path="/onboarding/documents" element={<OnboardingDocuments />} />
-                <Route path="/onboarding/interests" element={<OnboardingInterests />} />
-                <Route path="/onboarding/supplier-welcome" element={<SupplierWelcome />} />
-                <Route path="/onboarding/supplier-company-info" element={<SupplierCompanyInfo />} />
-                <Route path="/onboarding/supplier-branding" element={<SupplierBranding />} />
-                <Route path="/onboarding/supplier-products" element={<SupplierProducts />} />
-                <Route path="/onboarding/supplier-summary" element={<SupplierSummary />} />
+                <Route path="/onboarding/welcome" element={
+                  <CompletedOnboardingGuard>
+                    <OnboardingWelcome />
+                  </CompletedOnboardingGuard>
+                } />
+                <Route path="/onboarding/home-details" element={
+                  <CompletedOnboardingGuard>
+                    <OnboardingHomeDetails />
+                  </CompletedOnboardingGuard>
+                } />
+                <Route path="/onboarding/project-planning" element={
+                  <CompletedOnboardingGuard>
+                    <OnboardingProjectPlanning />
+                  </CompletedOnboardingGuard>
+                } />
+                <Route path="/onboarding/documents" element={
+                  <CompletedOnboardingGuard>
+                    <OnboardingDocuments />
+                  </CompletedOnboardingGuard>
+                } />
+                <Route path="/onboarding/interests" element={
+                  <CompletedOnboardingGuard>
+                    <OnboardingInterests />
+                  </CompletedOnboardingGuard>
+                } />
+                <Route path="/onboarding/supplier-welcome" element={
+                  <CompletedOnboardingGuard>
+                    <SupplierWelcome />
+                  </CompletedOnboardingGuard>
+                } />
+                <Route path="/onboarding/supplier-company-info" element={
+                  <CompletedOnboardingGuard>
+                    <SupplierCompanyInfo />
+                  </CompletedOnboardingGuard>
+                } />
+                <Route path="/onboarding/supplier-branding" element={
+                  <CompletedOnboardingGuard>
+                    <SupplierBranding />
+                  </CompletedOnboardingGuard>
+                } />
+                <Route path="/onboarding/supplier-products" element={
+                  <CompletedOnboardingGuard>
+                    <SupplierProducts />
+                  </CompletedOnboardingGuard>
+                } />
+                <Route path="/onboarding/supplier-summary" element={
+                  <CompletedOnboardingGuard>
+                    <SupplierSummary />
+                  </CompletedOnboardingGuard>
+                } />
                 <Route path="/supplier-dashboard" element={
-                  <ProtectedRoute allowedRoles={['supplier']}>
-                    <SupplierDashboard />
-                  </ProtectedRoute>
+                  <OnboardingGuard>
+                    <ProtectedRoute allowedRoles={['supplier']}>
+                      <SupplierDashboard />
+                    </ProtectedRoute>
+                  </OnboardingGuard>
                 } />
                 <Route path="/supplier/dashboard" element={
-                  <ProtectedRoute allowedRoles={['supplier']}>
-                    <SupplierDashboardNew />
-                  </ProtectedRoute>
+                  <OnboardingGuard>
+                    <ProtectedRoute allowedRoles={['supplier']}>
+                      <SupplierDashboardNew />
+                    </ProtectedRoute>
+                  </OnboardingGuard>
                 } />
                 <Route path="/supplier/leads" element={
-                  <ProtectedRoute allowedRoles={['supplier']}>
-                    <SupplierLeadManagement />
-                  </ProtectedRoute>
+                  <OnboardingGuard>
+                    <ProtectedRoute allowedRoles={['supplier']}>
+                      <SupplierLeadManagement />
+                    </ProtectedRoute>
+                  </OnboardingGuard>
                 } />
                 <Route path="/supplier/crm" element={
-                  <ProtectedRoute allowedRoles={['supplier']}>
-                    <SupplierCRM />
-                  </ProtectedRoute>
+                  <OnboardingGuard>
+                    <ProtectedRoute allowedRoles={['supplier']}>
+                      <SupplierCRM />
+                    </ProtectedRoute>
+                  </OnboardingGuard>
                 } />
                 <Route path="/supplier/catalog" element={
-                  <ProtectedRoute allowedRoles={['supplier']}>
-                    <ProductCatalog />
-                  </ProtectedRoute>
+                  <OnboardingGuard>
+                    <ProtectedRoute allowedRoles={['supplier']}>
+                      <ProductCatalog />
+                    </ProtectedRoute>
+                  </OnboardingGuard>
                 } />
                 <Route path="/supplier/quotes" element={
-                  <ProtectedRoute allowedRoles={['supplier']}>
-                    <QuoteBuilder />
-                  </ProtectedRoute>
+                  <OnboardingGuard>
+                    <ProtectedRoute allowedRoles={['supplier']}>
+                      <QuoteBuilder />
+                    </ProtectedRoute>
+                  </OnboardingGuard>
                 } />
                 <Route path="/supplier/proposals" element={
-                  <ProtectedRoute allowedRoles={['supplier']}>
-                    <ProposalBuilder />
-                  </ProtectedRoute>
+                  <OnboardingGuard>
+                    <ProtectedRoute allowedRoles={['supplier']}>
+                      <ProposalBuilder />
+                    </ProtectedRoute>
+                  </OnboardingGuard>
                 } />
                 <Route path="/supplier/orders" element={
-                  <ProtectedRoute allowedRoles={['supplier']}>
-                    <OrderManagement />
-                  </ProtectedRoute>
+                  <OnboardingGuard>
+                    <ProtectedRoute allowedRoles={['supplier']}>
+                      <OrderManagement />
+                    </ProtectedRoute>
+                  </OnboardingGuard>
                 } />
                 <Route path="/supplier/notifications" element={
-                  <ProtectedRoute allowedRoles={['supplier']}>
-                    <SupplierNotifications />
-                  </ProtectedRoute>
+                  <OnboardingGuard>
+                    <ProtectedRoute allowedRoles={['supplier']}>
+                      <SupplierNotifications />
+                    </ProtectedRoute>
+                  </OnboardingGuard>
                 } />
                 <Route path="/supplier/analytics" element={
-                  <ProtectedRoute allowedRoles={['supplier']}>
-                    <SupplierAnalytics />
-                  </ProtectedRoute>
+                  <OnboardingGuard>
+                    <ProtectedRoute allowedRoles={['supplier']}>
+                      <SupplierAnalytics />
+                    </ProtectedRoute>
+                  </OnboardingGuard>
                 } />
                 <Route path="/quotes/:quoteId" element={<QuoteView />} />
                 <Route path="/search" element={<Search />} />

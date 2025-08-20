@@ -74,7 +74,7 @@ const languages = [
 
 export default function OnboardingInterests() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, getRoute } = useAuth();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['hebrew']);
@@ -138,6 +138,10 @@ export default function OnboardingInterests() {
           localStorage.removeItem('documents');
           
           toast.success('האונבורדינג הושלם בהצלחה!');
+          
+          // Navigate to appropriate dashboard using getRoute
+          const dashboardRoute = getRoute(false);
+          navigate(dashboardRoute);
         } else {
           toast.error('שגיאה בשמירת הנתונים');
         }
@@ -148,8 +152,6 @@ export default function OnboardingInterests() {
       console.error('Error saving onboarding data:', error);
       toast.error('שגיאה בשמירת הנתונים');
     }
-    
-    navigate('/profile'); // Navigate to profile to see summary
   };
 
   const handleBack = () => {
