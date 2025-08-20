@@ -90,6 +90,9 @@ import SavedSuppliers from "./pages/SavedSuppliers";
 import SupplierProductsView from "./pages/SupplierProducts";
 import SupplierReviews from "./pages/SupplierReviews";
 import AppExclusive from "./pages/AppExclusive";
+import Accessibility from "./pages/Accessibility";
+import Terms from "./pages/Terms";
+import { SiteFooter } from "./components/SiteFooter";
 
 const queryClient = new QueryClient();
 
@@ -112,6 +115,8 @@ const App = () => {
                 <Route path="/login" element={<Navigate to="/auth" replace />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/accessibility" element={<Accessibility />} />
+                <Route path="/terms" element={<Terms />} />
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/onboarding/welcome" element={
                   <CompletedOnboardingGuard>
@@ -311,6 +316,7 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <ConditionalNavigation />
+              <SiteFooter />
             </div>
           </BrowserRouter>
         </TooltipProvider>
