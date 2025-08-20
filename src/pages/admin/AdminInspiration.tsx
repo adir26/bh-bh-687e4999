@@ -76,7 +76,7 @@ export default function AdminInspiration() {
         query = query.eq('is_public', true);
       }
 
-      if (selectedRoom) {
+      if (selectedRoom && selectedRoom !== 'all') {
         query = query.eq('room', selectedRoom);
       }
 
@@ -192,7 +192,7 @@ export default function AdminInspiration() {
               <SelectValue placeholder="חדר" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">כל החדרים</SelectItem>
+              <SelectItem value="all">כל החדרים</SelectItem>
               {rooms.map(room => (
                 <SelectItem key={room} value={room}>{room}</SelectItem>
               ))}

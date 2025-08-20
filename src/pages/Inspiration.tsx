@@ -46,11 +46,11 @@ export default function Inspiration() {
         .eq('is_public', true)
         .order('created_at', { ascending: false });
 
-      if (selectedRoom) {
+      if (selectedRoom && selectedRoom !== 'all') {
         query = query.eq('room', selectedRoom);
       }
 
-      if (selectedStyle) {
+      if (selectedStyle && selectedStyle !== 'all') {
         query = query.eq('style', selectedStyle);
       }
 
@@ -180,7 +180,7 @@ export default function Inspiration() {
                   <SelectValue placeholder="חדר" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">כל החדרים</SelectItem>
+                  <SelectItem value="all">כל החדרים</SelectItem>
                   {rooms.map(room => (
                     <SelectItem key={room} value={room}>{room}</SelectItem>
                   ))}
@@ -192,7 +192,7 @@ export default function Inspiration() {
                   <SelectValue placeholder="סגנון" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">כל הסגנונות</SelectItem>
+                  <SelectItem value="all">כל הסגנונות</SelectItem>
                   {styles.map(style => (
                     <SelectItem key={style} value={style}>{style}</SelectItem>
                   ))}
