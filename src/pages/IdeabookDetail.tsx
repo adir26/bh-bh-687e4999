@@ -12,42 +12,9 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { Ideabook, IdeabookPhoto, IdeabookCollaborator } from '@/types/inspiration';
+import { getPublicImageUrl } from '@/utils/imageUrls';
 
-interface Ideabook {
-  id: string;
-  name: string;
-  is_public: boolean;
-  share_token?: string;
-  owner_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface IdeabookPhoto {
-  id: string;
-  photo_id: string;
-  added_by: string;
-  created_at: string;
-  photos: {
-    id: string;
-    title: string;
-    storage_path: string;
-    room?: string;
-    style?: string;
-  };
-}
-
-interface Collaborator {
-  id: string;
-  user_id: string;
-  role: 'viewer' | 'editor';
-  created_at: string;
-  profiles: {
-    id: string;
-    full_name?: string;
-    email: string;
-  };
-}
 
 export default function IdeabookDetail() {
   const { id } = useParams<{ id: string }>();
@@ -55,7 +22,7 @@ export default function IdeabookDetail() {
   const navigate = useNavigate();
   const [ideabook, setIdeabook] = useState<Ideabook | null>(null);
   const [photos, setPhotos] = useState<IdeabookPhoto[]>([]);
-  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [collaborators, setCollaborators] = useState<IdeabookCollaborator[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showCollaborators, setShowCollaborators] = useState(false);
@@ -125,7 +92,7 @@ export default function IdeabookDetail() {
         .order('created_at', { ascending: false });
 
       if (photosError) throw photosError;
-      setPhotos(photosData || []);
+      setPhotos((photosData as IdeabookPhoto[]) || []);
 
       // Fetch collaborators (only if owner or editor)
       if (currentUserRole === 'owner' || currentUserRole === 'editor') {
@@ -138,7 +105,7 @@ export default function IdeabookDetail() {
           .eq('ideabook_id', id);
 
         if (collaboratorsError) throw collaboratorsError;
-        setCollaborators((collaboratorsData as Collaborator[]) || []);
+        setCollaborators((collaboratorsData as IdeabookCollaborator[]) || []);
       }
     } catch (error) {
       console.error('Error fetching ideabook details:', error);
@@ -234,7 +201,7 @@ export default function IdeabookDetail() {
 
       if (error) throw error;
 
-      setCollaborators(prev => [...prev, data as Collaborator]);
+      setCollaborators(prev => [...prev, data as IdeabookCollaborator]);
       setNewCollaboratorEmail('');
       setNewCollaboratorRole('viewer');
       toast.success('משתף נוסף בהצלחה');
@@ -266,10 +233,6 @@ export default function IdeabookDetail() {
     }
   };
 
-  const getImageUrl = (path: string) => {
-    const { data } = supabase.storage.from('inspiration-photos').getPublicUrl(path);
-    return data.publicUrl;
-  };
 
   if (loading) {
     return (
@@ -473,9 +436,10 @@ export default function IdeabookDetail() {
                   <Link to={`/inspiration/photo/${ideabookPhoto.photos.id}`}>
                     <div className={viewMode === 'grid' ? 'aspect-square' : 'aspect-video md:aspect-square'}>
                       <img
-                        src={getImageUrl(ideabookPhoto.photos.storage_path)}
+                        src={getPublicImageUrl(ideabookPhoto.photos.storage_path)}
                         alt={ideabookPhoto.photos.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
                       />
                       
                       {/* Overlay */}

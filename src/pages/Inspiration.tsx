@@ -9,24 +9,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { Photo } from '@/types/inspiration';
+import { getPublicImageUrl, preloadSignedUrls } from '@/utils/imageUrls';
+import { PhotoUploadModal } from '@/components/inspiration/PhotoUploadModal';
+import { SaveToIdeabookModal } from '@/components/inspiration/SaveToIdeabookModal';
 
-interface Photo {
-  id: string;
-  title: string;
-  description?: string;
-  storage_path: string;
-  room?: string;
-  style?: string;
-  width?: number;
-  height?: number;
-  uploader_id: string;
-  company_id?: string;
-  created_at: string;
-  likes?: number;
-  is_liked?: boolean;
-  tags?: string[];
-  products_count?: number;
-}
 
 export default function Inspiration() {
   const { user } = useAuth();
@@ -36,6 +23,8 @@ export default function Inspiration() {
   const [selectedRoom, setSelectedRoom] = useState<string>('');
   const [selectedStyle, setSelectedStyle] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [saveToIdeabookPhoto, setSaveToIdeabookPhoto] = useState<{ id: string; title: string } | null>(null);
 
   const rooms = ['מטבח', 'סלון', 'חדר שינה', 'חדר אמבטיה', 'חדר ילדים', 'משרד', 'גינה'];
   const styles = ['מודרני', 'קלאסי', 'כפרי', 'תעשייתי', 'סקנדינבי', 'מזרח תיכוני'];
@@ -49,8 +38,8 @@ export default function Inspiration() {
       let query = supabase
         .from('photos')
         .select(`
-          *,
-          photo_likes(id),
+          id, title, description, room, style, storage_path, is_public, created_at, uploader_id, updated_at,
+          photo_likes(user_id),
           photo_tags(tag),
           photo_products(id)
         `)
@@ -76,10 +65,10 @@ export default function Inspiration() {
       const processedPhotos = data?.map(photo => ({
         ...photo,
         likes: photo.photo_likes?.length || 0,
-        is_liked: user ? photo.photo_likes?.some((like: any) => like.user_id === user.id) : false,
-        tags: photo.photo_tags?.map((tag: any) => tag.tag) || [],
+        is_liked: user ? photo.photo_likes?.some((like: { user_id: string }) => like.user_id === user.id) : false,
+        tags: photo.photo_tags?.map((tag: { tag: string }) => tag.tag) || [],
         products_count: photo.photo_products?.length || 0
-      })) || [];
+      })) as Photo[] || [];
 
       setPhotos(processedPhotos);
     } catch (error) {
@@ -127,18 +116,16 @@ export default function Inspiration() {
     }
   };
 
-  const saveToIdeabook = (photoId: string) => {
+  const saveToIdeabook = (photo: Photo) => {
     if (!user) {
       toast.error('נדרש להתחבר כדי לשמור תמונות');
       return;
     }
-    // TODO: Open save to ideabook modal
-    toast.success('נשמר לאידאבוק ✨');
+    setSaveToIdeabookPhoto({ id: photo.id, title: photo.title });
   };
 
-  const getImageUrl = (path: string) => {
-    const { data } = supabase.storage.from('inspiration-photos').getPublicUrl(path);
-    return data.publicUrl;
+  const handleUploadComplete = () => {
+    fetchPhotos(); // Refresh photos after upload
   };
 
   if (loading) {
@@ -180,12 +167,10 @@ export default function Inspiration() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
             />
-            <Link to="/inspiration/upload">
-              <Button size="sm">
-                <Camera className="h-4 w-4 ml-2" />
-                העלה
-              </Button>
-            </Link>
+            <Button size="sm" onClick={() => setShowUploadModal(true)}>
+              <Camera className="h-4 w-4 ml-2" />
+              העלה
+            </Button>
           </div>
 
           {showFilters && (
@@ -234,9 +219,10 @@ export default function Inspiration() {
                   <Link to={`/inspiration/photo/${photo.id}`}>
                     <div className="aspect-square relative overflow-hidden">
                       <img
-                        src={getImageUrl(photo.storage_path)}
+                        src={getPublicImageUrl(photo.storage_path)}
                         alt={photo.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
                       />
                       
                       {/* Overlay */}
@@ -275,7 +261,7 @@ export default function Inspiration() {
                       variant="secondary"
                       onClick={(e) => {
                         e.preventDefault();
-                        saveToIdeabook(photo.id);
+                        saveToIdeabook(photo);
                       }}
                       className="h-8 w-8 p-0"
                     >
@@ -304,6 +290,20 @@ export default function Inspiration() {
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <PhotoUploadModal
+        isOpen={showUploadModal}
+        onOpenChange={setShowUploadModal}
+        onUploadComplete={handleUploadComplete}
+      />
+
+      <SaveToIdeabookModal
+        isOpen={!!saveToIdeabookPhoto}
+        onOpenChange={(open) => !open && setSaveToIdeabookPhoto(null)}
+        photoId={saveToIdeabookPhoto?.id || ''}
+        photoTitle={saveToIdeabookPhoto?.title || ''}
+      />
     </div>
   );
 }

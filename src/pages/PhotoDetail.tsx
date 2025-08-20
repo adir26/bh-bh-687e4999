@@ -8,41 +8,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { Photo, ProductTag } from '@/types/inspiration';
+import { getPublicImageUrl } from '@/utils/imageUrls';
+import { SaveToIdeabookModal } from '@/components/inspiration/SaveToIdeabookModal';
 
-interface Photo {
-  id: string;
-  title: string;
-  description?: string;
-  storage_path: string;
-  room?: string;
-  style?: string;
-  width?: number;
-  height?: number;
-  uploader_id: string;
-  company_id?: string;
-  created_at: string;
-  is_liked?: boolean;
-  tags?: string[];
-}
-
-interface ProductTag {
-  id: string;
-  product_id?: string;
-  supplier_id?: string;
-  tag_position: { x: number; y: number };
-  note?: string;
-  product?: {
-    id: string;
-    name: string;
-    price?: number;
-    currency: string;
-  };
-  supplier?: {
-    id: string;
-    full_name?: string;
-    email: string;
-  };
-}
 
 export default function PhotoDetail() {
   const { id } = useParams<{ id: string }>();
@@ -52,6 +21,7 @@ export default function PhotoDetail() {
   const [productTags, setProductTags] = useState<ProductTag[]>([]);
   const [loading, setLoading] = useState(true);
   const [showProductDetails, setShowProductDetails] = useState<string | null>(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -65,8 +35,8 @@ export default function PhotoDetail() {
       const { data: photoData, error: photoError } = await supabase
         .from('photos')
         .select(`
-          *,
-          photo_likes!inner(user_id),
+          id, title, description, room, style, storage_path, is_public, created_at, uploader_id, updated_at,
+          photo_likes(user_id),
           photo_tags(tag)
         `)
         .eq('id', id)
@@ -77,9 +47,9 @@ export default function PhotoDetail() {
 
       const processedPhoto = {
         ...photoData,
-        is_liked: user ? photoData.photo_likes?.some((like: any) => like.user_id === user.id) : false,
-        tags: photoData.photo_tags?.map((tag: any) => tag.tag) || []
-      };
+        is_liked: user ? photoData.photo_likes?.some((like: { user_id: string }) => like.user_id === user.id) : false,
+        tags: photoData.photo_tags?.map((tag: { tag: string }) => tag.tag) || []
+      } as Photo;
 
       setPhoto(processedPhoto);
 
@@ -87,7 +57,7 @@ export default function PhotoDetail() {
       const { data: tagsData, error: tagsError } = await supabase
         .from('photo_products')
         .select(`
-          *,
+          id, photo_id, note, tag_position, created_at,
           products(id, name, price, currency),
           profiles!photo_products_supplier_id_fkey(id, full_name, email)
         `)
@@ -98,9 +68,9 @@ export default function PhotoDetail() {
       const processedTags = tagsData?.map(tag => ({
         ...tag,
         tag_position: tag.tag_position as { x: number; y: number },
-        product: tag.products,
-        supplier: tag.profiles
-      })) || [];
+        products: tag.products,
+        profiles: tag.profiles
+      })) as ProductTag[] || [];
 
       setProductTags(processedTags);
     } catch (error) {
@@ -140,12 +110,11 @@ export default function PhotoDetail() {
   };
 
   const saveToIdeabook = () => {
-    if (!user) {
+    if (!user || !photo) {
       toast.error('נדרש להתחבר כדי לשמור תמונות');
       return;
     }
-    // TODO: Open save to ideabook modal
-    toast.success('נשמר לאידאבוק ✨');
+    setShowSaveModal(true);
   };
 
   const sharePhoto = async () => {
@@ -170,10 +139,6 @@ export default function PhotoDetail() {
     toast.success('פותח צ\'אט עם הספק...');
   };
 
-  const getImageUrl = (path: string) => {
-    const { data } = supabase.storage.from('inspiration-photos').getPublicUrl(path);
-    return data.publicUrl;
-  };
 
   if (loading) {
     return (
@@ -241,7 +206,7 @@ export default function PhotoDetail() {
           <div className="lg:col-span-2">
             <div className="relative rounded-lg overflow-hidden bg-muted">
               <img
-                src={getImageUrl(photo.storage_path)}
+                src={getPublicImageUrl(photo.storage_path)}
                 alt={photo.title}
                 className="w-full h-auto max-h-[80vh] object-contain"
               />
@@ -294,17 +259,17 @@ export default function PhotoDetail() {
                   {productTags.map((tag) => (
                     <Card key={tag.id}>
                       <CardContent className="p-4">
-                        {tag.product && (
+                        {tag.products && (
                           <div className="flex justify-between items-start mb-2">
                             <div>
-                              <h4 className="font-medium">{tag.product.name}</h4>
-                              {tag.product.price && (
+                              <h4 className="font-medium">{tag.products.name}</h4>
+                              {tag.products.price && (
                                 <p className="text-sm text-muted-foreground">
-                                  {tag.product.price.toLocaleString()} {tag.product.currency}
+                                  {tag.products.price.toLocaleString()} {tag.products.currency}
                                 </p>
                               )}
                             </div>
-                            <Link to={`/products/${tag.product.id}`}>
+                            <Link to={`/products/${tag.products.id}`}>
                               <Button size="sm" variant="outline">
                                 <ExternalLink className="h-4 w-4 ml-2" />
                                 צפה
@@ -317,14 +282,14 @@ export default function PhotoDetail() {
                           <p className="text-sm text-muted-foreground mb-2">{tag.note}</p>
                         )}
                         
-                        {tag.supplier && (
+                        {tag.profiles && (
                           <div className="flex justify-between items-center">
                             <span className="text-sm">
-                              {tag.supplier.full_name || tag.supplier.email}
+                              {tag.profiles.full_name || tag.profiles.email}
                             </span>
                             <Button
                               size="sm"
-                              onClick={() => contactSupplier(tag.supplier!.id)}
+                              onClick={() => contactSupplier(tag.profiles!.id)}
                             >
                               <MessageCircle className="h-4 w-4 ml-2" />
                               צור קשר
@@ -365,6 +330,14 @@ export default function PhotoDetail() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Save to Ideabook Modal */}
+      <SaveToIdeabookModal
+        isOpen={showSaveModal}
+        onOpenChange={setShowSaveModal}
+        photoId={photo?.id || ''}
+        photoTitle={photo?.title || ''}
+      />
     </div>
   );
 }

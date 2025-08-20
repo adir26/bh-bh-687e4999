@@ -92,6 +92,11 @@ import SupplierReviews from "./pages/SupplierReviews";
 import AppExclusive from "./pages/AppExclusive";
 import Accessibility from "./pages/Accessibility";
 import Terms from "./pages/Terms";
+import Inspiration from "./pages/Inspiration";
+import PhotoDetail from "./pages/PhotoDetail";
+import Ideabooks from "./pages/Ideabooks";
+import IdeabookDetail from "./pages/IdeabookDetail";
+import AdminInspiration from "./pages/admin/AdminInspiration";
 import { SiteFooter } from "./components/SiteFooter";
 
 const queryClient = new QueryClient();
@@ -292,6 +297,16 @@ const App = () => {
                   </ProtectedRoute>
                 } />
                 
+                {/* Inspiration routes */}
+                <Route path="/inspiration" element={<Inspiration />} />
+                <Route path="/inspiration/photo/:id" element={<PhotoDetail />} />
+                <Route path="/ideabooks" element={
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <Ideabooks />
+                  </ProtectedRoute>
+                } />
+                <Route path="/ideabooks/:id" element={<IdeabookDetail />} />
+                
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
                 <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
@@ -309,6 +324,7 @@ const App = () => {
                 <Route path="/admin/automation" element={<AdminLayout><AutomationCenter /></AdminLayout>} />
                 <Route path="/admin/permissions" element={<AdminLayout><PermissionsManagement /></AdminLayout>} />
                 <Route path="/admin/homepage-content" element={<AdminLayout><HomepageContentManagement /></AdminLayout>} />
+                <Route path="/admin/inspiration" element={<AdminLayout><AdminInspiration /></AdminLayout>} />
                 <Route path="/admin/analytics" element={<AdminLayout><AdminAnalytics /></AdminLayout>} />
                 <Route path="/admin/settings" element={<AdminLayout><SystemSettings /></AdminLayout>} />
                 
