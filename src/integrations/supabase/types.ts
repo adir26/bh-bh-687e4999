@@ -330,6 +330,129 @@ export type Database = {
         }
         Relationships: []
       }
+      ideabook_collaborators: {
+        Row: {
+          created_at: string
+          id: string
+          ideabook_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ideabook_id: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ideabook_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideabook_collaborators_ideabook_id_fkey"
+            columns: ["ideabook_id"]
+            isOneToOne: false
+            referencedRelation: "ideabooks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideabook_collaborators_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ideabook_photos: {
+        Row: {
+          added_by: string
+          created_at: string
+          id: string
+          ideabook_id: string
+          photo_id: string
+        }
+        Insert: {
+          added_by: string
+          created_at?: string
+          id?: string
+          ideabook_id: string
+          photo_id: string
+        }
+        Update: {
+          added_by?: string
+          created_at?: string
+          id?: string
+          ideabook_id?: string
+          photo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideabook_photos_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideabook_photos_ideabook_id_fkey"
+            columns: ["ideabook_id"]
+            isOneToOne: false
+            referencedRelation: "ideabooks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideabook_photos_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ideabooks: {
+        Row: {
+          created_at: string
+          id: string
+          is_public: boolean
+          name: string
+          owner_id: string
+          share_token: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          name: string
+          owner_id: string
+          share_token?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          name?: string
+          owner_id?: string
+          share_token?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideabooks_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_activities: {
         Row: {
           activity_type: string
@@ -723,6 +846,203 @@ export type Database = {
           {
             foreignKeyName: "orders_supplier_id_fkey"
             columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_likes: {
+        Row: {
+          created_at: string
+          id: string
+          photo_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          photo_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          photo_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_likes_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_products: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          photo_id: string
+          product_id: string | null
+          supplier_id: string | null
+          tag_position: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          photo_id: string
+          product_id?: string | null
+          supplier_id?: string | null
+          tag_position?: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          photo_id?: string
+          product_id?: string | null
+          supplier_id?: string | null
+          tag_position?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_products_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "popular_products"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "photo_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photo_products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photo_tags: {
+        Row: {
+          created_at: string
+          id: string
+          photo_id: string
+          tag: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          photo_id: string
+          tag: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          photo_id?: string
+          tag?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_tags_photo_id_fkey"
+            columns: ["photo_id"]
+            isOneToOne: false
+            referencedRelation: "photos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      photos: {
+        Row: {
+          color_palette: Json | null
+          company_id: string | null
+          created_at: string
+          description: string | null
+          height: number | null
+          id: string
+          is_public: boolean
+          room: string | null
+          storage_path: string
+          style: string | null
+          title: string
+          updated_at: string
+          uploader_id: string
+          width: number | null
+        }
+        Insert: {
+          color_palette?: Json | null
+          company_id?: string | null
+          created_at?: string
+          description?: string | null
+          height?: number | null
+          id?: string
+          is_public?: boolean
+          room?: string | null
+          storage_path: string
+          style?: string | null
+          title: string
+          updated_at?: string
+          uploader_id: string
+          width?: number | null
+        }
+        Update: {
+          color_palette?: Json | null
+          company_id?: string | null
+          created_at?: string
+          description?: string | null
+          height?: number | null
+          id?: string
+          is_public?: boolean
+          room?: string | null
+          storage_path?: string
+          style?: string | null
+          title?: string
+          updated_at?: string
+          uploader_id?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "photos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_stats"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "photos_uploader_id_fkey"
+            columns: ["uploader_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

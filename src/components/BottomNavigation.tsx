@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Search, Heart, ShoppingBag, User } from 'lucide-react';
+import { Home, Search, Lightbulb, Heart, ShoppingBag, User } from 'lucide-react';
 
 export const BottomNavigation: React.FC = () => {
   const location = useLocation();
@@ -17,6 +17,11 @@ export const BottomNavigation: React.FC = () => {
       path: '/search',
       icon: Search,
       label: 'חיפוש'
+    },
+    {
+      path: '/inspiration',
+      icon: Lightbulb,
+      label: 'השראה'
     },
     {
       path: '/favorites',
