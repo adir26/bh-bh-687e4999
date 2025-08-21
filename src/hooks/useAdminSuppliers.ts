@@ -91,7 +91,7 @@ export const useAdminSuppliers = (
         const { data: products } = await supabase
           .from('products')
           .select('supplier_id, company_id')
-          .or(companyIds.map(id => `company_id.eq.${id}`).join(','));
+          .in('company_id', companyIds);
         
         productCounts = products?.reduce((acc, product) => {
           const key = product.company_id || product.supplier_id;

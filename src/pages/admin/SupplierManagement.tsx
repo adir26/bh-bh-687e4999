@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Search, MoreHorizontal, Eye, CheckCircle, XCircle, UserCheck, Filter, Plus, Upload, Download, RefreshCw } from 'lucide-react';
+import { Search, MoreHorizontal, Eye, CheckCircle, XCircle, UserCheck, Filter, Plus, Upload, Download, RefreshCw, X } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -287,14 +287,26 @@ const SupplierManagement = () => {
           <CardHeader>
             <div className="flex flex-col lg:flex-row gap-4 justify-between">
               <div className="flex-1 max-w-md">
+              <div className="relative">
                 <SearchInput
                   placeholder="חיפוש ספקים..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onClear={() => setSearchTerm('')}
+                  onClear={() => setSearchTerm("")}
                   className="text-right"
                   dir="rtl"
                 />
+                {searchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                    onClick={() => setSearchTerm("")}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               </div>
               
               <div className="flex flex-wrap gap-2">

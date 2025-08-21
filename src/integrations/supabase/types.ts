@@ -2024,6 +2024,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_reorder_categories: {
+        Args: { _ids: string[] }
+        Returns: undefined
+      }
       check_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -2107,6 +2111,10 @@ export type Database = {
       show_trgm: {
         Args: { "": string }
         Returns: string[]
+      }
+      slugify: {
+        Args: { txt: string }
+        Returns: string
       }
       supplier_dashboard_metrics: {
         Args: { _from: string; _supplier_id: string; _to: string }

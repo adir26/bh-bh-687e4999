@@ -289,11 +289,38 @@ export const useCategoryMutations = () => {
     }
   });
 
+  // Admin reorder categories RPC
+  const reorderCategoriesRPC = useMutation({
+    mutationFn: async (categoryIds: string[]) => {
+      const { error } = await supabase.rpc('admin_reorder_categories', {
+        _ids: categoryIds
+      });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
+      toast({
+        title: 'הצלחה',
+        description: 'סדר הקטגוריות עודכן בהצלחה',
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error reordering categories via RPC:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'אירעה שגיאה בסידור מחדש של הקטגוריות',
+        variant: 'destructive',
+      });
+    }
+  });
+
   return {
     createCategory,
     updateCategory,
     deleteCategory,
-    reorderCategories
+    reorderCategories,
+    reorderCategoriesRPC
   };
 };
 

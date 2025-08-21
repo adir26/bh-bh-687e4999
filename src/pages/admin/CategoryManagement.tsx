@@ -1,177 +1,264 @@
-import { useState } from "react";
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Filter, Edit, Trash2, Plus, Tag, Eye, MoreHorizontal } from "lucide-react";
+import { Filter, Edit, Trash2, Plus, Tag, Eye, MoreHorizontal, ChevronUp, ChevronDown, X } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useAdminCategories, useCategoryMutations, useCategoryRealtimeSubscription } from '@/hooks/useAdminCategories';
+import { CategoryFilters, PaginationParams, EnhancedCategory } from '@/types/admin';
+import { cn } from '@/lib/utils';
 
-const mockCategories = [
-  {
-    id: "CAT-001",
-    name: "מטבחים",
-    description: "עיצוב והתקנת מטבחים",
-    suppliersCount: 234,
-    ordersCount: 1247,
-    status: "פעיל",
-    createdDate: "2023-01-15",
-    subcategories: ["מטבחי עץ", "מטבחים מודרניים", "ארונות מטבח"]
-  },
-  {
-    id: "CAT-002", 
-    name: "ריהוט",
-    description: "ריהוט לבית ולמשרד",
-    suppliersCount: 189,
-    ordersCount: 856,
-    status: "פעיל",
-    createdDate: "2023-02-20",
-    subcategories: ["ריהוט סלון", "ריהוט חדר שינה", "ריהוט משרדי"]
-  },
-  {
-    id: "CAT-003",
-    name: "אינסטלציה",
-    description: "שירותי אינסטלציה ותיקונים",
-    suppliersCount: 145,
-    ordersCount: 623,
-    status: "פעיל",
-    createdDate: "2023-03-10",
-    subcategories: ["צנרת", "ברזים ואביזרים", "תיקוני חירום"]
-  },
-  {
-    id: "CAT-004",
-    name: "חשמל",
-    description: "עבודות חשמל ותאורה",
-    suppliersCount: 167,
-    ordersCount: 789,
-    status: "לא פעיל",
-    createdDate: "2023-04-05",
-    subcategories: ["תאורה", "לוחות חשמל", "מתקני חשמל"]
-  },
-];
+// Helper function for debouncing
+function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+}
 
 export default function CategoryManagement() {
+  const { toast } = useToast();
+  
+  // State for filters and pagination
+  const [filters, setFilters] = useState<CategoryFilters>({});
+  const [pagination, setPagination] = useState<PaginationParams>({
+    page: 1,
+    limit: 25,
+    offset: 0
+  });
+  
+  // State for UI interactions
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [categories, setCategories] = useState(mockCategories);
-  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<EnhancedCategory | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<EnhancedCategory | null>(null);
   const [newCategory, setNewCategory] = useState({
     name: "",
     description: "",
-    subcategories: ""
-  });
-  const { toast } = useToast();
-
-  const filteredCategories = categories.filter(category => {
-    const matchesSearch = 
-      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || category.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+    parent_id: null as string | null,
+    icon: "",
+    is_active: true,
+    is_public: true
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "פעיל":
-        return <Badge variant="default" className="bg-green-100 text-green-800">פעיל</Badge>;
-      case "לא פעיל":
-        return <Badge variant="destructive">לא פעיל</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+  // Hooks
+  const { categories, totalCount, totalPages, isLoading, error } = useAdminCategories(filters, pagination);
+  const { createCategory, updateCategory, deleteCategory, reorderCategoriesRPC } = useCategoryMutations();
+  
+  // Real-time subscription
+  useCategoryRealtimeSubscription();
+
+  // Debounced search
+  const debouncedSearch = useCallback(
+    debounce((term: string) => {
+      setFilters(prev => ({ ...prev, search: term || undefined }));
+      setPagination(prev => ({ ...prev, page: 1, offset: 0 }));
+    }, 300),
+    []
+  );
+
+  // Effect for search
+  useEffect(() => {
+    debouncedSearch(searchTerm);
+  }, [searchTerm, debouncedSearch]);
+
+  // Get parent categories for dropdown
+  const parentCategories = categories.filter(cat => !cat.parent_id);
+
+  const getStatusBadge = (isActive: boolean) => {
+    return isActive ? (
+      <Badge variant="default" className="bg-green-100 text-green-800">פעיל</Badge>
+    ) : (
+      <Badge variant="destructive">לא פעיל</Badge>
+    );
+  };
+
+  const getVisibilityBadge = (isPublic: boolean) => {
+    return isPublic ? (
+      <Badge variant="outline">ציבורי</Badge>
+    ) : (
+      <Badge variant="secondary">מוסתר</Badge>
+    );
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategory.name.trim()) {
+      toast({
+        title: "שגיאה",
+        description: "שם הקטגוריה הוא שדה חובה",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      await createCategory.mutateAsync({
+        name: newCategory.name,
+        description: newCategory.description || undefined,
+        parent_id: newCategory.parent_id || undefined,
+        icon: newCategory.icon || undefined,
+        is_active: newCategory.is_active,
+        is_public: newCategory.is_public,
+        position: 0,
+        slug: '' // Will be auto-generated by trigger
+      });
+      
+      setNewCategory({
+        name: "",
+        description: "",
+        parent_id: null,
+        icon: "",
+        is_active: true,
+        is_public: true
+      });
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      // Error handled by mutation
     }
   };
 
-  const handleAddCategory = () => {
-    if (!newCategory.name.trim()) return;
+  const handleEditCategory = async () => {
+    if (!selectedCategory || !newCategory.name.trim()) {
+      toast({
+        title: "שגיאה",
+        description: "שם הקטגוריה הוא שדה חובה",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    const subcategories = newCategory.subcategories
-      .split(',')
-      .map(sub => sub.trim())
-      .filter(sub => sub.length > 0);
-
-    const category = {
-      id: `CAT-${String(categories.length + 1).padStart(3, '0')}`,
-      name: newCategory.name,
-      description: newCategory.description,
-      suppliersCount: 0,
-      ordersCount: 0,
-      status: "פעיל",
-      createdDate: new Date().toISOString().split('T')[0],
-      subcategories
-    };
-
-    setCategories([...categories, category]);
-    setNewCategory({ name: "", description: "", subcategories: "" });
-    setIsAddDialogOpen(false);
-    
-    toast({
-      title: "קטגוריה נוספה",
-      description: `קטגוריה "${category.name}" נוספה בהצלחה`,
-    });
+    try {
+      await updateCategory.mutateAsync({
+        id: selectedCategory.id,
+        updates: {
+          name: newCategory.name,
+          description: newCategory.description || undefined,
+          parent_id: newCategory.parent_id || undefined,
+          icon: newCategory.icon || undefined,
+          is_active: newCategory.is_active,
+          is_public: newCategory.is_public
+        }
+      });
+      
+      setNewCategory({
+        name: "",
+        description: "",
+        parent_id: null,
+        icon: "",
+        is_active: true,
+        is_public: true
+      });
+      setSelectedCategory(null);
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      // Error handled by mutation
+    }
   };
 
-  const handleEditCategory = () => {
-    if (!selectedCategory || !newCategory.name.trim()) return;
-    
-    const subcategories = newCategory.subcategories
-      .split(',')
-      .map(sub => sub.trim())
-      .filter(sub => sub.length > 0);
+  const handleDeleteCategory = async (category: EnhancedCategory) => {
+    try {
+      await deleteCategory.mutateAsync(category.id);
+      setIsDeleteDialogOpen(false);
+      setCategoryToDelete(null);
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
 
-    const updatedCategories = categories.map(cat => 
-      cat.id === selectedCategory.id 
-        ? { 
-            ...cat, 
-            name: newCategory.name,
-            description: newCategory.description,
-            subcategories
-          }
-        : cat
+  const handleToggleStatus = async (category: EnhancedCategory) => {
+    try {
+      await updateCategory.mutateAsync({
+        id: category.id,
+        updates: { is_active: !category.is_active }
+      });
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
+  const handleToggleVisibility = async (category: EnhancedCategory) => {
+    try {
+      await updateCategory.mutateAsync({
+        id: category.id,
+        updates: { is_public: !category.is_public }
+      });
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
+  const handleReorderCategory = async (category: EnhancedCategory, direction: 'up' | 'down') => {
+    const currentIndex = categories.findIndex(c => c.id === category.id);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= categories.length) return;
+
+    // Create new order array
+    const reorderedCategories = [...categories];
+    [reorderedCategories[currentIndex], reorderedCategories[newIndex]] = 
+    [reorderedCategories[newIndex], reorderedCategories[currentIndex]];
+
+    try {
+      await reorderCategoriesRPC.mutateAsync(reorderedCategories.map(c => c.id));
+    } catch (error) {
+      // Error handled by mutation
+    }
+  };
+
+  const openEditDialog = (category: EnhancedCategory) => {
+    setSelectedCategory(category);
+    setNewCategory({
+      name: category.name,
+      description: category.description || "",
+      parent_id: category.parent_id,
+      icon: category.icon || "",
+      is_active: category.is_active,
+      is_public: category.is_public
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (category: EnhancedCategory) => {
+    setCategoryToDelete(category);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    setFilters(prev => ({ ...prev, search: undefined }));
+  };
+
+  if (error) {
+    return (
+      <div className="space-y-4 md:space-y-6 font-hebrew">
+        <div className="text-right flex justify-center items-center min-h-[400px]">
+          <Card className="p-6 text-center">
+            <p className="text-destructive">אירעה שגיאה בטעינת הנתונים</p>
+            <Button onClick={() => window.location.reload()} className="mt-4">
+              טען מחדש
+            </Button>
+          </Card>
+        </div>
+      </div>
     );
-
-    setCategories(updatedCategories);
-    setNewCategory({ name: "", description: "", subcategories: "" });
-    setSelectedCategory(null);
-    setIsEditDialogOpen(false);
-    
-    toast({
-      title: "קטגוריה עודכנה",
-      description: `קטגוריה "${newCategory.name}" עודכנה בהצלחה`,
-    });
-  };
-
-  const handleDeleteCategory = (categoryId: string, categoryName: string) => {
-    setCategories(categories.filter(cat => cat.id !== categoryId));
-    toast({
-      title: "קטגוריה נמחקה",
-      description: `קטגוריה "${categoryName}" נמחקה בהצלחה`,
-    });
-  };
-
-  const handleToggleStatus = (categoryId: string) => {
-    const updatedCategories = categories.map(cat => 
-      cat.id === categoryId 
-        ? { ...cat, status: cat.status === "פעיל" ? "לא פעיל" : "פעיל" }
-        : cat
-    );
-    setCategories(updatedCategories);
-    toast({
-      title: "סטטוס עודכן",
-      description: "סטטוס הקטגוריה עודכן בהצלחה",
-    });
-  };
+  }
 
   return (
-    <div className="space-y-4 md:space-y-6 font-hebrew">
+    <div className="space-y-4 md:space-y-6 font-hebrew pb-safe">
       <div className="text-right flex justify-between items-center">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">ניהול קטגוריות</h1>
@@ -190,7 +277,7 @@ export default function CategoryManagement() {
             </DialogHeader>
             <div className="space-y-4 text-right">
               <div>
-                <Label htmlFor="category-name" className="font-hebrew">שם הקטגוריה</Label>
+                <Label htmlFor="category-name" className="font-hebrew">שם הקטגוריה *</Label>
                 <Input
                   id="category-name"
                   value={newCategory.name}
@@ -213,22 +300,58 @@ export default function CategoryManagement() {
                 />
               </div>
               <div>
-                <Label htmlFor="subcategories" className="font-hebrew">תת-קטגוריות</Label>
+                <Label htmlFor="parent-category" className="font-hebrew">קטגוריית אב</Label>
+                <Select value={newCategory.parent_id || ""} onValueChange={(value) => setNewCategory({...newCategory, parent_id: value || null})}>
+                  <SelectTrigger className="text-right" dir="rtl">
+                    <SelectValue placeholder="בחר קטגוריית אב (אופציונלי)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">ללא קטגוריית אב</SelectItem>
+                    {parentCategories.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="category-icon" className="font-hebrew">אייקון</Label>
                 <Input
-                  id="subcategories"
-                  value={newCategory.subcategories}
-                  onChange={(e) => setNewCategory({...newCategory, subcategories: e.target.value})}
-                  placeholder="מופרד בפסיקים: צביעה, טיח, גיפסום"
+                  id="category-icon"
+                  value={newCategory.icon}
+                  onChange={(e) => setNewCategory({...newCategory, icon: e.target.value})}
+                  placeholder="שם האייקון (לדוגמה: Home)"
                   className="text-right"
                   dir="rtl"
                 />
               </div>
+              <div className="flex gap-4 justify-between">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="is-active"
+                    checked={newCategory.is_active}
+                    onChange={(e) => setNewCategory({...newCategory, is_active: e.target.checked})}
+                  />
+                  <Label htmlFor="is-active" className="font-hebrew">פעיל</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="is-public"
+                    checked={newCategory.is_public}
+                    onChange={(e) => setNewCategory({...newCategory, is_public: e.target.checked})}
+                  />
+                  <Label htmlFor="is-public" className="font-hebrew">ציבורי</Label>
+                </div>
+              </div>
               <Button 
                 onClick={handleAddCategory}
                 className="w-full font-hebrew"
-                disabled={!newCategory.name.trim()}
+                disabled={!newCategory.name.trim() || createCategory.isPending}
               >
-                הוספת קטגוריה
+                {createCategory.isPending ? 'מוסיף...' : 'הוספת קטגוריה'}
               </Button>
             </div>
           </DialogContent>
@@ -243,38 +366,44 @@ export default function CategoryManagement() {
             <Tag className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">{categories.length}</div>
-            <p className="text-xs text-muted-foreground text-right">קטגוריות פעילות</p>
+            <div className="text-xl md:text-2xl font-bold text-right">{totalCount}</div>
+            <p className="text-xs text-muted-foreground text-right">קטגוריות בסיסטם</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">ספקים רשומים</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">קטגוריות פעילות</CardTitle>
             <Tag className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">735</div>
+            <div className="text-xl md:text-2xl font-bold text-right">
+              {categories.filter(cat => cat.is_active).length}
+            </div>
+            <p className="text-xs text-muted-foreground text-right">מתוך {totalCount} קטגוריות</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">ספקים משויכים</CardTitle>
+            <Tag className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl md:text-2xl font-bold text-right">
+              {categories.reduce((sum, cat) => sum + (cat.supplier_count || 0), 0)}
+            </div>
             <p className="text-xs text-muted-foreground text-right">בכל הקטגוריות</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">הזמנות החודש</CardTitle>
-            <Tag className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">3,515</div>
-            <p className="text-xs text-muted-foreground text-right">+18% מהחודש הקודם</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">קטגוריה פופולרית</CardTitle>
+            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">מוצרים משויכים</CardTitle>
             <Tag className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">מטבחים</div>
-            <p className="text-xs text-muted-foreground text-right">1,247 הזמנות</p>
+            <div className="text-xl md:text-2xl font-bold text-right">
+              {categories.reduce((sum, cat) => sum + (cat.product_count || 0), 0)}
+            </div>
+            <p className="text-xs text-muted-foreground text-right">בכל הקטגוריות</p>
           </CardContent>
         </Card>
       </div>
@@ -284,190 +413,326 @@ export default function CategoryManagement() {
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <div className="flex-1 max-w-sm order-2 sm:order-1">
-              <SearchInput
-                placeholder="חיפוש קטגוריות..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onClear={() => setSearchTerm("")}
-                className="text-right"
-                dir="rtl"
-              />
+              <div className="relative">
+                <SearchInput
+                  placeholder="חיפוש קטגוריות..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClear={clearSearch}
+                  className="text-right"
+                  dir="rtl"
+                />
+                {searchTerm && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                    onClick={clearSearch}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="flex gap-2 order-1 sm:order-2">
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border rounded-md bg-background font-hebrew text-right text-sm"
-                dir="rtl"
+              <Select 
+                value={filters.is_active === undefined ? "all" : filters.is_active ? "true" : "false"} 
+                onValueChange={(value) => {
+                  const newValue = value === "all" ? undefined : value === "true";
+                  setFilters(prev => ({ ...prev, is_active: newValue }));
+                  setPagination(prev => ({ ...prev, page: 1, offset: 0 }));
+                }}
               >
-                <option value="all">כל הסטטוסים</option>
-                <option value="פעיל">פעיל</option>
-                <option value="לא פעיל">לא פעיל</option>
-              </select>
-              <Button variant="outline" size="sm" className="font-hebrew">
-                <Filter className="h-4 w-4 ml-2" />
-                סינון
-              </Button>
+                <SelectTrigger className="w-[120px] text-right" dir="rtl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">הכל</SelectItem>
+                  <SelectItem value="true">פעיל</SelectItem>
+                  <SelectItem value="false">לא פעיל</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select 
+                value={filters.is_public === undefined ? "all" : filters.is_public ? "true" : "false"} 
+                onValueChange={(value) => {
+                  const newValue = value === "all" ? undefined : value === "true";
+                  setFilters(prev => ({ ...prev, is_public: newValue }));
+                  setPagination(prev => ({ ...prev, page: 1, offset: 0 }));
+                }}
+              >
+                <SelectTrigger className="w-[120px] text-right" dir="rtl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">הכל</SelectItem>
+                  <SelectItem value="true">ציבורי</SelectItem>
+                  <SelectItem value="false">מוסתר</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          {/* Mobile Cards for small screens */}
-          <div className="block md:hidden space-y-4">
-            {filteredCategories.map((category) => (
-              <Card key={category.id} className="p-4">
-                <div className="space-y-3 text-right">
-                  <div className="flex justify-between items-center">
-                    <div className="font-bold text-primary">{category.id}</div>
-                    {getStatusBadge(category.status)}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">{category.name}</h3>
-                    <p className="text-sm text-muted-foreground">{category.description}</p>
-                  </div>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p><span className="font-medium">ספקים:</span> {category.suppliersCount}</p>
-                    <p><span className="font-medium">הזמנות:</span> {category.ordersCount}</p>
-                    <p><span className="font-medium">תאריך יצירה:</span> {category.createdDate}</p>
-                    <div>
-                      <span className="font-medium">תת-קטגוריות:</span>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {category.subcategories.slice(0, 3).map((sub, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {sub}
-                          </Badge>
-                        ))}
-                        {category.subcategories.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{category.subcategories.length - 3}
-                          </Badge>
+          {isLoading ? (
+            <div className="space-y-4">
+              {/* Mobile skeleton */}
+              <div className="block md:hidden space-y-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Card key={i} className="p-4">
+                    <div className="space-y-3">
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              {/* Desktop skeleton */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">שם</TableHead>
+                      <TableHead className="text-right">תיאור</TableHead>
+                      <TableHead className="text-right">קטגוריית אב</TableHead>
+                      <TableHead className="text-right">ספקים</TableHead>
+                      <TableHead className="text-right">מוצרים</TableHead>
+                      <TableHead className="text-right">סטטוס</TableHead>
+                      <TableHead className="text-right">נראות</TableHead>
+                      <TableHead className="w-32">פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-24" /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="text-center py-12">
+              <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">אין קטגוריות</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {filters.search ? 'לא נמצאו קטגוריות התואמות לחיפוש' : 'טרם נוצרו קטגוריות במערכת'}
+              </p>
+              {!filters.search && (
+                <Button onClick={() => setIsAddDialogOpen(true)} className="font-hebrew">
+                  <Plus className="h-4 w-4 ml-2" />
+                  צור קטגוריה ראשונה
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Mobile Cards */}
+              <div className="block md:hidden space-y-4">
+                {categories.map((category) => (
+                  <Card key={category.id} className="p-4">
+                    <div className="space-y-3 text-right">
+                      <div className="flex justify-between items-start">
+                        <div className="flex gap-2">
+                          {getStatusBadge(category.is_active)}
+                          {getVisibilityBadge(category.is_public)}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg">{category.name}</h3>
+                          {category.slug && (
+                            <p className="text-xs text-muted-foreground">/{category.slug}</p>
+                          )}
+                        </div>
+                      </div>
+                      {category.description && (
+                        <p className="text-sm text-muted-foreground">{category.description}</p>
+                      )}
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <p><span className="font-medium">ספקים:</span> {category.supplier_count || 0}</p>
+                        <p><span className="font-medium">מוצרים:</span> {category.product_count || 0}</p>
+                        {category.parent_id && (
+                          <p><span className="font-medium">קטגוריית אב:</span> 
+                            {categories.find(c => c.id === category.parent_id)?.name || 'לא נמצא'}
+                          </p>
                         )}
+                      </div>
+                      <div className="flex gap-2 flex-wrap">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 font-hebrew min-w-[80px]"
+                          onClick={() => openEditDialog(category)}
+                        >
+                          <Edit className="h-4 w-4 ml-2" />
+                          עריכה
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="font-hebrew"
+                          onClick={() => handleToggleStatus(category)}
+                          disabled={updateCategory.isPending}
+                        >
+                          {category.is_active ? "השבת" : "הפעל"}
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => openDeleteDialog(category)}
+                          disabled={deleteCategory.isPending}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="flex-1 font-hebrew"
-                      onClick={() => {
-                        setSelectedCategory(category);
-                        setNewCategory({
-                          name: category.name,
-                          description: category.description,
-                          subcategories: category.subcategories.join(', ')
-                        });
-                        setIsEditDialogOpen(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4 ml-2" />
-                      עריכה
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="font-hebrew"
-                      onClick={() => handleToggleStatus(category.id)}
-                    >
-                      {category.status === "פעיל" ? "השבת" : "הפעל"}
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => handleDeleteCategory(category.id, category.name)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-
-          {/* Desktop Table */}
-          <div className="hidden md:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">מזהה</TableHead>
-                  <TableHead className="text-right">שם הקטגוריה</TableHead>
-                  <TableHead className="text-right">תיאור</TableHead>
-                  <TableHead className="text-right">ספקים</TableHead>
-                  <TableHead className="text-right">הזמנות</TableHead>
-                  <TableHead className="text-right">סטטוס</TableHead>
-                  <TableHead className="text-right">תת-קטגוריות</TableHead>
-                  <TableHead className="w-12"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCategories.map((category) => (
-                  <TableRow key={category.id}>
-                    <TableCell className="font-medium text-right">{category.id}</TableCell>
-                    <TableCell className="text-right font-medium">{category.name}</TableCell>
-                    <TableCell className="text-right max-w-xs">
-                      <div className="truncate">{category.description}</div>
-                    </TableCell>
-                    <TableCell className="text-right">{category.suppliersCount}</TableCell>
-                    <TableCell className="text-right">{category.ordersCount}</TableCell>
-                    <TableCell className="text-right">{getStatusBadge(category.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex flex-wrap gap-1 justify-end">
-                        {category.subcategories.slice(0, 2).map((sub, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
-                            {sub}
-                          </Badge>
-                        ))}
-                        {category.subcategories.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{category.subcategories.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="font-hebrew">
-                          <DropdownMenuItem 
-                            className="text-right"
-                            onClick={() => {
-                              setSelectedCategory(category);
-                              setNewCategory({
-                                name: category.name,
-                                description: category.description,
-                                subcategories: category.subcategories.join(', ')
-                              });
-                              setIsEditDialogOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4 ml-2" />
-                            עריכה
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-right"
-                            onClick={() => handleToggleStatus(category.id)}
-                          >
-                            {category.status === "פעיל" ? "השבת" : "הפעל"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-right text-red-600"
-                            onClick={() => handleDeleteCategory(category.id, category.name)}
-                          >
-                            <Trash2 className="h-4 w-4 ml-2" />
-                            מחיקה
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
-          </div>
+              </div>
+
+              {/* Desktop Table */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right">שם</TableHead>
+                      <TableHead className="text-right">תיאור</TableHead>
+                      <TableHead className="text-right">קטגוריית אב</TableHead>
+                      <TableHead className="text-right">ספקים</TableHead>
+                      <TableHead className="text-right">מוצרים</TableHead>
+                      <TableHead className="text-right">סטטוס</TableHead>
+                      <TableHead className="text-right">נראות</TableHead>
+                      <TableHead className="w-48">פעולות</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {categories.map((category, index) => (
+                      <TableRow key={category.id}>
+                        <TableCell className="text-right font-medium">
+                          <div>
+                            {category.name}
+                            {category.slug && (
+                              <div className="text-xs text-muted-foreground">/{category.slug}</div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right max-w-xs">
+                          <div className="truncate">{category.description || "-"}</div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {category.parent_id ? 
+                            categories.find(c => c.id === category.parent_id)?.name || 'לא נמצא' : 
+                            "-"
+                          }
+                        </TableCell>
+                        <TableCell className="text-right">{category.supplier_count || 0}</TableCell>
+                        <TableCell className="text-right">{category.product_count || 0}</TableCell>
+                        <TableCell className="text-right">{getStatusBadge(category.is_active)}</TableCell>
+                        <TableCell className="text-right">{getVisibilityBadge(category.is_public)}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleReorderCategory(category, 'up')}
+                              disabled={index === 0 || reorderCategoriesRPC.isPending}
+                              className="h-8 w-8 p-0"
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleReorderCategory(category, 'down')}
+                              disabled={index === categories.length - 1 || reorderCategoriesRPC.isPending}
+                              className="h-8 w-8 p-0"
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="font-hebrew">
+                                <DropdownMenuItem onClick={() => openEditDialog(category)} className="text-right">
+                                  <Edit className="ml-2 h-4 w-4" />
+                                  עריכה
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleToggleStatus(category)}
+                                  className="text-right"
+                                >
+                                  <Eye className="ml-2 h-4 w-4" />
+                                  {category.is_active ? "השבת" : "הפעל"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleToggleVisibility(category)}
+                                  className="text-right"
+                                >
+                                  <Eye className="ml-2 h-4 w-4" />
+                                  {category.is_public ? "הסתר" : "הצג"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => openDeleteDialog(category)}
+                                  className="text-right text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="ml-2 h-4 w-4" />
+                                  מחק
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
+
+          {/* Pagination */}
+          {!isLoading && categories.length > 0 && totalPages > 1 && (
+            <div className="flex items-center justify-between pt-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {pagination.offset + 1}-{Math.min(pagination.offset + pagination.limit, totalCount)} מתוך {totalCount}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1, offset: (prev.page - 2) * prev.limit }))}
+                  disabled={pagination.page === 1}
+                  className="font-hebrew"
+                >
+                  הקודם
+                </Button>
+                <span className="text-sm">
+                  עמוד {pagination.page} מתוך {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1, offset: prev.page * prev.limit }))}
+                  disabled={pagination.page === totalPages}
+                  className="font-hebrew"
+                >
+                  הבא
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -479,11 +744,12 @@ export default function CategoryManagement() {
           </DialogHeader>
           <div className="space-y-4 text-right">
             <div>
-              <Label htmlFor="edit-category-name" className="font-hebrew">שם הקטגוריה</Label>
+              <Label htmlFor="edit-category-name" className="font-hebrew">שם הקטגוריה *</Label>
               <Input
                 id="edit-category-name"
                 value={newCategory.name}
                 onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
+                placeholder="למשל: בניה ושיפוצים"
                 className="text-right"
                 dir="rtl"
               />
@@ -494,32 +760,115 @@ export default function CategoryManagement() {
                 id="edit-category-description"
                 value={newCategory.description}
                 onChange={(e) => setNewCategory({...newCategory, description: e.target.value})}
+                placeholder="תיאור הקטגוריה..."
                 className="text-right"
                 dir="rtl"
                 rows={3}
               />
             </div>
             <div>
-              <Label htmlFor="edit-subcategories" className="font-hebrew">תת-קטגוריות</Label>
+              <Label htmlFor="edit-parent-category" className="font-hebrew">קטגוריית אב</Label>
+              <Select value={newCategory.parent_id || ""} onValueChange={(value) => setNewCategory({...newCategory, parent_id: value || null})}>
+                <SelectTrigger className="text-right" dir="rtl">
+                  <SelectValue placeholder="בחר קטגוריית אב (אופציונלי)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">ללא קטגוריית אב</SelectItem>
+                  {parentCategories.filter(cat => cat.id !== selectedCategory?.id).map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="edit-category-icon" className="font-hebrew">אייקון</Label>
               <Input
-                id="edit-subcategories"
-                value={newCategory.subcategories}
-                onChange={(e) => setNewCategory({...newCategory, subcategories: e.target.value})}
-                placeholder="מופרד בפסיקים"
+                id="edit-category-icon"
+                value={newCategory.icon}
+                onChange={(e) => setNewCategory({...newCategory, icon: e.target.value})}
+                placeholder="שם האייקון (לדוגמה: Home)"
                 className="text-right"
                 dir="rtl"
               />
             </div>
-            <Button 
-              onClick={handleEditCategory}
-              className="w-full font-hebrew"
-              disabled={!newCategory.name.trim()}
-            >
-              עדכון קטגוריה
-            </Button>
+            <div className="flex gap-4 justify-between">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="edit-is-active"
+                  checked={newCategory.is_active}
+                  onChange={(e) => setNewCategory({...newCategory, is_active: e.target.checked})}
+                />
+                <Label htmlFor="edit-is-active" className="font-hebrew">פעיל</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="edit-is-public"
+                  checked={newCategory.is_public}
+                  onChange={(e) => setNewCategory({...newCategory, is_public: e.target.checked})}
+                />
+                <Label htmlFor="edit-is-public" className="font-hebrew">ציבורי</Label>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleEditCategory}
+                className="flex-1 font-hebrew"
+                disabled={!newCategory.name.trim() || updateCategory.isPending}
+              >
+                {updateCategory.isPending ? 'מעדכן...' : 'עדכן קטגוריה'}
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+                className="font-hebrew"
+              >
+                ביטול
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="font-hebrew">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-right">מחיקת קטגוריה</AlertDialogTitle>
+            <AlertDialogDescription className="text-right">
+              האם אתה בטוח שברצונך למחוק את הקטגוריה "{categoryToDelete?.name}"?
+              {categoryToDelete?.children && categoryToDelete.children.length > 0 && (
+                <span className="block mt-2 text-destructive">
+                  שים לב: לקטגוריה זו יש תתי-קטגוריות. לא ניתן למחוק קטגוריה עם תתי-קטגוריות.
+                </span>
+              )}
+              {(categoryToDelete?.supplier_count || 0) > 0 && (
+                <span className="block mt-2 text-destructive">
+                  שים לב: קיימים {categoryToDelete?.supplier_count} ספקים המשויכים לקטגוריה זו.
+                </span>
+              )}
+              {(categoryToDelete?.product_count || 0) > 0 && (
+                <span className="block mt-2 text-destructive">
+                  שים לב: קיימים {categoryToDelete?.product_count} מוצרים המשויכים לקטגוריה זו.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="font-hebrew">ביטול</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => categoryToDelete && handleDeleteCategory(categoryToDelete)}
+              disabled={deleteCategory.isPending}
+              className="font-hebrew"
+            >
+              {deleteCategory.isPending ? 'מוחק...' : 'מחק'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
