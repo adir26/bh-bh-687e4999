@@ -24,8 +24,8 @@ export const useAdminLeads = (
         .from('leads')
         .select(`
           *,
-          client_profile:profiles!leads_client_id_fkey(id, full_name, email),
-          supplier_profile:profiles!leads_supplier_id_fkey(id, full_name, email),
+          client_profile:profiles!client_id(*),
+          supplier_profile:profiles!supplier_id(*),
           lead_activities(count)
         `, { count: 'exact' });
 
@@ -75,7 +75,7 @@ export const useAdminLeads = (
         throw error;
       }
 
-      const enhancedLeads: EnhancedLead[] = leads?.map(lead => ({
+      const enhancedLeads: EnhancedLead[] = (leads as any)?.map((lead: any) => ({
         ...lead,
         activities_count: lead.lead_activities?.[0]?.count || 0
       })) || [];

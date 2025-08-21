@@ -161,7 +161,7 @@ export const useCustomerComplaints = (customerId?: string) => {
         .from('support_tickets')
         .select(`
           *,
-          user_profile:profiles!support_tickets_user_id_fkey(*),
+          user_profile:profiles(*),
           order:orders(*)
         `);
 
@@ -174,7 +174,7 @@ export const useCustomerComplaints = (customerId?: string) => {
       const { data, error } = await query;
 
       if (error) throw error;
-      return data || [];
+      return (data as any) || [];
     },
     enabled: !!customerId
   });

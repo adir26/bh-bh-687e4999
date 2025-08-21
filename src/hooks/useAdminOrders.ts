@@ -30,7 +30,7 @@ export const useAdminOrders = (
 
       // Apply filters
       if (filters.status) {
-        query = query.eq('status', filters.status);
+        query = query.eq('status', filters.status as any);
       }
       
       if (filters.payment_status) {
@@ -100,7 +100,7 @@ export const useOrderMutations = () => {
 
   // Update order status
   const updateOrderStatus = useMutation({
-    mutationFn: async ({ id, status, note }: { id: string; status: string; note?: string }) => {
+    mutationFn: async ({ id, status, note }: { id: string; status: any; note?: string }) => {
       const { error } = await supabase
         .from('orders')
         .update({ 
