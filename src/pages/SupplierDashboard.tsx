@@ -1,93 +1,214 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/contexts/AuthContext';
+import { DashboardFilters } from '@/components/supplier/DashboardFilters';
+import { DashboardKPIs } from '@/components/supplier/DashboardKPIs';
+import { DashboardCharts } from '@/components/supplier/DashboardCharts';
+import { DashboardTables } from '@/components/supplier/DashboardTables';
+import { 
+  useDashboardMetrics,
+  useTimeSeriesData,
+  useRecentLeads,
+  useRecentOrders,
+  useRecentReviews,
+  useSupplierRealtime,
+  DateRange,
+  Granularity
+} from '@/hooks/useSupplierDashboard';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle, Settings, Package, Users, BarChart3 } from 'lucide-react';
 
 export default function SupplierDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const quickActions = [
-    {
-      icon: Settings,
-      title: 'עריכת פרופיל',
-      description: 'עדכנו פרטים ותמונות',
-      action: () => console.log('Edit profile')
-    },
-    {
-      icon: Package,
-      title: 'ניהול מוצרים',
-      description: 'הוסיפו או עדכנו מוצרים',
-      action: () => console.log('Manage products')
-    },
-    {
-      icon: Users,
-      title: 'פניות לקוחות',
-      description: 'צפו והגיבו לפניות',
-      action: () => console.log('Customer inquiries')
-    },
-    {
-      icon: BarChart3,
-      title: 'סטטיסטיקות',
-      description: 'צפיות וביצועי הפרופיל',
-      action: () => console.log('Statistics')
+  // State for filters
+  const [dateRange, setDateRange] = useState<DateRange>('30d');
+  const [granularity, setGranularity] = useState<Granularity>('day');
+  const [customFrom, setCustomFrom] = useState<Date>();
+  const [customTo, setCustomTo] = useState<Date>();
+
+  // Get supplier ID (for now, use user ID - adjust based on your schema)
+  const supplierId = user?.id || '';
+
+  // Data hooks
+  const {
+    data: metrics,
+    isLoading: metricsLoading,
+    error: metricsError,
+  } = useDashboardMetrics(supplierId, dateRange, customFrom, customTo);
+
+  const {
+    data: timeSeriesData,
+    isLoading: timeSeriesLoading,
+    error: timeSeriesError,
+  } = useTimeSeriesData(supplierId, dateRange, granularity, customFrom, customTo);
+
+  const {
+    data: recentLeads,
+    isLoading: leadsLoading,
+    error: leadsError,
+  } = useRecentLeads(supplierId);
+
+  const {
+    data: recentOrders,
+    isLoading: ordersLoading,
+    error: ordersError,
+  } = useRecentOrders(supplierId);
+
+  const {
+    data: recentReviews,
+    isLoading: reviewsLoading,
+    error: reviewsError,
+  } = useRecentReviews(supplierId);
+
+  // Real-time subscription
+  const handleMetricsUpdate = () => {
+    queryClient.invalidateQueries({ queryKey: ['supplier-dashboard-metrics'] });
+    queryClient.invalidateQueries({ queryKey: ['supplier-timeseries'] });
+    queryClient.invalidateQueries({ queryKey: ['supplier-recent-leads'] });
+    queryClient.invalidateQueries({ queryKey: ['supplier-recent-orders'] });
+    queryClient.invalidateQueries({ queryKey: ['supplier-recent-reviews'] });
+  };
+
+  useSupplierRealtime(supplierId, handleMetricsUpdate);
+
+  // Authorization check
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
     }
-  ];
+
+    if (user.user_metadata?.role !== 'supplier') {
+      navigate('/');
+      return;
+    }
+  }, [user, navigate]);
+
+  const handleRefresh = () => {
+    handleMetricsUpdate();
+  };
+
+  // Show loading state if no user yet
+  if (!user) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  // Get alerts/tasks that need attention
+  const alerts = [];
+  if (recentLeads) {
+    const slaViolations = recentLeads.filter(lead => lead.sla_risk);
+    if (slaViolations.length > 0) {
+      alerts.push({
+        type: 'warning' as const,
+        title: `${slaViolations.length} לידים דורשים תגובה דחופה`,
+        description: 'לידים שלא נענו תוך 24 שעות',
+        action: () => navigate('/supplier/lead-management?sla_risk=true')
+      });
+    }
+  }
+
+  if (recentOrders) {
+    const unreadMessages = recentOrders.reduce((sum, order) => sum + order.unread_messages, 0);
+    if (unreadMessages > 0) {
+      alerts.push({
+        type: 'info' as const,
+        title: `${unreadMessages} הודעות חדשות`,
+        description: 'הודעות שלא נקראו מלקוחות',
+        action: () => navigate('/supplier/order-management?unread=true')
+      });
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-screen bg-background pb-safe" dir="rtl">
       {/* Header */}
       <div className="mobile-padding border-b border-border pt-safe">
-        <div className="mobile-container flex justify-center items-center">
-          <h1 className="text-lg xs:text-xl font-bold">פאנל ספק</h1>
+        <div className="mobile-container flex justify-between items-center">
+          <h1 className="text-lg xs:text-xl font-bold">לוח בקרה - ספק</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={metricsLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${metricsLoading ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
       </div>
 
-      {/* Success Message */}
-      <div className="mobile-padding pb-safe">
-        <div className="mobile-container text-center space-y-6 xs:space-y-8">
-          <div className="flex justify-center pt-6 xs:pt-8">
-            <CheckCircle className="w-16 h-16 xs:w-20 xs:h-20 text-green-500 animate-bounce-gentle" />
-          </div>
-          
-          <div className="space-y-3 xs:space-y-4">
-            <h2 className="text-xl xs:text-2xl font-bold text-foreground leading-tight">
-              🎉 מזל טוב! הפרופיל שלכם פרסם בהצלחה
-            </h2>
-            <p className="text-muted-foreground text-sm xs:text-base leading-relaxed max-w-md mx-auto">
-              הפרופיל שלכם זמין עכשיו ללקוחות באפליקציה
-            </p>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="space-y-3 xs:space-y-4 mt-6 xs:mt-8">
-            {quickActions.map((action, index) => {
-              const Icon = action.icon;
-              return (
-                <Card 
-                  key={index}
-                  className="mobile-card hover-lift cursor-pointer"
-                  onClick={action.action}
+      <div className="mobile-padding space-y-6">
+        <div className="mobile-container max-w-none space-y-6">
+          {/* Alerts */}
+          {alerts.length > 0 && (
+            <div className="space-y-3">
+              {alerts.map((alert, index) => (
+                <Alert 
+                  key={index} 
+                  className={`cursor-pointer hover:bg-muted/50 transition-colors ${
+                    alert.type === 'warning' ? 'border-orange-200 bg-orange-50' : 'border-blue-200 bg-blue-50'
+                  }`}
+                  onClick={alert.action}
                 >
-                  <CardContent className="mobile-padding">
-                    <div className="flex items-center gap-3 xs:gap-4 text-right">
-                      <Icon className="w-5 h-5 xs:w-6 xs:h-6 text-primary flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-sm xs:text-base text-foreground">
-                          {action.title}
-                        </h3>
-                        <p className="text-xs xs:text-sm text-muted-foreground leading-relaxed">
-                          {action.description}
-                        </p>
-                      </div>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription className="flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{alert.title}</div>
+                      <div className="text-sm text-muted-foreground">{alert.description}</div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                    <Button variant="ghost" size="sm">
+                      צפה
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ))}
+            </div>
+          )}
 
+          {/* Filters */}
+          <DashboardFilters
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            granularity={granularity}
+            onGranularityChange={setGranularity}
+            customFrom={customFrom}
+            customTo={customTo}
+            onCustomFromChange={setCustomFrom}
+            onCustomToChange={setCustomTo}
+          />
+
+          {/* KPIs */}
+          <DashboardKPIs
+            metrics={metrics}
+            loading={metricsLoading}
+            error={metricsError}
+          />
+
+          {/* Charts */}
+          <DashboardCharts
+            timeSeriesData={timeSeriesData}
+            loading={timeSeriesLoading}
+            error={timeSeriesError}
+            granularity={granularity}
+          />
+
+          {/* Tables */}
+          <DashboardTables
+            leads={recentLeads}
+            orders={recentOrders}
+            reviews={recentReviews}
+            leadsLoading={leadsLoading}
+            ordersLoading={ordersLoading}
+            reviewsLoading={reviewsLoading}
+            leadsError={leadsError}
+            ordersError={ordersError}
+            reviewsError={reviewsError}
+          />
         </div>
       </div>
     </div>

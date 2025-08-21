@@ -1912,6 +1912,64 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      supplier_dashboard_metrics: {
+        Args: { _from: string; _supplier_id: string; _to: string }
+        Returns: Json
+      }
+      supplier_recent_leads: {
+        Args: { _limit?: number; _supplier_id: string }
+        Returns: {
+          contact_email: string
+          created_at: string
+          id: string
+          last_contact_date: string
+          name: string
+          priority: string
+          sla_risk: boolean
+          source: string
+          status: string
+        }[]
+      }
+      supplier_recent_orders: {
+        Args: { _limit?: number; _supplier_id: string }
+        Returns: {
+          amount: number
+          client_name: string
+          created_at: string
+          due_date: string
+          id: string
+          status: string
+          title: string
+          unread_messages: number
+        }[]
+      }
+      supplier_recent_reviews: {
+        Args: { _limit?: number; _supplier_id: string }
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          rating: number
+          reviewer_name: string
+          title: string
+        }[]
+      }
+      supplier_timeseries: {
+        Args: {
+          _from: string
+          _grain: string
+          _supplier_id: string
+          _to: string
+        }
+        Returns: {
+          bucket: string
+          leads_count: number
+          orders_count: number
+          profile_views: number
+          revenue: number
+          reviews_count: number
+        }[]
+      }
     }
     Enums: {
       message_status: "sent" | "delivered" | "read"
