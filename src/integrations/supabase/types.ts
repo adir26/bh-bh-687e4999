@@ -83,24 +83,36 @@ export type Database = {
           description: string | null
           icon: string | null
           id: string
+          is_active: boolean | null
+          is_public: boolean | null
           name: string
           parent_id: string | null
+          position: number | null
+          slug: string
         }
         Insert: {
           created_at?: string
           description?: string | null
           icon?: string | null
           id?: string
+          is_active?: boolean | null
+          is_public?: boolean | null
           name: string
           parent_id?: string | null
+          position?: number | null
+          slug: string
         }
         Update: {
           created_at?: string
           description?: string | null
           icon?: string | null
           id?: string
+          is_active?: boolean | null
+          is_public?: boolean | null
           name?: string
           parent_id?: string | null
+          position?: number | null
+          slug?: string
         }
         Relationships: [
           {
@@ -169,59 +181,96 @@ export type Database = {
       companies: {
         Row: {
           address: string | null
+          area: string | null
+          business_license: string | null
           city: string | null
           created_at: string
           description: string | null
           email: string | null
+          featured: boolean | null
           id: string
+          is_public: boolean | null
           logo_url: string | null
           name: string
           owner_id: string
           phone: string | null
           rating: number | null
           review_count: number | null
+          status: string | null
+          tax_id: string | null
           updated_at: string
+          verification_notes: string | null
+          verification_status: string | null
           verified: boolean | null
+          verified_at: string | null
+          verified_by: string | null
           website: string | null
         }
         Insert: {
           address?: string | null
+          area?: string | null
+          business_license?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
+          featured?: boolean | null
           id?: string
+          is_public?: boolean | null
           logo_url?: string | null
           name: string
           owner_id: string
           phone?: string | null
           rating?: number | null
           review_count?: number | null
+          status?: string | null
+          tax_id?: string | null
           updated_at?: string
+          verification_notes?: string | null
+          verification_status?: string | null
           verified?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
           website?: string | null
         }
         Update: {
           address?: string | null
+          area?: string | null
+          business_license?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
+          featured?: boolean | null
           id?: string
+          is_public?: boolean | null
           logo_url?: string | null
           name?: string
           owner_id?: string
           phone?: string | null
           rating?: number | null
           review_count?: number | null
+          status?: string | null
+          tax_id?: string | null
           updated_at?: string
+          verification_notes?: string | null
+          verification_status?: string | null
           verified?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
           website?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "companies_owner_id_fkey"
             columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_verified_by_fkey"
+            columns: ["verified_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -266,6 +315,56 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_company_analytics_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_stats"
+            referencedColumns: ["company_id"]
+          },
+        ]
+      }
+      company_categories: {
+        Row: {
+          category_id: string
+          company_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          category_id: string
+          company_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          category_id?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "category_performance"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "company_categories_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_categories_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "supplier_stats"
@@ -1550,6 +1649,71 @@ export type Database = {
         }
         Relationships: []
       }
+      supplier_verifications: {
+        Row: {
+          company_id: string
+          created_at: string
+          documents: Json | null
+          id: string
+          notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          submitted_by: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          documents?: Json | null
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_by: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          documents?: Json | null
+          id?: string
+          notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_verifications_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_verifications_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_stats"
+            referencedColumns: ["company_id"]
+          },
+          {
+            foreignKeyName: "supplier_verifications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_verifications_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_messages: {
         Row: {
           attachments: string[] | null
@@ -1880,6 +2044,26 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
@@ -1911,6 +2095,18 @@ export type Database = {
       refresh_supplier_stats: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
       supplier_dashboard_metrics: {
         Args: { _from: string; _supplier_id: string; _to: string }
