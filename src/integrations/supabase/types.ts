@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_audit_logs_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_credentials: {
         Row: {
           created_at: string
@@ -602,6 +640,51 @@ export type Database = {
           },
         ]
       }
+      lead_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string | null
+          from_status: string | null
+          id: string
+          lead_id: string
+          note: string | null
+          to_status: string | null
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string | null
+          from_status?: string | null
+          id?: string
+          lead_id: string
+          note?: string | null
+          to_status?: string | null
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string | null
+          from_status?: string | null
+          id?: string
+          lead_id?: string
+          note?: string | null
+          to_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_history_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           assigned_to: string | null
@@ -886,7 +969,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          order_number: string | null
+          payment_status: string | null
           project_id: string
+          refunded_total: number | null
           status: Database["public"]["Enums"]["order_status"]
           supplier_id: string
           title: string
@@ -900,7 +986,10 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          order_number?: string | null
+          payment_status?: string | null
           project_id: string
+          refunded_total?: number | null
           status?: Database["public"]["Enums"]["order_status"]
           supplier_id: string
           title: string
@@ -914,7 +1003,10 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          order_number?: string | null
+          payment_status?: string | null
           project_id?: string
+          refunded_total?: number | null
           status?: Database["public"]["Enums"]["order_status"]
           supplier_id?: string
           title?: string
@@ -1295,33 +1387,53 @@ export type Database = {
       }
       profiles: {
         Row: {
+          block_reason: string | null
+          blocked_at: string | null
+          blocked_by: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
+          is_blocked: boolean | null
           onboarding_completed: boolean | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
         Insert: {
+          block_reason?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id: string
+          is_blocked?: boolean | null
           onboarding_completed?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Update: {
+          block_reason?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
+          is_blocked?: boolean | null
           onboarding_completed?: boolean | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_blocked_by_fkey"
+            columns: ["blocked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {
@@ -1531,6 +1643,51 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      refunds: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          order_id: string
+          processed_at: string | null
+          processed_by: string | null
+          reason: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          order_id: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          order_id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refunds_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refunds_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1754,6 +1911,7 @@ export type Database = {
       }
       support_tickets: {
         Row: {
+          admin_notes: string | null
           assigned_to: string | null
           closed_at: string | null
           created_at: string
@@ -1766,6 +1924,7 @@ export type Database = {
           rating_feedback: string | null
           resolution: string | null
           resolved_at: string | null
+          resolved_by: string | null
           status: string | null
           ticket_number: string
           title: string
@@ -1774,6 +1933,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
           assigned_to?: string | null
           closed_at?: string | null
           created_at?: string
@@ -1786,6 +1946,7 @@ export type Database = {
           rating_feedback?: string | null
           resolution?: string | null
           resolved_at?: string | null
+          resolved_by?: string | null
           status?: string | null
           ticket_number: string
           title: string
@@ -1794,6 +1955,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
           assigned_to?: string | null
           closed_at?: string | null
           created_at?: string
@@ -1806,6 +1968,7 @@ export type Database = {
           rating_feedback?: string | null
           resolution?: string | null
           resolved_at?: string | null
+          resolved_by?: string | null
           status?: string | null
           ticket_number?: string
           title?: string
@@ -1833,6 +1996,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2024,15 +2194,35 @@ export type Database = {
       }
     }
     Functions: {
+      admin_assign_leads: {
+        Args: { _lead_ids: string[]; _supplier_id: string }
+        Returns: number
+      }
+      admin_merge_leads: {
+        Args: { _duplicate_ids: string[]; _primary_id: string }
+        Returns: undefined
+      }
+      admin_refund_order: {
+        Args: { _amount: number; _order_id: string; _reason: string }
+        Returns: string
+      }
       admin_reorder_categories: {
         Args: { _ids: string[] }
         Returns: undefined
+      }
+      admin_update_lead_status: {
+        Args: { _lead_ids: string[]; _status: string }
+        Returns: number
       }
       check_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
       generate_lead_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_order_number: {
         Args: Record<PropertyKey, never>
         Returns: string
       }

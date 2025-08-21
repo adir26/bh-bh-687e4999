@@ -10,6 +10,12 @@ export type CategoryInsert = Database['public']['Tables']['categories']['Insert'
 export type CategoryUpdate = Database['public']['Tables']['categories']['Update'];
 
 export type Profile = Database['public']['Tables']['profiles']['Row'];
+export type Lead = Database['public']['Tables']['leads']['Row'];
+export type Order = Database['public']['Tables']['orders']['Row'];
+export type SupportTicket = Database['public']['Tables']['support_tickets']['Row'];
+export type AdminAuditLog = Database['public']['Tables']['admin_audit_logs']['Row'];
+export type LeadHistory = Database['public']['Tables']['lead_history']['Row'];
+export type Refund = Database['public']['Tables']['refunds']['Row'];
 
 export interface SupplierVerification {
   id: string;
@@ -44,6 +50,70 @@ export interface EnhancedCategory extends Category {
   children?: Category[];
   supplier_count?: number;
   product_count?: number;
+}
+
+// Customer Management Types
+export interface EnhancedProfile extends Profile {
+  orders_count?: number;
+  complaints_count?: number;
+  last_login?: string;
+  total_spent?: number;
+}
+
+export interface CustomerFilters {
+  status?: 'active' | 'blocked';
+  role?: 'client' | 'supplier';
+  search?: string;
+  date_from?: string;
+  date_to?: string;
+  is_blocked?: boolean;
+}
+
+export interface ComplaintWithDetails extends SupportTicket {
+  user_profile?: Partial<Profile>;
+  order?: Partial<Order>;
+}
+
+// Lead Management Types
+export interface EnhancedLead extends Lead {
+  client_profile?: Partial<Profile>;
+  supplier_profile?: Partial<Profile>;
+  lead_history?: LeadHistory[];
+  activities_count?: number;
+}
+
+export interface LeadFilters {
+  status?: string;
+  priority?: string;
+  source?: string;
+  supplier_id?: string;
+  search?: string;
+  date_from?: string;
+  date_to?: string;
+}
+
+// Order Management Types
+export interface EnhancedOrder extends Order {
+  client_profile?: Partial<Profile>;
+  supplier_profile?: Partial<Profile>;
+  refunds?: Refund[];
+  refunded_amount?: number;
+  status_history?: Array<{
+    from_status: string;
+    to_status: string;
+    changed_by: string;
+    created_at: string;
+    note?: string;
+  }>;
+}
+
+export interface OrderFilters {
+  status?: string;
+  payment_status?: string;
+  supplier_id?: string;
+  search?: string;
+  date_from?: string;
+  date_to?: string;
 }
 
 export interface SupplierFilters {
@@ -83,6 +153,24 @@ export interface CategoriesResponse {
   totalPages: number;
 }
 
+export interface CustomersResponse {
+  data: EnhancedProfile[];
+  count: number;
+  totalPages: number;
+}
+
+export interface LeadsResponse {
+  data: EnhancedLead[];
+  count: number;
+  totalPages: number;
+}
+
+export interface OrdersResponse {
+  data: EnhancedOrder[];
+  count: number;
+  totalPages: number;
+}
+
 export interface BulkActionResult {
   success: number;
   failed: number;
@@ -93,7 +181,9 @@ export interface BulkActionResult {
 export const STATUS_LABELS = {
   pending: 'ממתין',
   approved: 'מאושר',
-  suspended: 'מושעה'
+  suspended: 'מושעה',
+  active: 'פעיל',
+  blocked: 'חסום'
 } as const;
 
 export const VERIFICATION_STATUS_LABELS = {
@@ -106,4 +196,27 @@ export const VERIFICATION_STATUS_LABELS = {
 export const VISIBILITY_LABELS = {
   public: 'ציבורי',
   hidden: 'מוסתר'
+} as const;
+
+export const LEAD_STATUS_LABELS = {
+  new: 'חדש',
+  contacted: 'נוצר קשר',
+  proposal_sent: 'הצעה נשלחה',
+  won: 'נסגר בהצלחה',
+  lost: 'אבוד'
+} as const;
+
+export const ORDER_STATUS_LABELS = {
+  pending: 'ממתין',
+  confirmed: 'מאושר',
+  in_progress: 'בטיפול',
+  completed: 'הושלם',
+  canceled: 'בוטל'
+} as const;
+
+export const PAYMENT_STATUS_LABELS = {
+  unpaid: 'לא שולם',
+  paid: 'שולם',
+  partial: 'שולם חלקית',
+  refunded: 'הוחזר'
 } as const;
