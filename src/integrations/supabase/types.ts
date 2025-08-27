@@ -2477,6 +2477,13 @@ export type Database = {
         Args: { _lead_ids: string[]; _status: string }
         Returns: number
       }
+      admin_update_user_role: {
+        Args: {
+          new_role: Database["public"]["Enums"]["user_role"]
+          target_user_id: string
+        }
+        Returns: undefined
+      }
       check_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]

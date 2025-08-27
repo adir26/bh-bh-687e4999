@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
+import { SecurityMiddleware } from "./components/SecurityMiddleware";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { SupplierBottomNavigation } from "@/components/SupplierBottomNavigation";
 import Index from "./pages/Index";
@@ -107,11 +108,12 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <div className="min-h-screen bg-white">
+        <SecurityMiddleware>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <div className="min-h-screen bg-white">
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/app-exclusive" element={<AppExclusive />} />
@@ -334,11 +336,12 @@ const App = () => {
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              <ConditionalNavigation />
-              <SiteFooter />
-            </div>
-          </BrowserRouter>
-        </TooltipProvider>
+                <ConditionalNavigation />
+                <SiteFooter />
+              </div>
+            </BrowserRouter>
+          </TooltipProvider>
+        </SecurityMiddleware>
       </AuthProvider>
     </QueryClientProvider>
   );

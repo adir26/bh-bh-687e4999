@@ -5,6 +5,8 @@ import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { AdminBottomNavigation } from "./AdminBottomNavigation";
 import { supabase } from "@/integrations/supabase/client";
+import { useSecureAdminAuth } from "@/hooks/useSecureAdminAuth";
+import { SecureStorage } from "@/utils/secureStorage";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -13,47 +15,36 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAdminAuthenticated, validateAdminAccess } = useSecureAdminAuth();
 
   useEffect(() => {
     const checkAdminAuth = async () => {
       if (location.pathname === "/admin/login") return;
       
-      const adminAuth = localStorage.getItem("adminAuthenticated");
-      const adminUserId = localStorage.getItem("adminUserId");
-      
-      if (!adminAuth || !adminUserId) {
-        navigate("/admin/login");
-        return;
-      }
-
-      // Verify session is still valid
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error || !session || session.user.id !== adminUserId) {
-        // Clear invalid session
+      // Use secure admin authentication
+      const isValid = await validateAdminAccess();
+      if (!isValid) {
+        // Clear any insecure legacy data
+        SecureStorage.remove('adminAuthenticated');
+        SecureStorage.remove('adminUserId');
         localStorage.removeItem("adminAuthenticated");
         localStorage.removeItem("adminUserId");
-        navigate("/admin/login");
-        return;
-      }
-
-      // Double-check admin status
-      const { data: isAdmin } = await supabase.rpc('is_admin', { user_id: session.user.id });
-      if (!isAdmin) {
-        localStorage.removeItem("adminAuthenticated");
-        localStorage.removeItem("adminUserId");
-        await supabase.auth.signOut();
         navigate("/admin/login");
       }
     };
 
     checkAdminAuth();
-  }, [navigate, location.pathname]);
+  }, [navigate, location.pathname, validateAdminAccess]);
 
   const isLoginPage = location.pathname === "/admin/login";
 
   if (isLoginPage) {
     return <div className="admin-rtl">{children}</div>;
+  }
+
+  // Block access if admin authentication is not validated
+  if (!isAdminAuthenticated) {
+    return null; // Let the useEffect handle navigation
   }
 
   return (

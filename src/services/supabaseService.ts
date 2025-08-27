@@ -370,9 +370,12 @@ export const profilesService = {
   },
 
   async updateProfile(userId: string, updates: any) {
+    // Filter out security-sensitive fields
+    const { role, id, created_at, updated_at, ...safeUpdates } = updates;
+    
     const { data, error } = await supabase
       .from('profiles')
-      .update(updates)
+      .update(safeUpdates)
       .eq('id', userId)
       .select()
       .single();
