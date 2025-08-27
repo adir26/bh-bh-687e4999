@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_audit_events: {
+        Row: {
+          admin_id: string
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+        }
+        Relationships: []
+      }
       admin_audit_logs: {
         Row: {
           action: string
@@ -165,6 +189,13 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "category_performance"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "top_categories_30d"
             referencedColumns: ["category_id"]
           },
         ]
@@ -392,6 +423,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "category_performance"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "company_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "top_categories_30d"
             referencedColumns: ["category_id"]
           },
           {
@@ -1275,6 +1313,13 @@ export type Database = {
             referencedColumns: ["category_id"]
           },
           {
+            foreignKeyName: "fk_product_categories_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "top_categories_30d"
+            referencedColumns: ["category_id"]
+          },
+          {
             foreignKeyName: "fk_product_categories_product"
             columns: ["product_id"]
             isOneToOne: false
@@ -1367,6 +1412,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "category_performance"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "fk_products_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "top_categories_30d"
             referencedColumns: ["category_id"]
           },
           {
@@ -1494,6 +1546,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "category_performance"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "projects_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "top_categories_30d"
             referencedColumns: ["category_id"]
           },
           {
@@ -2104,6 +2163,17 @@ export type Database = {
         }
         Relationships: []
       }
+      kpi_daily: {
+        Row: {
+          date: string | null
+          gmv_ils: number | null
+          new_suppliers: number | null
+          new_users: number | null
+          orders_count: number | null
+          revenue_ils: number | null
+        }
+        Relationships: []
+      }
       popular_products: {
         Row: {
           category_id: string | null
@@ -2131,6 +2201,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "category_performance"
+            referencedColumns: ["category_id"]
+          },
+          {
+            foreignKeyName: "fk_products_category"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "top_categories_30d"
             referencedColumns: ["category_id"]
           },
         ]
@@ -2185,6 +2262,33 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "companies_owner_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      top_categories_30d: {
+        Row: {
+          category_id: string | null
+          category_name: string | null
+          gmv_ils: number | null
+          orders: number | null
+        }
+        Relationships: []
+      }
+      top_suppliers_30d: {
+        Row: {
+          gmv_ils: number | null
+          name: string | null
+          orders: number | null
+          revenue_ils: number | null
+          supplier_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "profiles"
