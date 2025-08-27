@@ -448,6 +448,36 @@ export type Database = {
           },
         ]
       }
+      events: {
+        Row: {
+          entity: string
+          entity_id: string
+          id: string
+          meta: Json | null
+          occurred_at: string | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          entity: string
+          entity_id: string
+          id?: string
+          meta?: Json | null
+          occurred_at?: string | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          entity?: string
+          entity_id?: string
+          id?: string
+          meta?: Json | null
+          occurred_at?: string | null
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -502,6 +532,117 @@ export type Database = {
           is_enabled?: boolean
           start_date?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      homepage_items: {
+        Row: {
+          created_at: string | null
+          cta_label_he: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          link_target_id: string | null
+          link_type: string | null
+          link_url: string | null
+          order_index: number | null
+          section_id: string
+          subtitle_he: string | null
+          title_he: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cta_label_he?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          link_target_id?: string | null
+          link_type?: string | null
+          link_url?: string | null
+          order_index?: number | null
+          section_id: string
+          subtitle_he?: string | null
+          title_he?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cta_label_he?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          link_target_id?: string | null
+          link_type?: string | null
+          link_url?: string | null
+          order_index?: number | null
+          section_id?: string
+          subtitle_he?: string | null
+          title_he?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homepage_items_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "homepage_public"
+            referencedColumns: ["section_id"]
+          },
+          {
+            foreignKeyName: "homepage_items_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "homepage_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homepage_sections: {
+        Row: {
+          audience_json: Json | null
+          created_at: string | null
+          description_he: string | null
+          end_at: string | null
+          id: string
+          is_active: boolean | null
+          key: string | null
+          platform: string | null
+          priority: number | null
+          start_at: string | null
+          status: string | null
+          title_he: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          audience_json?: Json | null
+          created_at?: string | null
+          description_he?: string | null
+          end_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key?: string | null
+          platform?: string | null
+          priority?: number | null
+          start_at?: string | null
+          status?: string | null
+          title_he?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          audience_json?: Json | null
+          created_at?: string | null
+          description_he?: string | null
+          end_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key?: string | null
+          platform?: string | null
+          priority?: number | null
+          start_at?: string | null
+          status?: string | null
+          title_he?: string | null
+          type?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2163,6 +2304,24 @@ export type Database = {
         }
         Relationships: []
       }
+      homepage_public: {
+        Row: {
+          cta_label_he: string | null
+          image_url: string | null
+          item_id: string | null
+          link_target_id: string | null
+          link_type: string | null
+          link_url: string | null
+          order_index: number | null
+          priority: number | null
+          section_id: string | null
+          section_title: string | null
+          subtitle_he: string | null
+          title_he: string | null
+          type: string | null
+        }
+        Relationships: []
+      }
       kpi_daily: {
         Row: {
           date: string | null
@@ -2337,6 +2496,24 @@ export type Database = {
       generate_ticket_number: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_homepage_content: {
+        Args: { _platform?: string }
+        Returns: {
+          item_cta_label: string
+          item_id: string
+          item_image_url: string
+          item_link_target_id: string
+          item_link_type: string
+          item_link_url: string
+          item_order: number
+          item_subtitle: string
+          item_title: string
+          section_id: string
+          section_priority: number
+          section_title: string
+          section_type: string
+        }[]
       }
       get_user_role: {
         Args: { user_id: string }
