@@ -82,6 +82,7 @@ export interface Review {
   created_at: string;
 }
 
+// Legacy interface - keeping for backward compatibility
 export interface HomepageContent {
   id: string;
   block_name: string;

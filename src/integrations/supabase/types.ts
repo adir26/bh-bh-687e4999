@@ -2509,7 +2509,9 @@ export type Database = {
           item_order: number
           item_subtitle: string
           item_title: string
+          section_audience: Json
           section_id: string
+          section_platform: string
           section_priority: number
           section_title: string
           section_type: string
