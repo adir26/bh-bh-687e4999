@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useHomepagePublicContent } from '@/hooks/useHomepageCMS';
 import type { HomepagePublicContent, Platform, AudienceContext, shouldShowToAudience } from '@/types/homepage';
 import { shouldShowToAudience as audienceResolver } from '@/types/homepage';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface GroupedHomepageContent {
   [sectionId: string]: {
@@ -28,12 +27,11 @@ interface GroupedHomepageContent {
   };
 }
 
-export const useHomepageContent = (platform: Platform = 'web') => {
-  const { user } = useAuth();
+export const useHomepageContent = (platform: Platform = 'web', user?: any) => {
   const { data: rawContent = [], ...queryProps } = useHomepagePublicContent(platform);
 
   const processedContent = useQuery({
-    queryKey: ['processed-homepage-content', platform, user?.id],
+    queryKey: ['processed-homepage-content', platform, user?.id || 'anonymous'],
     queryFn: () => {
       // Group content by section
       const grouped: GroupedHomepageContent = {};
