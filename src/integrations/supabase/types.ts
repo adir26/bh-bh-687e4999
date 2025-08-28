@@ -1479,7 +1479,7 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "popular_products"
-            referencedColumns: ["product_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "photo_products_product_id_fkey"
@@ -1645,7 +1645,7 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "popular_products"
-            referencedColumns: ["product_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "fk_product_categories_product"
@@ -1925,7 +1925,7 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "popular_products"
-            referencedColumns: ["product_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "fk_quote_items_product"
@@ -2447,23 +2447,23 @@ export type Database = {
       user_favorites: {
         Row: {
           created_at: string
+          entity_id: string | null
+          entity_type: string
           id: string
-          item_id: string
-          item_type: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string
           id?: string
-          item_id: string
-          item_type: string
           user_id: string
         }
         Update: {
           created_at?: string
+          entity_id?: string | null
+          entity_type?: string
           id?: string
-          item_id?: string
-          item_type?: string
           user_id?: string
         }
         Relationships: []
@@ -2515,41 +2515,13 @@ export type Database = {
       }
       popular_products: {
         Row: {
-          category_id: string | null
-          created_at: string | null
-          favorite_count: number | null
-          last_updated: string | null
+          favorites_count: number | null
+          id: string | null
           name: string | null
-          popularity_score: number | null
-          price: number | null
-          product_id: string | null
-          search_mentions: number | null
+          success_rate: number | null
           supplier_id: string | null
-          times_quoted: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_products_category"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_products_category"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "category_performance"
-            referencedColumns: ["category_id"]
-          },
-          {
-            foreignKeyName: "fk_products_category"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "top_categories_30d"
-            referencedColumns: ["category_id"]
-          },
-        ]
+        Relationships: []
       }
       project_analytics: {
         Row: {

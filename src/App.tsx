@@ -89,7 +89,7 @@ import { OnboardingGuard } from "./components/OnboardingGuard";
 import { CompletedOnboardingGuard } from "./components/CompletedOnboardingGuard";
 import MyMessages from "./pages/MyMessages";
 import MyMeetings from "./pages/MyMeetings";
-import SavedSuppliers from "./pages/SavedSuppliers";
+
 import SupplierProductsView from "./pages/SupplierProducts";
 import SupplierReviews from "./pages/SupplierReviews";
 import AppExclusive from "./pages/AppExclusive";
@@ -297,7 +297,7 @@ const App = () => {
                 } />
                 <Route path="/saved-suppliers" element={
                   <ProtectedRoute allowedRoles={['client']}>
-                    <SavedSuppliers />
+                    <Navigate to="/favorites" replace />
                   </ProtectedRoute>
                 } />
                 

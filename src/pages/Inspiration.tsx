@@ -13,6 +13,7 @@ import { Photo } from '@/types/inspiration';
 import { getPublicImageUrl, preloadSignedUrls } from '@/utils/imageUrls';
 import { PhotoUploadModal } from '@/components/inspiration/PhotoUploadModal';
 import { SaveToIdeabookModal } from '@/components/inspiration/SaveToIdeabookModal';
+import { FavoritesService } from '@/services/favoritesService';
 
 
 export default function Inspiration() {
@@ -89,27 +90,21 @@ export default function Inspiration() {
       const photo = photos.find(p => p.id === photoId);
       if (!photo) return;
 
-      if (photo.is_liked) {
-        await supabase
-          .from('photo_likes')
-          .delete()
-          .eq('photo_id', photoId)
-          .eq('user_id', user.id);
-      } else {
-        await supabase
-          .from('photo_likes')
-          .insert({ photo_id: photoId, user_id: user.id });
-      }
+      // Use new FavoritesService to toggle inspiration favorite
+      const isNowFavorited = await FavoritesService.toggle('inspiration', photoId);
 
+      // Update local state
       setPhotos(prev => prev.map(p => 
         p.id === photoId 
           ? { 
               ...p, 
-              is_liked: !p.is_liked, 
-              likes: p.is_liked ? p.likes! - 1 : p.likes! + 1 
+              is_liked: isNowFavorited, 
+              likes: isNowFavorited ? p.likes! + 1 : p.likes! - 1 
             }
           : p
       ));
+
+      toast.success(isNowFavorited ? 'נוסף למועדפים' : 'הוסר מהמועדפים');
     } catch (error) {
       console.error('Error toggling like:', error);
       toast.error('שגיאה בעדכון החיבוב');
