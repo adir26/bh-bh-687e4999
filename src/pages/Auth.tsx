@@ -26,15 +26,8 @@ const Auth: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState('login');
 
-  // Handle authentication state changes and redirects
+  // Handle tab switching from URL params  
   useEffect(() => {
-    if (user && profile) {
-      // Get intended destination from location state, or default based on role
-      const from = location.state?.from?.pathname || getDefaultRoute(profile.role, false);
-      navigate(from, { replace: true });
-      return;
-    }
-
     const tab = searchParams.get('tab');
     if (tab === 'signup') {
       setActiveTab('signup');
@@ -46,7 +39,7 @@ const Auth: React.FC = () => {
         localStorage.removeItem('signupData');
       }
     }
-  }, [user, profile, navigate, searchParams, location.state]);
+  }, [searchParams]);
 
   const getDefaultRoute = (role: string, isNewUser = false) => {
     // If user is new (just signed up), redirect to onboarding
@@ -89,17 +82,13 @@ const Auth: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const { error, data } = await signIn(loginForm.email, loginForm.password);
+      const { error } = await signIn(loginForm.email, loginForm.password);
       
-      if (!error && data?.user) {
-        console.log('[AUTH_PAGE] Login successful, waiting for profile...');
-        // Wait a moment for profile to be fetched
-        setTimeout(() => {
-          const route = getRoute(false); // Not a new user
-          console.log('[AUTH_PAGE] Login navigation to:', route);
-          navigate(route);
-        }, 200);
+      if (error) {
+        console.error('Login error:', error);
+        toast.error('שגיאה בהתחברות');
       }
+      // Navigation is now handled in AuthContext
     } catch (error) {
       console.error('Login error:', error);
       toast.error('שגיאה בהתחברות');
@@ -160,13 +149,8 @@ const Auth: React.FC = () => {
         
         // Check if user is immediately available (no email confirmation required)
         if (data.user && data.session) {
-          // User is logged in immediately, redirect to onboarding
-          console.log('[AUTH_PAGE] Immediate signup success, navigating to onboarding');
-          setTimeout(() => {
-            const route = getRoute(true);
-            console.log('[AUTH_PAGE] Signup navigation to:', route);
-            navigate(route);
-          }, 200);
+          // User is logged in immediately - navigation handled in AuthContext
+          console.log('[AUTH_PAGE] Immediate signup success');
         } else {
           // Email confirmation required, show message and switch to login tab
           console.log('[AUTH_PAGE] Email confirmation required');

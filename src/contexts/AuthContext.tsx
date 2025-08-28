@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [intendedRoute, setIntendedRoute] = useState<string | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const fetchProfile = async (userId: string) => {
     try {
@@ -65,8 +67,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    let debounceTimeout: NodeJS.Timeout;
-    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -74,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           event, 
           hasSession: !!session, 
           userId: session?.user?.id,
-          origin: window.location.origin 
+          currentPath: window.location.pathname
         });
         
         setSession(session);
@@ -86,29 +86,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const profileData = await fetchProfile(session.user.id);
             setProfile(profileData);
             setLoading(false);
-            
-            // Handle navigation for returning users (not through callback)
-            if (event === 'SIGNED_IN' && !window.location.pathname.includes('/auth/callback')) {
-              // Clear any existing timeout
-              if (debounceTimeout) clearTimeout(debounceTimeout);
-              
-              // Debounced navigation to prevent multiple redirects
-              debounceTimeout = setTimeout(() => {
-                if (profileData && !profileData.onboarding_completed && profileData.role !== 'admin') {
-                  const onboardingRoute = profileData.role === 'supplier' 
-                    ? '/onboarding/supplier-welcome' 
-                    : '/onboarding/welcome';
-                  
-                  console.log('[AUTH] Redirecting to onboarding:', onboardingRoute);
-                  window.location.href = onboardingRoute;
-                } else if (profileData?.onboarding_completed && intendedRoute) {
-                  // Restore intended route if user had tried to access protected content
-                  console.log('[AUTH] Restoring intended route:', intendedRoute);
-                  window.location.href = intendedRoute;
-                  setIntendedRoute(null);
-                }
-              }, 500);
-            }
           }, 0);
         } else {
           setProfile(null);
@@ -139,9 +116,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       subscription.unsubscribe();
-      if (debounceTimeout) clearTimeout(debounceTimeout);
     };
-  }, [intendedRoute]);
+  }, []);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     setLoading(true);
@@ -243,6 +219,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         const userProfile = await fetchProfile(data.user.id);
         setProfile(userProfile);
+        
+        // Navigate to appropriate route after successful login
+        if (userProfile) {
+          const route = getRoute(false);
+          console.log('[AUTH] Login success, navigating to:', route);
+          navigate(route);
+        }
       }
 
       toast({
