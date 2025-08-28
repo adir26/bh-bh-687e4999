@@ -249,7 +249,7 @@ const App = () => {
                 } />
                 <Route path="/quotes/:quoteId" element={<QuoteView />} />
                 <Route path="/search" element={<Search />} />
-                <Route path="/favorites" element={<ProtectedRoute allowedRoles={['customer']}><Favorites /></ProtectedRoute>} />
+                <Route path="/favorites" element={<ProtectedRoute allowedRoles={['client']}><Favorites /></ProtectedRoute>} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/orders/:orderId/status" element={<OrderStatus />} />
                 <Route path="/orders/:orderId/tracking" element={<LiveDeliveryTracking />} />
