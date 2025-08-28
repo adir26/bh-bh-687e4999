@@ -17,34 +17,22 @@ const Favorites = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (!user?.id) return;
-      
       try {
-        setLoading(true);
-        const data = await FavoritesService.listByUser(user.id);
-        setFavorites(data);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUser(user);
+          const userFavorites = await FavoritesService.listByUser(user.id);
+          setFavorites(userFavorites);
+        }
+        setLoading(false);
       } catch (error) {
-        console.error('Error fetching favorites:', error);
-        toast({
-          title: "שגיאה",
-          description: "לא ניתן לטעון את המועדפים",
-          variant: "destructive",
-        });
-      } finally {
+        console.error('Error fetching user favorites:', error);
         setLoading(false);
       }
     };
 
-    fetchFavorites();
-  }, [user]);
+    fetchUser();
+  }, []);
 
   const handleRemoveFavorite = async (entityType: string, entityId: string) => {
     if (!user?.id) return;
