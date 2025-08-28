@@ -49,7 +49,7 @@ import SupplierLeadManagement from "./pages/supplier/LeadManagement";
 import ProductCatalog from "./pages/supplier/ProductCatalog";
 import QuoteBuilder from "./pages/supplier/QuoteBuilder";
 import ProposalBuilder from "./pages/supplier/ProposalBuilder";
-import OrderManagement from "./pages/supplier/OrderManagement";
+import SupplierOrders from "./pages/supplier/Orders";
 import SupplierNotifications from "./pages/supplier/Notifications";
 import SupplierAnalytics from "./pages/supplier/Analytics";
 import SupplierCRM from "./pages/supplier/CRM";
@@ -229,7 +229,7 @@ const App = () => {
                 <Route path="/supplier/orders" element={
                   <OnboardingGuard>
                     <ProtectedRoute allowedRoles={['supplier']}>
-                      <OrderManagement />
+                      <SupplierOrders />
                     </ProtectedRoute>
                   </OnboardingGuard>
                 } />

@@ -1104,6 +1104,159 @@ export type Database = {
         }
         Relationships: []
       }
+      order_attachments: {
+        Row: {
+          created_at: string
+          file_url: string
+          id: string
+          label: string | null
+          order_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_url: string
+          id?: string
+          label?: string | null
+          order_id: string
+        }
+        Update: {
+          created_at?: string
+          file_url?: string
+          id?: string
+          label?: string | null
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_attachments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_calls: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          order_id: string
+          outcome: string
+          phone_e164: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          order_id: string
+          outcome: string
+          phone_e164: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          order_id?: string
+          outcome?: string
+          phone_e164?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_calls_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          product_name: string
+          qty: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          product_name: string
+          qty?: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          product_name?: string
+          qty?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_status_events: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          is_customer_visible: boolean
+          new_status: string
+          note: string | null
+          old_status: string | null
+          order_id: string
+          reason: string | null
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          is_customer_visible?: boolean
+          new_status: string
+          note?: string | null
+          old_status?: string | null
+          order_id: string
+          reason?: string | null
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          is_customer_visible?: boolean
+          new_status?: string
+          note?: string | null
+          old_status?: string | null
+          order_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_events_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_status_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_status_history: {
         Row: {
           changed_by: string
@@ -1143,52 +1296,79 @@ export type Database = {
         Row: {
           amount: number
           client_id: string
+          closed_at: string | null
           completed_at: string | null
           created_at: string
+          current_status: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          customer_phone_e164: string | null
           description: string | null
           due_date: string | null
+          eta_at: string | null
           id: string
           order_number: string | null
           payment_status: string | null
           project_id: string
           refunded_total: number | null
+          shipping_address: Json | null
           status: Database["public"]["Enums"]["order_status"]
           supplier_id: string
           title: string
+          total_ils: number | null
           updated_at: string
         }
         Insert: {
           amount: number
           client_id: string
+          closed_at?: string | null
           completed_at?: string | null
           created_at?: string
+          current_status?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          customer_phone_e164?: string | null
           description?: string | null
           due_date?: string | null
+          eta_at?: string | null
           id?: string
           order_number?: string | null
           payment_status?: string | null
           project_id: string
           refunded_total?: number | null
+          shipping_address?: Json | null
           status?: Database["public"]["Enums"]["order_status"]
           supplier_id: string
           title: string
+          total_ils?: number | null
           updated_at?: string
         }
         Update: {
           amount?: number
           client_id?: string
+          closed_at?: string | null
           completed_at?: string | null
           created_at?: string
+          current_status?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          customer_phone_e164?: string | null
           description?: string | null
           due_date?: string | null
+          eta_at?: string | null
           id?: string
           order_number?: string | null
           payment_status?: string | null
           project_id?: string
           refunded_total?: number | null
+          shipping_address?: Json | null
           status?: Database["public"]["Enums"]["order_status"]
           supplier_id?: string
           title?: string
+          total_ils?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -2579,6 +2759,33 @@ export type Database = {
       refresh_supplier_stats: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      rpc_log_call: {
+        Args: {
+          p_note?: string
+          p_order_id: string
+          p_outcome: string
+          p_phone_e164: string
+        }
+        Returns: boolean
+      }
+      rpc_supplier_can_access: {
+        Args: { p_order_id: string }
+        Returns: boolean
+      }
+      rpc_update_order_status: {
+        Args: {
+          p_changed_by?: string
+          p_is_customer_visible?: boolean
+          p_new_status: string
+          p_order_id: string
+          p_reason?: string
+        }
+        Returns: {
+          message: string
+          success: boolean
+          updated_order: Database["public"]["Tables"]["orders"]["Row"]
+        }[]
       }
       set_limit: {
         Args: { "": number }
