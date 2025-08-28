@@ -107,12 +107,12 @@ const queryClient = new QueryClient();
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <SecurityMiddleware>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
+          <SecurityMiddleware>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
               <div className="min-h-screen bg-white">
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -339,10 +339,10 @@ const App = () => {
                 <ConditionalNavigation />
                 <SiteFooter />
               </div>
-            </BrowserRouter>
-          </TooltipProvider>
-        </SecurityMiddleware>
-      </AuthProvider>
+            </TooltipProvider>
+          </SecurityMiddleware>
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 };
