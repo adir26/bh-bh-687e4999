@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole, getPostAuthRoute, getRoleHomeRoute } from '@/utils/authRouting';
+import { InputSanitizer } from '@/utils/inputSanitizer';
 
 interface Profile {
   id: string;
@@ -153,22 +154,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, metadata?: any) => {
     setLoading(true);
     try {
-      // Sanitize email - strip RTL marks, spaces, and normalize
-      const cleanEmail = email?.replace(/\u200F|\u200E/g, '').trim().toLowerCase();
+      // Enhanced input sanitization and validation
+      const sanitizedEmail = InputSanitizer.sanitizeEmail(email);
+      const sanitizedName = InputSanitizer.sanitizeText(metadata?.full_name || metadata?.fullName || '', { maxLength: 100 });
+      
+      // Validate password strength
+      const passwordValidation = InputSanitizer.validatePassword(password);
+      if (!passwordValidation.isValid) {
+        toast({
+          title: "סיסמה לא תקינה",
+          description: passwordValidation.errors[0],
+          variant: "destructive"
+        });
+        return { error: { message: passwordValidation.errors[0] } };
+      }
       
       console.log('[AUTH] SignUp attempt:', { 
-        email: cleanEmail, 
+        email: sanitizedEmail, 
         role: metadata?.role, 
         origin: window.location.origin 
       });
 
       const { data, error } = await supabase.auth.signUp({
-        email: cleanEmail,
+        email: sanitizedEmail,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
-            full_name: metadata?.full_name || metadata?.fullName || '',
+            full_name: sanitizedName,
             role: metadata?.role || 'client'
           }
         }
@@ -182,6 +195,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           errorMessage = "הסיסמה חייבת להכיל לפחות 6 תווים";
         } else if (error.message.includes('Unable to validate email address')) {
           errorMessage = "כתובת האימייל לא תקינה";
+        } else if (error.message.includes('Signup is disabled')) {
+          errorMessage = "ההרשמה מושבתת זמנית";
         }
         
         toast({
@@ -208,6 +223,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { data, error: null };
     } catch (error: any) {
       console.error('Signup error:', error);
+      toast({
+        title: "שגיאה במערכת",
+        description: "אירעה שגיאה לא צפויה. אנא נסו שוב מאוחר יותר.",
+        variant: "destructive"
+      });
       return { error };
     } finally {
       setLoading(false);
@@ -216,13 +236,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      const sanitizedEmail = InputSanitizer.sanitizeEmail(email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: sanitizedEmail,
         password,
       });
 
       if (error) {
         console.error('SignIn error:', error);
+        let errorMessage = "שגיאה בהתחברות";
+        
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = "אימייל או סיסמה שגויים";
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = "האימייל לא אושר. אנא בדקו את תיבת הדואר";
+        } else if (error.message.includes('too many requests')) {
+          errorMessage = "יותר מדי ניסיונות התחברות. אנא נסו שוב מאוחר יותר";
+        }
+        
+        toast({
+          title: "שגיאה בהתחברות",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        
         return { error };
       }
 
@@ -237,6 +275,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { data, error: null };
     } catch (error) {
       console.error('SignIn error:', error);
+      toast({
+        title: "שגיאה במערכת",
+        description: "אירעה שגיאה לא צפויה. אנא נסה שנית.",
+        variant: "destructive"
+      });
       return { 
         error: { message: 'אירעה שגיאה בהתחברות. אנא נסה שנית.' }
       };
@@ -262,30 +305,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return { error: new Error('User not authenticated') };
 
-    // Filter out security-sensitive fields that users can't update
-    const { role, id, created_at, updated_at, ...safeUpdates } = updates;
-
-    const { error } = await supabase
-      .from('profiles')
-      .update(safeUpdates)
-      .eq('id', user.id);
-
-    if (error) {
-      toast({
-        title: "שגיאה בעדכון פרופיל",
-        description: error.message,
-        variant: "destructive"
+    try {
+      // Enhanced sanitization of updates
+      const sanitizedUpdates: any = {};
+      
+      if (updates.full_name) {
+        sanitizedUpdates.full_name = InputSanitizer.sanitizeText(updates.full_name, { maxLength: 100 });
+      }
+      if (updates.email) {
+        sanitizedUpdates.email = InputSanitizer.sanitizeEmail(updates.email);
+      }
+      
+      // Filter out security-sensitive fields that users can't update
+      const securityFields = ['role', 'id', 'created_at', 'updated_at'];
+      Object.keys(updates).forEach(key => {
+        if (!securityFields.includes(key) && updates[key as keyof Profile] !== undefined) {
+          sanitizedUpdates[key] = updates[key as keyof Profile];
+        }
       });
-    } else {
-      // Refresh profile data
-      const updatedProfile = await fetchProfile(user.id);
-      setProfile(updatedProfile);
-      toast({
-        title: "פרופיל עודכן בהצלחה"
-      });
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(sanitizedUpdates)
+        .eq('id', user.id);
+
+      if (error) {
+        toast({
+          title: "שגיאה בעדכון פרופיל",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        // Refresh profile data
+        const updatedProfile = await fetchProfile(user.id);
+        setProfile(updatedProfile);
+        toast({
+          title: "פרופיל עודכן בהצלחה"
+        });
+      }
+
+      return { error };
+    } catch (error) {
+      console.error('Profile update error:', error);
+      return { error: error as Error };
     }
-
-    return { error };
   };
 
   const updateOnboardingStep = async (step: string, context?: any) => {

@@ -80,18 +80,27 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          last_login_at: string | null
+          locked_until: string | null
+          login_attempts: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          last_login_at?: string | null
+          locked_until?: string | null
+          login_attempts?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          last_login_at?: string | null
+          locked_until?: string | null
+          login_attempts?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -2841,6 +2850,10 @@ export type Database = {
           revenue: number
           reviews_count: number
         }[]
+      }
+      validate_admin_session: {
+        Args: { _user_id: string }
+        Returns: Json
       }
     }
     Enums: {

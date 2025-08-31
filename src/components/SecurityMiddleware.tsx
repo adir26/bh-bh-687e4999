@@ -14,20 +14,32 @@ export const SecurityMiddleware: React.FC<SecurityMiddlewareProps> = ({ children
   useEffect(() => {
     // Set up security headers via meta tags
     const setSecurityHeaders = () => {
-      // Content Security Policy
+      // Stronger Content Security Policy
       const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
       if (!cspMeta) {
         const meta = document.createElement('meta');
         meta.setAttribute('http-equiv', 'Content-Security-Policy');
         meta.setAttribute('content', 
           "default-src 'self'; " +
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; " +
-          "style-src 'self' 'unsafe-inline' https:; " +
-          "img-src 'self' data: https:; " +
-          "connect-src 'self' https://yislkmhnitznvbxfpcxd.supabase.co wss://yislkmhnitznvbxfpcxd.supabase.co; " +
-          "font-src 'self' https:; " +
-          "frame-ancestors 'none';"
+          "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; " +
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+          "img-src 'self' data: https: blob:; " +
+          "connect-src 'self' https://yislkmhnitznvbxfpcxd.supabase.co wss://yislkmhnitznvbxfpcxd.supabase.co https://api.ipify.org; " +
+          "font-src 'self' https://fonts.gstatic.com; " +
+          "frame-ancestors 'none'; " +
+          "base-uri 'self'; " +
+          "form-action 'self'; " +
+          "upgrade-insecure-requests;"
         );
+        document.head.appendChild(meta);
+      }
+
+      // Add Referrer Policy
+      const referrerMeta = document.querySelector('meta[name="referrer"]');
+      if (!referrerMeta) {
+        const meta = document.createElement('meta');
+        meta.setAttribute('name', 'referrer');
+        meta.setAttribute('content', 'strict-origin-when-cross-origin');
         document.head.appendChild(meta);
       }
 
@@ -54,9 +66,6 @@ export const SecurityMiddleware: React.FC<SecurityMiddlewareProps> = ({ children
 
     // Monitor for suspicious activity
     const monitorSecurity = () => {
-      // Log failed authentication attempts
-      let failedAttempts = SecureStorage.get('failed_auth_attempts') || 0;
-      
       // Clean up expired sessions periodically
       const cleanupInterval = setInterval(() => {
         SecureStorage.cleanup();
@@ -86,21 +95,55 @@ export const SecurityMiddleware: React.FC<SecurityMiddlewareProps> = ({ children
     return cleanup;
   }, [user, profile]);
 
-  // Monitor for XSS attempts
+  // Enhanced security monitoring
   useEffect(() => {
-    const detectXSS = (event: Event) => {
-      const target = event.target as HTMLElement;
-      if (target.tagName === 'SCRIPT' || target.innerHTML?.includes('<script')) {
-        console.warn('Potential XSS attempt detected');
-        event.preventDefault();
-        event.stopPropagation();
+    // Monitor for XSS attempts using modern MutationObserver
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              const innerHTML = element.innerHTML || '';
+              const tagName = element.tagName || '';
+              
+              if (tagName === 'SCRIPT' || 
+                  innerHTML.includes('<script') ||
+                  innerHTML.includes('javascript:') ||
+                  /on\w+=/i.test(innerHTML)) {
+                console.warn('Potential XSS attempt detected');
+                element.remove();
+              }
+            }
+          });
+        }
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['src', 'href', 'onclick', 'onerror', 'onload']
+    });
+
+    // Monitor for suspicious console access
+    const originalLog = console.log;
+    const originalError = console.error;
+    
+    console.log = (...args) => {
+      // Monitor for potential credential exposure
+      const message = args.join(' ');
+      if (message.includes('password') || message.includes('token') || message.includes('secret')) {
+        console.warn('Potential credential exposure in console');
       }
+      originalLog.apply(console, args);
     };
 
-    document.addEventListener('DOMNodeInserted', detectXSS, true);
-    
     return () => {
-      document.removeEventListener('DOMNodeInserted', detectXSS, true);
+      observer.disconnect();
+      console.log = originalLog;
+      console.error = originalError;
     };
   }, []);
 
