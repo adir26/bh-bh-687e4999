@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -86,6 +86,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const profileData = await fetchProfile(session.user.id);
             setProfile(profileData);
             setLoading(false);
+            
+            // Handle navigation based on auth event type
+            if (profileData) {
+              let shouldNavigate = false;
+              let isNewUser = false;
+              
+              // Log the actual event to see what Supabase sends
+              console.log('[AUTH] Auth event received:', event, 'Profile onboarding status:', profileData.onboarding_completed);
+              
+              // For SIGNED_IN events, determine if user needs onboarding
+              if (event === 'SIGNED_IN') {
+                console.log('[AUTH] User signed in, checking onboarding status');
+                shouldNavigate = true;
+                // If onboarding not completed, treat as new user flow
+                isNewUser = !profileData.onboarding_completed;
+              }
+              // Don't navigate on TOKEN_REFRESHED, INITIAL_SESSION or other events
+              
+              if (shouldNavigate) {
+                const route = getRoute(isNewUser);
+                console.log('[AUTH] Navigating to:', { route, event, isNewUser, role: profileData.role, onboarding_completed: profileData.onboarding_completed });
+                
+                // Small delay to ensure UI is ready
+                setTimeout(() => {
+                  navigate(route);
+                }, 100);
+              }
+            }
           }, 0);
         } else {
           setProfile(null);
@@ -215,18 +243,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
 
-      // Fetch profile after successful login
-      if (data.user) {
-        const userProfile = await fetchProfile(data.user.id);
-        setProfile(userProfile);
-        
-        // Navigate to appropriate route after successful login
-        if (userProfile) {
-          const route = getRoute(false);
-          console.log('[AUTH] Login success, navigating to:', route);
-          navigate(route);
-        }
-      }
+      // Profile fetch and navigation will be handled by onAuthStateChange
+      console.log('[AUTH] Login successful, letting onAuthStateChange handle navigation');
 
       toast({
         title: "התחברת בהצלחה",
