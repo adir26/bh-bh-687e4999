@@ -34,7 +34,7 @@ interface OnboardingData {
 
 export default function SupplierSummary() {
   const navigate = useNavigate();
-  const { user, getRoute } = useAuth();
+  const { user, completeOnboarding } = useAuth();
   const [onboardingData, setOnboardingData] = useState<OnboardingData | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
 
@@ -77,9 +77,8 @@ export default function SupplierSummary() {
         localStorage.removeItem('supplierOnboarding');
         toast.success('הפרופיל פורסם בהצלחה!');
         
-        // Navigate to appropriate dashboard using getRoute
-        const dashboardRoute = getRoute(false);
-        navigate(dashboardRoute);
+        // Complete onboarding and navigate to appropriate dashboard
+        await completeOnboarding();
       } else {
         throw new Error('Failed to save onboarding data');
       }
@@ -273,7 +272,7 @@ export default function SupplierSummary() {
           </Button>
           
           <Button 
-            onClick={() => navigate(getRoute(false))}
+            onClick={() => completeOnboarding()}
             variant="blue-secondary"
             className="w-full py-3 text-base rounded-xl h-12 font-medium"
           >

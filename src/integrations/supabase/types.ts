@@ -1768,7 +1768,10 @@ export type Database = {
           full_name: string | null
           id: string
           is_blocked: boolean | null
+          last_onboarding_at: string | null
           onboarding_completed: boolean | null
+          onboarding_context: Json | null
+          onboarding_step: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
@@ -1781,7 +1784,10 @@ export type Database = {
           full_name?: string | null
           id: string
           is_blocked?: boolean | null
+          last_onboarding_at?: string | null
           onboarding_completed?: boolean | null
+          onboarding_context?: Json | null
+          onboarding_step?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -1794,7 +1800,10 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_blocked?: boolean | null
+          last_onboarding_at?: string | null
           onboarding_completed?: boolean | null
+          onboarding_context?: Json | null
+          onboarding_step?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }

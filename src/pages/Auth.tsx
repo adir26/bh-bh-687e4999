@@ -20,7 +20,7 @@ const Auth: React.FC = () => {
     role: 'client' as 'client' | 'supplier'
   });
   
-  const { signIn, signUp, user, profile, getRoute } = useAuth();
+  const { signIn, signUp, user, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();

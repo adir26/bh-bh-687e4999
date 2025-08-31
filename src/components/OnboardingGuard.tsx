@@ -1,13 +1,19 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserRole, getRoleHomeRoute, getOnboardingStartRoute } from '@/utils/authRouting';
 
 interface OnboardingGuardProps {
   children: React.ReactNode;
+  role?: UserRole;
 }
 
-export const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
-  const { profile, loading } = useAuth();
+/**
+ * Prevents accessing dashboards when onboarding is incomplete
+ * Redirects to appropriate onboarding flow if needed
+ */
+export const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children, role }) => {
+  const { user, profile, loading } = useAuth();
   const location = useLocation();
 
   // Show loading while auth state is being determined
@@ -22,21 +28,33 @@ export const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) =>
     );
   }
 
+  // If no user, redirect to auth with current location
+  if (!user) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
   // If no profile, redirect to auth
   if (!profile) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // If onboarding not completed, redirect to correct onboarding
+  // Check role mismatch (optional role-specific guard)
+  if (role && profile.role !== role) {
+    const correctRoute = getRoleHomeRoute(profile.role as UserRole);
+    console.log('[ONBOARDING GUARD] Role mismatch, redirecting to:', correctRoute);
+    return <Navigate to={correctRoute} replace />;
+  }
+
+  // If onboarding not completed, redirect to saved step or start
   if (!profile.onboarding_completed) {
-    const onboardingRoute = profile.role === 'supplier' 
-      ? '/onboarding/supplier-welcome' 
-      : '/onboarding/welcome';
+    const onboardingRoute = profile.onboarding_step || 
+      getOnboardingStartRoute((profile.role as UserRole) || 'client');
     
+    console.log('[ONBOARDING GUARD] Onboarding incomplete, redirecting to:', onboardingRoute);
     return <Navigate to={onboardingRoute} replace />;
   }
 
-  // Admin users are never forced into onboarding
+  // Admin users always have access (even if hypothetically onboarding was incomplete)
   if (profile.role === 'admin') {
     return <>{children}</>;
   }

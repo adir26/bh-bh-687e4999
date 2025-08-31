@@ -115,7 +115,11 @@ const App = () => {
               <Sonner />
               <div className="min-h-screen bg-white">
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={
+                  <OnboardingGuard role="client">
+                    <Index />
+                  </OnboardingGuard>
+                } />
                 <Route path="/app-exclusive" element={<AppExclusive />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
@@ -177,13 +181,15 @@ const App = () => {
                     <SupplierSummary />
                   </CompletedOnboardingGuard>
                 } />
-                <Route path="/supplier-dashboard" element={
-                  <OnboardingGuard>
+                <Route path="/supplier/dashboard" element={
+                  <OnboardingGuard role="supplier">
                     <ProtectedRoute allowedRoles={['supplier']}>
                       <SupplierDashboard />
                     </ProtectedRoute>
                   </OnboardingGuard>
                 } />
+                {/* Legacy route redirect */}
+                <Route path="/supplier-dashboard" element={<Navigate to="/supplier/dashboard" replace />} />
                 <Route path="/supplier/dashboard" element={
                   <OnboardingGuard>
                     <ProtectedRoute allowedRoles={['supplier']}>
@@ -313,7 +319,11 @@ const App = () => {
                 
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
-                <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+                <Route path="/admin/dashboard" element={
+                  <OnboardingGuard role="admin">
+                    <AdminLayout><AdminDashboard /></AdminLayout>
+                  </OnboardingGuard>
+                } />
                 <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
                 <Route path="/admin/suppliers" element={<AdminLayout><SupplierManagement /></AdminLayout>} />
                 <Route path="/admin/orders" element={<AdminLayout><AdminOrderManagement /></AdminLayout>} />

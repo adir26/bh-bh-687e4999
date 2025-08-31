@@ -2,10 +2,11 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { UserRole, getPostAuthRoute } from '@/utils/authRouting';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
-  const { getRoute, profile, loading } = useAuth();
+  const { profile, loading } = useAuth();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -39,9 +40,14 @@ const AuthCallback: React.FC = () => {
             }
             
             if (profile) {
-              const route = getRoute(true); // Mark as new user from callback
+              const route = getPostAuthRoute({
+                role: (profile.role as UserRole) || 'client',
+                onboarding_completed: !!profile.onboarding_completed,
+                onboarding_step: profile.onboarding_step || null,
+                fromPath: null, // New user from callback, no previous path
+              });
               console.log('[AUTH_CALLBACK] Navigating to:', route);
-              navigate(route);
+              navigate(route, { replace: true });
             } else {
               console.error('[AUTH_CALLBACK] No profile found after loading');
               navigate('/auth');
@@ -60,7 +66,7 @@ const AuthCallback: React.FC = () => {
     };
 
     handleAuthCallback();
-  }, [navigate, getRoute, profile, loading]);
+  }, [navigate, profile, loading]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">

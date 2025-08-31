@@ -74,7 +74,7 @@ const languages = [
 
 export default function OnboardingInterests() {
   const navigate = useNavigate();
-  const { user, getRoute } = useAuth();
+  const { user, completeOnboarding } = useAuth();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['hebrew']);
@@ -139,9 +139,8 @@ export default function OnboardingInterests() {
           
           toast.success('האונבורדינג הושלם בהצלחה!');
           
-          // Navigate to appropriate dashboard using getRoute
-          const dashboardRoute = getRoute(false);
-          navigate(dashboardRoute);
+          // Complete onboarding and navigate to appropriate dashboard
+          await completeOnboarding();
         } else {
           toast.error('שגיאה בשמירת הנתונים');
         }

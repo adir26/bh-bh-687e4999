@@ -1,13 +1,19 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { UserRole, getRoleHomeRoute } from '@/utils/authRouting';
 
 interface CompletedOnboardingGuardProps {
   children: React.ReactNode;
 }
 
+/**
+ * Prevents entering onboarding if already completed
+ * Redirects to appropriate role home/dashboard
+ */
 export const CompletedOnboardingGuard: React.FC<CompletedOnboardingGuardProps> = ({ children }) => {
-  const { profile, loading, getRoute } = useAuth();
+  const { user, profile, loading } = useAuth();
+  const location = useLocation();
 
   // Show loading while auth state is being determined
   if (loading) {
@@ -21,19 +27,26 @@ export const CompletedOnboardingGuard: React.FC<CompletedOnboardingGuardProps> =
     );
   }
 
+  // If no user, redirect to auth
+  if (!user) {
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
   // If no profile, redirect to auth
   if (!profile) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // If onboarding is completed, redirect to appropriate dashboard
+  // If onboarding is completed, redirect to role home/dashboard
   if (profile.onboarding_completed) {
-    const dashboardRoute = getRoute(false);
-    return <Navigate to={dashboardRoute} replace />;
+    const homeRoute = getRoleHomeRoute((profile.role as UserRole) || 'client');
+    console.log('[COMPLETED ONBOARDING GUARD] Onboarding completed, redirecting to:', homeRoute);
+    return <Navigate to={homeRoute} replace />;
   }
 
-  // Admin users are never forced into onboarding, so redirect to admin dashboard
+  // Admin users are never forced into onboarding
   if (profile.role === 'admin') {
+    console.log('[COMPLETED ONBOARDING GUARD] Admin user, redirecting to admin dashboard');
     return <Navigate to="/admin/dashboard" replace />;
   }
 

@@ -1,17 +1,21 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { UserRole, getPostAuthRoute, getRoleHomeRoute } from '@/utils/authRouting';
 
 interface Profile {
   id: string;
-  email: string;
+  email?: string;
   full_name?: string;
-  role: 'client' | 'supplier' | 'admin';
-  onboarding_completed: boolean;
-  created_at: string;
-  updated_at: string;
+  role?: 'client' | 'supplier' | 'admin';
+  onboarding_completed?: boolean;
+  onboarding_step?: string | null;
+  onboarding_context?: any;
+  last_onboarding_at?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface AuthContextType {
@@ -23,8 +27,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any, data?: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
-  getRoute: (isNewUser?: boolean) => string;
-  storeIntendedRoute: (route: string) => void;
+  updateOnboardingStep: (step: string, context?: any) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,15 +46,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [intendedRoute, setIntendedRoute] = useState<string | null>(null);
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
 
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, full_name, role, onboarding_completed, created_at, updated_at')
+        .select(`
+          id, 
+          email, 
+          full_name, 
+          role, 
+          onboarding_completed, 
+          onboarding_step, 
+          onboarding_context, 
+          last_onboarding_at, 
+          created_at, 
+          updated_at
+        `)
         .eq('id', userId)
         .single();
 
@@ -66,55 +81,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Set up auth state listener and get initial session
   useEffect(() => {
-    // Set up auth state listener FIRST
+    let mounted = true;
+
+    // Listen to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('[AUTH] State change:', { 
-          event, 
-          hasSession: !!session, 
-          userId: session?.user?.id,
-          currentPath: window.location.pathname
-        });
+      async (event: AuthChangeEvent, session: Session | null) => {
+        if (!mounted) return;
         
+        console.log('[AUTH] Auth state changed:', event, !!session);
         setSession(session);
         setUser(session?.user ?? null);
 
-        if (session?.user) {
-          // Defer Supabase calls to prevent deadlock
-          setTimeout(async () => {
-            const profileData = await fetchProfile(session.user.id);
-            setProfile(profileData);
-            setLoading(false);
-            
-            // Handle navigation based on auth event type
-            if (profileData) {
-              let shouldNavigate = false;
-              let isNewUser = false;
-              
-              // Log the actual event to see what Supabase sends
-              console.log('[AUTH] Auth event received:', event, 'Profile onboarding status:', profileData.onboarding_completed);
-              
-              // For SIGNED_IN events, determine if user needs onboarding
-              if (event === 'SIGNED_IN') {
-                console.log('[AUTH] User signed in, checking onboarding status');
-                shouldNavigate = true;
-                // If onboarding not completed, treat as new user flow
-                isNewUser = !profileData.onboarding_completed;
-              }
-              // Don't navigate on TOKEN_REFRESHED, INITIAL_SESSION or other events
-              
-              if (shouldNavigate) {
-                const route = getRoute(isNewUser);
-                console.log('[AUTH] Navigating to:', { route, event, isNewUser, role: profileData.role, onboarding_completed: profileData.onboarding_completed });
-                
-                // Small delay to ensure UI is ready
-                setTimeout(() => {
-                  navigate(route);
-                }, 100);
-              }
-            }
-          }, 0);
+        if (session?.user && mounted) {
+          // Fetch profile synchronously after auth change
+          const profileData = await fetchProfile(session.user.id);
+          setProfile(profileData);
+          setLoading(false);
         } else {
           setProfile(null);
           setLoading(false);
@@ -122,18 +106,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // THEN check for existing session
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('[AUTH] Initial session check:', { 
-        hasSession: !!session, 
-        userId: session?.user?.id 
-      });
-      
+      if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id).then((profileData) => {
+        fetchProfile(session.user.id).then(profileData => {
+          if (!mounted) return;
           setProfile(profileData);
           setLoading(false);
         });
@@ -143,9 +124,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
+
+  // Handle navigation when both user and profile are ready
+  useEffect(() => {
+    if (!user || !profile || loading) return;
+
+    const fromState = (location.state as any)?.from;
+    const fromPath = fromState?.pathname || null;
+    
+    const targetRoute = getPostAuthRoute({
+      role: (profile.role as UserRole) || 'client',
+      onboarding_completed: !!profile.onboarding_completed,
+      onboarding_step: profile.onboarding_step || null,
+      fromPath: fromPath,
+    });
+
+    // Only navigate if we're not already on the target route
+    if (location.pathname !== targetRoute) {
+      console.log('[AUTH] Navigating from', location.pathname, 'to', targetRoute);
+      navigate(targetRoute, { replace: true });
+    }
+  }, [user, profile, loading, location.pathname, navigate]);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     setLoading(true);
@@ -212,51 +215,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
-    setLoading(true);
     try {
-      // Sanitize email - strip RTL marks, spaces, and normalize
-      const cleanEmail = email?.replace(/\u200F|\u200E/g, '').trim().toLowerCase();
-      
-      console.log('[AUTH] SignIn attempt:', { 
-        email: cleanEmail, 
-        origin: window.location.origin 
-      });
-
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password
+        email,
+        password,
       });
 
       if (error) {
-        let errorMessage = "שגיאה בהתחברות";
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = "פרטי ההתחברות שגויים";
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = "אנא אמת את כתובת האימייל שלך";
-        }
-        
-        toast({
-          title: "שגיאה בהתחברות",
-          description: errorMessage,
-          variant: "destructive"
-        });
+        console.error('SignIn error:', error);
         return { error };
       }
 
-      // Profile fetch and navigation will be handled by onAuthStateChange
-      console.log('[AUTH] Login successful, letting onAuthStateChange handle navigation');
+      // Profile fetch and navigation will be handled by useEffect
+      console.log('[AUTH] Login successful, profile and navigation handled by useEffect');
 
       toast({
         title: "התחברת בהצלחה",
-        description: "ברוך הבא!"
+        description: "ברוך הבא!",
       });
 
       return { data, error: null };
-    } catch (error: any) {
-      console.error('Login error:', error);
-      return { error };
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error('SignIn error:', error);
+      return { 
+        error: { message: 'אירעה שגיאה בהתחברות. אנא נסה שנית.' }
+      };
     }
   };
 
@@ -305,32 +288,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error };
   };
 
-  const getRoute = (isNewUser?: boolean) => {
-    if (!profile) return '/auth';
-    
-    const { role, onboarding_completed } = profile;
-    
-    console.log('[AUTH] Route decision:', { 
-      role, 
-      onboarding_completed, 
-      isNewUser 
-    });
-    
-    // Admin users bypass onboarding
-    if (role === 'admin') return '/admin/dashboard';
-    
-    // Force onboarding for new users or incomplete onboarding
-    if (isNewUser || !onboarding_completed) {
-      return role === 'supplier' ? '/onboarding/supplier-welcome' : '/onboarding/welcome';
+  const updateOnboardingStep = async (step: string, context?: any) => {
+    if (!user || !profile) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          onboarding_step: step,
+          onboarding_context: context || {},
+          last_onboarding_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating onboarding step:', error);
+        return;
+      }
+
+      // Update local profile state
+      setProfile(prev => prev ? {
+        ...prev,
+        onboarding_step: step,
+        onboarding_context: context || {},
+        last_onboarding_at: new Date().toISOString(),
+      } : null);
+
+      console.log('[AUTH] Updated onboarding step:', step);
+    } catch (error) {
+      console.error('Error updating onboarding step:', error);
     }
-    
-    // Redirect to appropriate dashboard based on role
-    if (role === 'supplier') return '/supplier-dashboard';
-    return '/'; // client dashboard/home
   };
 
-  const storeIntendedRoute = (route: string) => {
-    setIntendedRoute(route);
+  const completeOnboarding = async () => {
+    if (!user || !profile) return;
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          onboarding_completed: true,
+          onboarding_step: null,
+          last_onboarding_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error completing onboarding:', error);
+        return;
+      }
+
+      // Update local profile state
+      setProfile(prev => prev ? {
+        ...prev,
+        onboarding_completed: true,
+        onboarding_step: null,
+        last_onboarding_at: new Date().toISOString(),
+      } : null);
+
+      console.log('[AUTH] Onboarding completed');
+
+      // Navigate to role home
+      const homeRoute = getRoleHomeRoute((profile.role as UserRole) || 'client');
+      navigate(homeRoute, { replace: true });
+
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+    }
   };
 
   const value = {
@@ -342,8 +366,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     updateProfile,
-    getRoute,
-    storeIntendedRoute
+    updateOnboardingStep,
+    completeOnboarding,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
