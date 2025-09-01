@@ -95,24 +95,45 @@ export const SecurityMiddleware: React.FC<SecurityMiddlewareProps> = ({ children
     return cleanup;
   }, [user, profile]);
 
-  // Enhanced security monitoring
+  // Enhanced security monitoring - React-safe approach
   useEffect(() => {
-    // Monitor for XSS attempts using modern MutationObserver
+    // Monitor for XSS attempts without direct DOM manipulation
+    const securityCheck = (element: Element): boolean => {
+      const innerHTML = element.innerHTML || '';
+      const tagName = element.tagName || '';
+      
+      return tagName === 'SCRIPT' || 
+             innerHTML.includes('<script') ||
+             innerHTML.includes('javascript:') ||
+             /on\w+=/i.test(innerHTML);
+    };
+
+    // Use a less aggressive approach that doesn't interfere with React
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList') {
           mutation.addedNodes.forEach((node) => {
             if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as Element;
-              const innerHTML = element.innerHTML || '';
-              const tagName = element.tagName || '';
               
-              if (tagName === 'SCRIPT' || 
-                  innerHTML.includes('<script') ||
-                  innerHTML.includes('javascript:') ||
-                  /on\w+=/i.test(innerHTML)) {
-                console.warn('Potential XSS attempt detected');
-                element.remove();
+              if (securityCheck(element)) {
+                console.warn('Potential XSS attempt detected', element);
+                // Instead of removing directly, sanitize the content
+                try {
+                  // Only sanitize attributes, let React handle DOM structure
+                  element.removeAttribute('onclick');
+                  element.removeAttribute('onerror');
+                  element.removeAttribute('onload');
+                  element.removeAttribute('onmouseover');
+                  
+                  // For script tags, disable them instead of removing
+                  if (element.tagName === 'SCRIPT') {
+                    element.setAttribute('type', 'text/plain');
+                  }
+                } catch (e) {
+                  // If we can't sanitize safely, just log it
+                  console.error('Security sanitization failed:', e);
+                }
               }
             }
           });
@@ -120,16 +141,16 @@ export const SecurityMiddleware: React.FC<SecurityMiddlewareProps> = ({ children
       });
     });
 
+    // Reduce the scope of observation to avoid conflicts with React
     observer.observe(document.body, {
       childList: true,
-      subtree: true,
+      subtree: false, // Don't observe deep changes
       attributes: true,
-      attributeFilter: ['src', 'href', 'onclick', 'onerror', 'onload']
+      attributeFilter: ['onclick', 'onerror', 'onload', 'onmouseover']
     });
 
     // Monitor for suspicious console access
     const originalLog = console.log;
-    const originalError = console.error;
     
     console.log = (...args) => {
       // Monitor for potential credential exposure
@@ -143,7 +164,6 @@ export const SecurityMiddleware: React.FC<SecurityMiddlewareProps> = ({ children
     return () => {
       observer.disconnect();
       console.log = originalLog;
-      console.error = originalError;
     };
   }, []);
 

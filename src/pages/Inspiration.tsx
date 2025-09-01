@@ -31,54 +31,67 @@ export default function Inspiration() {
   const styles = ['מודרני', 'קלאסי', 'כפרי', 'תעשייתי', 'סקנדינבי', 'מזרח תיכוני'];
 
   useEffect(() => {
-    fetchPhotos();
-  }, [searchQuery, selectedRoom, selectedStyle]);
+    let isMounted = true;
+    
+    const fetchPhotosWithCleanup = async () => {
+      try {
+        let query = supabase
+          .from('photos')
+          .select(`
+            id, title, description, room, style, storage_path, is_public, created_at, uploader_id, updated_at,
+            photo_likes(user_id),
+            photo_tags(tag),
+            photo_products(id)
+          `)
+          .eq('is_public', true)
+          .order('created_at', { ascending: false });
 
-  const fetchPhotos = async () => {
-    try {
-      let query = supabase
-        .from('photos')
-        .select(`
-          id, title, description, room, style, storage_path, is_public, created_at, uploader_id, updated_at,
-          photo_likes(user_id),
-          photo_tags(tag),
-          photo_products(id)
-        `)
-        .eq('is_public', true)
-        .order('created_at', { ascending: false });
+        if (selectedRoom && selectedRoom !== 'all') {
+          query = query.eq('room', selectedRoom);
+        }
 
-      if (selectedRoom && selectedRoom !== 'all') {
-        query = query.eq('room', selectedRoom);
+        if (selectedStyle && selectedStyle !== 'all') {
+          query = query.eq('style', selectedStyle);
+        }
+
+        if (searchQuery) {
+          query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        const processedPhotos = data?.map(photo => ({
+          ...photo,
+          likes: photo.photo_likes?.length || 0,
+          is_liked: user ? photo.photo_likes?.some((like: { user_id: string }) => like.user_id === user.id) : false,
+          tags: photo.photo_tags?.map((tag: { tag: string }) => tag.tag) || [],
+          products_count: photo.photo_products?.length || 0
+        })) as Photo[] || [];
+
+        // Only update state if component is still mounted
+        if (isMounted) {
+          setPhotos(processedPhotos);
+        }
+      } catch (error) {
+        console.error('Error fetching photos:', error);
+        if (isMounted) {
+          toast.error('שגיאה בטעינת התמונות');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
+    };
 
-      if (selectedStyle && selectedStyle !== 'all') {
-        query = query.eq('style', selectedStyle);
-      }
-
-      if (searchQuery) {
-        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      const processedPhotos = data?.map(photo => ({
-        ...photo,
-        likes: photo.photo_likes?.length || 0,
-        is_liked: user ? photo.photo_likes?.some((like: { user_id: string }) => like.user_id === user.id) : false,
-        tags: photo.photo_tags?.map((tag: { tag: string }) => tag.tag) || [],
-        products_count: photo.photo_products?.length || 0
-      })) as Photo[] || [];
-
-      setPhotos(processedPhotos);
-    } catch (error) {
-      console.error('Error fetching photos:', error);
-      toast.error('שגיאה בטעינת התמונות');
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchPhotosWithCleanup();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [searchQuery, selectedRoom, selectedStyle, user]);
 
   const toggleLike = async (photoId: string) => {
     if (!user) {
@@ -93,16 +106,18 @@ export default function Inspiration() {
       // Use new FavoritesService to toggle inspiration favorite
       const isNowFavorited = await FavoritesService.toggle('inspiration', photoId);
 
-      // Update local state
-      setPhotos(prev => prev.map(p => 
-        p.id === photoId 
-          ? { 
-              ...p, 
-              is_liked: isNowFavorited, 
-              likes: isNowFavorited ? p.likes! + 1 : p.likes! - 1 
-            }
-          : p
-      ));
+      // Update local state safely
+      setPhotos(prev => {
+        return prev.map(p => 
+          p.id === photoId 
+            ? { 
+                ...p, 
+                is_liked: isNowFavorited, 
+                likes: isNowFavorited ? (p.likes || 0) + 1 : Math.max((p.likes || 0) - 1, 0)
+              }
+            : p
+        );
+      });
 
       toast.success(isNowFavorited ? 'נוסף למועדפים' : 'הוסר מהמועדפים');
     } catch (error) {
@@ -120,7 +135,11 @@ export default function Inspiration() {
   };
 
   const handleUploadComplete = () => {
-    fetchPhotos(); // Refresh photos after upload
+    // Refresh photos after upload with a small delay to ensure DB consistency
+    setTimeout(() => {
+      const fetchEvent = new CustomEvent('refreshPhotos');
+      window.dispatchEvent(fetchEvent);
+    }, 500);
   };
 
   if (loading) {
@@ -128,8 +147,8 @@ export default function Inspiration() {
       <div className="min-h-screen bg-background p-4 pb-32">
         <div className="container mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="aspect-square bg-muted animate-pulse rounded-lg" />
+            {Array.from({ length: 8 }, (_, i) => (
+              <div key={`skeleton-${i}`} className="aspect-square bg-muted animate-pulse rounded-lg" />
             ))}
           </div>
         </div>
