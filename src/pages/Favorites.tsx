@@ -1,73 +1,54 @@
 
-import React, { useState, useEffect } from 'react';
-import { Heart, Star, MapPin, Phone, Image, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Heart, Star, Phone, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FavoritesService, GroupedFavorites } from '@/services/favoritesService';
 import { getPublicImageUrl } from '@/utils/imageUrls';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 const Favorites = () => {
   const [activeTab, setActiveTab] = useState('suppliers');
-  const [favorites, setFavorites] = useState<GroupedFavorites | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchUser = async () => {
+  const { data: favorites, status, error } = useQuery({
+    queryKey: ['favorites', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          setUser(user);
-          try {
-            const userFavorites = await FavoritesService.listByUser(user.id);
-            setFavorites(userFavorites);
-          } catch (favoritesError) {
-            console.error('Error fetching user favorites:', favoritesError);
-            // Set empty favorites if there's an error
-            setFavorites({
-              suppliers: [],
-              products: [],
-              inspirations: [],
-              ideabooks: []
-            });
-            toast({
-              title: "שגיאה בטעינת המועדפים",
-              description: "לא ניתן לטעון את המועדפים כרגע",
-              variant: "destructive",
-            });
-          }
-        }
-        setLoading(false);
+        return await FavoritesService.listByUser(user!.id);
       } catch (error) {
-        console.error('Error fetching user:', error);
-        setLoading(false);
-        toast({
-          title: "שגיאה",
-          description: "לא ניתן לטעון את הדף כרגע",
-          variant: "destructive",
-        });
+        console.error('Error fetching favorites:', error);
+        // Return empty state for missing tables
+        return {
+          suppliers: [],
+          products: [],
+          inspirations: [],
+          ideabooks: []
+        };
       }
-    };
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
-    fetchUser();
-  }, []);
-
-  const handleRemoveFavorite = async (entityType: string, entityId: string) => {
-    if (!user?.id) return;
-    
-    try {
+  const removeFavoriteMutation = useMutation({
+    mutationFn: async ({ entityType, entityId }: { entityType: string; entityId: string }) => {
       await FavoritesService.toggle(entityType as any, entityId);
-      // Refresh favorites
-      const data = await FavoritesService.listByUser(user.id);
-      setFavorites(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['favorites', user?.id] });
       toast({
         title: "הוסר מהמועדפים",
         description: "הפריט הוסר בהצלחה מהמועדפים שלך",
       });
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error removing favorite:', error);
       toast({
         title: "שגיאה",
@@ -75,6 +56,11 @@ const Favorites = () => {
         variant: "destructive",
       });
     }
+  });
+
+  const handleRemoveFavorite = (entityType: string, entityId: string) => {
+    if (!user?.id) return;
+    removeFavoriteMutation.mutate({ entityType, entityId });
   };
 
   const tabs = [
@@ -83,12 +69,28 @@ const Favorites = () => {
     { id: 'inspirations', label: 'השראה', count: favorites?.inspirations?.length || 0 }
   ];
 
-  if (loading) {
+  if (status === 'pending') {
+    return (
+      <PageBoundary>
+        <div className="min-h-screen bg-background flex items-center justify-center" dir="rtl">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+            <span className="text-muted-foreground">טוען מועדפים...</span>
+          </div>
+        </div>
+      </PageBoundary>
+    );
+  }
+
+  if (status === 'error') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center" dir="rtl">
-        <div className="flex items-center gap-3">
-          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-          <span className="text-muted-foreground">טוען מועדפים...</span>
+        <div className="text-center p-6">
+          <h3 className="text-lg font-semibold mb-2">שגיאה בטעינת המועדפים</h3>
+          <p className="text-muted-foreground mb-4">לא ניתן לטעון את המועדפים כרגע</p>
+          <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['favorites', user?.id] })}>
+            נסה שוב
+          </Button>
         </div>
       </div>
     );

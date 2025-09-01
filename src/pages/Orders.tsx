@@ -1,33 +1,29 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Package, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { ordersService } from '@/services/supabaseService';
 import { toast } from 'sonner';
 import OrderCard, { Order } from '@/components/orders/OrderCard';
+import { useQuery } from '@tanstack/react-query';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 const Orders = () => {
   const [activeTab, setActiveTab] = useState('active');
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  useEffect(() => {
-    const loadOrders = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-      
+  const { data: orders = [], status } = useQuery({
+    queryKey: ['orders', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
       try {
-        const userOrders = await ordersService.getByUserId(user.id);
+        const userOrders = await ordersService.getByUserId(user!.id);
         
         // Ensure userOrders is an array
         if (!Array.isArray(userOrders)) {
           console.warn('ordersService.getByUserId returned non-array:', userOrders);
-          setOrders([]);
-          return;
+          return [];
         }
         
         // Transform database orders to match OrderCard interface
@@ -50,29 +46,26 @@ const Orders = () => {
                    order.status === 'in_progress' ? 60 : 100
         }));
         
-        setOrders(transformedOrders);
+        return transformedOrders;
       } catch (error) {
         console.error('Error loading orders:', error);
         // Enhanced error handling for different error types
-        if (error.message?.includes('relation') || 
-            error.message?.includes('does not exist') ||
-            error.message?.includes('permission denied') ||
-            error.code === 'PGRST301' ||
-            error.code === '42P01') {
-          console.log('Orders table not accessible, setting empty array');
-          setOrders([]);
+        if (error?.message?.includes('relation') || 
+            error?.message?.includes('does not exist') ||
+            error?.message?.includes('permission denied') ||
+            error?.code === 'PGRST301' ||
+            error?.code === '42P01') {
+          console.log('Orders table not accessible, returning empty array');
+          return [];
         } else {
           console.error('Unexpected orders error:', error);
-          toast.error('שגיאה בטעינת ההזמנות');
-          setOrders([]);
+          throw error; // Let React Query handle retries
         }
-      } finally {
-        setLoading(false);
       }
-    };
-
-    loadOrders();
-  }, [user]);
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
 
   const filteredOrders = orders.filter(order => {
@@ -100,11 +93,25 @@ const Orders = () => {
 
   const activeOrdersCount = orders.filter(o => activeOrderStatuses.includes(o.status)).length;
 
-  if (loading) {
+  if (status === 'pending') {
     return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-20 items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p className="mt-4 text-muted-foreground">טוען הזמנות...</p>
+      <PageBoundary>
+        <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-20 items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="mt-4 text-muted-foreground">טוען הזמנות...</p>
+        </div>
+      </PageBoundary>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 items-center justify-center">
+        <div className="text-center p-6">
+          <h3 className="text-lg font-semibold mb-2">שגיאה בטעינת ההזמנות</h3>
+          <p className="text-muted-foreground mb-4">לא ניתן לטעון את ההזמנות כרגע</p>
+          <Button onClick={() => window.location.reload()}>נסה שוב</Button>
+        </div>
       </div>
     );
   }
