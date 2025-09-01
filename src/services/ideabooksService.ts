@@ -31,7 +31,7 @@ export class IdeabooksService {
         )
       `)
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     if (!data) return null;
@@ -55,7 +55,7 @@ export class IdeabooksService {
         share_token: payload.is_public ? this.generateShareToken() : null
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
 

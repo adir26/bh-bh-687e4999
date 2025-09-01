@@ -140,7 +140,7 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
             .from('photos')
             .select('id')
             .eq('storage_path', fileName)
-            .single();
+            .maybeSingle();
 
           if (photoData) {
             const tagInserts = formData.tags.map(tag => ({

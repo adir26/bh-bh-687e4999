@@ -194,7 +194,7 @@ export default function IdeabookDetail() {
         .from('profiles')
         .select('id')
         .eq('email', newCollaboratorEmail.trim())
-        .single();
+        .maybeSingle();
 
       if (userError || !userData) {
         toast.error('משתמש לא נמצא');
@@ -213,7 +213,7 @@ export default function IdeabookDetail() {
           *,
           profiles(id, full_name, email)
         `)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

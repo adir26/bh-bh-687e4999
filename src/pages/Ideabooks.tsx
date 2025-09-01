@@ -69,7 +69,7 @@ export default function Ideabooks() {
           is_public: newIdeabookIsPublic
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

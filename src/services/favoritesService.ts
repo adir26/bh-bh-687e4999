@@ -67,7 +67,7 @@ export class FavoritesService {
       .eq('user_id', user.id)
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       // Remove from favorites
@@ -102,7 +102,7 @@ export class FavoritesService {
       .eq('user_id', userId)
       .eq('entity_type', entityType)
       .eq('entity_id', entityId)
-      .single();
+      .maybeSingle();
 
     return !!data;
   }

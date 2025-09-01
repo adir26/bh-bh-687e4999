@@ -66,7 +66,7 @@ export function SaveToIdeabookModal({ isOpen, onOpenChange, photoId, photoTitle 
           is_public: false
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (ideabookError) throw ideabookError;
 

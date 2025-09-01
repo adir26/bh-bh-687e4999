@@ -110,7 +110,7 @@ class OnboardingService {
           logo_url: data.branding?.logo || null
         }, { onConflict: 'owner_id' })
         .select()
-        .single();
+        .maybeSingle();
 
       if (companyError) throw companyError;
 

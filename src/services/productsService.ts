@@ -79,7 +79,7 @@ export const productsService = {
       .from("products")
       .insert(payload as any)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     await trackEvent("product_created", { supplier_id: supplierId, product_id: data.id });
@@ -94,7 +94,7 @@ export const productsService = {
       .update(rest as any)
       .eq("id", productId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     await trackEvent("product_updated", { product_id: productId });
@@ -128,7 +128,7 @@ export const productsService = {
       .update({ is_published: isPublished })
       .eq("id", productId)
       .select()
-      .single();
+      .maybeSingle();
     if (error) throw error;
     await trackEvent(isPublished ? "product_published" : "product_unpublished", {
       product_id: productId,

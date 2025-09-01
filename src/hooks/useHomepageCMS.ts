@@ -40,7 +40,7 @@ export const useCreateSection = () => {
         .from('homepage_sections')
         .insert(section)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data as HomepageSection;
@@ -71,7 +71,7 @@ export const useUpdateSection = () => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data as HomepageSection;
@@ -151,7 +151,7 @@ export const useCreateItem = () => {
         .from('homepage_items')
         .insert(item)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data as HomepageItem;
@@ -183,7 +183,7 @@ export const useUpdateItem = () => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data as HomepageItem;
@@ -352,7 +352,7 @@ export const useDuplicateSection = () => {
         .from('homepage_sections')
         .select('*')
         .eq('id', sectionId)
-        .single();
+        .maybeSingle();
 
       if (sectionError) throw sectionError;
 
@@ -377,7 +377,7 @@ export const useDuplicateSection = () => {
           updated_at: undefined
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (createSectionError) throw createSectionError;
 

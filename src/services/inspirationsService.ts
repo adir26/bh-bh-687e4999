@@ -51,7 +51,7 @@ export class InspirationsService {
         photo_tags(tag)
       `)
       .eq('id', id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
     if (!data) return null;
@@ -90,7 +90,7 @@ export class InspirationsService {
         height: 600
       })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
 

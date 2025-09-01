@@ -112,7 +112,7 @@ export const categoriesService = {
       .from('categories')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Category;
@@ -136,7 +136,7 @@ export const companiesService = {
       .from('companies')
       .select('*')
       .eq('owner_id', ownerId)
-      .single();
+      .maybeSingle();
     
     if (error && error.code !== 'PGRST116') throw error;
     return data as Company | null;
@@ -147,7 +147,7 @@ export const companiesService = {
       .from('companies')
       .insert(company)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Company;
@@ -159,7 +159,7 @@ export const companiesService = {
       .update(updates)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Company;
@@ -194,7 +194,7 @@ export const projectsService = {
       .from('projects')
       .insert(project)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Project;
@@ -206,7 +206,7 @@ export const projectsService = {
       .update(updates)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Project;
@@ -262,7 +262,7 @@ export const ordersService = {
       .from('orders')
       .insert(order)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Order;
@@ -274,7 +274,7 @@ export const ordersService = {
       .update(updates)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Order;
@@ -299,7 +299,7 @@ export const messagesService = {
       .from('messages')
       .insert(message)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Message;
@@ -314,7 +314,7 @@ export const messagesService = {
       })
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Message;
@@ -349,7 +349,7 @@ export const reviewsService = {
       .from('reviews')
       .insert(review)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as Review;
@@ -363,7 +363,7 @@ export const profilesService = {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
     
     if (error && error.code !== 'PGRST116') throw error;
     return data;
@@ -378,7 +378,7 @@ export const profilesService = {
       .update(safeUpdates)
       .eq('id', userId)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data;
@@ -466,7 +466,7 @@ export const supplierService = {
       .from('companies')
       .select('*')
       .eq('owner_id', supplierId)
-      .single();
+      .maybeSingle();
     
     if (companyError && companyError.code !== 'PGRST116') throw companyError;
 
@@ -532,7 +532,7 @@ export const homepageContentService = {
       .from('homepage_content')
       .select('*')
       .eq('block_name', blockName)
-      .single();
+      .maybeSingle();
     
     if (error && error.code !== 'PGRST116') throw error;
     return data as HomepageContent | null;
@@ -544,7 +544,7 @@ export const homepageContentService = {
       .update(updates)
       .eq('id', id)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as HomepageContent;
@@ -556,7 +556,7 @@ export const homepageContentService = {
       .update(updates)
       .eq('block_name', blockName)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as HomepageContent;
@@ -567,7 +567,7 @@ export const homepageContentService = {
       .from('homepage_content')
       .insert(content)
       .select()
-      .single();
+      .maybeSingle();
     
     if (error) throw error;
     return data as HomepageContent;

@@ -146,7 +146,7 @@ export const useCategoryMutations = () => {
         .from('categories')
         .insert({ ...categoryData, slug })
         .select()
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
@@ -186,7 +186,7 @@ export const useCategoryMutations = () => {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;
