@@ -9,8 +9,15 @@ export class QueryCancelled extends Error {
 
 export async function supaSelect<T>(
   builder: any,
-  options?: { signal?: AbortSignal; errorMessage?: string }
+  options?: { signal?: AbortSignal; errorMessage?: string; timeoutMs?: number }
 ): Promise<T> {
+  const timeoutMs = options?.timeoutMs || 15_000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort('timeout'), timeoutMs);
+  
+  // Combine parent signal with timeout signal
+  const combinedSignal = options?.signal ? combineAbortSignals([options.signal, controller.signal]) : controller.signal;
+  
   try {
     const { data, error } = await builder;
     
@@ -19,18 +26,40 @@ export async function supaSelect<T>(
     }
     
     return data as T;
-  } catch (error) {
-    if (options?.signal?.aborted) {
+  } catch (error: any) {
+    if (combinedSignal.aborted) {
       throw new QueryCancelled();
     }
     throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
+}
+
+function combineAbortSignals(signals: AbortSignal[]): AbortSignal {
+  const controller = new AbortController();
+  
+  for (const signal of signals) {
+    if (signal.aborted) {
+      controller.abort();
+      break;
+    }
+    signal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+  
+  return controller.signal;
 }
 
 export async function supaSelectMaybe<T>(
   builder: any,
-  options?: { signal?: AbortSignal; errorMessage?: string }
+  options?: { signal?: AbortSignal; errorMessage?: string; timeoutMs?: number }
 ): Promise<T | null> {
+  const timeoutMs = options?.timeoutMs || 15_000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort('timeout'), timeoutMs);
+  
+  const combinedSignal = options?.signal ? combineAbortSignals([options.signal, controller.signal]) : controller.signal;
+  
   try {
     const { data, error } = await builder.maybeSingle();
     
@@ -39,11 +68,13 @@ export async function supaSelectMaybe<T>(
     }
     
     return data as T | null;
-  } catch (error) {
-    if (options?.signal?.aborted) {
+  } catch (error: any) {
+    if (combinedSignal.aborted) {
       throw new QueryCancelled();
     }
     throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 

@@ -10,11 +10,23 @@ export function useProfile(userId?: string | null) {
       const data = await supaSelectMaybe(
         supabase
           .from('profiles')
-          .select('*')
+          .select(`
+            id, 
+            email, 
+            full_name, 
+            role, 
+            onboarding_completed, 
+            onboarding_step, 
+            onboarding_context, 
+            last_onboarding_at, 
+            created_at, 
+            updated_at
+          `)
           .eq('id', userId!),
         { 
           signal,
-          errorMessage: 'שגיאה בטעינת פרופיל המשתמש'
+          errorMessage: 'שגיאה בטעינת פרופיל המשתמש',
+          timeoutMs: 10_000
         }
       );
       

@@ -3,13 +3,15 @@ import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { SecurityMiddleware } from "./components/SecurityMiddleware";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { SupplierBottomNavigation } from "@/components/SupplierBottomNavigation";
+import { queryClient } from "./lib/queryClient";
+import QueryDebugOverlay from "./dev/QueryDebugOverlay";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
@@ -103,8 +105,6 @@ import IdeabookDetail from "./pages/IdeabookDetail";
 import AdminInspiration from "./pages/admin/AdminInspiration";
 import { SiteFooter } from "./components/SiteFooter";
 
-const queryClient = new QueryClient();
-
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -114,6 +114,7 @@ const App = () => {
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              {import.meta.env.DEV && new URLSearchParams(window.location.search).has('debug') && <QueryDebugOverlay />}
               <div className="min-h-screen bg-white">
               <Routes>
                 <Route path="/" element={<Index />} />
