@@ -115,11 +115,7 @@ const App = () => {
               <Sonner />
               <div className="min-h-screen bg-white">
               <Routes>
-                <Route path="/" element={
-                  <OnboardingGuard role="client">
-                    <Index />
-                  </OnboardingGuard>
-                } />
+                <Route path="/" element={<Index />} />
                 <Route path="/app-exclusive" element={<AppExclusive />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
@@ -184,19 +180,12 @@ const App = () => {
                 <Route path="/supplier/dashboard" element={
                   <OnboardingGuard role="supplier">
                     <ProtectedRoute allowedRoles={['supplier']}>
-                      <SupplierDashboard />
+                      <SupplierDashboardNew />
                     </ProtectedRoute>
                   </OnboardingGuard>
                 } />
                 {/* Legacy route redirect */}
                 <Route path="/supplier-dashboard" element={<Navigate to="/supplier/dashboard" replace />} />
-                <Route path="/supplier/dashboard" element={
-                  <OnboardingGuard>
-                    <ProtectedRoute allowedRoles={['supplier']}>
-                      <SupplierDashboardNew />
-                    </ProtectedRoute>
-                  </OnboardingGuard>
-                } />
                 <Route path="/supplier/leads" element={
                   <OnboardingGuard>
                     <ProtectedRoute allowedRoles={['supplier']}>

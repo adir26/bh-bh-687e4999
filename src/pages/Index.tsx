@@ -10,6 +10,7 @@ import { QuickSelection } from '@/components/QuickSelection';
 import { CategorySection } from '@/components/CategorySection';
 import { SupplierSection } from '@/components/SupplierSection';
 import { BottomCTA } from '@/components/BottomCTA';
+import { OnboardingStatusBanner } from '@/components/OnboardingStatusBanner';
 import { getSuppliersByCategory } from '@/data/suppliers';
 import { showToast } from '@/utils/toast';
 
@@ -370,6 +371,9 @@ const Index = () => {
       <main className="flex flex-col items-start w-full bg-muted/30 pb-nav-safe">
         <div className="flex flex-col items-start w-full">
           <Header userName="איתן" />
+          
+          {/* Onboarding Status Banner */}
+          <OnboardingStatusBanner />
           
           {/* Hero Section */}
           <HeroSection onCTAClick={handleHeroCTA} />
