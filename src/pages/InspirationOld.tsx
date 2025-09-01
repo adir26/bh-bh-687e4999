@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Heart, Bookmark, Filter, Camera, Tag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, Bookmark, Filter, Grid, Camera, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,19 +10,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { Photo } from '@/types/inspiration';
-import { getPublicImageUrl } from '@/utils/imageUrls';
+import { getPublicImageUrl, preloadSignedUrls } from '@/utils/imageUrls';
 import { PhotoUploadModal } from '@/components/inspiration/PhotoUploadModal';
 import { SaveToIdeabookModal } from '@/components/inspiration/SaveToIdeabookModal';
 import { FavoritesService } from '@/services/favoritesService';
-import { supaSelect } from '@/lib/supaFetch';
-import { PageBoundary } from '@/components/system/PageBoundary';
 
-const rooms = ['מטבח', 'סלון', 'חדר שינה', 'חדר אמבטיה', 'חדר ילדים', 'משרד', 'גינה'];
-const styles = ['מודרני', 'קלאסי', 'כפרי', 'תעשייתי', 'סקנדינבי', 'מזרח תיכוני'];
 
 export default function Inspiration() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const [photos, setPhotos] = useState<Photo[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoom, setSelectedRoom] = useState<string>('');
   const [selectedStyle, setSelectedStyle] = useState<string>('');
@@ -31,83 +27,103 @@ export default function Inspiration() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [saveToIdeabookPhoto, setSaveToIdeabookPhoto] = useState<{ id: string; title: string } | null>(null);
 
-  // Fetch photos with React Query
-  const { data: photos = [], status, error, refetch } = useQuery({
-    queryKey: ['inspiration-photos', { searchQuery, selectedRoom, selectedStyle, userId: user?.id }],
-    queryFn: async ({ signal }) => {
-      let query = supabase
-        .from('photos')
-        .select(`
-          id, title, description, room, style, storage_path, is_public, created_at, uploader_id, updated_at,
-          photo_likes(user_id),
-          photo_tags(tag),
-          photo_products(id)
-        `)
-        .eq('is_public', true)
-        .order('created_at', { ascending: false });
+  const rooms = ['מטבח', 'סלון', 'חדר שינה', 'חדר אמבטיה', 'חדר ילדים', 'משרד', 'גינה'];
+  const styles = ['מודרני', 'קלאסי', 'כפרי', 'תעשייתי', 'סקנדינבי', 'מזרח תיכוני'];
 
-      if (selectedRoom && selectedRoom !== 'all') {
-        query = query.eq('room', selectedRoom);
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchPhotosWithCleanup = async () => {
+      try {
+        let query = supabase
+          .from('photos')
+          .select(`
+            id, title, description, room, style, storage_path, is_public, created_at, uploader_id, updated_at,
+            photo_likes(user_id),
+            photo_tags(tag),
+            photo_products(id)
+          `)
+          .eq('is_public', true)
+          .order('created_at', { ascending: false });
+
+        if (selectedRoom && selectedRoom !== 'all') {
+          query = query.eq('room', selectedRoom);
+        }
+
+        if (selectedStyle && selectedStyle !== 'all') {
+          query = query.eq('style', selectedStyle);
+        }
+
+        if (searchQuery) {
+          query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        const processedPhotos = data?.map(photo => ({
+          ...photo,
+          likes: photo.photo_likes?.length || 0,
+          is_liked: user ? photo.photo_likes?.some((like: { user_id: string }) => like.user_id === user.id) : false,
+          tags: photo.photo_tags?.map((tag: { tag: string }) => tag.tag) || [],
+          products_count: photo.photo_products?.length || 0
+        })) as Photo[] || [];
+
+        // Only update state if component is still mounted
+        if (isMounted) {
+          setPhotos(processedPhotos);
+        }
+      } catch (error) {
+        console.error('Error fetching photos:', error);
+        if (isMounted) {
+          toast.error('שגיאה בטעינת התמונות');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
+    };
 
-      if (selectedStyle && selectedStyle !== 'all') {
-        query = query.eq('style', selectedStyle);
-      }
+    fetchPhotosWithCleanup();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [searchQuery, selectedRoom, selectedStyle, user]);
 
-      if (searchQuery) {
-        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-      }
+  const toggleLike = async (photoId: string) => {
+    if (!user) {
+      toast.error('נדרש להתחבר כדי לסמן תמונות');
+      return;
+    }
 
-      const data = await supaSelect<any[]>(query, {
-        signal,
-        errorMessage: 'שגיאה בטעינת התמונות'
+    try {
+      const photo = photos.find(p => p.id === photoId);
+      if (!photo) return;
+
+      // Use new FavoritesService to toggle inspiration favorite
+      const isNowFavorited = await FavoritesService.toggle('inspiration', photoId);
+
+      // Update local state safely
+      setPhotos(prev => {
+        return prev.map(p => 
+          p.id === photoId 
+            ? { 
+                ...p, 
+                is_liked: isNowFavorited, 
+                likes: isNowFavorited ? (p.likes || 0) + 1 : Math.max((p.likes || 0) - 1, 0)
+              }
+            : p
+        );
       });
 
-      return data?.map(photo => ({
-        ...photo,
-        likes: photo.photo_likes?.length || 0,
-        is_liked: user ? photo.photo_likes?.some((like: { user_id: string }) => like.user_id === user.id) : false,
-        tags: photo.photo_tags?.map((tag: { tag: string }) => tag.tag) || [],
-        products_count: photo.photo_products?.length || 0
-      })) as Photo[] || [];
-    },
-    enabled: true,
-    staleTime: 60_000,
-  });
-
-  // Toggle like mutation
-  const toggleLikeMutation = useMutation({
-    mutationFn: async (photoId: string) => {
-      if (!user) throw new Error('נדרש להתחבר כדי לסמן תמונות');
-      return await FavoritesService.toggle('inspiration', photoId);
-    },
-    onSuccess: (isNowFavorited, photoId) => {
-      // Optimistically update the UI
-      queryClient.setQueryData(
-        ['inspiration-photos', { searchQuery, selectedRoom, selectedStyle, userId: user?.id }], 
-        (old: Photo[] | undefined) => {
-          if (!old) return old;
-          return old.map(p => 
-            p.id === photoId 
-              ? { 
-                  ...p, 
-                  is_liked: isNowFavorited, 
-                  likes: isNowFavorited ? (p.likes || 0) + 1 : Math.max((p.likes || 0) - 1, 0)
-                }
-              : p
-          );
-        }
-      );
       toast.success(isNowFavorited ? 'נוסף למועדפים' : 'הוסר מהמועדפים');
-    },
-    onError: (error) => {
+    } catch (error) {
       console.error('Error toggling like:', error);
       toast.error('שגיאה בעדכון החיבוב');
     }
-  });
-
-  const toggleLike = (photoId: string) => {
-    toggleLikeMutation.mutate(photoId);
   };
 
   const saveToIdeabook = (photo: Photo) => {
@@ -119,40 +135,22 @@ export default function Inspiration() {
   };
 
   const handleUploadComplete = () => {
-    // Invalidate and refetch photos after upload
-    queryClient.invalidateQueries({ queryKey: ['inspiration-photos'] });
+    // Refresh photos after upload with a small delay to ensure DB consistency
+    setTimeout(() => {
+      const fetchEvent = new CustomEvent('refreshPhotos');
+      window.dispatchEvent(fetchEvent);
+    }, 500);
   };
 
-  if (status === 'pending') {
+  if (loading) {
     return (
-      <PageBoundary 
-        fallback={
-          <div className="min-h-screen bg-background p-4 pb-32">
-            <div className="container mx-auto">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {Array.from({ length: 8 }, (_, i) => (
-                  <div key={`skeleton-${i}`} className="aspect-square bg-muted animate-pulse rounded-lg" />
-                ))}
-              </div>
-            </div>
+      <div className="min-h-screen bg-background p-4 pb-32">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }, (_, i) => (
+              <div key={`skeleton-${i}`} className="aspect-square bg-muted animate-pulse rounded-lg" />
+            ))}
           </div>
-        }
-      >
-        {/* Will never render since we're in pending state */}
-        <div />
-      </PageBoundary>
-    );
-  }
-
-  if (status === 'error') {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="text-destructive mb-4">שגיאה בטעינת התמונות</div>
-          <p className="text-muted-foreground mb-4">
-            {error?.message || 'אירעה שגיאה בלתי צפויה'}
-          </p>
-          <Button onClick={() => refetch()}>נסה שוב</Button>
         </div>
       </div>
     );
@@ -268,7 +266,6 @@ export default function Inspiration() {
                         toggleLike(photo.id);
                       }}
                       className="h-8 w-8 p-0"
-                      disabled={toggleLikeMutation.isPending}
                     >
                       <Heart className={`h-4 w-4 ${photo.is_liked ? 'fill-current' : ''}`} />
                     </Button>

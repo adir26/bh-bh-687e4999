@@ -1,6 +1,6 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SupplierHeader } from '@/components/SupplierHeader';
@@ -9,91 +9,75 @@ import { supplierService } from '@/services/supabaseService';
 import { toast } from 'sonner';
 import { showToast } from '@/utils/toast';
 import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye, FileText, Package2 } from 'lucide-react';
-import { PageBoundary } from '@/components/system/PageBoundary';
-
-const quickActions = [
-  { title: 'צור הצעת מחיר', icon: FileText, path: '/supplier/quotes' },
-  { title: 'ניהול הזמנות', icon: Package2, path: '/supplier/orders' },
-  { title: 'נהל לידים', icon: Users, path: '/supplier/leads' },
-  { title: 'סטטיסטיקות', icon: TrendingUp, path: '/supplier/analytics' },
-];
-
-const needsAttention = [
-  { title: 'לידים חדשים', count: 5, urgent: true },
-  { title: 'הזמנות ממתינות לתגובה', count: 2, urgent: true },
-  { title: 'ביקורות ממתינות למענה', count: 1, urgent: false },
-];
-
-const suggestions = [
-  'שפר את הפרופיל שלך כדי לקבל יותר לידים',
-  'הגדר שעות עבודה כדי להגביר נראות',
-  'הוסף עוד תמונות איכות לגלריה',
-];
 
 export default function SupplierDashboard() {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const [stats, setStats] = useState([
+    { title: 'לידים חדשים השבוע', value: '0', icon: Users, color: 'text-blue-600' },
+    { title: 'הזמנות פעילות', value: '0', icon: ShoppingBag, color: 'text-green-600' },
+    { title: 'דירוג ממוצע', value: '0', icon: Star, color: 'text-yellow-600' },
+    { title: 'הכנסות צפויות החודש', value: '₪0', icon: DollarSign, color: 'text-purple-600' },
+  ]);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch supplier stats with React Query
-  const { data: stats = [], status, error, refetch } = useQuery({
-    queryKey: ['supplier-stats', user?.id],
-    enabled: !!user?.id,
-    queryFn: async ({ signal }) => {
+  const quickActions = [
+    { title: 'צור הצעת מחיר', icon: FileText, onClick: () => navigate('/supplier/quotes') },
+    { title: 'ניהול הזמנות', icon: Package2, onClick: () => navigate('/supplier/orders') },
+    { title: 'נהל לידים', icon: Users, onClick: () => navigate('/supplier/leads') },
+    { title: 'סטטיסטיקות', icon: TrendingUp, onClick: () => navigate('/supplier/analytics') },
+  ];
+
+  const needsAttention = [
+    { title: 'לידים חדשים', count: 5, urgent: true },
+    { title: 'הזמנות ממתינות לתגובה', count: 2, urgent: true },
+    { title: 'ביקורות ממתינות למענה', count: 1, urgent: false },
+  ];
+
+  const suggestions = [
+    'שפר את הפרופיל שלך כדי לקבל יותר לידים',
+    'הגדר שעות עבודה כדי להגביר נראות',
+    'הוסף עוד תמונות איכות לגלריה',
+  ];
+
+  useEffect(() => {
+    const loadSupplierData = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      
       try {
-        const supplierStats = await supplierService.getSupplierStats(user!.id);
+        const supplierStats = await supplierService.getSupplierStats(user.id);
         
-        return [
+        setStats([
           { title: 'לידים חדשים השבוע', value: supplierStats.newLeadsThisWeek.toString(), icon: Users, color: 'text-blue-600' },
           { title: 'הזמנות פעילות', value: supplierStats.activeOrders.toString(), icon: ShoppingBag, color: 'text-green-600' },
           { title: 'דירוג ממוצע', value: supplierStats.avgRating, icon: Star, color: 'text-yellow-600' },
           { title: 'הכנסות צפויות החודש', value: `₪${supplierStats.thisMonthRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-purple-600' },
-        ];
-      } catch (error: any) {
-        // Handle missing tables/functions gracefully
-        if (error.message?.includes('relation') || 
-            error.message?.includes('does not exist') || 
-            error.message?.includes('function')) {
-          // Return default stats for missing database tables
-          return [
-            { title: 'לידים חדשים השבוע', value: '0', icon: Users, color: 'text-blue-600' },
-            { title: 'הזמנות פעילות', value: '0', icon: ShoppingBag, color: 'text-green-600' },
-            { title: 'דירוג ממוצע', value: '0', icon: Star, color: 'text-yellow-600' },
-            { title: 'הכנסות צפויות החודש', value: '₪0', icon: DollarSign, color: 'text-purple-600' },
-          ];
+        ]);
+      } catch (error) {
+        console.error('Error loading supplier stats:', error);
+        // If service fails due to missing tables/functions, use default values
+        if (error.message?.includes('relation') || error.message?.includes('does not exist') || error.message?.includes('function')) {
+          // Keep default stats values already set in useState
+        } else {
+          toast.error('שגיאה בטעינת הנתונים');
         }
-        throw error;
+      } finally {
+        setLoading(false);
       }
-    },
-    retry: 1,
-    staleTime: 60_000,
-  });
+    };
 
-  if (status === 'pending') {
-    return (
-      <PageBoundary 
-        fallback={
-          <div className="min-h-screen bg-background flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">טוען נתוני הספק...</p>
-            </div>
-          </div>
-        }
-      >
-        <div />
-      </PageBoundary>
-    );
-  }
+    loadSupplierData();
+  }, [user]);
 
-  if (status === 'error') {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="text-destructive mb-4">שגיאה בטעינת נתוני הספק</div>
-          <p className="text-muted-foreground mb-4">
-            {error?.message || 'אירעה שגיאה בלתי צפויה'}
-          </p>
-          <Button onClick={() => refetch()}>נסה שוב</Button>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">טוען נתוני הספק...</p>
         </div>
       </div>
     );
@@ -141,7 +125,7 @@ export default function SupplierDashboard() {
                   key={index}
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => navigate(action.path)}
+                  onClick={action.onClick}
                 >
                   <action.icon className="w-4 h-4 ml-2" />
                   {action.title}
@@ -218,7 +202,7 @@ export default function SupplierDashboard() {
               ))}
             </div>
             <Button 
-              variant="outline" 
+              variant="blue" 
               className="mt-4"
               onClick={() => showToast.comingSoon("המלצות מתקדמות")}
             >
