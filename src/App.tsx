@@ -66,6 +66,7 @@ import NotificationPreferences from "./pages/NotificationPreferences";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/UserManagement";
+import CustomerManagement from "./pages/admin/CustomerManagement";
 import AdminOrderManagement from "./pages/admin/OrderManagement";
 import AdminAnalytics from "./pages/admin/Analytics";
 import SystemSettings from "./pages/admin/SystemSettings";
@@ -128,123 +129,125 @@ const App = () => {
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/notifications" element={<Notifications />} />
                 <Route path="/onboarding/welcome" element={
-                  <CompletedOnboardingGuard>
-                    <OnboardingWelcome />
-                  </CompletedOnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <OnboardingWelcome />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/onboarding/home-details" element={
-                  <CompletedOnboardingGuard>
-                    <OnboardingHomeDetails />
-                  </CompletedOnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <OnboardingHomeDetails />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/onboarding/project-planning" element={
-                  <CompletedOnboardingGuard>
-                    <OnboardingProjectPlanning />
-                  </CompletedOnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <OnboardingProjectPlanning />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/onboarding/documents" element={
-                  <CompletedOnboardingGuard>
-                    <OnboardingDocuments />
-                  </CompletedOnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <OnboardingDocuments />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/onboarding/interests" element={
-                  <CompletedOnboardingGuard>
-                    <OnboardingInterests />
-                  </CompletedOnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <OnboardingInterests />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/onboarding/supplier-welcome" element={
-                  <CompletedOnboardingGuard>
-                    <SupplierWelcome />
-                  </CompletedOnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <SupplierWelcome />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/onboarding/supplier-company-info" element={
-                  <CompletedOnboardingGuard>
-                    <SupplierCompanyInfo />
-                  </CompletedOnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <SupplierCompanyInfo />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/onboarding/supplier-branding" element={
-                  <CompletedOnboardingGuard>
-                    <SupplierBranding />
-                  </CompletedOnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <SupplierBranding />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/onboarding/supplier-products" element={
-                  <CompletedOnboardingGuard>
-                    <SupplierProducts />
-                  </CompletedOnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <SupplierProducts />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/onboarding/supplier-summary" element={
-                  <CompletedOnboardingGuard>
-                    <SupplierSummary />
-                  </CompletedOnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <SupplierSummary />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/supplier/dashboard" element={
                   <OnboardingGuard role="supplier">
-                    <ProtectedRoute allowedRoles={['supplier']}>
-                      <SupplierDashboardNew />
-                    </ProtectedRoute>
+                    <SupplierDashboardNew />
                   </OnboardingGuard>
                 } />
                 {/* Legacy route redirect */}
                 <Route path="/supplier-dashboard" element={<Navigate to="/supplier/dashboard" replace />} />
                 <Route path="/supplier/leads" element={
-                  <OnboardingGuard>
-                    <ProtectedRoute allowedRoles={['supplier']}>
-                      <SupplierLeadManagement />
-                    </ProtectedRoute>
+                  <OnboardingGuard role="supplier">
+                    <SupplierLeadManagement />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/crm" element={
-                  <OnboardingGuard>
-                    <ProtectedRoute allowedRoles={['supplier']}>
-                      <SupplierCRM />
-                    </ProtectedRoute>
+                  <OnboardingGuard role="supplier">
+                    <SupplierCRM />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/catalog" element={
-                  <OnboardingGuard>
-                    <ProtectedRoute allowedRoles={['supplier']}>
-                      <ProductCatalog />
-                    </ProtectedRoute>
+                  <OnboardingGuard role="supplier">
+                    <ProductCatalog />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/quotes" element={
-                  <OnboardingGuard>
-                    <ProtectedRoute allowedRoles={['supplier']}>
-                      <QuoteBuilder />
-                    </ProtectedRoute>
+                  <OnboardingGuard role="supplier">
+                    <QuoteBuilder />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/proposals" element={
-                  <OnboardingGuard>
-                    <ProtectedRoute allowedRoles={['supplier']}>
-                      <ProposalBuilder />
-                    </ProtectedRoute>
+                  <OnboardingGuard role="supplier">
+                    <ProposalBuilder />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/orders" element={
-                  <OnboardingGuard>
-                    <ProtectedRoute allowedRoles={['supplier']}>
-                      <SupplierOrders />
-                    </ProtectedRoute>
+                  <OnboardingGuard role="supplier">
+                    <SupplierOrders />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/notifications" element={
-                  <OnboardingGuard>
-                    <ProtectedRoute allowedRoles={['supplier']}>
-                      <SupplierNotifications />
-                    </ProtectedRoute>
+                  <OnboardingGuard role="supplier">
+                    <SupplierNotifications />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/analytics" element={
-                  <OnboardingGuard>
-                    <ProtectedRoute allowedRoles={['supplier']}>
-                      <SupplierAnalytics />
-                    </ProtectedRoute>
+                  <OnboardingGuard role="supplier">
+                    <SupplierAnalytics />
                   </OnboardingGuard>
                 } />
                 <Route path="/quotes/:quoteId" element={<QuoteView />} />
                 <Route path="/search" element={<Search />} />
-                <Route path="/favorites" element={<ProtectedRoute allowedRoles={['client']}><Favorites /></ProtectedRoute>} />
+                <Route path="/favorites" element={<ProtectedRoute allowedRoles={['client', 'supplier']}><Favorites /></ProtectedRoute>} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/orders/:orderId/status" element={<OrderStatus />} />
                 <Route path="/orders/:orderId/tracking" element={<LiveDeliveryTracking />} />
@@ -281,12 +284,12 @@ const App = () => {
                   </ProtectedRoute>
                 } />
                 <Route path="/my-messages" element={
-                  <ProtectedRoute allowedRoles={['client']}>
+                  <ProtectedRoute allowedRoles={['client', 'supplier']}>
                     <MyMessages />
                   </ProtectedRoute>
                 } />
                 <Route path="/my-meetings" element={
-                  <ProtectedRoute allowedRoles={['client']}>
+                  <ProtectedRoute allowedRoles={['client', 'supplier']}>
                     <MyMeetings />
                   </ProtectedRoute>
                 } />
@@ -309,28 +312,101 @@ const App = () => {
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
                 <Route path="/admin/dashboard" element={
-                  <OnboardingGuard role="admin">
+                  <ProtectedRoute allowedRoles={['admin']}>
                     <AdminLayout><AdminDashboard /></AdminLayout>
-                  </OnboardingGuard>
+                  </ProtectedRoute>
                 } />
-                <Route path="/admin/users" element={<AdminLayout><UserManagement /></AdminLayout>} />
-                <Route path="/admin/suppliers" element={<AdminLayout><SupplierManagement /></AdminLayout>} />
-                <Route path="/admin/orders" element={<AdminLayout><AdminOrderManagement /></AdminLayout>} />
-                <Route path="/admin/quotes" element={<AdminLayout><QuoteManagement /></AdminLayout>} />
-                <Route path="/admin/complaints" element={<AdminLayout><ComplaintManagement /></AdminLayout>} />
-                <Route path="/admin/categories" element={<AdminLayout><CategoryManagement /></AdminLayout>} />
-                <Route path="/admin/support-chat" element={<AdminLayout><SupportChatManagement /></AdminLayout>} />
-                <Route path="/admin/leads" element={<AdminLayout><LeadManagement /></AdminLayout>} />
-                <Route path="/admin/content" element={<AdminLayout><ContentManagement /></AdminLayout>} />
-                <Route path="/admin/reviews" element={<AdminLayout><ReviewsModeration /></AdminLayout>} />
-                <Route path="/admin/reports" element={<AdminLayout><AdvancedReports /></AdminLayout>} />
-                <Route path="/admin/automation" element={<AdminLayout><AutomationCenter /></AdminLayout>} />
-                <Route path="/admin/permissions" element={<AdminLayout><PermissionsManagement /></AdminLayout>} />
-                <Route path="/admin/homepage-content" element={<AdminLayout><HomepageContentManagement /></AdminLayout>} />
-                <Route path="/admin/homepage-content/preview" element={<AdminLayout><HomepagePreview /></AdminLayout>} />
-                <Route path="/admin/inspiration" element={<AdminLayout><AdminInspiration /></AdminLayout>} />
-                <Route path="/admin/analytics" element={<AdminLayout><AdminAnalytics /></AdminLayout>} />
-                <Route path="/admin/settings" element={<AdminLayout><SystemSettings /></AdminLayout>} />
+                <Route path="/admin/users" element={<Navigate to="/admin/customers" replace />} />
+                <Route path="/admin/customers" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><CustomerManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/suppliers" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><SupplierManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/orders" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><AdminOrderManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/quotes" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><QuoteManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/complaints" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><ComplaintManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/categories" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><CategoryManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/support-chat" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><SupportChatManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/leads" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><LeadManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/content" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><ContentManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/reviews" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><ReviewsModeration /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/reports" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><AdvancedReports /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/automation" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><AutomationCenter /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/permissions" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><PermissionsManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/homepage-content" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><HomepageContentManagement /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/homepage-content/preview" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><HomepagePreview /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/inspiration" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><AdminInspiration /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/analytics" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><AdminAnalytics /></AdminLayout>
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/settings" element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminLayout><SystemSettings /></AdminLayout>
+                  </ProtectedRoute>
+                } />
                 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

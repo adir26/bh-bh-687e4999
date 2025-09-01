@@ -33,7 +33,7 @@ const MyMessages = () => {
       const { data, error } = await supabase
         .from('leads')
         .select('*')
-        .eq('client_id', user?.id)
+        .or(`client_id.eq.${user?.id},supplier_id.eq.${user?.id}`)
         .order('created_at', { ascending: false });
 
       if (error) {
