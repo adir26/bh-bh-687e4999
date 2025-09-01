@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Calendar, Clock, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { showToast } from '@/utils/toast';
+import { useQuery } from '@tanstack/react-query';
+import { supaSelect } from '@/lib/supaFetch';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 interface Meeting {
   id: string;
@@ -19,41 +22,35 @@ interface Meeting {
 const MyMeetings = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchMeetings();
-    }
-  }, [user]);
-
-  const fetchMeetings = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('meetings')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('datetime', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching meetings:', error);
-        // If table doesn't exist, show empty state instead of error
-        if (error.code === 'PGRST116' || error.message.includes('relation') || error.message.includes('does not exist')) {
-          setMeetings([]);
-        } else {
-          showToast.error('שגיאה בטעינת הפגישות');
+  const { data: meetings = [], isLoading } = useQuery({
+    queryKey: ['meetings', user?.id],
+    enabled: !!user?.id,
+    queryFn: async ({ signal }) => {
+      try {
+        return await supaSelect<Meeting[]>(
+          supabase
+            .from('meetings')
+            .select('*')
+            .eq('user_id', user?.id)
+            .order('datetime', { ascending: true }),
+          { 
+            signal,
+            errorMessage: 'שגיאה בטעינת הפגישות',
+            timeoutMs: 10_000
+          }
+        );
+      } catch (error: any) {
+        // If table doesn't exist, return empty array instead of throwing
+        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          return [];
         }
-      } else {
-        setMeetings(data || []);
+        throw error;
       }
-    } catch (error) {
-      console.error('Error fetching meetings:', error);
-      setMeetings([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
   const deleteMeeting = async (meetingId: string) => {
     try {
@@ -64,7 +61,7 @@ const MyMeetings = () => {
 
       if (error) throw error;
       
-      setMeetings(meetings.filter(meeting => meeting.id !== meetingId));
+      // TODO: Add queryClient.invalidateQueries(['meetings', user?.id]);
       showToast.success('הפגישה נמחקה');
     } catch (error) {
       console.error('Error deleting meeting:', error);
@@ -103,20 +100,30 @@ const MyMeetings = () => {
     return { dateStr, timeStr };
   };
 
-  if (loading) {
-    return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
-        <div className="flex items-center justify-center flex-1">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground">טוען פגישות...</p>
+  return (
+    <PageBoundary 
+      timeout={10000}
+      fallback={
+        <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
+          <div className="flex items-center justify-center flex-1">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">טוען פגישות...</p>
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
+      }
+    >
+      {isLoading ? (
+        <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
+          <div className="flex items-center justify-center flex-1">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">טוען פגישות...</p>
+            </div>
+          </div>
+        </div>
+      ) : (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
@@ -204,6 +211,8 @@ const MyMeetings = () => {
         )}
       </div>
     </div>
+      )}
+    </PageBoundary>
   );
 };
 

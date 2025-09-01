@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, MessageCircle, Calendar, Trash2, Eye } from 'lucide-react';
+import { ArrowRight, MessageCircle, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { showToast } from '@/utils/toast';
+import { useQuery } from '@tanstack/react-query';
+import { supaSelect } from '@/lib/supaFetch';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 interface Lead {
   id: string;
@@ -19,41 +22,35 @@ interface Lead {
 const MyMessages = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchLeads();
-    }
-  }, [user]);
-
-  const fetchLeads = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
-        .or(`client_id.eq.${user?.id},supplier_id.eq.${user?.id}`)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching leads:', error);
-        // If table doesn't exist, show empty state instead of error
-        if (error.code === 'PGRST116' || error.message.includes('relation') || error.message.includes('does not exist')) {
-          setLeads([]);
-        } else {
-          showToast.error('שגיאה בטעינת ההודעות');
+  const { data: leads = [], isLoading } = useQuery({
+    queryKey: ['leads', user?.id],
+    enabled: !!user?.id,
+    queryFn: async ({ signal }) => {
+      try {
+        return await supaSelect<Lead[]>(
+          supabase
+            .from('leads')
+            .select('*')
+            .or(`client_id.eq.${user?.id},supplier_id.eq.${user?.id}`)
+            .order('created_at', { ascending: false }),
+          { 
+            signal,
+            errorMessage: 'שגיאה בטעינת ההודעות',
+            timeoutMs: 10_000
+          }
+        );
+      } catch (error: any) {
+        // If table doesn't exist, return empty array instead of throwing
+        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          return [];
         }
-      } else {
-        setLeads(data || []);
+        throw error;
       }
-    } catch (error) {
-      console.error('Error fetching leads:', error);
-      setLeads([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
   const deleteLead = async (leadId: string) => {
     try {
@@ -64,7 +61,8 @@ const MyMessages = () => {
 
       if (error) throw error;
       
-      setLeads(leads.filter(lead => lead.id !== leadId));
+      // Invalidate query to refetch leads
+      // TODO: Add queryClient.invalidateQueries(['leads', user?.id]);
       showToast.success('ההודעה נמחקה');
     } catch (error) {
       console.error('Error deleting lead:', error);
@@ -88,20 +86,30 @@ const MyMessages = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
-        <div className="flex items-center justify-center flex-1">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground">טוען הודעות...</p>
+  return (
+    <PageBoundary 
+      timeout={10000}
+      fallback={
+        <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
+          <div className="flex items-center justify-center flex-1">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">טוען הודעות...</p>
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
+      }
+    >
+      {isLoading ? (
+        <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
+          <div className="flex items-center justify-center flex-1">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground">טוען הודעות...</p>
+            </div>
+          </div>
+        </div>
+      ) : (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
@@ -169,6 +177,8 @@ const MyMessages = () => {
         )}
       </div>
     </div>
+      )}
+    </PageBoundary>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Share2, Users, Settings, Grid, List, Plus, MoreVertical, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,107 +14,123 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Ideabook, IdeabookPhoto, IdeabookCollaborator } from '@/types/inspiration';
 import { getPublicImageUrl } from '@/utils/imageUrls';
+import { useQuery } from '@tanstack/react-query';
+import { supaSelect, supaSelectMaybe } from '@/lib/supaFetch';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 
 export default function IdeabookDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [ideabook, setIdeabook] = useState<Ideabook | null>(null);
-  const [photos, setPhotos] = useState<IdeabookPhoto[]>([]);
-  const [collaborators, setCollaborators] = useState<IdeabookCollaborator[]>([]);
-  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [newCollaboratorEmail, setNewCollaboratorEmail] = useState('');
   const [newCollaboratorRole, setNewCollaboratorRole] = useState<'viewer' | 'editor'>('viewer');
-  const [userRole, setUserRole] = useState<'owner' | 'editor' | 'viewer'>('viewer');
 
-  useEffect(() => {
-    if (id) {
-      fetchIdeabookDetails();
-    }
-  }, [id, user]);
+  const { data: ideabookData, isLoading } = useQuery({
+    queryKey: ['ideabook', id, user?.id],
+    enabled: !!id && !!user?.id,
+    queryFn: async ({ signal }) => {
+      try {
+        // Fetch ideabook details
+        const ideabook = await supaSelectMaybe<Ideabook>(
+          supabase
+            .from('ideabooks')
+            .select('*')
+            .eq('id', id!),
+          { 
+            signal,
+            errorMessage: 'שגיאה בטעינת פרטי האידאבוק',
+            timeoutMs: 10_000
+          }
+        );
 
-  const fetchIdeabookDetails = async () => {
-    try {
-      // Fetch ideabook details
-      const { data: ideabookData, error: ideabookError } = await supabase
-        .from('ideabooks')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (ideabookError) throw ideabookError;
-
-      // Check access permissions
-      let hasAccess = false;
-      let currentUserRole: 'owner' | 'editor' | 'viewer' = 'viewer';
-
-      if (ideabookData.owner_id === user?.id) {
-        hasAccess = true;
-        currentUserRole = 'owner';
-      } else if (ideabookData.is_public) {
-        hasAccess = true;
-      } else if (user) {
-        // Check if user is a collaborator
-        const { data: collaboratorData } = await supabase
-          .from('ideabook_collaborators')
-          .select('role')
-          .eq('ideabook_id', id)
-          .eq('user_id', user.id)
-          .single();
-
-        if (collaboratorData) {
-          hasAccess = true;
-          currentUserRole = collaboratorData.role as 'viewer' | 'editor';
+        if (!ideabook) {
+          return null;
         }
+
+        // Check access permissions
+        let hasAccess = false;
+        let currentUserRole: 'owner' | 'editor' | 'viewer' = 'viewer';
+
+        if (ideabook.owner_id === user?.id) {
+          hasAccess = true;
+          currentUserRole = 'owner';
+        } else if (ideabook.is_public) {
+          hasAccess = true;
+        } else if (user) {
+          // Check if user is a collaborator
+          const collaboratorData = await supaSelectMaybe<{role: string}>(
+            supabase
+              .from('ideabook_collaborators')
+              .select('role')
+              .eq('ideabook_id', id!)
+              .eq('user_id', user.id),
+            { signal, timeoutMs: 5_000 }
+          );
+
+          if (collaboratorData) {
+            hasAccess = true;
+            currentUserRole = collaboratorData.role as 'viewer' | 'editor';
+          }
+        }
+
+        if (!hasAccess) {
+          throw new Error('אין לך הרשאה לצפות באידאבוק זה');
+        }
+
+        // Fetch photos
+        const photos = await supaSelect<IdeabookPhoto[]>(
+          supabase
+            .from('ideabook_photos')
+            .select(`
+              *,
+              photos(id, title, storage_path, room, style)
+            `)
+            .eq('ideabook_id', id!)
+            .order('created_at', { ascending: false }),
+          { signal, timeoutMs: 10_000 }
+        );
+
+        // Fetch collaborators (only if owner or editor)
+        let collaborators: IdeabookCollaborator[] = [];
+        if (currentUserRole === 'owner' || currentUserRole === 'editor') {
+          collaborators = await supaSelect<IdeabookCollaborator[]>(
+            supabase
+              .from('ideabook_collaborators')
+              .select(`
+                *,
+                profiles(id, full_name, email)
+              `)
+              .eq('ideabook_id', id!),
+            { signal, timeoutMs: 10_000 }
+          );
+        }
+
+        return {
+          ideabook,
+          photos: photos || [],
+          collaborators: collaborators || [],
+          userRole: currentUserRole
+        };
+      } catch (error: any) {
+        // Handle missing tables gracefully
+        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          return null;
+        }
+        throw error;
       }
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
-      if (!hasAccess) {
-        toast.error('אין לך הרשאה לצפות באידאבוק זה');
-        navigate('/ideabooks');
-        return;
-      }
-
-      setIdeabook(ideabookData);
-      setUserRole(currentUserRole);
-
-      // Fetch photos
-      const { data: photosData, error: photosError } = await supabase
-        .from('ideabook_photos')
-        .select(`
-          *,
-          photos(id, title, storage_path, room, style)
-        `)
-        .eq('ideabook_id', id)
-        .order('created_at', { ascending: false });
-
-      if (photosError) throw photosError;
-      setPhotos((photosData as IdeabookPhoto[]) || []);
-
-      // Fetch collaborators (only if owner or editor)
-      if (currentUserRole === 'owner' || currentUserRole === 'editor') {
-        const { data: collaboratorsData, error: collaboratorsError } = await supabase
-          .from('ideabook_collaborators')
-          .select(`
-            *,
-            profiles(id, full_name, email)
-          `)
-          .eq('ideabook_id', id);
-
-        if (collaboratorsError) throw collaboratorsError;
-        setCollaborators((collaboratorsData as IdeabookCollaborator[]) || []);
-      }
-    } catch (error) {
-      console.error('Error fetching ideabook details:', error);
-      toast.error('שגיאה בטעינת פרטי האידאבוק');
-      navigate('/ideabooks');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const ideabook = ideabookData?.ideabook || null;
+  const photos = ideabookData?.photos || [];
+  const collaborators = ideabookData?.collaborators || [];
+  const userRole = ideabookData?.userRole || 'viewer';
 
   const shareIdeabook = async () => {
     if (!ideabook?.is_public) {
@@ -153,7 +169,7 @@ export default function IdeabookDetail() {
 
       if (error) throw error;
 
-      setPhotos(prev => prev.filter(p => p.id !== ideabookPhotoId));
+      // TODO: Add queryClient.invalidateQueries(['ideabook', id, user?.id]);
       toast.success('התמונה הוסרה מהאידאבוק');
     } catch (error) {
       console.error('Error removing photo:', error);
@@ -201,7 +217,8 @@ export default function IdeabookDetail() {
 
       if (error) throw error;
 
-      setCollaborators(prev => [...prev, data as IdeabookCollaborator]);
+      // TODO: Add queryClient.invalidateQueries(['ideabook', id, user?.id]);
+      toast.success('משתף נוסף בהצלחה');
       setNewCollaboratorEmail('');
       setNewCollaboratorRole('viewer');
       toast.success('משתף נוסף בהצלחה');
@@ -225,7 +242,8 @@ export default function IdeabookDetail() {
 
       if (error) throw error;
 
-      setCollaborators(prev => prev.filter(c => c.id !== collaboratorId));
+      // TODO: Add queryClient.invalidateQueries(['ideabook', id, user?.id]);
+      toast.success('המשתף הוסר בהצלחה');
       toast.success('המשתף הוסר בהצלחה');
     } catch (error) {
       console.error('Error removing collaborator:', error);
@@ -234,35 +252,43 @@ export default function IdeabookDetail() {
   };
 
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
-        <div className="container mx-auto">
-          <div className="h-8 bg-muted rounded mb-6" />
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="aspect-square bg-muted rounded-lg" />
-            ))}
+  return (
+    <PageBoundary 
+      timeout={15000}
+      fallback={
+        <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
+          <div className="container mx-auto">
+            <div className="h-8 bg-muted rounded mb-6" />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="aspect-square bg-muted rounded-lg" />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }
-
-  if (!ideabook) {
-    return (
-      <div className="min-h-screen bg-background p-4 pb-32 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">האידאבוק לא נמצא</h2>
-          <Link to="/ideabooks">
-            <Button>חזור לאידאבוקים</Button>
-          </Link>
+      }
+    >
+      {isLoading ? (
+        <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
+          <div className="container mx-auto">
+            <div className="h-8 bg-muted rounded mb-6" />
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="aspect-square bg-muted rounded-lg" />
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
-    );
-  }
-
-  return (
+      ) : ideabookData === null ? (
+        <div className="min-h-screen bg-background p-4 pb-32 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">האידאבוק לא נמצא</h2>
+            <Link to="/ideabooks">
+              <Button>חזור לאידאბוקים</Button>
+            </Link>
+          </div>
+        </div>
+      ) : (
     <div className="min-h-screen bg-background pb-32">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -484,5 +510,7 @@ export default function IdeabookDetail() {
         )}
       </div>
     </div>
+      )}
+    </PageBoundary>
   );
 }

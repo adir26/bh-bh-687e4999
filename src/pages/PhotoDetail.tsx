@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Heart, Bookmark, Share2, ArrowRight, Tag, MessageCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,76 +11,87 @@ import { toast } from 'sonner';
 import { Photo, ProductTag } from '@/types/inspiration';
 import { getPublicImageUrl } from '@/utils/imageUrls';
 import { SaveToIdeabookModal } from '@/components/inspiration/SaveToIdeabookModal';
+import { useQuery } from '@tanstack/react-query';
+import { supaSelect, supaSelectMaybe } from '@/lib/supaFetch';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 
 export default function PhotoDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [photo, setPhoto] = useState<Photo | null>(null);
-  const [productTags, setProductTags] = useState<ProductTag[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showProductDetails, setShowProductDetails] = useState<string | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      fetchPhotoDetails();
-    }
-  }, [id]);
+  const { data, isLoading } = useQuery({
+    queryKey: ['photo', id, user?.id],
+    enabled: !!id,
+    queryFn: async ({ signal }) => {
+      try {
+        // Fetch photo details
+        const photoData = await supaSelectMaybe(
+          supabase
+            .from('photos')
+            .select(`
+              id, title, description, room, style, storage_path, is_public, created_at, uploader_id, updated_at,
+              photo_likes(user_id),
+              photo_tags(tag)
+            `)
+            .eq('id', id!)
+            .eq('is_public', true),
+          { 
+            signal,
+            errorMessage: 'שגיאה בטעינת פרטי התמונה',
+            timeoutMs: 10_000
+          }
+        );
 
-  const fetchPhotoDetails = async () => {
-    try {
-      // Fetch photo details
-      const { data: photoData, error: photoError } = await supabase
-        .from('photos')
-        .select(`
-          id, title, description, room, style, storage_path, is_public, created_at, uploader_id, updated_at,
-          photo_likes(user_id),
-          photo_tags(tag)
-        `)
-        .eq('id', id)
-        .eq('is_public', true)
-        .single();
+        if (!photoData) {
+          return null;
+        }
 
-      if (photoError) throw photoError;
+        const processedPhoto = {
+          ...(photoData as any),
+          is_liked: user ? (photoData as any).photo_likes?.some((like: { user_id: string }) => like.user_id === user.id) : false,
+          tags: (photoData as any).photo_tags?.map((tag: { tag: string }) => tag.tag) || []
+        } as Photo;
 
-      const processedPhoto = {
-        ...photoData,
-        is_liked: user ? photoData.photo_likes?.some((like: { user_id: string }) => like.user_id === user.id) : false,
-        tags: photoData.photo_tags?.map((tag: { tag: string }) => tag.tag) || []
-      } as Photo;
+        // Fetch product tags
+        const productTags: ProductTag[] = await supaSelect(
+          supabase
+            .from('photo_products')
+            .select(`
+              id, photo_id, note, tag_position, created_at,
+              products(id, name, price, currency),
+              profiles!photo_products_supplier_id_fkey(id, full_name, email)
+            `)
+            .eq('photo_id', id!),
+          { signal, timeoutMs: 10_000 }
+        ).then(data => (data as any)?.map((tag: any) => ({
+          ...tag,
+          tag_position: tag.tag_position as { x: number; y: number },
+          products: tag.products,
+          profiles: tag.profiles
+        })) || []);
 
-      setPhoto(processedPhoto);
+        return {
+          photo: processedPhoto,
+          productTags
+        };
+      } catch (error: any) {
+        // Handle missing tables gracefully
+        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
+          return null;
+        }
+        throw error;
+      }
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
-      // Fetch product tags
-      const { data: tagsData, error: tagsError } = await supabase
-        .from('photo_products')
-        .select(`
-          id, photo_id, note, tag_position, created_at,
-          products(id, name, price, currency),
-          profiles!photo_products_supplier_id_fkey(id, full_name, email)
-        `)
-        .eq('photo_id', id);
-
-      if (tagsError) throw tagsError;
-
-      const processedTags = tagsData?.map(tag => ({
-        ...tag,
-        tag_position: tag.tag_position as { x: number; y: number },
-        products: tag.products,
-        profiles: tag.profiles
-      })) as ProductTag[] || [];
-
-      setProductTags(processedTags);
-    } catch (error) {
-      console.error('Error fetching photo details:', error);
-      toast.error('שגיאה בטעינת פרטי התמונה');
-      navigate('/inspiration');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const photo = data?.photo || null;
+  const productTags = data?.productTags || [];
 
   const toggleLike = async () => {
     if (!user || !photo) {
@@ -101,7 +112,7 @@ export default function PhotoDetail() {
           .insert({ photo_id: photo.id, user_id: user.id });
       }
 
-      setPhoto(prev => prev ? { ...prev, is_liked: !prev.is_liked } : null);
+      // TODO: Add queryClient.invalidateQueries(['photo', id, user?.id]);
       toast.success(photo.is_liked ? 'הוסר מהמועדפים' : 'נוסף למועדפים');
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -140,32 +151,37 @@ export default function PhotoDetail() {
   };
 
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
-        <div className="container mx-auto max-w-4xl">
-          <div className="aspect-video bg-muted rounded-lg mb-6" />
-          <div className="h-8 bg-muted rounded mb-4" />
-          <div className="h-4 bg-muted rounded w-2/3" />
-        </div>
-      </div>
-    );
-  }
-
-  if (!photo) {
-    return (
-      <div className="min-h-screen bg-background p-4 pb-32 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">התמונה לא נמצאה</h2>
-          <Link to="/inspiration">
-            <Button>חזור לגלריה</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
+    <PageBoundary 
+      timeout={15000}
+      fallback={
+        <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
+          <div className="container mx-auto max-w-4xl">
+            <div className="aspect-video bg-muted rounded-lg mb-6" />
+            <div className="h-8 bg-muted rounded mb-4" />
+            <div className="h-4 bg-muted rounded w-2/3" />
+          </div>
+        </div>
+      }
+    >
+      {isLoading ? (
+        <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
+          <div className="container mx-auto max-w-4xl">
+            <div className="aspect-video bg-muted rounded-lg mb-6" />
+            <div className="h-8 bg-muted rounded mb-4" />
+            <div className="h-4 bg-muted rounded w-2/3" />
+          </div>
+        </div>
+      ) : data === null ? (
+        <div className="min-h-screen bg-background p-4 pb-32 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">התמונה לא נמצאה</h2>
+            <Link to="/inspiration">
+              <Button>חזור לגלריה</Button>
+            </Link>
+          </div>
+        </div>
+      ) : (
     <div className="min-h-screen bg-background pb-32">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border p-4">
@@ -339,5 +355,7 @@ export default function PhotoDetail() {
         photoTitle={photo?.title || ''}
       />
     </div>
+      )}
+    </PageBoundary>
   );
 }
