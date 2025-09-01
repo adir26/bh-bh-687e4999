@@ -251,7 +251,7 @@ const App = () => {
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/orders/:orderId/status" element={<OrderStatus />} />
                 <Route path="/orders/:orderId/tracking" element={<LiveDeliveryTracking />} />
-                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile" element={<ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}><Profile /></ProtectedRoute>} />
                 <Route path="/top-suppliers" element={<TopSuppliers />} />
                 <Route path="/new-suppliers" element={<NewSuppliers />} />
                 <Route path="/hot-now" element={<HotNow />} />

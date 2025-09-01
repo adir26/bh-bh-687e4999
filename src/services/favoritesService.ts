@@ -155,48 +155,63 @@ export class FavoritesService {
   private static async enrichSupplierData(suppliers: FavoriteSupplier[]): Promise<void> {
     if (suppliers.length === 0) return;
 
-    const supplierIds = suppliers.map(s => s.entity_id);
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, full_name, email')
-      .in('id', supplierIds);
+    try {
+      const supplierIds = suppliers.map(s => s.entity_id);
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .in('id', supplierIds);
 
-    if (data) {
-      suppliers.forEach(supplier => {
-        supplier.supplier_data = data.find(p => p.id === supplier.entity_id);
-      });
+      if (data) {
+        suppliers.forEach(supplier => {
+          supplier.supplier_data = data.find(p => p.id === supplier.entity_id);
+        });
+      }
+    } catch (error) {
+      console.error('Error enriching supplier data:', error);
+      // Continue without enrichment if table doesn't exist
     }
   }
 
   private static async enrichProductData(products: FavoriteProduct[]): Promise<void> {
     if (products.length === 0) return;
 
-    const productIds = products.map(p => p.entity_id);
-    const { data } = await supabase
-      .from('products')
-      .select('id, name, price, currency, supplier_id')
-      .in('id', productIds);
+    try {
+      const productIds = products.map(p => p.entity_id);
+      const { data } = await supabase
+        .from('products')
+        .select('id, name, price, currency, supplier_id')
+        .in('id', productIds);
 
-    if (data) {
-      products.forEach(product => {
-        product.product_data = data.find(p => p.id === product.entity_id);
-      });
+      if (data) {
+        products.forEach(product => {
+          product.product_data = data.find(p => p.id === product.entity_id);
+        });
+      }
+    } catch (error) {
+      console.error('Error enriching product data:', error);
+      // Continue without enrichment if table doesn't exist
     }
   }
 
   private static async enrichInspirationData(inspirations: FavoriteInspiration[]): Promise<void> {
     if (inspirations.length === 0) return;
 
-    const photoIds = inspirations.map(i => i.entity_id);
-    const { data } = await supabase
-      .from('photos')
-      .select('id, title, storage_path, room, style')
-      .in('id', photoIds);
+    try {
+      const photoIds = inspirations.map(i => i.entity_id);
+      const { data } = await supabase
+        .from('photos')
+        .select('id, title, storage_path, room, style')
+        .in('id', photoIds);
 
-    if (data) {
-      inspirations.forEach(inspiration => {
-        inspiration.photo_data = data.find(p => p.id === inspiration.entity_id);
-      });
+      if (data) {
+        inspirations.forEach(inspiration => {
+          inspiration.photo_data = data.find(p => p.id === inspiration.entity_id);
+        });
+      }
+    } catch (error) {
+      console.error('Error enriching inspiration data:', error);
+      // Continue without enrichment if table doesn't exist
     }
   }
 

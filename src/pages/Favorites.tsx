@@ -21,13 +21,34 @@ const Favorites = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           setUser(user);
-          const userFavorites = await FavoritesService.listByUser(user.id);
-          setFavorites(userFavorites);
+          try {
+            const userFavorites = await FavoritesService.listByUser(user.id);
+            setFavorites(userFavorites);
+          } catch (favoritesError) {
+            console.error('Error fetching user favorites:', favoritesError);
+            // Set empty favorites if there's an error
+            setFavorites({
+              suppliers: [],
+              products: [],
+              inspirations: [],
+              ideabooks: []
+            });
+            toast({
+              title: "שגיאה בטעינת המועדפים",
+              description: "לא ניתן לטעון את המועדפים כרגע",
+              variant: "destructive",
+            });
+          }
         }
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching user favorites:', error);
+        console.error('Error fetching user:', error);
         setLoading(false);
+        toast({
+          title: "שגיאה",
+          description: "לא ניתן לטעון את הדף כרגע",
+          variant: "destructive",
+        });
       }
     };
 
