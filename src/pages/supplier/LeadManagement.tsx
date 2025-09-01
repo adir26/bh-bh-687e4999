@@ -1,46 +1,40 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin, User } from 'lucide-react';
+import { ArrowLeft, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin, User, AlertCircle, Users } from 'lucide-react';
 import { SearchInput } from '@/components/ui/search-input';
 import { showToast } from '@/utils/toast';
 import { leadsService, Lead, LeadStatus } from '@/services/leadsService';
 import { useAuth } from '@/contexts/AuthContext';
+import { PageBoundary } from '@/components/system/PageBoundary';
+import { EmptyState } from '@/components/ui/empty-state';
 
-export default function LeadManagement() {
+function LeadManagementContent() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchLeads = async () => {
-      if (!user?.id) return;
-      
-      try {
-        const data = await leadsService.listLeads(user.id, {
-          status: statusFilter === 'all' ? undefined : statusFilter as LeadStatus,
-          search: searchTerm || undefined
-        });
-        setLeads(data);
-      } catch (error) {
-        console.error('Error fetching leads:', error);
-        showToast.error('שגיאה בטעינת הלידים');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLeads();
-  }, [user?.id, statusFilter, searchTerm]);
+  const { data: leads = [], isLoading, error } = useQuery({
+    queryKey: ['leads', user?.id, statusFilter, searchTerm],
+    enabled: !!user?.id,
+    queryFn: async ({ signal }) => {
+      const data = await leadsService.listLeads(user!.id, {
+        status: statusFilter === 'all' ? undefined : statusFilter as LeadStatus,
+        search: searchTerm || undefined
+      });
+      return data;
+    },
+    retry: 1,
+    staleTime: 30_000,
+  });
 
   const handleCall = (phone: string) => {
     if (!phone) {
@@ -73,7 +67,7 @@ export default function LeadManagement() {
     }
   };
 
-  const filteredLeads = leads;
+  
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
@@ -168,9 +162,25 @@ export default function LeadManagement() {
         </div>
 
         {/* Leads Display */}
-        {viewMode === 'cards' ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : error ? (
+          <EmptyState
+            icon={AlertCircle}
+            title="שגיאה בטעינת הלידים"
+            description="אירעה שגיאה בטעינת הנתונים. אנא נסו שוב."
+          />
+        ) : leads.length === 0 ? (
+          <EmptyState
+            icon={Users}
+            title="אין לידים"
+            description="לא נמצאו לידים התואמים לחיפוש שלכם."
+          />
+        ) : viewMode === 'cards' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredLeads.map((lead) => (
+            {leads.map((lead) => (
               <Card key={lead.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -267,8 +277,8 @@ export default function LeadManagement() {
                        <th className="text-right p-4 font-medium">פעולות</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {filteredLeads.map((lead) => (
+                   <tbody>
+                     {leads.map((lead) => (
                        <tr key={lead.id} className="border-b hover:bg-muted/50">
                          <td className="p-4 font-medium">{lead.name || 'לקוח ללא שם'}</td>
                          <td className="p-4 text-muted-foreground">
@@ -328,15 +338,15 @@ export default function LeadManagement() {
             </CardContent>
           </Card>
         )}
-
-        {filteredLeads.length === 0 && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <p className="text-muted-foreground">לא נמצאו לידים התואמים לחיפוש</p>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
+  );
+}
+
+export default function LeadManagement() {
+  return (
+    <PageBoundary timeout={10000}>
+      <LeadManagementContent />
+    </PageBoundary>
   );
 }

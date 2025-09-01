@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,8 @@ import { ArrowLeft, Package, User, Calendar, MapPin, Phone, Mail, CheckCircle, C
 import { showToast } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { PageBoundary } from '@/components/system/PageBoundary';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface Order {
   id: string;
@@ -31,56 +34,47 @@ const orderStatuses = [
   { key: 'delivered', label: 'נמסר', icon: CheckCircle, color: 'bg-green-100 text-green-800' },
 ];
 
-export default function OrderManagement() {
+function OrderManagementContent() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      if (!user?.id) return;
-      
-      try {
-        // Fetch orders for this supplier with client profile information
-        const { data: ordersData, error } = await supabase
-          .from('orders')
-          .select(`
-            *,
-            profiles!orders_client_id_fkey (
-              full_name,
-              email
-            )
-          `)
-          .eq('supplier_id', user.id);
+  const { data: orders = [], isLoading, error } = useQuery({
+    queryKey: ['supplier-orders', user?.id],
+    enabled: !!user?.id,
+    queryFn: async ({ signal }) => {
+      const { data: ordersData, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          profiles!orders_client_id_fkey (
+            full_name,
+            email
+          )
+        `)
+        .eq('supplier_id', user!.id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        const formattedOrders = ordersData?.map(order => ({
-          id: order.id,
-          client_id: order.client_id,
-          clientName: order.profiles?.full_name || 'לקוח ללא שם',
-          clientEmail: order.profiles?.email || '',
-          title: order.title,
-          description: order.description,
-          amount: order.amount,
-          status: order.status,
-          created_at: order.created_at,
-          due_date: order.due_date
-        })) || [];
+      const formattedOrders = ordersData?.map(order => ({
+        id: order.id,
+        client_id: order.client_id,
+        clientName: order.profiles?.full_name || 'לקוח ללא שם',
+        clientEmail: order.profiles?.email || '',
+        title: order.title,
+        description: order.description,
+        amount: order.amount,
+        status: order.current_status || order.status || 'pending',
+        created_at: order.created_at,
+        due_date: order.due_date
+      })) || [];
 
-        setOrders(formattedOrders);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-        showToast.error('שגיאה בטעינת ההזמנות');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, [user?.id]);
+      return formattedOrders;
+    },
+    retry: 1,
+    staleTime: 30_000,
+  });
 
   const handleCall = (phone: string) => {
     if (!phone) {
@@ -99,9 +93,28 @@ export default function OrderManagement() {
     return orderStatuses.find(s => s.key === status) || orderStatuses[0];
   };
 
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ orderId, newStatus }: { orderId: string; newStatus: string }) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+      
+      if (error) throw error;
+      return { orderId, newStatus };
+    },
+    onSuccess: ({ newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ['supplier-orders'] });
+      const statusInfo = getStatusInfo(newStatus);
+      showToast.success(`ההזמנה עודכנה ל: ${statusInfo.label}`);
+    },
+    onError: (error: any) => {
+      showToast.error('שגיאה בעדכון ההזמנה');
+    }
+  });
+
   const updateOrderStatus = (orderId: string, newStatus: string) => {
-    const statusInfo = getStatusInfo(newStatus);
-    showToast.success(`ההזמנה עודכנה ל: ${statusInfo.label}`);
+    updateStatusMutation.mutate({ orderId, newStatus });
   };
 
   const getStatusStepIndex = (status: string) => {
@@ -154,8 +167,25 @@ export default function OrderManagement() {
             <CardTitle>הזמנות</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {orders.map((order) => {
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : error ? (
+              <EmptyState
+                icon={AlertCircle}
+                title="שגיאה בטעינת ההזמנות"
+                description="אירעה שגיאה בטעינת הנתונים. אנא נסו שוב."
+              />
+            ) : orders.length === 0 ? (
+              <EmptyState
+                icon={Package}
+                title="אין הזמנות"
+                description="אין הזמנות להצגה כרגע."
+              />
+            ) : (
+              <div className="space-y-4">
+                {orders.map((order) => {
                 const statusInfo = getStatusInfo(order.status);
                 const StatusIcon = statusInfo.icon;
                 
@@ -306,21 +336,21 @@ export default function OrderManagement() {
                       </Select>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
-
-        {orders.length === 0 && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Package className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">אין הזמנות להצגה</p>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
+  );
+}
+
+export default function OrderManagement() {
+  return (
+    <PageBoundary timeout={10000}>
+      <OrderManagementContent />
+    </PageBoundary>
   );
 }

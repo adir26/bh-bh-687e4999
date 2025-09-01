@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +18,12 @@ import {
   MapPin,
   TrendingUp,
   Target,
-  Calendar
+  Calendar,
+  AlertCircle
 } from "lucide-react";
+import { supabase } from '@/integrations/supabase/client';
+import { PageBoundary } from '@/components/system/PageBoundary';
+import { EmptyState } from '@/components/ui/empty-state';
 
 interface Lead {
   id: string;
@@ -39,61 +44,58 @@ interface Lead {
   score: number;
 }
 
-const mockLeads: Lead[] = [
-  {
-    id: "lead-001",
-    customerName: "אברהם משה",
-    customerEmail: "abraham@email.com",
-    customerPhone: "052-1234567",
-    status: "new",
-    priority: "hot",
-    source: "website",
-    category: "עיצוב מטבחים",
-    budget: "100,000-150,000 ₪",
-    location: "תל אביב",
-    createdAt: "2024-01-15",
-    notes: "מעוניין בשיפוץ מטבח מלא. יש לו תקציב גבוה ומתכנן להתחיל בחודש הבא.",
-    score: 92
-  },
-  {
-    id: "lead-002", 
-    customerName: "שרה לוי",
-    customerEmail: "sarah@email.com",
-    customerPhone: "054-9876543",
-    status: "contacted",
-    priority: "high",
-    source: "referral",
-    category: "ריהוט",
-    budget: "50,000-80,000 ₪",
-    location: "רמת גן",
-    createdAt: "2024-01-14",
-    lastContact: "2024-01-16",
-    assignedTo: "דוד כהן",
-    notes: "הופנתה על ידי לקוח קיים. מחפשת רהיטים לסלון חדש.",
-    score: 78
-  },
-  {
-    id: "lead-003",
-    customerName: "מיכאל דוד",
-    customerEmail: "michael@email.com", 
-    customerPhone: "050-5555555",
-    status: "qualified",
-    priority: "medium",
-    source: "ads",
-    category: "ציוד מקצועי",
-    budget: "20,000-40,000 ₪",
-    location: "חיפה",
-    createdAt: "2024-01-12",
-    lastContact: "2024-01-17",
-    assignedTo: "רחל אברהם",
-    notes: "בעל עסק קטן שמחפש ציוד למשרד. מתלבט בין כמה אפשרויות.",
-    score: 65
-  }
-];
-
-export default function LeadManagement() {
+function LeadManagementContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+
+  const { data: leads = [], isLoading, error } = useQuery({
+    queryKey: ['admin-leads', selectedStatus, searchQuery],
+    queryFn: async ({ signal }) => {
+      let query = supabase
+        .from('leads')
+        .select(`
+          *,
+          profiles!leads_client_id_fkey (
+            full_name,
+            email
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (selectedStatus !== 'all') {
+        query = query.eq('status', selectedStatus);
+      }
+
+      if (searchQuery) {
+        query = query.or(`name.ilike.%${searchQuery}%,contact_email.ilike.%${searchQuery}%`);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) throw error;
+
+      return data?.map(lead => ({
+        id: lead.id,
+        customerName: lead.name || (lead.profiles && lead.profiles[0]?.full_name) || 'לקוח ללא שם',
+        customerEmail: lead.contact_email || (lead.profiles && lead.profiles[0]?.email) || '',
+        customerPhone: lead.contact_phone || '',
+        customerAvatar: undefined,
+        status: lead.status,
+        priority: lead.priority || 'medium',
+        source: lead.source || 'website',
+        category: 'עיצוב פנים', // Default category for now
+        budget: '0-50,000 ₪', // Default budget for now
+        location: 'לא צוין',
+        createdAt: new Date(lead.created_at).toLocaleDateString('he-IL'),
+        lastContact: lead.last_contact_date ? new Date(lead.last_contact_date).toLocaleDateString('he-IL') : undefined,
+        assignedTo: undefined, // TODO: Add assigned user lookup
+        notes: lead.notes || '',
+        score: Math.floor(Math.random() * 40) + 60 // Random score for now
+      })) || [];
+    },
+    retry: 1,
+    staleTime: 30_000,
+  });
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -133,7 +135,7 @@ export default function LeadManagement() {
     return "text-red-600";
   };
 
-  const filteredLeads = mockLeads.filter(lead => {
+  const filteredLeads = leads.filter(lead => {
     const matchesSearch = lead.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          lead.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          lead.customerEmail.toLowerCase().includes(searchQuery.toLowerCase());
@@ -164,8 +166,8 @@ export default function LeadManagement() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1</div>
-            <p className="text-xs text-muted-foreground">+20% מהשבוע שעבר</p>
+            <div className="text-2xl font-bold">{leads.filter(l => l.status === 'new').length}</div>
+            <p className="text-xs text-muted-foreground">מהשבוע הנוכחי</p>
           </CardContent>
         </Card>
         <Card>
@@ -174,8 +176,10 @@ export default function LeadManagement() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24%</div>
-            <p className="text-xs text-muted-foreground">+5% מהחודש שעבר</p>
+            <div className="text-2xl font-bold">
+              {leads.length > 0 ? Math.round((leads.filter(l => l.status === 'converted').length / leads.length) * 100) : 0}%
+            </div>
+            <p className="text-xs text-muted-foreground">מכלל הלידים</p>
           </CardContent>
         </Card>
         <Card>
@@ -184,18 +188,18 @@ export default function LeadManagement() {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₪2.4M</div>
-            <p className="text-xs text-muted-foreground">+15% מהחודש שעבר</p>
+            <div className="text-2xl font-bold">₪{leads.length * 25000}</div>
+            <p className="text-xs text-muted-foreground">הערכת ערך כולל</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">זמן תגובה ממוצע</CardTitle>
+            <CardTitle className="text-sm font-medium">לידים חמים</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2.3ש</div>
-            <p className="text-xs text-muted-foreground">-30 דקות מהממוצע</p>
+            <div className="text-2xl font-bold">{leads.filter(l => l.priority === 'hot').length}</div>
+            <p className="text-xs text-muted-foreground">דורשים טיפול מיידי</p>
           </CardContent>
         </Card>
       </div>
@@ -224,192 +228,25 @@ export default function LeadManagement() {
         </div>
 
         <TabsContent value="all" className="space-y-4">
-          <div className="grid gap-4">
-            {filteredLeads.map((lead) => (
-              <Card key={lead.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4 space-x-reverse flex-1">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={lead.customerAvatar} />
-                        <AvatarFallback>{lead.customerName.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-medium text-lg">{lead.customerName}</h3>
-                          <Badge className={getStatusBadge(lead.status)}>
-                            {lead.status === "new" ? "חדש" :
-                             lead.status === "contacted" ? "ניצר קשר" :
-                             lead.status === "qualified" ? "מוכשר" :
-                             lead.status === "converted" ? "הומר" : "אבד"}
-                          </Badge>
-                          <Badge className={getPriorityBadge(lead.priority)}>
-                            {lead.priority === "hot" ? "חם" :
-                             lead.priority === "high" ? "גבוה" :
-                             lead.priority === "medium" ? "בינוני" : "נמוך"}
-                          </Badge>
-                          <Badge className={getSourceBadge(lead.source)}>
-                            {lead.source === "website" ? "אתר" :
-                             lead.source === "referral" ? "המלצה" :
-                             lead.source === "ads" ? "פרסום" :
-                             lead.source === "social" ? "רשתות חברתיות" : "ישיר"}
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-4 w-4" />
-                            <span>{lead.customerEmail}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4" />
-                            <span>{lead.customerPhone}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            <span>{lead.location}</span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium">קטגוריה: </span>
-                            <span>{lead.category}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">תקציב: </span>
-                            <span>{lead.budget}</span>
-                          </div>
-                        </div>
-
-                        {lead.assignedTo && (
-                          <div className="text-sm">
-                            <span className="font-medium">אחראי: </span>
-                            <span>{lead.assignedTo}</span>
-                          </div>
-                        )}
-
-                        <div className="text-sm text-muted-foreground">
-                          <p><span className="font-medium">הערות: </span>{lead.notes}</p>
-                        </div>
-
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>נוצר: {lead.createdAt}</span>
-                          </div>
-                          {lead.lastContact && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>קשר אחרון: {lead.lastContact}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col items-end gap-3">
-                      <div className="text-left">
-                        <div className={`text-2xl font-bold ${getScoreColor(lead.score)}`}>
-                          {lead.score}
-                        </div>
-                        <div className="text-xs text-muted-foreground">ציון איכות</div>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <Phone className="h-4 w-4 ml-2" />
-                          התקשר
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Mail className="h-4 w-4 ml-2" />
-                          שלח מייל
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4 ml-2" />
-                          צפייה
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="new" className="space-y-4">
-          <div className="grid gap-4">
-            {filteredLeads
-              .filter(lead => lead.status === "new")
-              .map((lead) => (
-                <Card key={lead.id} className="hover:shadow-lg transition-shadow border-blue-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4 space-x-reverse flex-1">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={lead.customerAvatar} />
-                          <AvatarFallback>{lead.customerName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-medium text-lg">{lead.customerName}</h3>
-                            <Badge className="bg-blue-100 text-blue-800">חדש</Badge>
-                            <Badge className={getPriorityBadge(lead.priority)}>
-                              {lead.priority === "hot" ? "חם" :
-                               lead.priority === "high" ? "גבוה" :
-                               lead.priority === "medium" ? "בינוני" : "נמוך"}
-                            </Badge>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">קטגוריה: </span>
-                              <span>{lead.category}</span>
-                            </div>
-                            <div>
-                              <span className="font-medium">תקציב: </span>
-                              <span>{lead.budget}</span>
-                            </div>
-                          </div>
-
-                          <div className="text-sm text-muted-foreground">
-                            <p>{lead.notes}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col items-end gap-3">
-                        <div className="text-left">
-                          <div className={`text-2xl font-bold ${getScoreColor(lead.score)}`}>
-                            {lead.score}
-                          </div>
-                          <div className="text-xs text-muted-foreground">ציון איכות</div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button size="sm">
-                            <Phone className="h-4 w-4 ml-2" />
-                            התקשר עכשיו
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 ml-2" />
-                            צפייה
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="contacted" className="space-y-4">
-          <div className="grid gap-4">
-            {filteredLeads
-              .filter(lead => lead.status === "contacted")
-              .map((lead) => (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : error ? (
+            <EmptyState
+              icon={AlertCircle}
+              title="שגיאה בטעינת הלידים"
+              description="אירעה שגיאה בטעינת הנתונים. אנא נסו שוב."
+            />
+          ) : filteredLeads.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="אין לידים"
+              description="לא נמצאו לידים התואמים לחיפוש שלכם."
+            />
+          ) : (
+            <div className="grid gap-4">
+              {filteredLeads.map((lead) => (
                 <Card key={lead.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
@@ -421,27 +258,73 @@ export default function LeadManagement() {
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-medium text-lg">{lead.customerName}</h3>
-                            <Badge className="bg-yellow-100 text-yellow-800">ניצר קשר</Badge>
+                            <Badge className={getStatusBadge(lead.status)}>
+                              {lead.status === "new" ? "חדש" :
+                               lead.status === "contacted" ? "ניצר קשר" :
+                               lead.status === "qualified" ? "מוכשר" :
+                               lead.status === "converted" ? "הומר" : "אבד"}
+                            </Badge>
                             <Badge className={getPriorityBadge(lead.priority)}>
                               {lead.priority === "hot" ? "חם" :
                                lead.priority === "high" ? "גבוה" :
                                lead.priority === "medium" ? "בינוני" : "נמוך"}
                             </Badge>
+                            <Badge className={getSourceBadge(lead.source)}>
+                              {lead.source === "website" ? "אתר" :
+                               lead.source === "referral" ? "המלצה" :
+                               lead.source === "ads" ? "פרסום" :
+                               lead.source === "social" ? "רשתות חברתיות" : "ישיר"}
+                            </Badge>
                           </div>
                           
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4" />
+                              <span>{lead.customerEmail}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4" />
+                              <span>{lead.customerPhone}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4" />
+                              <span>{lead.location}</span>
+                            </div>
+                          </div>
+
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                             <div>
                               <span className="font-medium">קטגוריה: </span>
                               <span>{lead.category}</span>
                             </div>
                             <div>
-                              <span className="font-medium">אחראי: </span>
-                              <span>{lead.assignedTo}</span>
+                              <span className="font-medium">תקציב: </span>
+                              <span>{lead.budget}</span>
                             </div>
                           </div>
 
+                          {lead.assignedTo && (
+                            <div className="text-sm">
+                              <span className="font-medium">אחראי: </span>
+                              <span>{lead.assignedTo}</span>
+                            </div>
+                          )}
+
                           <div className="text-sm text-muted-foreground">
-                            <p>קשר אחרון: {lead.lastContact}</p>
+                            <p><span className="font-medium">הערות: </span>{lead.notes}</p>
+                          </div>
+
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              <span>נוצר: {lead.createdAt}</span>
+                            </div>
+                            {lead.lastContact && (
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>קשר אחרון: {lead.lastContact}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -456,6 +339,14 @@ export default function LeadManagement() {
                         
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline">
+                            <Phone className="h-4 w-4 ml-2" />
+                            התקשר
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Mail className="h-4 w-4 ml-2" />
+                            שלח מייל
+                          </Button>
+                          <Button size="sm" variant="outline">
                             <Eye className="h-4 w-4 ml-2" />
                             צפייה
                           </Button>
@@ -465,7 +356,150 @@ export default function LeadManagement() {
                   </CardContent>
                 </Card>
               ))}
-          </div>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="new" className="space-y-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {filteredLeads
+                .filter(lead => lead.status === "new")
+                .map((lead) => (
+                  <Card key={lead.id} className="hover:shadow-lg transition-shadow border-blue-200">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-4 space-x-reverse flex-1">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={lead.customerAvatar} />
+                            <AvatarFallback>{lead.customerName.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-medium text-lg">{lead.customerName}</h3>
+                              <Badge className="bg-blue-100 text-blue-800">חדש</Badge>
+                              <Badge className={getPriorityBadge(lead.priority)}>
+                                {lead.priority === "hot" ? "חם" :
+                                 lead.priority === "high" ? "גבוה" :
+                                 lead.priority === "medium" ? "בינוני" : "נמוך"}
+                              </Badge>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="font-medium">קטגוריה: </span>
+                                <span>{lead.category}</span>
+                              </div>
+                              <div>
+                                <span className="font-medium">תקציב: </span>
+                                <span>{lead.budget}</span>
+                              </div>
+                            </div>
+
+                            <div className="text-sm text-muted-foreground">
+                              <p>{lead.notes}</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col items-end gap-3">
+                          <div className="text-left">
+                            <div className={`text-2xl font-bold ${getScoreColor(lead.score)}`}>
+                              {lead.score}
+                            </div>
+                            <div className="text-xs text-muted-foreground">ציון איכות</div>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <Button size="sm">
+                              <Phone className="h-4 w-4 ml-2" />
+                              התקשר עכשיו
+                            </Button>
+                            <Button size="sm" variant="outline">
+                              <Eye className="h-4 w-4 ml-2" />
+                              צפייה
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="contacted" className="space-y-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {filteredLeads
+                .filter(lead => lead.status === "contacted")
+                .map((lead) => (
+                  <Card key={lead.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-4 space-x-reverse flex-1">
+                          <Avatar className="h-12 w-12">
+                            <AvatarImage src={lead.customerAvatar} />
+                            <AvatarFallback>{lead.customerName.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-medium text-lg">{lead.customerName}</h3>
+                              <Badge className="bg-yellow-100 text-yellow-800">ניצר קשר</Badge>
+                              <Badge className={getPriorityBadge(lead.priority)}>
+                                {lead.priority === "hot" ? "חם" :
+                                 lead.priority === "high" ? "גבוה" :
+                                 lead.priority === "medium" ? "בינוני" : "נמוך"}
+                              </Badge>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="font-medium">קטגוריה: </span>
+                                <span>{lead.category}</span>
+                              </div>
+                              <div>
+                                <span className="font-medium">אחראי: </span>
+                                <span>{lead.assignedTo || 'לא נקבע'}</span>
+                              </div>
+                            </div>
+
+                            <div className="text-sm text-muted-foreground">
+                              <p>קשר אחרון: {lead.lastContact || 'לא עודכן'}</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-col items-end gap-3">
+                          <div className="text-left">
+                            <div className={`text-2xl font-bold ${getScoreColor(lead.score)}`}>
+                              {lead.score}
+                            </div>
+                            <div className="text-xs text-muted-foreground">ציון איכות</div>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">
+                              <Eye className="h-4 w-4 ml-2" />
+                              צפייה
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="qualified" className="space-y-4">
@@ -504,7 +538,7 @@ export default function LeadManagement() {
                           </div>
 
                           <div className="text-sm text-muted-foreground">
-                            <p>אחראי: {lead.assignedTo}</p>
+                            <p>אחראי: {lead.assignedTo || 'לא נקבע'}</p>
                           </div>
                         </div>
                       </div>
@@ -604,5 +638,13 @@ export default function LeadManagement() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function LeadManagement() {
+  return (
+    <PageBoundary timeout={10000}>
+      <LeadManagementContent />
+    </PageBoundary>
   );
 }

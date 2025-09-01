@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useToast } from '@/hooks/use-toast';
@@ -11,10 +12,12 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { leadsService, Lead, LeadStatus } from '@/services/leadsService';
-import { Phone, Mail, StickyNote, MessageCircle, FileText, ArrowUpDown } from 'lucide-react';
+import { Phone, Mail, StickyNote, MessageCircle, FileText, ArrowUpDown, AlertCircle, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { PageBoundary } from '@/components/system/PageBoundary';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const STATUSES: LeadStatus[] = ['new', 'contacted', 'proposal_sent', 'won', 'lost'];
 
@@ -36,47 +39,33 @@ const statusBadgeVariant: Record<LeadStatus, 'default' | 'secondary' | 'outline'
   lost: 'outline',
 };
 
-export default function SupplierCRM() {
+function SupplierCRMContent() {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [loading, setLoading] = useState(false);
   const [view, setView] = useState<'kanban' | 'list'>('kanban');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<LeadStatus | 'all'>('all');
   const [sourceFilter, setSourceFilter] = useState<string | 'all'>('all');
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
 
-  useEffect(() => {
-    document.title = 'Supplier CRM - Leads Pipeline';
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', 'Manage leads pipeline: track status, add notes, and create quotes.');
-  }, []);
-
-  const fetchLeads = async () => {
-    if (!user?.id) return;
-    setLoading(true);
-    try {
-      const data = await leadsService.listLeads(user.id, {
+  const { data: leads = [], isLoading, error } = useQuery({
+    queryKey: ['supplier-leads', user?.id, statusFilter, sourceFilter, search, sort],
+    enabled: !!user?.id,
+    queryFn: async ({ signal }) => {
+      const data = await leadsService.listLeads(user!.id, {
         status: statusFilter === 'all' ? undefined : statusFilter,
         source: sourceFilter === 'all' ? undefined : sourceFilter,
         search,
         sort,
       });
-      setLeads(data);
-    } catch (e: any) {
-      toast({ title: 'Failed to load leads', description: e.message, variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLeads();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, statusFilter, sourceFilter, search, sort]);
+      return data;
+    },
+    retry: 1,
+    staleTime: 30_000,
+  });
 
   const leadsByStatus = useMemo(() => {
     const map: Record<LeadStatus, Lead[]> = { new: [], contacted: [], proposal_sent: [], won: [], lost: [] };
@@ -88,45 +77,59 @@ export default function SupplierCRM() {
     return map;
   }, [leads]);
 
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ leadId, newStatus }: { leadId: string; newStatus: LeadStatus }) =>
+      leadsService.updateLeadStatus(leadId, newStatus),
+    onSuccess: (_, { newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
+      toast({ title: 'Lead updated', description: `Status changed to ${statusLabel(newStatus)}` });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to update status', description: error.message, variant: 'destructive' });
+    }
+  });
+
   const onDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
 
     const leadId = String(active.id);
-    const newStatus = over.id as LeadStatus; // droppable id is status
+    const newStatus = over.id as LeadStatus;
     const lead = leads.find((l) => l.id === leadId);
     if (!lead || lead.status === newStatus) return;
 
-    // Optimistic update
-    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l)));
-    try {
-      await leadsService.updateLeadStatus(leadId, newStatus);
-      toast({ title: 'Lead updated', description: `Status changed to ${statusLabel(newStatus)}` });
-    } catch (e: any) {
-      // revert
-      setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: lead.status } : l)));
-      toast({ title: 'Failed to update status', description: e.message, variant: 'destructive' });
-    }
+    updateStatusMutation.mutate({ leadId, newStatus });
   };
 
-  const addNote = async (leadId: string, note: string) => {
-    try {
-      await leadsService.addLeadNote(leadId, note);
+  const addNoteMutation = useMutation({
+    mutationFn: ({ leadId, note }: { leadId: string; note: string }) =>
+      leadsService.addLeadNote(leadId, note),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
       toast({ title: 'Note added' });
-      fetchLeads();
-    } catch (e: any) {
-      toast({ title: 'Failed to add note', description: e.message, variant: 'destructive' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to add note', description: error.message, variant: 'destructive' });
     }
-  };
+  });
 
-  const createQuote = async (leadId: string) => {
-    try {
-      await leadsService.createQuoteFromLead(leadId);
+  const createQuoteMutation = useMutation({
+    mutationFn: (leadId: string) => leadsService.createQuoteFromLead(leadId),
+    onSuccess: () => {
       toast({ title: 'Quote draft created' });
       navigate('/supplier/quotes');
-    } catch (e: any) {
-      toast({ title: 'Failed to create quote', description: e.message, variant: 'destructive' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to create quote', description: error.message, variant: 'destructive' });
     }
+  });
+
+  const addNote = (leadId: string, note: string) => {
+    addNoteMutation.mutate({ leadId, note });
+  };
+
+  const createQuote = (leadId: string) => {
+    createQuoteMutation.mutate(leadId);
   };
 
   const Kanban = () => (
@@ -248,14 +251,36 @@ export default function SupplierCRM() {
 
       <Separator />
 
-      {loading ? (
-        <p>Loading...</p>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      ) : error ? (
+        <EmptyState
+          icon={AlertCircle}
+          title="שגיאה בטעינת הלידים"
+          description="אירעה שגיאה בטעינת הנתונים. אנא נסו שוב."
+        />
+      ) : leads.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="אין לידים"
+          description="לא נמצאו לידים התואמים לחיפוש שלכם."
+        />
       ) : view === 'kanban' ? (
         <Kanban />
       ) : (
         <List />
       )}
     </main>
+  );
+}
+
+export default function SupplierCRM() {
+  return (
+    <PageBoundary timeout={10000}>
+      <SupplierCRMContent />
+    </PageBoundary>
   );
 }
 
