@@ -13,6 +13,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
 
+type OrderStatus = 'received' | 'production' | 'ready' | 'shipping' | 'delivered';
+
 interface Order {
   id: string;
   client_id: string;
@@ -21,7 +23,7 @@ interface Order {
   title: string;
   description: string;
   amount: number;
-  status: string;
+  status: OrderStatus;
   created_at: string;
   due_date: string;
 }
@@ -94,10 +96,10 @@ function OrderManagementContent() {
   };
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ orderId, newStatus }: { orderId: string; newStatus: string }) => {
+    mutationFn: async ({ orderId, newStatus }: { orderId: string; newStatus: OrderStatus }) => {
       const { error } = await supabase
         .from('orders')
-        .update({ status: newStatus })
+        .update({ current_status: newStatus })
         .eq('id', orderId);
       
       if (error) throw error;
@@ -113,7 +115,7 @@ function OrderManagementContent() {
     }
   });
 
-  const updateOrderStatus = (orderId: string, newStatus: string) => {
+  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
     updateStatusMutation.mutate({ orderId, newStatus });
   };
 
@@ -283,7 +285,7 @@ function OrderManagementContent() {
                                 <h3 className="font-semibold mb-2">עדכן סטטוס</h3>
                                 <Select 
                                   value={selectedOrder.status} 
-                                  onValueChange={(value) => updateOrderStatus(selectedOrder.id, value)}
+                                  onValueChange={(value) => updateOrderStatus(selectedOrder.id, value as OrderStatus)}
                                 >
                                   <SelectTrigger>
                                     <SelectValue />
@@ -321,7 +323,7 @@ function OrderManagementContent() {
                       
                       <Select 
                         value={order.status} 
-                        onValueChange={(value) => updateOrderStatus(order.id, value)}
+                        onValueChange={(value) => updateOrderStatus(order.id, value as OrderStatus)}
                       >
                         <SelectTrigger className="w-48">
                           <SelectValue />
