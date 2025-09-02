@@ -77,7 +77,7 @@ export default function SupplierSummary() {
         localStorage.removeItem('supplierOnboarding');
         toast.success('הפרופיל פורסם בהצלחה!');
         
-        // Complete onboarding and navigate to appropriate dashboard
+        // Complete onboarding and navigate to home
         await completeOnboarding();
       } else {
         throw new Error('Failed to save onboarding data');

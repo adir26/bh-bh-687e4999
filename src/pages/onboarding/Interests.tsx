@@ -74,7 +74,7 @@ const languages = [
 
 export default function OnboardingInterests() {
   const navigate = useNavigate();
-  const { user, completeOnboarding } = useAuth();
+  const { user, completeOnboarding, updateOnboardingStep } = useAuth();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['hebrew']);
@@ -112,19 +112,22 @@ export default function OnboardingInterests() {
       notes: userNotes
     };
     
-    // Get additional onboarding data from localStorage
-    const homeDetails = localStorage.getItem('homeDetails');
-    const projectPlanning = localStorage.getItem('projectPlanning');
-    const documents = localStorage.getItem('documents');
-    
-    const fullOnboardingData = {
-      ...interestsData,
-      homeDetails: homeDetails ? JSON.parse(homeDetails) : undefined,
-      projectPlanning: projectPlanning ? JSON.parse(projectPlanning) : undefined,
-      documents: documents ? JSON.parse(documents) : undefined
-    };
-    
     try {
+      // Update onboarding step with data
+      await updateOnboardingStep(5, interestsData);
+      
+      // Get additional onboarding data from localStorage (backward compatibility)
+      const homeDetails = localStorage.getItem('homeDetails');
+      const projectPlanning = localStorage.getItem('projectPlanning');
+      const documents = localStorage.getItem('documents');
+      
+      const fullOnboardingData = {
+        ...interestsData,
+        homeDetails: homeDetails ? JSON.parse(homeDetails) : undefined,
+        projectPlanning: projectPlanning ? JSON.parse(projectPlanning) : undefined,
+        documents: documents ? JSON.parse(documents) : undefined
+      };
+      
       // Import the service
       const { onboardingService } = await import('@/services/onboardingService');
       
@@ -137,9 +140,9 @@ export default function OnboardingInterests() {
           localStorage.removeItem('projectPlanning');
           localStorage.removeItem('documents');
           
-          toast.success('האונבורדינג הושלם בהצלחה!');
+          toast.success('הרישום הושלם בהצלחה!');
           
-          // Complete onboarding and navigate to appropriate dashboard
+          // Complete onboarding and navigate to home
           await completeOnboarding();
         } else {
           toast.error('שגיאה בשמירת הנתונים');

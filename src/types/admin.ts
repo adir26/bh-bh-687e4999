@@ -58,11 +58,13 @@ export interface EnhancedProfile extends Profile {
   complaints_count?: number;
   last_login?: string;
   total_spent?: number;
+  onboarding_completion_time?: number | null;
 }
 
 export interface CustomerFilters {
   status?: 'active' | 'blocked';
   role?: 'client' | 'supplier';
+  onboarding_status?: 'not_started' | 'in_progress' | 'completed';
   search?: string;
   date_from?: string;
   date_to?: string;
@@ -184,6 +186,12 @@ export const STATUS_LABELS = {
   suspended: 'מושעה',
   active: 'פעיל',
   blocked: 'חסום'
+} as const;
+
+export const ONBOARDING_STATUS_LABELS = {
+  not_started: 'לא החל',
+  in_progress: 'בתהליך',
+  completed: 'הושלם'
 } as const;
 
 export const VERIFICATION_STATUS_LABELS = {

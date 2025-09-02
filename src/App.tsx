@@ -130,6 +130,13 @@ const App = () => {
                 <Route path="/accessibility" element={<Accessibility />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/notifications" element={<Notifications />} />
+                <Route path="/onboarding/role-picker" element={
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <CompletedOnboardingGuard>
+                      <RolePicker />
+                    </CompletedOnboardingGuard>
+                  </ProtectedRoute>
+                } />
                 <Route path="/onboarding/welcome" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>

@@ -38,6 +38,11 @@ export const useAdminCustomers = (
       if (filters.role) {
         query = query.eq('role', filters.role);
       }
+
+      // Add onboarding status filter
+      if (filters.onboarding_status) {
+        query = query.eq('onboarding_status', filters.onboarding_status);
+      }
       
       if (filters.search) {
         query = query.or(`
@@ -70,7 +75,10 @@ export const useAdminCustomers = (
         ...profile,
         orders_count: profile.orders?.[0]?.count || 0,
         complaints_count: profile.support_tickets?.[0]?.count || 0,
-        last_login: profile.updated_at // Approximate last activity
+        last_login: profile.last_login_at || profile.updated_at,
+        onboarding_completion_time: profile.onboarding_completed_at ? 
+          Math.round((new Date(profile.onboarding_completed_at).getTime() - new Date(profile.first_login_at || profile.created_at).getTime()) / 1000) 
+          : null
       })) || [];
 
       return {

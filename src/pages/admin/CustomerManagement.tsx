@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAdminCustomers, useCustomerMutations, useCustomerComplaints, useComplaintMutations, useCustomerRealtimeSubscription } from "@/hooks/useAdminCustomers";
 import { CustomerFilters, PaginationParams, STATUS_LABELS } from "@/types/admin";
+import { UserDetailModal } from "@/components/admin/UserDetailModal";
 import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 25;
@@ -22,6 +23,7 @@ export default function CustomerManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [blockDialogOpen, setBlockDialogOpen] = useState(false);
   const [complaintDialogOpen, setComplaintDialogOpen] = useState(false);
+  const [userDetailOpen, setUserDetailOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [blockReason, setBlockReason] = useState("");
   const [complaintStatus, setComplaintStatus] = useState("");
@@ -113,6 +115,27 @@ export default function CustomerManagement() {
     }
   };
 
+  const getOnboardingBadge = (status: string, completedAt?: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge variant="default" className="bg-green-100 text-green-800">הושלם</Badge>;
+      case 'in_progress':
+        return <Badge variant="outline" className="border-orange-200 text-orange-800">בתהליך</Badge>;
+      case 'not_started':
+        return <Badge variant="outline" className="border-gray-200 text-gray-600">לא החל</Badge>;
+      default:
+        return <Badge variant="outline" className="border-gray-200 text-gray-600">לא ידוע</Badge>;
+    }
+  };
+
+  const formatOnboardingTime = (seconds: number | null) => {
+    if (!seconds) return 'לא זמין';
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) return `${minutes} דקות`;
+    const hours = Math.round(minutes / 60);
+    return `${hours} שעות`;
+  };
+
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('he-IL');
   };
@@ -121,7 +144,9 @@ export default function CustomerManagement() {
     total: totalCount,
     suppliers: customers.filter(c => c.role === 'supplier').length,
     clients: customers.filter(c => c.role === 'client').length,
-    blocked: customers.filter(c => c.is_blocked).length
+    blocked: customers.filter(c => c.is_blocked).length,
+    onboarding_completed: customers.filter(c => c.onboarding_status === 'completed').length,
+    onboarding_in_progress: customers.filter(c => c.onboarding_status === 'in_progress').length
   };
 
   if (isLoading && currentPage === 1) {
@@ -189,6 +214,20 @@ export default function CustomerManagement() {
               </SelectContent>
             </Select>
 
+            <Select value={filters.onboarding_status || ""} onValueChange={(value) => 
+              setFilters(prev => ({ ...prev, onboarding_status: value as any }))
+            }>
+              <SelectTrigger className="w-40 font-hebrew">
+                <SelectValue placeholder="רישום" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">הכל</SelectItem>
+                <SelectItem value="not_started">לא החל</SelectItem>
+                <SelectItem value="in_progress">בתהליך</SelectItem>
+                <SelectItem value="completed">הושלם</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Button variant="outline" size="sm" className="font-hebrew min-h-button">
               <Filter className="h-4 w-4 ml-2" />
               סינון
@@ -198,7 +237,7 @@ export default function CustomerManagement() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="responsive-grid-2 md:responsive-grid-4">
+      <div className="responsive-grid-2 md:responsive-grid-6">
         <Card className="mobile-card">
           <CardContent className="p-3 md:p-6">
             <div className="text-lg md:text-2xl font-bold text-right">{stats.total.toLocaleString()}</div>
@@ -221,6 +260,18 @@ export default function CustomerManagement() {
           <CardContent className="p-3 md:p-6">
             <div className="text-lg md:text-2xl font-bold text-right text-red-600">{stats.blocked.toLocaleString()}</div>
             <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">חסומים</p>
+          </CardContent>
+        </Card>
+        <Card className="mobile-card">
+          <CardContent className="p-3 md:p-6">
+            <div className="text-lg md:text-2xl font-bold text-right text-green-600">{stats.onboarding_completed.toLocaleString()}</div>
+            <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">השלימו רישום</p>
+          </CardContent>
+        </Card>
+        <Card className="mobile-card">
+          <CardContent className="p-3 md:p-6">
+            <div className="text-lg md:text-2xl font-bold text-right text-orange-600">{stats.onboarding_in_progress.toLocaleString()}</div>
+            <p className="text-mobile-xs md:text-sm font-medium text-muted-foreground text-right">רישום בתהליך</p>
           </CardContent>
         </Card>
       </div>
@@ -257,6 +308,11 @@ export default function CustomerManagement() {
                       <MessageSquare className="h-3 w-3 flex-shrink-0" />
                       <span>{customer.complaints_count || 0} תלונות</span>
                     </div>
+
+                    <div className="flex items-center gap-2 text-right">
+                      <Shield className="h-3 w-3 flex-shrink-0" />
+                      <span>רישום: {getOnboardingBadge(customer.onboarding_status || 'not_started')}</span>
+                    </div>
                   </div>
                   
                   <div className="mt-3 flex items-center justify-between">
@@ -274,7 +330,13 @@ export default function CustomerManagement() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="bg-background border shadow-lg">
-                    <DropdownMenuItem className="font-hebrew text-right">
+                    <DropdownMenuItem 
+                      className="font-hebrew text-right"
+                      onClick={() => {
+                        setSelectedCustomer(customer);
+                        setUserDetailOpen(true);
+                      }}
+                    >
                       <Eye className="h-4 w-4 ml-2" />
                       צפייה בפרטים
                     </DropdownMenuItem>
@@ -327,6 +389,7 @@ export default function CustomerManagement() {
                 <TableHead className="text-right">לקוח</TableHead>
                 <TableHead className="text-right">תפקיד</TableHead>
                 <TableHead className="text-right">סטטוס</TableHead>
+                <TableHead className="text-right">רישום</TableHead>
                 <TableHead className="text-right">הצטרפות</TableHead>
                 <TableHead className="text-right">הזמנות</TableHead>
                 <TableHead className="text-right">תלונות</TableHead>
@@ -345,6 +408,16 @@ export default function CustomerManagement() {
                   </TableCell>
                   <TableCell className="text-right">{getRoleBadge(customer.role)}</TableCell>
                   <TableCell className="text-right">{getStatusBadge(customer)}</TableCell>
+                  <TableCell className="text-right">
+                    <div>
+                      {getOnboardingBadge(customer.onboarding_status || 'not_started')}
+                      {customer.onboarding_completion_time && (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          זמן השלמה: {formatOnboardingTime(customer.onboarding_completion_time)}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-right">{formatDate(customer.created_at)}</TableCell>
                   <TableCell className="text-right">{customer.orders_count || 0}</TableCell>
                   <TableCell className="text-right">{customer.complaints_count || 0}</TableCell>
@@ -357,7 +430,13 @@ export default function CustomerManagement() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="bg-background border shadow-lg">
-                        <DropdownMenuItem className="font-hebrew text-right">
+                        <DropdownMenuItem 
+                          className="font-hebrew text-right"
+                          onClick={() => {
+                            setSelectedCustomer(customer);
+                            setUserDetailOpen(true);
+                          }}
+                        >
                           <Eye className="h-4 w-4 ml-2" />
                           צפייה בפרטים
                         </DropdownMenuItem>
@@ -495,6 +574,13 @@ export default function CustomerManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* User Detail Modal */}
+      <UserDetailModal 
+        user={selectedCustomer}
+        open={userDetailOpen}
+        onOpenChange={setUserDetailOpen}
+      />
     </div>
   );
 }

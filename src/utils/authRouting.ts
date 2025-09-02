@@ -34,8 +34,10 @@ export const getOnboardingStartRoute = (role: UserRole): string => {
       return '/onboarding/supplier-welcome';
     case 'client':   
       return '/onboarding/welcome';
+    case 'admin':
+      return '/admin/dashboard';
     default:         
-      return '/onboarding/welcome';
+      return '/onboarding/role-picker'; // For unknown roles
   }
 };
 
