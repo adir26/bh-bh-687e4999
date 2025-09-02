@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Check, X, Eye, Tag, Flag, MoreVertical, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { withTimeout } from '@/lib/withTimeout';
+import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 interface Photo {
   id: string;
@@ -42,8 +46,7 @@ interface Photo {
 }
 
 export default function AdminInspiration() {
-  const [photos, setPhotos] = useState<Photo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('pending');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoom, setSelectedRoom] = useState<string>('');
@@ -51,12 +54,11 @@ export default function AdminInspiration() {
 
   const rooms = ['מטבח', 'סלון', 'חדר שינה', 'חדר אמבטיה', 'חדר ילדים', 'משרד', 'גינה'];
 
-  useEffect(() => {
-    fetchPhotos();
-  }, [activeTab, searchQuery, selectedRoom]);
+  usePageLoadTimer('AdminInspiration');
 
-  const fetchPhotos = async () => {
-    try {
+  const { data: photos = [], isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['admin-photos', activeTab, searchQuery, selectedRoom],
+    queryFn: async () => {
       let query = supabase
         .from('photos')
         .select(`
@@ -84,68 +86,79 @@ export default function AdminInspiration() {
         query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await withTimeout(query, 12000);
 
       if (error) throw error;
-      setPhotos(data || []);
-    } catch (error) {
-      console.error('Error fetching photos:', error);
-      toast.error('שגיאה בטעינת התמונות');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data || [];
+    },
+    staleTime: 2 * 60 * 1000,
+  });
 
-  const approvePhoto = async (photoId: string) => {
-    try {
-      const { error } = await supabase
-        .from('photos')
-        .update({ is_public: true })
-        .eq('id', photoId);
-
+  const approveMutation = useMutation({
+    mutationFn: async (photoId: string) => {
+      const { error } = await withTimeout(
+        supabase
+          .from('photos')
+          .update({ is_public: true })
+          .eq('id', photoId),
+        12000
+      );
       if (error) throw error;
-
-      setPhotos(prev => prev.filter(p => p.id !== photoId));
+      return photoId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-photos'] });
       toast.success('התמונה אושרה ופורסמה');
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error approving photo:', error);
       toast.error('שגיאה באישור התמונה');
     }
-  };
+  });
 
-  const rejectPhoto = async (photoId: string) => {
-    try {
-      const { error } = await supabase
-        .from('photos')
-        .delete()
-        .eq('id', photoId);
-
+  const rejectMutation = useMutation({
+    mutationFn: async (photoId: string) => {
+      const { error } = await withTimeout(
+        supabase
+          .from('photos')
+          .delete()
+          .eq('id', photoId),
+        12000
+      );
       if (error) throw error;
-
-      setPhotos(prev => prev.filter(p => p.id !== photoId));
+      return photoId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-photos'] });
       toast.success('התמונה נדחתה ונמחקה');
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error rejecting photo:', error);
       toast.error('שגיאה בדחיית התמונה');
     }
-  };
+  });
 
-  const unpublishPhoto = async (photoId: string) => {
-    try {
-      const { error } = await supabase
-        .from('photos')
-        .update({ is_public: false })
-        .eq('id', photoId);
-
+  const unpublishMutation = useMutation({
+    mutationFn: async (photoId: string) => {
+      const { error } = await withTimeout(
+        supabase
+          .from('photos')
+          .update({ is_public: false })
+          .eq('id', photoId),
+        12000
+      );
       if (error) throw error;
-
-      setPhotos(prev => prev.filter(p => p.id !== photoId));
+      return photoId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-photos'] });
       toast.success('התמונה הוסרה מהפרסום');
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error unpublishing photo:', error);
       toast.error('שגיאה בהסרת התמונה מהפרסום');
     }
-  };
+  });
 
   const getImageUrl = (path: string) => {
     const { data } = supabase.storage.from('inspiration-photos').getPublicUrl(path);
@@ -160,22 +173,21 @@ export default function AdminInspiration() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">ניהול גלריית השראה</h1>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="aspect-square bg-muted animate-pulse rounded-lg" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   return (
+    <PageBoundary
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      onRetry={() => refetch()}
+      isEmpty={photos.length === 0}
+      empty={
+        <div className="text-center py-12">
+          <Flag className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">אין תמונות למטרה זו</h3>
+          <p className="text-muted-foreground">כל התמונות יופיעו כאן כשיהיו</p>
+        </div>
+      }
+    >
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -226,7 +238,8 @@ export default function AdminInspiration() {
                       <Button
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
-                        onClick={() => approvePhoto(photo.id)}
+                        onClick={() => approveMutation.mutate(photo.id)}
+                        disabled={approveMutation.isPending}
                       >
                         <Check className="h-4 w-4" />
                       </Button>
@@ -240,7 +253,8 @@ export default function AdminInspiration() {
                       <Button
                         size="sm"
                         variant="destructive"
-                        onClick={() => rejectPhoto(photo.id)}
+                        onClick={() => rejectMutation.mutate(photo.id)}
+                        disabled={rejectMutation.isPending}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -307,8 +321,9 @@ export default function AdminInspiration() {
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem
-                            onClick={() => unpublishPhoto(photo.id)}
+                            onClick={() => unpublishMutation.mutate(photo.id)}
                             className="text-destructive"
+                            disabled={unpublishMutation.isPending}
                           >
                             <X className="h-4 w-4 ml-2" />
                             הסר מהפרסום
@@ -412,10 +427,11 @@ export default function AdminInspiration() {
                     <>
                       <Button
                         onClick={() => {
-                          approvePhoto(selectedPhoto.id);
+                          approveMutation.mutate(selectedPhoto.id);
                           setSelectedPhoto(null);
                         }}
                         className="flex-1"
+                        disabled={approveMutation.isPending}
                       >
                         <Check className="h-4 w-4 ml-2" />
                         אשר ופרסם
@@ -423,10 +439,11 @@ export default function AdminInspiration() {
                       <Button
                         variant="destructive"
                         onClick={() => {
-                          rejectPhoto(selectedPhoto.id);
+                          rejectMutation.mutate(selectedPhoto.id);
                           setSelectedPhoto(null);
                         }}
                         className="flex-1"
+                        disabled={rejectMutation.isPending}
                       >
                         <X className="h-4 w-4 ml-2" />
                         דחה
@@ -436,10 +453,11 @@ export default function AdminInspiration() {
                     <Button
                       variant="destructive"
                       onClick={() => {
-                        unpublishPhoto(selectedPhoto.id);
+                        unpublishMutation.mutate(selectedPhoto.id);
                         setSelectedPhoto(null);
                       }}
                       className="flex-1"
+                      disabled={unpublishMutation.isPending}
                     >
                       <X className="h-4 w-4 ml-2" />
                       הסר מהפרסום
@@ -452,5 +470,6 @@ export default function AdminInspiration() {
         </DialogContent>
       </Dialog>
     </div>
+    </PageBoundary>
   );
 }

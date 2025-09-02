@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, BookOpen, Globe, Lock, Users, Calendar, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,109 +13,123 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Ideabook } from '@/types/inspiration';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { withTimeout } from '@/lib/withTimeout';
+import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 export default function Ideabooks() {
   const { user } = useAuth();
-  const [ideabooks, setIdeabooks] = useState<Ideabook[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newIdeabookName, setNewIdeabookName] = useState('');
   const [newIdeabookIsPublic, setNewIdeabookIsPublic] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchIdeabooks();
-    }
-  }, [user]);
+  usePageLoadTimer('Ideabooks');
 
-  const fetchIdeabooks = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('ideabooks')
-        .select(`
-          *,
-          ideabook_photos(id)
-        `)
-        .eq('owner_id', user.id)
-        .order('updated_at', { ascending: false });
+  const { data: ideabooks = [], isLoading, isError, error, refetch } = useQuery({
+    queryKey: ['ideabooks', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      
+      const { data, error } = await withTimeout(
+        supabase
+          .from('ideabooks')
+          .select(`
+            *,
+            ideabook_photos(id)
+          `)
+          .eq('owner_id', user.id)
+          .order('updated_at', { ascending: false }),
+        12000
+      );
 
       if (error) throw error;
 
-      const processedIdeabooks = data?.map(ideabook => ({
+      return data?.map(ideabook => ({
         ...ideabook,
         photos_count: ideabook.ideabook_photos?.length || 0
       })) || [];
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
 
-      setIdeabooks(processedIdeabooks);
-    } catch (error) {
-      console.error('Error fetching ideabooks:', error);
-      toast.error('שגיאה בטעינת האידאבוקים');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createIdeabook = async () => {
-    if (!user || !newIdeabookName.trim()) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('ideabooks')
-        .insert({
-          name: newIdeabookName.trim(),
-          owner_id: user.id,
-          is_public: newIdeabookIsPublic
-        })
-        .select()
-        .maybeSingle();
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      if (!user || !newIdeabookName.trim()) return;
+      
+      const { data, error } = await withTimeout(
+        supabase
+          .from('ideabooks')
+          .insert({
+            name: newIdeabookName.trim(),
+            owner_id: user.id,
+            is_public: newIdeabookIsPublic
+          })
+          .select()
+          .maybeSingle(),
+        12000
+      );
 
       if (error) throw error;
-
-      setIdeabooks(prev => [{ ...data, photos_count: 0 }, ...prev]);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ideabooks'] });
       setNewIdeabookName('');
       setNewIdeabookIsPublic(false);
       setShowCreateModal(false);
       toast.success('אידאבוק חדש נוצר בהצלחה');
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error creating ideabook:', error);
       toast.error('שגיאה ביצירת האידאבוק');
     }
-  };
+  });
 
-  const deleteIdeabook = async (ideabookId: string) => {
-    try {
-      const { error } = await supabase
-        .from('ideabooks')
-        .delete()
-        .eq('id', ideabookId);
+  const deleteMutation = useMutation({
+    mutationFn: async (ideabookId: string) => {
+      const { error } = await withTimeout(
+        supabase
+          .from('ideabooks')
+          .delete()
+          .eq('id', ideabookId),
+        12000
+      );
 
       if (error) throw error;
-
-      setIdeabooks(prev => prev.filter(ib => ib.id !== ideabookId));
+      return ideabookId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ideabooks'] });
       toast.success('האידאבוק נמחק בהצלחה');
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error deleting ideabook:', error);
       toast.error('שגיאה במחיקת האידאבוק');
     }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background p-4 pb-32">
-        <div className="container mx-auto">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-48 bg-muted rounded-lg animate-pulse" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  });
 
   return (
+    <PageBoundary
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      onRetry={() => refetch()}
+      isEmpty={ideabooks.length === 0}
+      empty={
+        <div className="text-center py-12">
+          <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">אין לך אידאבוקים עדיין</h3>
+          <p className="text-muted-foreground mb-4">צור אידאבוק ראשון כדי להתחיל לאסוף תמונות השראה</p>
+          <Button onClick={() => setShowCreateModal(true)}>
+            <Plus className="h-4 w-4 ml-2" />
+            צור אידאבוק ראשון
+          </Button>
+        </div>
+      }
+    >
     <div className="min-h-screen bg-background pb-32">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -135,68 +149,60 @@ export default function Ideabooks() {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-6">
-        {ideabooks.length === 0 ? (
-          <div className="text-center py-12">
-            <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold mb-2">אין לך אידאבוקים עדיין</h3>
-            <p className="text-muted-foreground mb-4">צור אידאבוק ראשון כדי להתחיל לאסוף תמונות השראה</p>
-            <Button onClick={() => setShowCreateModal(true)}>
-              <Plus className="h-4 w-4 ml-2" />
-              צור אידאבוק ראשון
-            </Button>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {ideabooks.map((ideabook) => (
-              <Card key={ideabook.id} className="group hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg mb-2">{ideabook.name}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                        {ideabook.is_public ? (
-                          <Badge variant="secondary">
-                            <Globe className="h-3 w-3 ml-1" />
-                            ציבורי
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline">
-                            <Lock className="h-3 w-3 ml-1" />
-                            פרטי
-                          </Badge>
-                        )}
-                        <span>{ideabook.photos_count} תמונות</span>
-                      </div>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {ideabooks.map((ideabook) => (
+            <Card key={ideabook.id} className="group hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg mb-2">{ideabook.name}</h3>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                      {ideabook.is_public ? (
+                        <Badge variant="secondary">
+                          <Globe className="h-3 w-3 ml-1" />
+                          ציבורי
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">
+                          <Lock className="h-3 w-3 ml-1" />
+                          פרטי
+                        </Badge>
+                      )}
+                      <span>{ideabook.photos_count} תמונות</span>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => deleteIdeabook(ideabook.id)} className="text-destructive">
-                          <Trash2 className="h-4 w-4 ml-2" />
-                          מחק
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3 inline ml-1" />
-                      {new Date(ideabook.updated_at).toLocaleDateString('he-IL')}
-                    </span>
-                    <Link to={`/ideabooks/${ideabook.id}`}>
-                      <Button size="sm">פתח</Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem 
+                        onClick={() => deleteMutation.mutate(ideabook.id)} 
+                        className="text-destructive"
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 ml-2" />
+                        מחק
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3 inline ml-1" />
+                    {new Date(ideabook.updated_at).toLocaleDateString('he-IL')}
+                  </span>
+                  <Link to={`/ideabooks/${ideabook.id}`}>
+                    <Button size="sm">פתח</Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* Create Modal */}
@@ -215,7 +221,7 @@ export default function Ideabooks() {
                 placeholder="הזן שם לאידאבוק..."
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    createIdeabook();
+                    createMutation.mutate();
                   }
                 }}
                 autoFocus
@@ -231,11 +237,11 @@ export default function Ideabooks() {
             </div>
             <div className="flex gap-2 pt-4">
               <Button
-                onClick={createIdeabook}
-                disabled={!newIdeabookName.trim()}
+                onClick={() => createMutation.mutate()}
+                disabled={!newIdeabookName.trim() || createMutation.isPending}
                 className="flex-1"
               >
-                צור אידאבוק
+                {createMutation.isPending ? 'יוצר...' : 'צור אידאבוק'}
               </Button>
               <Button
                 variant="outline"
@@ -249,5 +255,6 @@ export default function Ideabooks() {
         </DialogContent>
       </Dialog>
     </div>
+    </PageBoundary>
   );
 }

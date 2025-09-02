@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,99 +7,92 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useMutation } from '@tanstack/react-query';
+import { withTimeout } from '@/lib/withTimeout';
+import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 export default function AdminLogin() {
   const [credentials, setCredentials] = useState({
     email: "",
     password: ""
   });
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  usePageLoadTimer('AdminLogin');
 
   const sanitizeEmail = (email: string) => {
     return email?.replace(/\u200F|\u200E/g, '').trim().toLowerCase();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
+  const loginMutation = useMutation({
+    mutationFn: async () => {
       const cleanEmail = sanitizeEmail(credentials.email);
       
       // Authenticate with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password: credentials.password,
-      });
+      const { data, error } = await withTimeout(
+        supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password: credentials.password,
+        }),
+        12000
+      );
 
       if (error) {
         console.error('[ADMIN_AUTH] Error:', error);
-        toast({
-          title: "שגיאה בהתחברות",
-          description: error.message === "Invalid login credentials" 
-            ? "פרטי הכניסה שגויים" 
-            : "שגיאה בהתחברות, נסו שנית",
-          variant: "destructive",
-        });
-        return;
+        throw new Error(error.message === "Invalid login credentials" 
+          ? "פרטי הכניסה שגויים" 
+          : "שגיאה בהתחברות, נסו שנית");
       }
 
       if (!data.user) {
-        toast({
-          title: "שגיאה בהתחברות", 
-          description: "לא ניתן לאמת את המשתמש",
-          variant: "destructive",
-        });
-        return;
+        throw new Error("לא ניתן לאמת את המשתמש");
       }
 
       // Check if user is admin
-      const { data: isAdminResult, error: adminError } = await supabase
-        .rpc('is_admin', { user_id: data.user.id });
+      const { data: isAdminResult, error: adminError } = await withTimeout(
+        supabase.rpc('is_admin', { user_id: data.user.id }),
+        12000
+      );
 
       if (adminError) {
         console.error('[ADMIN_AUTH] Admin check error:', adminError);
-        toast({
-          title: "שגיאה בהרשאות",
-          description: "לא ניתן לאמת הרשאות מנהל",
-          variant: "destructive",
-        });
-        return;
+        throw new Error("לא ניתן לאמת הרשאות מנהל");
       }
 
       if (!isAdminResult) {
-        toast({
-          title: "גישה נדחתה",
-          description: "אין לכם הרשאות מנהל",
-          variant: "destructive",
-        });
         // Sign out the user since they're not an admin
         await supabase.auth.signOut();
-        return;
+        throw new Error("אין לכם הרשאות מנהל");
       }
 
       // Store session securely
       localStorage.setItem("adminAuthenticated", "true");
       localStorage.setItem("adminUserId", data.user.id);
-      
+
+      return data;
+    },
+    onSuccess: () => {
       toast({
         title: "התחברות בוצעה בהצלחה",
         description: "ברוכים הבאים לפאנל הניהול",
       });
-      
       navigate("/admin/dashboard");
-    } catch (error) {
-      console.error('[ADMIN_AUTH] Unexpected error:', error);
+    },
+    onError: (error: Error) => {
+      console.error('[ADMIN_AUTH] Error:', error);
       toast({
         title: "שגיאה בהתחברות",
-        description: "שגיאה לא צפויה, נסו שנית",
+        description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    loginMutation.mutate();
   };
 
   return (
@@ -142,9 +135,9 @@ export default function AdminLogin() {
             <Button 
               type="submit" 
               className="w-full min-h-button mobile-button font-hebrew text-button" 
-              disabled={loading}
+              disabled={loginMutation.isPending}
             >
-              {loading ? "מתחבר..." : "התחברות"}
+              {loginMutation.isPending ? "מתחבר..." : "התחברות"}
             </Button>
           </form>
         </CardContent>
