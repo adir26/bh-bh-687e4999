@@ -1,6 +1,31 @@
 export type UserRole = 'client' | 'supplier' | 'admin';
 
 /**
+ * Convert numeric step to route path
+ */
+export const getRouteFromStep = (role: UserRole, step: number): string => {
+  if (role === 'supplier') {
+    switch (step) {
+      case 1: return '/onboarding/supplier-welcome';
+      case 2: return '/onboarding/supplier-company-info';
+      case 3: return '/onboarding/supplier-branding';
+      case 4: return '/onboarding/supplier-products';
+      case 5: return '/onboarding/supplier-summary';
+      default: return '/onboarding/supplier-welcome';
+    }
+  } else {
+    switch (step) {
+      case 1: return '/onboarding/welcome';
+      case 2: return '/onboarding/interests';
+      case 3: return '/onboarding/home-details';
+      case 4: return '/onboarding/project-planning';
+      case 5: return '/onboarding/documents';
+      default: return '/onboarding/welcome';
+    }
+  }
+};
+
+/**
  * Get the starting route for onboarding based on user role
  */
 export const getOnboardingStartRoute = (role: UserRole): string => {
@@ -35,7 +60,7 @@ export const getRoleHomeRoute = (role: UserRole): string => {
 export const getPostAuthRoute = (opts: {
   role: UserRole;
   onboarding_completed?: boolean;
-  onboarding_step?: string | null;
+  onboarding_step?: number;
   fromPath?: string | null;
 }): string => {
   const { role, onboarding_completed, onboarding_step, fromPath } = opts;
@@ -44,7 +69,8 @@ export const getPostAuthRoute = (opts: {
 
   // 1) If onboarding incomplete → go to saved step or start
   if (!onboarding_completed) {
-    const route = onboarding_step || getOnboardingStartRoute(role);
+    const step = onboarding_step || 0;
+    const route = step > 0 ? getRouteFromStep(role, step) : getOnboardingStartRoute(role);
     console.log('[AUTH ROUTING] Onboarding incomplete, routing to:', route);
     return route;
   }

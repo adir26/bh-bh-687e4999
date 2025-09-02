@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { UserRole, getRoleHomeRoute, getOnboardingStartRoute } from '@/utils/authRouting';
+import { UserRole, getRoleHomeRoute, getOnboardingStartRoute, getRouteFromStep } from '@/utils/authRouting';
 
 interface OnboardingGuardProps {
   children: React.ReactNode;
@@ -47,8 +47,9 @@ export const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children, role
 
   // If onboarding not completed, redirect to saved step or start
   if (!profile.onboarding_completed) {
-    const onboardingRoute = profile.onboarding_step || 
-      getOnboardingStartRoute((profile.role as UserRole) || 'client');
+    const userRole = (profile.role as UserRole) || 'client';
+    const step = profile.onboarding_step || 0;
+    const onboardingRoute = step > 0 ? getRouteFromStep(userRole, step) : getOnboardingStartRoute(userRole);
     
     console.log('[ONBOARDING GUARD] Onboarding incomplete, redirecting to:', onboardingRoute);
     return <Navigate to={onboardingRoute} replace />;

@@ -79,11 +79,24 @@ class OnboardingService {
 
       if (clientProfileError) throw clientProfileError;
 
-      // Update profile to mark onboarding as completed
+      // Update profile to mark onboarding as completed with new schema
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
           onboarding_completed: true,
+          onboarding_status: 'completed',
+          onboarding_step: 0,
+          onboarding_completed_at: new Date().toISOString(),
+          onboarding_data: {
+            interests: data.interests,
+            contact_channels: data.contactChannels,
+            languages: data.languages,
+            home_details: data.homeDetails,
+            project_planning: data.projectPlanning,
+            documents: data.documents,
+            completed_at: new Date().toISOString(),
+            completion_duration_seconds: Math.round((Date.now() - startTime) / 1000)
+          },
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId);
@@ -105,7 +118,7 @@ class OnboardingService {
             home_details: data.homeDetails,
             project_planning: data.projectPlanning,
             documents: data.documents,
-            completed_step: 'interests'
+            completed_step: 'documents'
           }
         });
 
@@ -166,10 +179,23 @@ class OnboardingService {
         }
       }
 
-      // Update profile to mark onboarding as completed
+      // Update profile to mark onboarding as completed with new schema
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ onboarding_completed: true })
+        .update({ 
+          onboarding_completed: true,
+          onboarding_status: 'completed',
+          onboarding_step: 0,
+          onboarding_completed_at: new Date().toISOString(),
+          onboarding_data: {
+            company_info: data.companyInfo,
+            branding: data.branding,
+            products: data.products,
+            completed_at: new Date().toISOString(),
+            completion_duration_seconds: Math.round((Date.now() - startTime) / 1000)
+          },
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', userId);
 
       if (profileError) throw profileError;

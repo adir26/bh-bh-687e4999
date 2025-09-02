@@ -38,6 +38,7 @@ import OnboardingHomeDetails from "./pages/onboarding/HomeDetails";
 import OnboardingProjectPlanning from "./pages/onboarding/ProjectPlanning";
 import OnboardingDocuments from "./pages/onboarding/Documents";
 import OnboardingInterests from "./pages/onboarding/Interests";
+import RolePicker from "./pages/onboarding/RolePicker";
 import SupplierWelcome from "./pages/onboarding/SupplierWelcome";
 import SupplierCompanyInfo from "./pages/onboarding/SupplierCompanyInfo";
 import SupplierBranding from "./pages/onboarding/SupplierBranding";

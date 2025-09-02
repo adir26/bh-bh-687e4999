@@ -2,7 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 import { PageBoundary } from '@/components/system/PageBoundary';
-import { getPostAuthRoute, UserRole } from '@/utils/authRouting';
+import { getPostAuthRoute, UserRole, getRouteFromStep, getOnboardingStartRoute } from '@/utils/authRouting';
 
 interface Profile {
   id: string;
@@ -10,7 +10,8 @@ interface Profile {
   full_name?: string;
   role?: 'client' | 'supplier' | 'admin';
   onboarding_completed?: boolean;
-  onboarding_step?: string | null;
+  onboarding_status?: 'not_started' | 'in_progress' | 'completed';
+  onboarding_step?: number;
 }
 
 interface AuthGateProps {
@@ -57,8 +58,10 @@ export function AuthGate({
   const typedProfile = profile as Profile | null;
 
   // Check if onboarding is required
-  if (user && typedProfile && !typedProfile.onboarding_completed) {
-    const onboardingRoute = typedProfile.role === 'supplier' ? '/onboarding/supplier-welcome' : '/onboarding/welcome';
+  if (user && typedProfile && typedProfile.onboarding_status !== 'completed') {
+    const userRole = (typedProfile.role as UserRole) || 'client';
+    const step = typedProfile.onboarding_step || 0;
+    const onboardingRoute = step > 0 ? getRouteFromStep(userRole, step) : getOnboardingStartRoute(userRole);
     return <Navigate to={onboardingRoute} replace />;
   }
 
@@ -66,8 +69,8 @@ export function AuthGate({
   if (requiredRole && typedProfile?.role !== requiredRole) {
     const homeRoute = getPostAuthRoute({
       role: (typedProfile?.role as UserRole) || 'client',
-      onboarding_completed: !!typedProfile?.onboarding_completed,
-      onboarding_step: typedProfile?.onboarding_step || null,
+      onboarding_completed: typedProfile?.onboarding_status === 'completed',
+      onboarding_step: typedProfile?.onboarding_step || 0,
     });
     return <Navigate to={homeRoute} replace />;
   }

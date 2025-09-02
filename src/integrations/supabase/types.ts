@@ -1804,13 +1804,21 @@ export type Database = {
           blocked_by: string | null
           created_at: string
           email: string
+          first_login_at: string | null
           full_name: string | null
           id: string
           is_blocked: boolean | null
+          last_login_at: string | null
           last_onboarding_at: string | null
           onboarding_completed: boolean | null
+          onboarding_completed_at: string | null
           onboarding_context: Json | null
-          onboarding_step: string | null
+          onboarding_data: Json | null
+          onboarding_status:
+            | Database["public"]["Enums"]["onboarding_status"]
+            | null
+          onboarding_step: number | null
+          onboarding_version: number | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
@@ -1820,13 +1828,21 @@ export type Database = {
           blocked_by?: string | null
           created_at?: string
           email: string
+          first_login_at?: string | null
           full_name?: string | null
           id: string
           is_blocked?: boolean | null
+          last_login_at?: string | null
           last_onboarding_at?: string | null
           onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           onboarding_context?: Json | null
-          onboarding_step?: string | null
+          onboarding_data?: Json | null
+          onboarding_status?:
+            | Database["public"]["Enums"]["onboarding_status"]
+            | null
+          onboarding_step?: number | null
+          onboarding_version?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -1836,13 +1852,21 @@ export type Database = {
           blocked_by?: string | null
           created_at?: string
           email?: string
+          first_login_at?: string | null
           full_name?: string | null
           id?: string
           is_blocked?: boolean | null
+          last_login_at?: string | null
           last_onboarding_at?: string | null
           onboarding_completed?: boolean | null
+          onboarding_completed_at?: string | null
           onboarding_context?: Json | null
-          onboarding_step?: string | null
+          onboarding_data?: Json | null
+          onboarding_status?:
+            | Database["public"]["Enums"]["onboarding_status"]
+            | null
+          onboarding_step?: number | null
+          onboarding_version?: number | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -2888,6 +2912,7 @@ export type Database = {
     }
     Enums: {
       message_status: "sent" | "delivered" | "read"
+      onboarding_status: "not_started" | "in_progress" | "completed"
       order_status:
         | "pending"
         | "confirmed"
@@ -3024,6 +3049,7 @@ export const Constants = {
   public: {
     Enums: {
       message_status: ["sent", "delivered", "read"],
+      onboarding_status: ["not_started", "in_progress", "completed"],
       order_status: [
         "pending",
         "confirmed",

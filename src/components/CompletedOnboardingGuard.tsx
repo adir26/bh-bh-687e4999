@@ -44,7 +44,7 @@ export const CompletedOnboardingGuard: React.FC<CompletedOnboardingGuardProps> =
   }
 
   // If onboarding is completed, redirect to role home/dashboard
-  if (profile.onboarding_completed) {
+  if (profile.onboarding_status === 'completed') {
     const homeRoute = getRoleHomeRoute((profile.role as UserRole) || 'client');
     console.log('[COMPLETED ONBOARDING GUARD] Onboarding completed, redirecting to:', homeRoute);
     return <Navigate to={homeRoute} replace />;

@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, User } from 'lucide-react';
+import { UserRole, getRouteFromStep, getOnboardingStartRoute } from '@/utils/authRouting';
 
 export const OnboardingStatusBanner: React.FC = () => {
   const { user, profile } = useAuth();
@@ -26,8 +27,9 @@ export const OnboardingStatusBanner: React.FC = () => {
 
   const handleContinueOnboarding = () => {
     // Navigate to the saved onboarding step or start from the beginning
-    const route = profile.onboarding_step || 
-      (profile.role === 'supplier' ? '/onboarding/supplier-welcome' : '/onboarding/welcome');
+    const userRole = (profile.role as UserRole) || 'client';
+    const step = profile.onboarding_step || 0;
+    const route = step > 0 ? getRouteFromStep(userRole, step) : getOnboardingStartRoute(userRole);
     navigate(route);
   };
 

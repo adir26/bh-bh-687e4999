@@ -14,7 +14,13 @@ interface Profile {
   full_name?: string;
   role?: 'client' | 'supplier' | 'admin';
   onboarding_completed?: boolean;
-  onboarding_step?: string | null;
+  onboarding_status?: 'not_started' | 'in_progress' | 'completed';
+  onboarding_step?: number;
+  onboarding_data?: any;
+  onboarding_version?: number;
+  onboarding_completed_at?: string;
+  first_login_at?: string;
+  last_login_at?: string;
   onboarding_context?: any;
   last_onboarding_at?: string;
   created_at?: string;
@@ -30,7 +36,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any, data?: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
-  updateOnboardingStep: (step: string, context?: any) => Promise<void>;
+  updateOnboardingStep: (step: number, data?: any) => Promise<void>;
   completeOnboarding: () => Promise<void>;
 }
 
@@ -86,13 +92,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!user || !profile || loading) return;
 
+    // Track login time
+    const trackLoginTime = async () => {
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            last_login_at: new Date().toISOString(),
+            first_login_at: (profile as Profile).first_login_at || new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
+      } catch (error) {
+        console.error('Error tracking login time:', error);
+      }
+    };
+
+    // Only track login time once per session
+    if (!sessionStorage.getItem(`login_tracked_${user.id}`)) {
+      trackLoginTime();
+      sessionStorage.setItem(`login_tracked_${user.id}`, 'true');
+    }
+
     const fromState = (location.state as any)?.from;
     const fromPath = fromState?.pathname || null;
     
+    // Use new centralized routing logic
     const targetRoute = getPostAuthRoute({
       role: ((profile as Profile)?.role as UserRole) || 'client',
-      onboarding_completed: !!(profile as Profile)?.onboarding_completed,
-      onboarding_step: (profile as Profile)?.onboarding_step || null,
+      onboarding_completed: (profile as Profile).onboarding_status === 'completed',
+      onboarding_step: (profile as Profile).onboarding_step || 0,
       fromPath: fromPath,
     });
 
@@ -309,18 +338,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateOnboardingStep = async (step: string, context?: any) => {
+  const updateOnboardingStep = async (step: number, data?: any) => {
     if (!user || !profile) return;
 
     try {
+      const updateData: any = {
+        onboarding_step: step,
+        onboarding_status: step > 0 ? 'in_progress' : 'not_started',
+        last_onboarding_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Save comprehensive data to onboarding_data
+      if (data) {
+        updateData.onboarding_data = {
+          ...(profile as Profile).onboarding_data,
+          ...data,
+          updated_at: new Date().toISOString(),
+          step: step
+        };
+      }
+
       const { error }: any = await withTimeout(
         supabase
           .from('profiles')
-          .update({
-            onboarding_step: step,
-            onboarding_context: context || {},
-            last_onboarding_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq('id', user.id)
           .select(),
         12000
@@ -333,7 +375,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Refresh profile data using React Query
       await refreshProfile();
-      console.log('[AUTH] Updated onboarding step:', step);
+      console.log('[AUTH] Updated onboarding step:', step, 'with data:', data);
     } catch (error) {
       console.error('Error updating onboarding step:', error);
     }
@@ -348,8 +390,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('profiles')
           .update({
             onboarding_completed: true,
-            onboarding_step: null,
+            onboarding_status: 'completed',
+            onboarding_step: 0,
+            onboarding_completed_at: new Date().toISOString(),
             last_onboarding_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           })
           .eq('id', user.id)
           .select(),
@@ -365,9 +410,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await refreshProfile();
       console.log('[AUTH] Onboarding completed');
 
-      // Navigate to role home
-      const homeRoute = getRoleHomeRoute(((profile as Profile)?.role as UserRole) || 'client');
-      navigate(homeRoute, { replace: true });
+      // Navigate to home instead of role-specific route
+      navigate('/', { replace: true });
 
     } catch (error) {
       console.error('Error completing onboarding:', error);
