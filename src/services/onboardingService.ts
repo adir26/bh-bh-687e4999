@@ -51,6 +51,8 @@ export interface SupplierOnboardingData {
 class OnboardingService {
   async saveClientOnboarding(userId: string, data: ClientOnboardingData) {
     try {
+      const startTime = Date.now();
+      
       // Save client profile data
       const clientProfileData = {
         user_id: userId,
@@ -88,6 +90,30 @@ class OnboardingService {
 
       if (profileError) throw profileError;
 
+      // Save onboarding analytics for admin
+      const completionDuration = Math.round((Date.now() - startTime) / 1000);
+      const { error: analyticsError } = await supabase
+        .from('onboarding_analytics')
+        .insert({
+          user_id: userId,
+          user_role: 'client',
+          completion_duration_seconds: completionDuration,
+          onboarding_data: {
+            interests: data.interests,
+            contact_channels: data.contactChannels,
+            languages: data.languages,
+            home_details: data.homeDetails,
+            project_planning: data.projectPlanning,
+            documents: data.documents,
+            completed_step: 'interests'
+          }
+        });
+
+      if (analyticsError) {
+        console.error('Error saving onboarding analytics:', analyticsError);
+        // Don't fail the whole process for analytics
+      }
+
       return { success: true };
     } catch (error) {
       console.error('Error saving client onboarding:', error);
@@ -97,6 +123,8 @@ class OnboardingService {
 
   async saveSupplierOnboarding(userId: string, data: SupplierOnboardingData) {
     try {
+      const startTime = Date.now();
+      
       // Create company record first
       const { data: company, error: companyError } = await supabase
         .from('companies')
@@ -146,7 +174,29 @@ class OnboardingService {
 
       if (profileError) throw profileError;
 
-      // Save company analytics
+      // Save onboarding analytics for admin
+      const completionDuration = Math.round((Date.now() - startTime) / 1000);
+      const { error: onboardingAnalyticsError } = await supabase
+        .from('onboarding_analytics')
+        .insert({
+          user_id: userId,
+          user_role: 'supplier',
+          completion_duration_seconds: completionDuration,
+          onboarding_data: {
+            company_info: data.companyInfo,
+            branding: data.branding,
+            products_count: data.products ? data.products.length : 0,
+            has_products: data.products && data.products.length > 0,
+            completed_step: 'supplier_summary'
+          }
+        });
+
+      if (onboardingAnalyticsError) {
+        console.error('Error saving onboarding analytics:', onboardingAnalyticsError);
+        // Don't fail the whole process for analytics
+      }
+
+      // Save company analytics (existing)
       const { error: analyticsError } = await supabase
         .from('company_analytics')
         .insert({

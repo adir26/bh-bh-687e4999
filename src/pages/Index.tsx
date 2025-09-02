@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { OnboardingGuard } from '@/components/OnboardingGuard';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { AdBanner } from '@/components/AdBanner';
@@ -367,16 +368,17 @@ const Index = () => {
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-background">
-      <main className="flex flex-col items-start w-full bg-muted/30 pb-nav-safe">
-        <div className="flex flex-col items-start w-full">
-          <Header userName="איתן" />
-          
-          {/* Onboarding Status Banner */}
-          <OnboardingStatusBanner />
-          
-          {/* Hero Section */}
-          <HeroSection onCTAClick={handleHeroCTA} />
+    <OnboardingGuard role="client">
+      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-background">
+        <main className="flex flex-col items-start w-full bg-muted/30 pb-nav-safe">
+          <div className="flex flex-col items-start w-full">
+            <Header userName="איתן" />
+            
+            {/* Onboarding Status Banner */}
+            <OnboardingStatusBanner />
+            
+            {/* Hero Section */}
+            <HeroSection onCTAClick={handleHeroCTA} />
           
           <div className="w-full">
             <SectionTitle title="בחירה מהירה" />
@@ -530,6 +532,7 @@ const Index = () => {
         </div>
       </main>
     </div>
+    </OnboardingGuard>
   );
 };
 

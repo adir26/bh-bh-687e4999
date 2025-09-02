@@ -37,17 +37,17 @@ export const CompletedOnboardingGuard: React.FC<CompletedOnboardingGuardProps> =
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  // Admin users are never forced into onboarding
+  if (profile.role === 'admin') {
+    console.log('[COMPLETED ONBOARDING GUARD] Admin user, redirecting to admin dashboard');
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
   // If onboarding is completed, redirect to role home/dashboard
   if (profile.onboarding_completed) {
     const homeRoute = getRoleHomeRoute((profile.role as UserRole) || 'client');
     console.log('[COMPLETED ONBOARDING GUARD] Onboarding completed, redirecting to:', homeRoute);
     return <Navigate to={homeRoute} replace />;
-  }
-
-  // Admin users are never forced into onboarding
-  if (profile.role === 'admin') {
-    console.log('[COMPLETED ONBOARDING GUARD] Admin user, redirecting to admin dashboard');
-    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return <>{children}</>;

@@ -18,7 +18,9 @@ import {
 } from 'lucide-react';
 import profileHero from '@/assets/profile-hero.jpg';
 import { supaSelect } from '@/lib/supaFetch';
+import { OnboardingGuard } from '@/components/OnboardingGuard';
 import { PageBoundary } from '@/components/system/PageBoundary';
+import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
 
 interface UserProfile {
   fullName: string;
@@ -54,6 +56,9 @@ const Profile = () => {
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Page load timer for performance tracking
+  usePageLoadTimer('profile');
   
   const form = useForm<UserProfile>({
     defaultValues: {
@@ -222,106 +227,119 @@ const Profile = () => {
   ];
 
   return (
-    <PageBoundary>
-      <div className="min-h-screen bg-background" dir="rtl">
-        <div className="max-w-md mx-auto bg-background">
-          {/* Hero Section */}
-          <div className="relative h-52 overflow-hidden">
-            <img 
-              src={profileHero}
-              alt="רקע פרופיל"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-            
-            {/* Profile Header */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <div className="flex items-end gap-4">
-                <div className="w-20 h-20 bg-white/95 rounded-2xl flex items-center justify-center border-4 border-white/50">
-                  <User className="w-10 h-10 text-primary" />
-                </div>
-                <div className="flex-1 pb-2">
-                  {isEditing ? (
-                    <Form {...form}>
-                      <div className="space-y-2">
-                        <FormField
-                          control={form.control}
-                          name="fullName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input 
-                                  {...field} 
-                                  className="bg-white/90 text-foreground border-0 text-lg font-bold h-8 p-2 rounded-lg"
-                                  placeholder="שם מלא"
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input 
-                                  {...field} 
-                                  className="bg-white/90 text-muted-foreground border-0 text-sm h-7 p-2 rounded-lg"
-                                  placeholder="אימייל"
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </Form>
-                  ) : (
-                    <div>
-                      <h1 className="text-xl font-bold">{form.getValues('fullName')}</h1>
-                      <p className="text-white/90 text-sm">{form.getValues('email')}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="flex gap-2 pb-2">
-                  {isEditing ? (
-                    <>
-                      <Button 
-                        size="sm" 
-                        variant="secondary"
-                        onClick={form.handleSubmit(handleSaveProfile)}
-                        className="bg-white/95 hover:bg-white text-primary border-0 h-9 w-9 p-0"
-                        disabled={updateProfileMutation.isPending}
-                      >
-                        <Check className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="secondary"
-                        onClick={handleCancelEdit}
-                        className="bg-white/95 hover:bg-white text-primary border-0 h-9 w-9 p-0"
-                        disabled={updateProfileMutation.isPending}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <Button 
-                      size="sm" 
-                      variant="secondary"
-                      onClick={() => setIsEditing(true)}
-                      className="bg-white/95 hover:bg-white text-primary border-0 h-9 w-9 p-0"
-                    >
-                      <Edit3 className="w-4 h-4" />
-                    </Button>
-                  )}
+    <OnboardingGuard>
+      <PageBoundary>
+        <div className="min-h-screen bg-background" dir="rtl">
+          <div className="max-w-md mx-auto bg-background">
+            {!user || !profile ? (
+              <div className="text-center space-y-4 py-16">
+                <User className="h-12 w-12 text-muted-foreground mx-auto" />
+                <div>
+                  <h3 className="font-semibold text-foreground">התחבר כדי לראות פרופיל</h3>
+                  <p className="text-sm text-muted-foreground">
+                    התחבר לחשבון שלך כדי לנהל את הפרופיל והעדפות
+                  </p>
                 </div>
               </div>
-            </div>
-          </div>
+            ) : (
+              <>
+                {/* Hero Section */}
+                <div className="relative h-52 overflow-hidden">
+                  <img 
+                    src={profileHero}
+                    alt="רקע פרופיל"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                  
+                  {/* Profile Header */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                    <div className="flex items-end gap-4">
+                      <div className="w-20 h-20 bg-white/95 rounded-2xl flex items-center justify-center border-4 border-white/50">
+                        <User className="w-10 h-10 text-primary" />
+                      </div>
+                      <div className="flex-1 pb-2">
+                        {isEditing ? (
+                          <Form {...form}>
+                            <div className="space-y-2">
+                              <FormField
+                                control={form.control}
+                                name="fullName"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        className="bg-white/90 text-foreground border-0 text-lg font-bold h-8 p-2 rounded-lg"
+                                        placeholder="שם מלא"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        className="bg-white/90 text-muted-foreground border-0 text-sm h-7 p-2 rounded-lg"
+                                        placeholder="אימייל"
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </Form>
+                        ) : (
+                          <div>
+                            <h1 className="text-xl font-bold">{form.getValues('fullName')}</h1>
+                            <p className="text-white/90 text-sm">{form.getValues('email')}</p>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2 pb-2">
+                        {isEditing ? (
+                          <>
+                            <Button 
+                              size="sm" 
+                              variant="secondary"
+                              onClick={form.handleSubmit(handleSaveProfile)}
+                              className="bg-white/95 hover:bg-white text-primary border-0 h-9 w-9 p-0"
+                              disabled={updateProfileMutation.isPending}
+                            >
+                              <Check className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="secondary"
+                              onClick={handleCancelEdit}
+                              className="bg-white/95 hover:bg-white text-primary border-0 h-9 w-9 p-0"
+                              disabled={updateProfileMutation.isPending}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            variant="secondary"
+                            onClick={() => setIsEditing(true)}
+                            className="bg-white/95 hover:bg-white text-primary border-0 h-9 w-9 p-0"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-          {/* Content */}
-          <div className="px-6 pb-nav-safe">
+                {/* Content */}
+                <div className="px-6 pb-nav-safe">
             {/* My Activity Section */}
             {nextDelivery && (
               <Card className="mt-6 border-0 shadow-sm bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
@@ -475,10 +493,12 @@ const Profile = () => {
                 התנתק
               </Button>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
-    </PageBoundary>
+    </div>
+  </PageBoundary>
+</OnboardingGuard>
   );
 };
 

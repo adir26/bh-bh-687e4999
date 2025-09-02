@@ -1113,6 +1113,36 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_analytics: {
+        Row: {
+          completed_at: string
+          completion_duration_seconds: number | null
+          created_at: string
+          id: string
+          onboarding_data: Json | null
+          user_id: string
+          user_role: string
+        }
+        Insert: {
+          completed_at?: string
+          completion_duration_seconds?: number | null
+          created_at?: string
+          id?: string
+          onboarding_data?: Json | null
+          user_id: string
+          user_role: string
+        }
+        Update: {
+          completed_at?: string
+          completion_duration_seconds?: number | null
+          created_at?: string
+          id?: string
+          onboarding_data?: Json | null
+          user_id?: string
+          user_role?: string
+        }
+        Relationships: []
+      }
       order_attachments: {
         Row: {
           created_at: string
