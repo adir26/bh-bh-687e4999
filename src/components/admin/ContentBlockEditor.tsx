@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { homepageContentService, companiesService, categoriesService, storageSer
 import { Calendar, Upload, X, Plus, Trash2, GripVertical } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { withTimeout } from '@/lib/withTimeout';
 
 interface ContentBlockEditorProps {
   block: HomepageContent;
@@ -21,33 +23,29 @@ interface ContentBlockEditorProps {
 
 export function ContentBlockEditor({ block, onSave, onClose }: ContentBlockEditorProps) {
   const [editedBlock, setEditedBlock] = useState<HomepageContent>(JSON.parse(JSON.stringify(block)));
-  const [suppliers, setSuppliers] = useState<Company[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // Load suppliers data with React Query
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['companies'],
+    queryFn: async ({ signal }) => {
+      return await withTimeout(companiesService.getAll(), 12000);
+    },
+    retry: 1,
+    staleTime: 300_000, // 5 minutes
+  });
 
-  const loadData = async () => {
-    try {
-      const [suppliersData, categoriesData] = await Promise.all([
-        companiesService.getAll(),
-        categoriesService.getAll()
-      ]);
-      setSuppliers(suppliersData);
-      setCategories(categoriesData);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load suppliers and categories",
-        variant: "destructive",
-      });
-    }
-  };
+  // Load categories data with React Query
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async ({ signal }) => {
+      return await withTimeout(categoriesService.getAll(), 12000);
+    },
+    retry: 1,
+    staleTime: 300_000, // 5 minutes
+  });
 
   const updateContentData = (updates: any) => {
     setEditedBlock(prev => ({
@@ -59,12 +57,19 @@ export function ContentBlockEditor({ block, onSave, onClose }: ContentBlockEdito
   const handleSave = async () => {
     setLoading(true);
     try {
-      const updatedBlock = await homepageContentService.update(editedBlock.id, editedBlock);
+      const updatedBlock = await withTimeout(
+        homepageContentService.update(editedBlock.id, editedBlock),
+        12000
+      );
       onSave(updatedBlock);
+      toast({
+        title: "Success",
+        description: "Content block saved successfully",
+      });
     } catch (error) {
       console.error('Error saving block:', error);
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to save content block",
         variant: "destructive",
       });

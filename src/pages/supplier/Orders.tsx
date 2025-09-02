@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -36,6 +37,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { PageBoundary } from '@/components/system/PageBoundary';
+import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
+import { withTimeout } from '@/lib/withTimeout';
 
 interface Order {
   id: string;
@@ -202,11 +206,11 @@ function StatusUpdateDialog({ order, open, onOpenChange, onStatusUpdated }: Stat
 }
 
 export default function SupplierOrders() {
+  usePageLoadTimer('SupplierOrders');
+  
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('active');
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -220,13 +224,38 @@ export default function SupplierOrders() {
   
   const itemsPerPage = 20;
 
-  // Fetch orders
-  useEffect(() => {
-    fetchOrders();
-  }, [user?.id]);
+  // Fetch orders with React Query
+  const { data: orders = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['supplier-orders', user?.id],
+    enabled: !!user?.id,
+    queryFn: async ({ signal }) => {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('orders')
+          .select(`
+            *,
+            client_profile:profiles!orders_client_id_fkey (full_name, email)
+          `)
+          .eq('supplier_id', user!.id)
+          .order('created_at', { ascending: false }),
+        12000
+      );
+
+      if (error) throw new Error('שגיאה בטעינת ההזמנות');
+
+      return data?.map(order => ({
+        ...order,
+        customer_name: order.customer_name || order.client_profile?.full_name || 'לקוח ללא שם',
+        customer_email: order.customer_email || order.client_profile?.email || '',
+        current_status: (order.current_status || order.status) as OrderStatus
+      })) || [];
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
   // Set up realtime subscription
-  useEffect(() => {
+  React.useEffect(() => {
     if (!user?.id) return;
 
     const channel = supabase
@@ -241,7 +270,7 @@ export default function SupplierOrders() {
         },
         () => {
           console.log('Order updated, refetching...');
-          fetchOrders();
+          refetch();
         }
       )
       .subscribe();
@@ -249,38 +278,7 @@ export default function SupplierOrders() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
-
-  const fetchOrders = async () => {
-    if (!user?.id) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          client_profile:profiles!orders_client_id_fkey (full_name, email)
-        `)
-        .eq('supplier_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const formattedOrders = data?.map(order => ({
-        ...order,
-        customer_name: order.customer_name || order.client_profile?.full_name || 'לקוח ללא שם',
-        customer_email: order.customer_email || order.client_profile?.email || '',
-        current_status: (order.current_status || order.status) as OrderStatus
-      })) || [];
-
-      setOrders(formattedOrders);
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      toast.error('שגיאה בטעינת ההזמנות');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user?.id, refetch]);
 
   const fetchOrderDetails = async (orderId: string) => {
     try {
@@ -395,23 +393,14 @@ export default function SupplierOrders() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background" dir="rtl">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <Skeleton className="h-8 w-48 mb-6" />
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-24 w-full" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <PageBoundary 
+      isLoading={isLoading}
+      isError={!!error}
+      error={error}
+      onRetry={() => refetch()}
+    >
+      <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
       <div className="bg-white border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -661,14 +650,15 @@ export default function SupplierOrders() {
           open={statusDialogOpen}
           onOpenChange={setStatusDialogOpen}
           onStatusUpdated={() => {
-            fetchOrders();
+            refetch();
             if (selectedOrder) {
               fetchOrderDetails(selectedOrder.id);
             }
           }}
         />
       </div>
-    </div>
+      </div>
+    </PageBoundary>
   );
 }
 

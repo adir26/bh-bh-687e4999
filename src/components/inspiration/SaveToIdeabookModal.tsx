@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Ideabook } from '@/types/inspiration';
+import { withTimeout } from '@/lib/withTimeout';
 
 interface SaveToIdeabookModalProps {
   isOpen: boolean;
@@ -20,38 +22,30 @@ interface SaveToIdeabookModalProps {
 
 export function SaveToIdeabookModal({ isOpen, onOpenChange, photoId, photoTitle }: SaveToIdeabookModalProps) {
   const { user } = useAuth();
-  const [ideabooks, setIdeabooks] = useState<Ideabook[]>([]);
-  const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newIdeabookName, setNewIdeabookName] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && user) {
-      fetchUserIdeabooks();
-    }
-  }, [isOpen, user]);
+  // Fetch user ideabooks with React Query
+  const { data: ideabooks = [], isLoading, refetch } = useQuery({
+    queryKey: ['user-ideabooks', user?.id],
+    enabled: isOpen && !!user?.id,
+    queryFn: async ({ signal }) => {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('ideabooks')
+          .select('*')
+          .eq('owner_id', user!.id)
+          .order('updated_at', { ascending: false }),
+        12000
+      );
 
-  const fetchUserIdeabooks = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('ideabooks')
-        .select('*')
-        .eq('owner_id', user.id)
-        .order('updated_at', { ascending: false });
-
-      if (error) throw error;
-      setIdeabooks(data || []);
-    } catch (error) {
-      console.error('Error fetching ideabooks:', error);
-      toast.error('שגיאה בטעינת האידאבוקים');
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (error) throw new Error('שגיאה בטעינת האידאבוקים');
+      return data || [];
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
   const createIdeabook = async () => {
     if (!user || !newIdeabookName.trim()) return;
@@ -92,7 +86,7 @@ export function SaveToIdeabookModal({ isOpen, onOpenChange, photoId, photoTitle 
 
       setNewIdeabookName('');
       setShowCreateForm(false);
-      await fetchUserIdeabooks();
+      await refetch();
     } catch (error) {
       console.error('Error creating ideabook:', error);
       toast.error('שגיאה ביצירת האידאבוק');
@@ -196,7 +190,7 @@ export function SaveToIdeabookModal({ isOpen, onOpenChange, photoId, photoTitle 
           {/* Existing Ideabooks */}
           <div className="space-y-2">
             <h4 className="font-medium text-sm">האידאבוקים שלי</h4>
-            {loading ? (
+            {isLoading ? (
               <div className="space-y-2">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="h-12 bg-muted rounded animate-pulse" />
@@ -230,9 +224,9 @@ export function SaveToIdeabookModal({ isOpen, onOpenChange, photoId, photoTitle 
                                 <Lock className="h-2 w-2 ml-1" />
                                 פרטי
                               </Badge>
-                            )}
-                            {ideabook.photos_count && ideabook.photos_count > 0 && (
-                              <span>{ideabook.photos_count} תמונות</span>
+                             )}
+                             {(ideabook as any).photos_count && (ideabook as any).photos_count > 0 && (
+                               <span>{(ideabook as any).photos_count} תמונות</span>
                             )}
                           </div>
                         </div>

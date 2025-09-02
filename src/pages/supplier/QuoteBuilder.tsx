@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { pdf } from '@react-pdf/renderer';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,9 @@ import { quotesService, Quote, QuoteItem, CreateQuoteItemPayload } from '@/servi
 import { QuotePDF } from '@/components/quotes/QuotePDF';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { PageBoundary } from '@/components/system/PageBoundary';
+import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
+import { withTimeout } from '@/lib/withTimeout';
 
 interface LocalQuoteItem {
   id: string;
@@ -25,6 +29,8 @@ interface LocalQuoteItem {
 }
 
 export default function QuoteBuilder() {
+  usePageLoadTimer('QuoteBuilder');
+  
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [searchParams] = useSearchParams();
@@ -32,9 +38,7 @@ export default function QuoteBuilder() {
   const quoteId = searchParams.get('quoteId');
   
   const [quote, setQuote] = useState<Quote | null>(null);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [clients, setClients] = useState<any[]>([]);
   
   // Form state
   const [title, setTitle] = useState('הצעת מחיר חדשה');
@@ -52,89 +56,125 @@ export default function QuoteBuilder() {
   // Auto-save
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Load initial data
-  useEffect(() => {
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        // Load clients for the dropdown
-        const { data: clientsData } = await supabase
+  // Load clients for the dropdown
+  const { data: clients = [], isLoading: clientsLoading } = useQuery({
+    queryKey: ['clients'],
+    queryFn: async ({ signal }) => {
+      const { data, error } = await withTimeout(
+        supabase
           .from('profiles')
           .select('id, full_name, email')
-          .eq('role', 'client');
-        
-        setClients(clientsData || []);
+          .eq('role', 'client'),
+        12000
+      );
+      
+      if (error) throw new Error('שגיאה בטעינת רשימת הלקוחות');
+      return data || [];
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
-        // If editing existing quote
-        if (quoteId) {
-          const result = await quotesService.getQuoteById(quoteId);
-          if (result) {
-            const { quote, items: quoteItems } = result;
-            setQuote(quote);
-            setTitle(quote.title);
-            setSelectedClientId(quote.client_id || '');
-            setNotes(quote.notes || '');
-            setTaxRate(quote.tax_rate);
-            
-            // Convert quote items to local format
-            const localItems = quoteItems.map(item => ({
-              id: item.id,
-              name: item.name,
-              description: item.description || '',
-              quantity: item.quantity,
-              unit_price: item.unit_price,
-              total: item.subtotal,
-              sort_order: item.sort_order
-            }));
-            
-            if (localItems.length > 0) {
-              setItems(localItems);
-            }
+  // Load quote data (if editing existing quote)
+  const { data: quoteData, isLoading: quoteLoading, error: quoteError } = useQuery({
+    queryKey: ['quote', quoteId],
+    enabled: !!quoteId,
+    queryFn: async ({ signal }) => {
+      const result = await withTimeout(quotesService.getQuoteById(quoteId!), 12000);
+      if (!result) throw new Error('הצעת המחיר לא נמצאה');
+      return result;
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
-            // Load client info if available
-            if (quote.client_id) {
-              const { data: clientData } = await supabase
-                .from('profiles')
-                .select('full_name, email')
-                .eq('id', quote.client_id)
-                .maybeSingle();
-                
-              if (clientData) {
-                setClientName(clientData.full_name || '');
-                setClientEmail(clientData.email || '');
-              }
-            }
-          }
-        }
-        // If creating from lead
-        else if (leadId) {
-          const { data: leadData } = await supabase
-            .from('leads')
-            .select('*')
-            .eq('id', leadId)
-            .maybeSingle();
-            
-          if (leadData) {
-            const lead = leadData as unknown as { name: string; contact_email: string; contact_phone: string; client_id: string; notes: string };
-            setTitle(`הצעת מחיר עבור ${lead.name || 'ליד'}`);
-            if (lead.client_id) {
-              setSelectedClientId(lead.client_id);
-            }
-            setClientName(lead.name || '');
-            setClientEmail(lead.contact_email || '');
-            setNotes(lead.notes || '');
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load data:', error);
-        showToast.error('שגיאה בטעינת הנתונים');
-      } finally {
-        setLoading(false);
+  // Load lead data (if creating from lead)
+  const { data: leadData, isLoading: leadLoading } = useQuery({
+    queryKey: ['lead', leadId],
+    enabled: !!leadId,
+    queryFn: async ({ signal }) => {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('leads')
+          .select('*')
+          .eq('id', leadId!)
+          .maybeSingle(),
+        12000
+      );
+      
+      if (error) throw new Error('שגיאה בטעינת פרטי הליד');
+      return data as unknown as { name: string; contact_email: string; contact_phone: string; client_id: string; notes: string } | null;
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
+
+  // Load client info for existing quote
+  const { data: clientInfo } = useQuery({
+    queryKey: ['client-info', quoteData?.quote.client_id],
+    enabled: !!quoteData?.quote.client_id,
+    queryFn: async ({ signal }) => {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('profiles')
+          .select('full_name, email')
+          .eq('id', quoteData!.quote.client_id!)
+          .maybeSingle(),
+        12000
+      );
+      
+      if (error) throw new Error('שגיאה בטעינת פרטי הלקוח');
+      return data;
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
+
+  // Initialize form data when quote/lead data loads
+  React.useEffect(() => {
+    if (quoteData) {
+      const { quote, items: quoteItems } = quoteData;
+      setQuote(quote);
+      setTitle(quote.title);
+      setSelectedClientId(quote.client_id || '');
+      setNotes(quote.notes || '');
+      setTaxRate(quote.tax_rate);
+      
+      // Convert quote items to local format
+      const localItems = quoteItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description || '',
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total: item.subtotal,
+        sort_order: item.sort_order
+      }));
+      
+      if (localItems.length > 0) {
+        setItems(localItems);
       }
-    };
+    }
+  }, [quoteData]);
 
-    loadData();
-  }, [quoteId, leadId]);
+  React.useEffect(() => {
+    if (clientInfo) {
+      setClientName(clientInfo.full_name || '');
+      setClientEmail(clientInfo.email || '');
+    }
+  }, [clientInfo]);
+
+  React.useEffect(() => {
+    if (leadData) {
+      setTitle(`הצעת מחיר עבור ${leadData.name || 'ליד'}`);
+      if (leadData.client_id) {
+        setSelectedClientId(leadData.client_id);
+      }
+      setClientName(leadData.name || '');
+      setClientEmail(leadData.contact_email || '');
+      setNotes(leadData.notes || '');
+    }
+  }, [leadData]);
 
   const addItem = () => {
     const newItem: LocalQuoteItem = {
@@ -343,7 +383,7 @@ export default function QuoteBuilder() {
   };
 
   // Cleanup auto-save timer
-  useEffect(() => {
+  React.useEffect(() => {
     return () => {
       if (autoSaveTimer.current) {
         clearTimeout(autoSaveTimer.current);
@@ -361,16 +401,17 @@ export default function QuoteBuilder() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">טוען...</div>
-      </div>
-    );
-  }
+  const isLoading = clientsLoading || quoteLoading || leadLoading;
+  const isError = quoteError;
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <PageBoundary 
+      isLoading={isLoading}
+      isError={!!isError}
+      error={isError}
+      onRetry={() => window.location.reload()}
+    >
+      <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
       <div className="bg-white border-b border-border sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -683,7 +724,8 @@ export default function QuoteBuilder() {
             שמור כטיוטה
           </Button>
         </div>
+        </div>
       </div>
-    </div>
+    </PageBoundary>
   );
 }
