@@ -5,9 +5,12 @@ export const queryClient = new QueryClient({
     queries: {
       retry: 1,
       staleTime: 60_000,
-      gcTime: 300_000,
+      gcTime: 5 * 60_000,
       refetchOnWindowFocus: false,
       throwOnError: false,
+    },
+    mutations: { 
+      retry: 0 
     },
   },
 });

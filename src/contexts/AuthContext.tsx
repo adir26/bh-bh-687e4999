@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole, getPostAuthRoute, getRoleHomeRoute } from '@/utils/authRouting';
 import { InputSanitizer } from '@/utils/inputSanitizer';
+import { useProfile } from '@/hooks/useProfile';
+import { withTimeout } from '@/lib/withTimeout';
 
 interface Profile {
   id: string;
@@ -45,42 +47,12 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          id, 
-          email, 
-          full_name, 
-          role, 
-          onboarding_completed, 
-          onboarding_step, 
-          onboarding_context, 
-          last_onboarding_at, 
-          created_at, 
-          updated_at
-        `)
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return null;
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      return null;
-    }
-  };
+  // Use useProfile hook instead of manual loading state
+  const { data: profile, isLoading: loading, refetch: refreshProfile } = useProfile(user?.id);
 
   // Set up auth state listener and get initial session
   useEffect(() => {
@@ -94,16 +66,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('[AUTH] Auth state changed:', event, !!session);
         setSession(session);
         setUser(session?.user ?? null);
-
-        if (session?.user && mounted) {
-          // Fetch profile synchronously after auth change
-          const profileData = await fetchProfile(session.user.id);
-          setProfile(profileData);
-          setLoading(false);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
       }
     );
 
@@ -112,16 +74,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        fetchProfile(session.user.id).then(profileData => {
-          if (!mounted) return;
-          setProfile(profileData);
-          setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
     });
 
     return () => {
@@ -138,9 +90,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const fromPath = fromState?.pathname || null;
     
     const targetRoute = getPostAuthRoute({
-      role: (profile.role as UserRole) || 'client',
-      onboarding_completed: !!profile.onboarding_completed,
-      onboarding_step: profile.onboarding_step || null,
+      role: ((profile as Profile)?.role as UserRole) || 'client',
+      onboarding_completed: !!(profile as Profile)?.onboarding_completed,
+      onboarding_step: (profile as Profile)?.onboarding_step || null,
       fromPath: fromPath,
     });
 
@@ -152,7 +104,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, profile, loading, location.pathname, navigate]);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
-    setLoading(true);
     try {
       // Enhanced input sanitization and validation
       const sanitizedEmail = InputSanitizer.sanitizeEmail(email);
@@ -175,17 +126,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         origin: window.location.origin 
       });
 
-      const { data, error } = await supabase.auth.signUp({
-        email: sanitizedEmail,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            full_name: sanitizedName,
-            role: metadata?.role || 'client'
+      const { data, error } = await withTimeout(
+        supabase.auth.signUp({
+          email: sanitizedEmail,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            data: {
+              full_name: sanitizedName,
+              role: metadata?.role || 'client'
+            }
           }
-        }
-      });
+        }),
+        12000
+      );
 
       if (error) {
         let errorMessage = "שגיאה בהרשמה";
@@ -215,7 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       } else {
         toast({
-          title: "הרשמה בוצעה בהצלחה",
+          title: "הרשמה بוצעה בהצלחה",
           description: "אנא בדוק את האימייל שלך לאישור החשבון"
         });
       }
@@ -229,8 +183,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "destructive"
       });
       return { error };
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -238,10 +190,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const sanitizedEmail = InputSanitizer.sanitizeEmail(email);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: sanitizedEmail,
-        password,
-      });
+      const { data, error } = await withTimeout(
+        supabase.auth.signInWithPassword({
+          email: sanitizedEmail,
+          password,
+        }),
+        12000
+      );
 
       if (error) {
         console.error('SignIn error:', error);
@@ -281,7 +236,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "destructive"
       });
       return { 
-        error: { message: 'אירעה שגיאה בהתחברות. אנא נסה שנית.' }
+        error: { message: 'אירעה שגיאה בהתחברות. אנا נסה שנית.' }
       };
     }
   };
@@ -324,27 +279,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      const { error } = await supabase
+      const updateQuery = supabase
         .from('profiles')
         .update(sanitizedUpdates)
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select();
+        
+      const result = await withTimeout(updateQuery, 12000);
 
-      if (error) {
+      if (result.error) {
         toast({
           title: "שגיאה בעדכון פרופיל",
-          description: error.message,
+          description: result.error.message,
           variant: "destructive"
         });
       } else {
-        // Refresh profile data
-        const updatedProfile = await fetchProfile(user.id);
-        setProfile(updatedProfile);
+        // Refresh profile data using React Query
+        await refreshProfile();
         toast({
           title: "פרופיל עודכן בהצלחה"
         });
       }
 
-      return { error };
+      return { error: result.error };
     } catch (error) {
       console.error('Profile update error:', error);
       return { error: error as Error };
@@ -355,28 +312,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user || !profile) return;
 
     try {
-      const { error } = await supabase
+      const updateQuery = supabase
         .from('profiles')
         .update({
           onboarding_step: step,
           onboarding_context: context || {},
           last_onboarding_at: new Date().toISOString(),
         })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select();
+        
+      const result = await withTimeout(updateQuery, 12000);
 
-      if (error) {
-        console.error('Error updating onboarding step:', error);
+      if (result.error) {
+        console.error('Error updating onboarding step:', result.error);
         return;
       }
 
-      // Update local profile state
-      setProfile(prev => prev ? {
-        ...prev,
-        onboarding_step: step,
-        onboarding_context: context || {},
-        last_onboarding_at: new Date().toISOString(),
-      } : null);
-
+      // Refresh profile data using React Query
+      await refreshProfile();
       console.log('[AUTH] Updated onboarding step:', step);
     } catch (error) {
       console.error('Error updating onboarding step:', error);
@@ -387,32 +341,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user || !profile) return;
 
     try {
-      const { error } = await supabase
+      const updateQuery = supabase
         .from('profiles')
         .update({
           onboarding_completed: true,
           onboarding_step: null,
           last_onboarding_at: new Date().toISOString(),
         })
-        .eq('id', user.id);
+        .eq('id', user.id)
+        .select();
+        
+      const result = await withTimeout(updateQuery, 12000);
 
-      if (error) {
-        console.error('Error completing onboarding:', error);
+      if (result.error) {
+        console.error('Error completing onboarding:', result.error);
         return;
       }
 
-      // Update local profile state
-      setProfile(prev => prev ? {
-        ...prev,
-        onboarding_completed: true,
-        onboarding_step: null,
-        last_onboarding_at: new Date().toISOString(),
-      } : null);
-
+      // Refresh profile data using React Query
+      await refreshProfile();
       console.log('[AUTH] Onboarding completed');
 
       // Navigate to role home
-      const homeRoute = getRoleHomeRoute((profile.role as UserRole) || 'client');
+      const homeRoute = getRoleHomeRoute(((profile as Profile)?.role as UserRole) || 'client');
       navigate(homeRoute, { replace: true });
 
     } catch (error) {
@@ -423,7 +374,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value = {
     user,
     session,
-    profile,
+    profile: profile as Profile | null,
     loading,
     signUp,
     signIn,
