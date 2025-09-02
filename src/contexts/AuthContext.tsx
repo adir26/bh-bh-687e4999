@@ -117,12 +117,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const fromState = (location.state as any)?.from;
     const fromPath = fromState?.pathname || null;
     
-    // Use new centralized routing logic
+    // Use new centralized routing logic - use actual onboarding_completed field
     const targetRoute = getPostAuthRoute({
       role: ((profile as Profile)?.role as UserRole) || 'client',
-      onboarding_completed: (profile as Profile).onboarding_status === 'completed',
+      onboarding_completed: (profile as Profile).onboarding_completed === true,
       onboarding_step: (profile as Profile).onboarding_step || 0,
       fromPath: fromPath,
+    });
+
+    console.log('[AUTH] Profile onboarding status:', {
+      onboarding_completed: (profile as Profile).onboarding_completed,
+      onboarding_status: (profile as Profile).onboarding_status,
+      role: (profile as Profile).role
     });
 
     // Only navigate if we're not already on the target route
