@@ -279,18 +279,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      const updateQuery = supabase
-        .from('profiles')
-        .update(sanitizedUpdates)
-        .eq('id', user.id)
-        .select();
-        
-      const result = await withTimeout(updateQuery, 12000);
+      const { data, error }: any = await withTimeout(
+        supabase
+          .from('profiles')
+          .update(sanitizedUpdates)
+          .eq('id', user.id)
+          .select(),
+        12000
+      );
 
-      if (result.error) {
+      if (error) {
         toast({
           title: "שגיאה בעדכון פרופיל",
-          description: result.error.message,
+          description: error.message,
           variant: "destructive"
         });
       } else {
@@ -301,7 +302,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
 
-      return { error: result.error };
+      return { error };
     } catch (error) {
       console.error('Profile update error:', error);
       return { error: error as Error };
@@ -312,20 +313,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user || !profile) return;
 
     try {
-      const updateQuery = supabase
-        .from('profiles')
-        .update({
-          onboarding_step: step,
-          onboarding_context: context || {},
-          last_onboarding_at: new Date().toISOString(),
-        })
-        .eq('id', user.id)
-        .select();
-        
-      const result = await withTimeout(updateQuery, 12000);
+      const { error }: any = await withTimeout(
+        supabase
+          .from('profiles')
+          .update({
+            onboarding_step: step,
+            onboarding_context: context || {},
+            last_onboarding_at: new Date().toISOString(),
+          })
+          .eq('id', user.id)
+          .select(),
+        12000
+      );
 
-      if (result.error) {
-        console.error('Error updating onboarding step:', result.error);
+      if (error) {
+        console.error('Error updating onboarding step:', error);
         return;
       }
 
@@ -341,20 +343,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user || !profile) return;
 
     try {
-      const updateQuery = supabase
-        .from('profiles')
-        .update({
-          onboarding_completed: true,
-          onboarding_step: null,
-          last_onboarding_at: new Date().toISOString(),
-        })
-        .eq('id', user.id)
-        .select();
-        
-      const result = await withTimeout(updateQuery, 12000);
+      const { error }: any = await withTimeout(
+        supabase
+          .from('profiles')
+          .update({
+            onboarding_completed: true,
+            onboarding_step: null,
+            last_onboarding_at: new Date().toISOString(),
+          })
+          .eq('id', user.id)
+          .select(),
+        12000
+      );
 
-      if (result.error) {
-        console.error('Error completing onboarding:', result.error);
+      if (error) {
+        console.error('Error completing onboarding:', error);
         return;
       }
 
