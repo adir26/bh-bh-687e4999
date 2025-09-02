@@ -131,10 +131,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role: (profile as Profile).role
     });
 
-    // Only navigate if we're not already on the target route
+    // Only navigate if we're not already on the target route and we're not on an onboarding page
+    // when the user should be on an onboarding page
+    const isOnOnboardingPage = location.pathname.startsWith('/onboarding');
+    const shouldBeOnOnboarding = targetRoute.startsWith('/onboarding');
+    
     if (location.pathname !== targetRoute) {
+      // Don't navigate away from onboarding pages if the user should complete onboarding
+      // unless they're being directed to a different onboarding page
+      if (isOnOnboardingPage && !shouldBeOnOnboarding && !(profile as Profile).onboarding_completed) {
+        console.log(`[AUTH] User on onboarding page but hasn't completed - staying on ${location.pathname}`);
+        return;
+      }
+      
       console.log('[AUTH] Navigating from', location.pathname, 'to', targetRoute);
       navigate(targetRoute, { replace: true });
+    } else {
+      console.log(`[AUTH] Already on target route: ${targetRoute}`);
     }
   }, [user, profile, loading, location.pathname, navigate]);
 
