@@ -493,11 +493,12 @@ const Profile = () => {
                 התנתק
               </Button>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
-  </PageBoundary>
+  </div>
+</PageBoundary>
 </OnboardingGuard>
   );
 };
