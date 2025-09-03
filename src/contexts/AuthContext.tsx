@@ -182,7 +182,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             emailRedirectTo: `${window.location.origin}/auth/callback`,
             data: {
               full_name: sanitizedName,
-              role: metadata?.role || 'client'
+              role: metadata?.role || 'client',
+              onboarding_completed: false,
+              onboarding_status: 'not_started',
+              onboarding_step: 0
             }
           }
         }),

@@ -118,11 +118,11 @@ const App = () => {
               {import.meta.env.DEV && new URLSearchParams(window.location.search).has('debug') && <QueryDebugOverlay />}
               <div className="min-h-screen bg-white">
               <Routes>
-                {/* Home page - requires completed onboarding for clients */}
+                {/* Home page - accessible to all authenticated users */}
                 <Route path="/" element={
-                  <OnboardingGuard>
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <Index />
-                  </OnboardingGuard>
+                  </ProtectedRoute>
                 } />
                 <Route path="/app-exclusive" element={<AppExclusive />} />
                 <Route path="/auth" element={<Auth />} />
@@ -135,83 +135,105 @@ const App = () => {
                 <Route path="/accessibility" element={<Accessibility />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/notifications" element={<Notifications />} />
-                {/* Role picker - accessible to new users without completed onboarding */}
+                {/* Role picker - protected from completed users, only for new users */}
                 <Route path="/onboarding/role-picker" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
-                    <RolePicker />
+                    <CompletedOnboardingGuard>
+                      <RolePicker />
+                    </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
                 
-                {/* Client onboarding routes - protected from completed users */}
+                {/* Client onboarding routes - protected from completed users, requires role */}
                 <Route path="/onboarding/welcome" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>
-                      <OnboardingWelcome />
+                      <OnboardingGuard role="client">
+                        <OnboardingWelcome />
+                      </OnboardingGuard>
                     </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
                 <Route path="/onboarding/home-details" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>
-                      <OnboardingHomeDetails />
+                      <OnboardingGuard role="client">
+                        <OnboardingHomeDetails />
+                      </OnboardingGuard>
                     </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
                 <Route path="/onboarding/project-planning" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>
-                      <OnboardingProjectPlanning />
+                      <OnboardingGuard role="client">
+                        <OnboardingProjectPlanning />
+                      </OnboardingGuard>
                     </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
                 <Route path="/onboarding/documents" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>
-                      <OnboardingDocuments />
+                      <OnboardingGuard role="client">
+                        <OnboardingDocuments />
+                      </OnboardingGuard>
                     </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
                 <Route path="/onboarding/interests" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>
-                      <OnboardingInterests />
+                      <OnboardingGuard role="client">
+                        <OnboardingInterests />
+                      </OnboardingGuard>
                     </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
                 
-                {/* Supplier onboarding routes - protected from completed users */}
+                {/* Supplier onboarding routes - protected from completed users, requires role */}
                 <Route path="/onboarding/supplier-welcome" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>
-                      <SupplierWelcome />
+                      <OnboardingGuard role="supplier">
+                        <SupplierWelcome />
+                      </OnboardingGuard>
                     </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
                 <Route path="/onboarding/supplier-company-info" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>
-                      <SupplierCompanyInfo />
+                      <OnboardingGuard role="supplier">
+                        <SupplierCompanyInfo />
+                      </OnboardingGuard>
                     </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
                 <Route path="/onboarding/supplier-branding" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>
-                      <SupplierBranding />
+                      <OnboardingGuard role="supplier">
+                        <SupplierBranding />
+                      </OnboardingGuard>
                     </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
                 <Route path="/onboarding/supplier-products" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>
-                      <SupplierProducts />
+                      <OnboardingGuard role="supplier">
+                        <SupplierProducts />
+                      </OnboardingGuard>
                     </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
                 <Route path="/onboarding/supplier-summary" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <CompletedOnboardingGuard>
-                      <SupplierSummary />
+                      <OnboardingGuard role="supplier">
+                        <SupplierSummary />
+                      </OnboardingGuard>
                     </CompletedOnboardingGuard>
                   </ProtectedRoute>
                 } />
