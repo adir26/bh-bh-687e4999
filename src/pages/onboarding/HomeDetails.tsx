@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import OnboardingProgress from '@/components/OnboardingProgress';
+import { useAuth } from '@/contexts/AuthContext';
 import luxuryBuilding from '@/assets/luxury-building.jpg';
 
 const homeDetailsSchema = z.object({
@@ -23,6 +24,7 @@ type HomeDetailsForm = z.infer<typeof homeDetailsSchema>;
 
 export default function OnboardingHomeDetails() {
   const navigate = useNavigate();
+  const { updateOnboardingStep } = useAuth();
 
   const form = useForm<HomeDetailsForm>({
     resolver: zodResolver(homeDetailsSchema),
@@ -36,9 +38,15 @@ export default function OnboardingHomeDetails() {
     }
   });
 
-  const onSubmit = (data: HomeDetailsForm) => {
+  const onSubmit = async (data: HomeDetailsForm) => {
     console.log('Home details:', data);
     localStorage.setItem('homeDetails', JSON.stringify(data));
+    
+    // Update onboarding step to 3 when moving to project planning
+    if (updateOnboardingStep) {
+      await updateOnboardingStep(3);
+    }
+    
     navigate('/onboarding/project-planning');
   };
 

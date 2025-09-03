@@ -16,10 +16,10 @@ export const getRouteFromStep = (role: UserRole, step: number): string => {
   } else {
     switch (step) {
       case 1: return '/onboarding/welcome';
-      case 2: return '/onboarding/interests';
-      case 3: return '/onboarding/home-details';
-      case 4: return '/onboarding/project-planning';
-      case 5: return '/onboarding/documents';
+      case 2: return '/onboarding/home-details';
+      case 3: return '/onboarding/project-planning';
+      case 4: return '/onboarding/documents';
+      case 5: return '/onboarding/interests';
       default: return '/onboarding/welcome';
     }
   }

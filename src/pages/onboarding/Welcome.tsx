@@ -3,12 +3,18 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import OnboardingProgress from '@/components/OnboardingProgress';
+import { useAuth } from '@/contexts/AuthContext';
 import welcomeImage from '@/assets/welcome-onboarding.jpg';
 
 export default function OnboardingWelcome() {
   const navigate = useNavigate();
+  const { updateOnboardingStep } = useAuth();
 
-  const handleStart = () => {
+  const handleStart = async () => {
+    // Update onboarding step to 2 when moving to home details
+    if (updateOnboardingStep) {
+      await updateOnboardingStep(2);
+    }
     navigate('/onboarding/home-details');
   };
 

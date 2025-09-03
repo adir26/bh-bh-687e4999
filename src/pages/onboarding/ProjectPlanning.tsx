@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import OnboardingProgress from '@/components/OnboardingProgress';
+import { useAuth } from '@/contexts/AuthContext';
 import projectPlanningImage from '@/assets/project-planning.jpg';
 
 const projectPlanningSchema = z.object({
@@ -36,6 +37,7 @@ const projectOptions = [
 
 export default function OnboardingProjectPlanning() {
   const navigate = useNavigate();
+  const { updateOnboardingStep } = useAuth();
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [showOtherInput, setShowOtherInput] = useState(false);
 
@@ -59,9 +61,15 @@ export default function OnboardingProjectPlanning() {
     form.setValue('projectTypes', updatedProjects);
   };
 
-  const onSubmit = (data: ProjectPlanningForm) => {
+  const onSubmit = async (data: ProjectPlanningForm) => {
     console.log('Project planning:', data);
     localStorage.setItem('projectPlanning', JSON.stringify(data));
+    
+    // Update onboarding step to 4 when moving to documents
+    if (updateOnboardingStep) {
+      await updateOnboardingStep(4);
+    }
+    
     navigate('/onboarding/documents');
   };
 

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, ChevronRight, Upload, File, X } from 'lucide-react';
 import OnboardingProgress from '@/components/OnboardingProgress';
+import { useAuth } from '@/contexts/AuthContext';
 import documentsImage from '@/assets/documents.jpg';
 
 interface UploadedFile {
@@ -49,6 +50,7 @@ const documentCategories = [
 
 export default function OnboardingDocuments() {
   const navigate = useNavigate();
+  const { updateOnboardingStep } = useAuth();
   const [uploadedFiles, setUploadedFiles] = useState<Record<string, UploadedFile[]>>({});
 
   const handleFileUpload = (categoryId: string, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -83,8 +85,14 @@ export default function OnboardingDocuments() {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     localStorage.setItem('uploadedDocuments', JSON.stringify(uploadedFiles));
+    
+    // Update onboarding step to 5 when moving to interests
+    if (updateOnboardingStep) {
+      await updateOnboardingStep(5);
+    }
+    
     navigate('/onboarding/interests');
   };
 
