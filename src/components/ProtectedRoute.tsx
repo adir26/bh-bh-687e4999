@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   allowedRoles, 
-  redirectTo = '/' 
+  redirectTo = '/auth' 
 }) => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();

@@ -11,11 +11,18 @@ export default function OnboardingWelcome() {
   const { updateOnboardingStep } = useAuth();
 
   const handleStart = async () => {
-    // Update onboarding step to 2 when moving to home details
-    if (updateOnboardingStep) {
-      await updateOnboardingStep(2);
+    try {
+      // Update onboarding step to 2 when moving to home details
+      if (updateOnboardingStep) {
+        await updateOnboardingStep(2);
+        console.log('[ONBOARDING] Step updated to 2, navigating to home-details');
+      }
+      navigate('/onboarding/home-details');
+    } catch (error) {
+      console.error('Error updating onboarding step:', error);
+      // Navigate anyway to prevent user from getting stuck
+      navigate('/onboarding/home-details');
     }
-    navigate('/onboarding/home-details');
   };
 
   return (

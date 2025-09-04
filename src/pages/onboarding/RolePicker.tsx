@@ -19,6 +19,8 @@ const RolePicker: React.FC = () => {
 
     setIsUpdating(true);
     try {
+      console.log('[ROLE PICKER] Updating role to:', selectedRole);
+      
       // Update the user's role in the profiles table
       const { error } = await supabase
         .from('profiles')
@@ -26,12 +28,14 @@ const RolePicker: React.FC = () => {
           role: selectedRole,
           onboarding_status: 'in_progress',
           onboarding_step: 1,
+          onboarding_completed: false, // Ensure this is set to false
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
 
       if (error) throw error;
 
+      console.log('[ROLE PICKER] Role updated successfully, navigating...');
       toast.success('תפקיד נבחר בהצלחה!');
 
       // Navigate to the appropriate onboarding flow

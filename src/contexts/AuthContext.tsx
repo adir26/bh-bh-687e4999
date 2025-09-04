@@ -88,11 +88,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Handle navigation when both user and profile are ready
+  // Handle login tracking when user and profile are ready
   useEffect(() => {
     if (!user || !profile || loading) return;
 
-    // Track login time
+    // Track login time once per session
     const trackLoginTime = async () => {
       try {
         await supabase
@@ -108,48 +108,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Only track login time once per session
     if (!sessionStorage.getItem(`login_tracked_${user.id}`)) {
       trackLoginTime();
       sessionStorage.setItem(`login_tracked_${user.id}`, 'true');
     }
 
-    const fromState = (location.state as any)?.from;
-    const fromPath = fromState?.pathname || null;
-    
-    // Use new centralized routing logic - use actual onboarding_completed field
-    const targetRoute = getPostAuthRoute({
-      role: ((profile as Profile)?.role as UserRole) || 'client',
-      onboarding_completed: (profile as Profile).onboarding_completed === true,
-      onboarding_step: (profile as Profile).onboarding_step || 0,
-      fromPath: fromPath,
+    console.log('[AUTH] User and profile loaded:', {
+      userId: user.id,
+      role: (profile as Profile)?.role,
+      onboarding_completed: (profile as Profile)?.onboarding_completed,
+      onboarding_step: (profile as Profile)?.onboarding_step,
+      currentPath: location.pathname
     });
-
-    console.log('[AUTH] Profile onboarding status:', {
-      onboarding_completed: (profile as Profile).onboarding_completed,
-      onboarding_status: (profile as Profile).onboarding_status,
-      role: (profile as Profile).role
-    });
-
-    // Only navigate if we're not already on the target route and we're not on an onboarding page
-    // when the user should be on an onboarding page
-    const isOnOnboardingPage = location.pathname.startsWith('/onboarding');
-    const shouldBeOnOnboarding = targetRoute.startsWith('/onboarding');
-    
-    if (location.pathname !== targetRoute) {
-      // Don't navigate away from onboarding pages if the user should complete onboarding
-      // unless they're being directed to a different onboarding page
-      if (isOnOnboardingPage && !shouldBeOnOnboarding && !(profile as Profile).onboarding_completed) {
-        console.log(`[AUTH] User on onboarding page but hasn't completed - staying on ${location.pathname}`);
-        return;
-      }
-      
-      console.log('[AUTH] Navigating from', location.pathname, 'to', targetRoute);
-      navigate(targetRoute, { replace: true });
-    } else {
-      console.log(`[AUTH] Already on target route: ${targetRoute}`);
-    }
-  }, [user, profile, loading, location.pathname, navigate]);
+  }, [user, profile, loading, location.pathname]);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
