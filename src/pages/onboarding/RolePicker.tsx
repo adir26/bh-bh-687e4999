@@ -27,8 +27,8 @@ const RolePicker: React.FC = () => {
         .update({
           role: selectedRole,
           onboarding_status: 'in_progress',
-          onboarding_step: 1,
-          onboarding_completed: false, // Ensure this is set to false
+          onboarding_step: 1, // Start at step 1 after role selection
+          onboarding_completed: false,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -36,14 +36,17 @@ const RolePicker: React.FC = () => {
       if (error) throw error;
 
       console.log('[ROLE PICKER] Role updated successfully, navigating...');
-      toast.success('תפקיד נבחר בהצלחה!');
+      toast.success(`תפקיד ${selectedRole === 'client' ? 'לקוח' : 'ספק'} נבחר בהצלחה!`);
 
-      // Navigate to the appropriate onboarding flow
-      const route = selectedRole === 'supplier' 
-        ? '/onboarding/supplier-welcome' 
-        : '/onboarding/welcome';
+      // Add a small delay to ensure profile is updated before navigation
+      setTimeout(() => {
+        const route = selectedRole === 'supplier' 
+          ? '/onboarding/supplier-welcome' 
+          : '/onboarding/welcome';
+        
+        navigate(route, { replace: true });
+      }, 500);
       
-      navigate(route, { replace: true });
     } catch (error) {
       console.error('Error updating role:', error);
       toast.error('שגיאה בעדכון התפקיד');

@@ -69,9 +69,17 @@ export const getPostAuthRoute = (opts: {
 
   console.log('[AUTH ROUTING] Determining route for:', opts);
 
-  // 1) If onboarding incomplete → go to saved step or start
+  // 1) If onboarding incomplete → check step first
   if (!onboarding_completed) {
     const step = onboarding_step || 0;
+    
+    // Step 0 means user hasn't chosen their role yet (Google OAuth users)
+    if (step === 0) {
+      console.log('[AUTH ROUTING] User needs role selection, routing to role picker');
+      return '/onboarding/role-picker';
+    }
+    
+    // Otherwise go to saved step or start onboarding for their role
     const route = step > 0 ? getRouteFromStep(role, step) : getOnboardingStartRoute(role);
     console.log('[AUTH ROUTING] Onboarding incomplete, routing to:', route);
     return route;

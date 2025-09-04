@@ -12,6 +12,7 @@ interface Profile {
   id: string;
   email?: string;
   full_name?: string;
+  avatar_url?: string;
   role?: 'client' | 'supplier' | 'admin';
   onboarding_completed?: boolean;
   onboarding_status?: 'not_started' | 'in_progress' | 'completed';
@@ -34,6 +35,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any, data?: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
   updateOnboardingStep: (step: number, data?: any) => Promise<void>;
@@ -263,6 +265,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      console.log('[AUTH] Starting Google OAuth signin');
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        }
+      });
+
+      if (error) {
+        console.error('Google OAuth error:', error);
+        let errorMessage = "שגיאה בהתחברות עם Google";
+        
+        if (error.message.includes('popup')) {
+          errorMessage = "החלון הקופץ נחסם. אנא אפשר חלונות קופצים ונסה שוב";
+        } else if (error.message.includes('network')) {
+          errorMessage = "בעיית רשת. אנא בדוק את החיבור לאינטרנט";
+        }
+        
+        toast({
+          title: "שגיאה בהתחברות",
+          description: errorMessage,
+          variant: "destructive"
+        });
+        
+        return { error };
+      }
+
+      console.log('[AUTH] Google OAuth initiated successfully');
+      return { error: null };
+    } catch (error: any) {
+      console.error('Google OAuth error:', error);
+      toast({
+        title: "שגיאה במערכת",
+        description: "אירעה שגיאה בהתחברות עם Google. אנא נסה שנית.",
+        variant: "destructive"
+      });
+      return { error };
+    }
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -418,6 +467,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     updateProfile,
     updateOnboardingStep,
