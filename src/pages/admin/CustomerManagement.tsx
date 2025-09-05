@@ -408,16 +408,17 @@ export default function CustomerManagement() {
                   </TableCell>
                   <TableCell className="text-right">{getRoleBadge(customer.role)}</TableCell>
                   <TableCell className="text-right">{getStatusBadge(customer)}</TableCell>
-                  <TableCell className="text-right">
-                    <div>
-                      {getOnboardingBadge(customer.onboarding_status || 'not_started')}
-                      {customer.onboarding_completion_time && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          זמן השלמה: {formatOnboardingTime(customer.onboarding_completion_time)}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
+                   <TableCell className="text-right">
+                     <div>
+                       {getOnboardingBadge(customer.onboarding_status || 'not_started')}
+                       <div className="text-xs text-muted-foreground mt-1">
+                         צעד {customer.onboarding_step || 0}
+                         {customer.onboarding_completion_time && (
+                           <span> • זמן: {formatOnboardingTime(customer.onboarding_completion_time)}</span>
+                         )}
+                       </div>
+                     </div>
+                   </TableCell>
                   <TableCell className="text-right">{formatDate(customer.created_at)}</TableCell>
                   <TableCell className="text-right">{customer.orders_count || 0}</TableCell>
                   <TableCell className="text-right">{customer.complaints_count || 0}</TableCell>

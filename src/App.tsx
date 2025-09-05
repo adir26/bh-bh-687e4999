@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { SecurityMiddleware } from "./components/SecurityMiddleware";
+import { RedirectIfAuthenticated } from "@/components/RedirectIfAuthenticated";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { SupplierBottomNavigation } from "@/components/SupplierBottomNavigation";
 import { queryClient } from "./lib/queryClient";
@@ -127,7 +128,11 @@ const App = () => {
                   </ProtectedRoute>
                 } />
                 <Route path="/app-exclusive" element={<AppExclusive />} />
-                <Route path="/auth" element={<Auth />} />
+                <Route path="/auth" element={
+                  <RedirectIfAuthenticated>
+                    <Auth />
+                  </RedirectIfAuthenticated>
+                } />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/registration" element={<Registration />} />
                 {/* Redirect /login to /auth for consistency */}

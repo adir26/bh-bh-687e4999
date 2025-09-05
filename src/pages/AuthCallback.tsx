@@ -38,31 +38,14 @@ const AuthCallback: React.FC = () => {
           // Handle profile upsert for Google OAuth users
           await handleProfileUpsert(user);
           
-          // Wait for profile to be loaded by AuthContext
-          const waitForProfile = () => {
-            if (loading) {
-              // Still loading, wait a bit more
-              setTimeout(waitForProfile, 100);
-              return;
-            }
-            
-            if (profile) {
-              const route = getPostAuthRoute({
-                role: (profile.role as UserRole) || 'client',
-                onboarding_completed: !!profile.onboarding_completed,
-                onboarding_step: profile.onboarding_step || null,
-                fromPath: null, // New user from callback, no previous path
-              });
-              console.log('[AUTH_CALLBACK] Navigating to:', route);
-              navigate(route, { replace: true });
-            } else {
-              console.error('[AUTH_CALLBACK] No profile found after loading');
-              toast.error('שגיאה בטעינת פרופיל המשתמש');
-              navigate('/auth');
-            }
-          };
+          // Task 4: Keep minimal - let centralized redirect in AuthContext handle navigation
+          console.log('[AUTH_CALLBACK] Profile upsert completed, centralized redirect will handle navigation');
           
-          waitForProfile();
+          // Clear any previous redirect flags to allow fresh navigation
+          sessionStorage.removeItem(`redirected_${user.id}`);
+          
+          // Navigate to a neutral path, let AuthContext handle the final destination
+          navigate('/', { replace: true });
         } else {
           console.log('[AUTH_CALLBACK] No session found, redirecting to auth');
           navigate('/auth');

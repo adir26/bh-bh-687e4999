@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Handle login tracking when user and profile are ready
+  // Centralized post-auth redirect logic - Task 1
   useEffect(() => {
     if (!user || !profile || loading) return;
 
@@ -120,9 +120,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       role: (profile as Profile)?.role,
       onboarding_completed: (profile as Profile)?.onboarding_completed,
       onboarding_step: (profile as Profile)?.onboarding_step,
+      onboarding_status: (profile as Profile)?.onboarding_status,
       currentPath: location.pathname
     });
-  }, [user, profile, loading, location.pathname]);
+
+    // Centralized post-auth redirect - single source of truth
+    const handlePostAuthRedirect = () => {
+      const currentPath = location.pathname;
+      
+      // Skip redirect logic for certain paths to avoid loops
+      if (currentPath.startsWith('/onboarding') || 
+          currentPath.startsWith('/admin') ||
+          currentPath === '/auth/callback') {
+        return;
+      }
+
+      // Get the destination based on current auth state
+      const destination = getPostAuthRoute({
+        role: (profile as Profile).role as UserRole,
+        onboarding_completed: (profile as Profile).onboarding_completed,
+        onboarding_step: (profile as Profile).onboarding_step,
+        fromPath: currentPath === '/auth' ? null : currentPath,
+      });
+
+      console.log('[AUTH] Post-auth redirect decision:', {
+        currentPath,
+        destination,
+        shouldRedirect: currentPath !== destination
+      });
+
+      // Only navigate if we're not already at the correct destination
+      if (currentPath !== destination && !sessionStorage.getItem(`redirected_${user.id}`)) {
+        console.log('[AUTH] Redirecting from', currentPath, 'to', destination);
+        sessionStorage.setItem(`redirected_${user.id}`, 'true');
+        navigate(destination, { replace: true });
+      }
+    };
+
+    // Small delay to ensure all auth state is settled
+    setTimeout(handlePostAuthRedirect, 100);
+  }, [user, profile, loading, location.pathname, navigate]);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
@@ -452,9 +489,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await refreshProfile();
       console.log('[AUTH] Onboarding completed');
 
-      // Navigate to home instead of role-specific route
-      navigate('/', { replace: true });
+      // Clear redirect flag to allow fresh centralized navigation
+      sessionStorage.removeItem(`redirected_${user.id}`);
 
+      // Let centralized post-auth redirect handle navigation
     } catch (error) {
       console.error('Error completing onboarding:', error);
     }

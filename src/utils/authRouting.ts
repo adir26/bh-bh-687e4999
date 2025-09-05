@@ -69,32 +69,33 @@ export const getPostAuthRoute = (opts: {
 
   console.log('[AUTH ROUTING] Determining route for:', opts);
 
-  // 1) If onboarding incomplete → check step first
-  if (!onboarding_completed) {
-    const step = onboarding_step || 0;
-    
-    // Step 0 means user hasn't chosen their role yet (Google OAuth users)
-    if (step === 0) {
-      console.log('[AUTH ROUTING] User needs role selection, routing to role picker');
-      return '/onboarding/role-picker';
+  // 1) If onboarding completed → honor return path or go to role home
+  if (onboarding_completed) {
+    // If user came from a protected page, honor it (but not auth pages)
+    if (fromPath && !fromPath.startsWith('/auth') && !fromPath.startsWith('/onboarding')) {
+      console.log('[AUTH ROUTING] Onboarding completed, returning to original path:', fromPath);
+      return fromPath;
     }
     
-    // Otherwise go to saved step or start onboarding for their role
-    const route = step > 0 ? getRouteFromStep(role, step) : getOnboardingStartRoute(role);
-    console.log('[AUTH ROUTING] Onboarding incomplete, routing to:', route);
-    return route;
+    const roleRoute = getRoleHomeRoute(role);
+    console.log('[AUTH ROUTING] Onboarding completed, routing to role home:', roleRoute);
+    return roleRoute;
   }
 
-  // 2) If user came from a protected page, honor it (but not auth pages)
-  if (fromPath && !fromPath.startsWith('/auth') && !fromPath.startsWith('/onboarding')) {
-    console.log('[AUTH ROUTING] Returning to original path:', fromPath);
-    return fromPath;
+  // 2) If onboarding not completed, check status and role
+  // Step 0 with known role should start onboarding, not go to role picker
+  const step = onboarding_step || 0;
+  
+  // Only go to role picker if role is truly unknown/missing or invalid
+  if (!role || !['client', 'supplier', 'admin'].includes(role as string)) {
+    console.log('[AUTH ROUTING] Role unknown or invalid, routing to role picker');
+    return '/onboarding/role-picker';
   }
-
-  // 3) Otherwise go to role home/dashboard
-  const roleRoute = getRoleHomeRoute(role);
-  console.log('[AUTH ROUTING] Routing to role home:', roleRoute);
-  return roleRoute;
+  
+  // Otherwise start or resume role-specific onboarding
+  const route = step > 0 ? getRouteFromStep(role, step) : getOnboardingStartRoute(role);
+  console.log('[AUTH ROUTING] Starting/resuming onboarding for role:', role, 'at step:', step, '→', route);
+  return route;
 };
 
 /**
