@@ -274,6 +274,7 @@ export type Database = {
           phone: string | null
           rating: number | null
           review_count: number | null
+          slug: string
           status: string | null
           tax_id: string | null
           updated_at: string
@@ -301,6 +302,7 @@ export type Database = {
           phone?: string | null
           rating?: number | null
           review_count?: number | null
+          slug: string
           status?: string | null
           tax_id?: string | null
           updated_at?: string
@@ -328,6 +330,7 @@ export type Database = {
           phone?: string | null
           rating?: number | null
           review_count?: number | null
+          slug?: string
           status?: string | null
           tax_id?: string | null
           updated_at?: string
@@ -2848,6 +2851,10 @@ export type Database = {
       }
       slugify: {
         Args: { txt: string }
+        Returns: string
+      }
+      slugify_company_name: {
+        Args: { name: string }
         Returns: string
       }
       supplier_dashboard_metrics: {
