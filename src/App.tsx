@@ -105,6 +105,8 @@ import PhotoDetail from "./pages/PhotoDetail";
 import Ideabooks from "./pages/Ideabooks";
 import IdeabookDetail from "./pages/IdeabookDetail";
 import AdminInspiration from "./pages/admin/AdminInspiration";
+import PublicSupplierProfile from "./pages/PublicSupplierProfile";
+import PublicProductView from "./pages/PublicProductView";
 import { SiteFooter } from "./components/SiteFooter";
 
 const App = () => {
@@ -324,6 +326,10 @@ const App = () => {
                     <Navigate to="/favorites" replace />
                   </ProtectedRoute>
                 } />
+                
+                {/* Public supplier routes - no authentication required */}
+                <Route path="/s/:slug" element={<PublicSupplierProfile />} />
+                <Route path="/s/:slug/p/:productId" element={<PublicProductView />} />
                 
                 {/* Inspiration routes */}
                 <Route path="/inspiration" element={<Inspiration />} />
