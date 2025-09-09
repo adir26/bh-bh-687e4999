@@ -7,7 +7,6 @@ import { UserRole, getPostAuthRoute, getRoleHomeRoute } from '@/utils/authRoutin
 import { InputSanitizer } from '@/utils/inputSanitizer';
 import { useProfile } from '@/hooks/useProfile';
 import { withTimeout } from '@/lib/withTimeout';
-import { useGuestMode } from '@/hooks/useGuestMode';
 
 interface Profile {
   id: string;
@@ -34,7 +33,6 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  isGuestMode: boolean;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any, data?: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
@@ -60,7 +58,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { isGuestMode } = useGuestMode();
 
   // Use useProfile hook instead of manual loading state
   const { data: profile, isLoading: loading, refetch: refreshProfile } = useProfile(user?.id);
@@ -95,8 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Centralized post-auth redirect logic - Task 1
   useEffect(() => {
-    // Skip redirect logic in guest mode or if user/profile not loaded
-    if (isGuestMode || !user || !profile || loading) return;
+    if (!user || !profile || loading) return;
 
     // Track login time once per session
     const trackLoginTime = async () => {
@@ -163,7 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Small delay to ensure all auth state is settled
     setTimeout(handlePostAuthRedirect, 100);
-  }, [user, profile, loading, location.pathname, navigate, isGuestMode]);
+  }, [user, profile, loading, location.pathname, navigate]);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
@@ -507,7 +503,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     profile: profile as Profile | null,
     loading,
-    isGuestMode,
     signUp,
     signIn,
     signInWithGoogle,

@@ -107,26 +107,7 @@ import IdeabookDetail from "./pages/IdeabookDetail";
 import AdminInspiration from "./pages/admin/AdminInspiration";
 import PublicSupplierProfile from "./pages/PublicSupplierProfile";
 import PublicProductView from "./pages/PublicProductView";
-import PublicHomepage from "./pages/PublicHomepage";
 import { SiteFooter } from "./components/SiteFooter";
-import { useGuestMode } from "./hooks/useGuestMode";
-
-// Guest-aware homepage component
-const GuestAwareHomepage = () => {
-  const { isGuestMode } = useGuestMode();
-  
-  if (isGuestMode) {
-    return <PublicHomepage />;
-  }
-  
-  return (
-    <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
-      <OnboardingGuard>
-        <Index />
-      </OnboardingGuard>
-    </ProtectedRoute>
-  );
-};
 
 const App = () => {
   return (
@@ -141,7 +122,13 @@ const App = () => {
               <div className="min-h-screen bg-white">
               <Routes>
                 {/* Home page - requires completed onboarding for clients/suppliers */}
-                <Route path="/" element={<GuestAwareHomepage />} />
+                <Route path="/" element={
+                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+                    <OnboardingGuard>
+                      <Index />
+                    </OnboardingGuard>
+                  </ProtectedRoute>
+                } />
                 <Route path="/app-exclusive" element={<AppExclusive />} />
                 <Route path="/auth" element={
                   <RedirectIfAuthenticated>
@@ -288,7 +275,6 @@ const App = () => {
                 } />
                 <Route path="/quotes/:quoteId" element={<QuoteView />} />
                 <Route path="/search" element={<Search />} />
-                <Route path="/inspiration" element={<Inspiration />} />
                 <Route path="/favorites" element={<ProtectedRoute allowedRoles={['client', 'supplier']}><Favorites /></ProtectedRoute>} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/orders/:orderId/status" element={<OrderStatus />} />
