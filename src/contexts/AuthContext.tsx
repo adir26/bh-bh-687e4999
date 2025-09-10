@@ -94,6 +94,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!user || !profile || loading) return;
 
+    // Check if this was a guest-to-authenticated transition
+    const wasGuest = sessionStorage.getItem('guestMode') === 'true';
+    const returnPath = sessionStorage.getItem('returnPath');
+    const pendingAction = sessionStorage.getItem('pendingAction');
+
     // Track login time once per session
     const trackLoginTime = async () => {
       try {
@@ -135,18 +140,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      // Handle guest-to-authenticated transition
+      if (wasGuest) {
+        console.log('[AUTH] Guest-to-authenticated transition detected');
+        
+        // Clear guest mode
+        sessionStorage.removeItem('guestMode');
+        sessionStorage.removeItem('appMode');
+        
+        // If there's a return path, go there without guest params
+        if (returnPath && returnPath !== '/auth') {
+          console.log('[AUTH] Returning to path after guest login:', returnPath);
+          sessionStorage.removeItem('returnPath');
+          sessionStorage.removeItem('pendingAction');
+          navigate(returnPath, { replace: true });
+          return;
+        }
+      }
+
       // Get the destination based on current auth state
       const destination = getPostAuthRoute({
         role: (profile as Profile).role as UserRole,
         onboarding_completed: (profile as Profile).onboarding_completed,
         onboarding_step: (profile as Profile).onboarding_step,
-        fromPath: currentPath === '/auth' ? null : currentPath,
+        fromPath: returnPath || (currentPath === '/auth' ? null : currentPath),
       });
 
       console.log('[AUTH] Post-auth redirect decision:', {
         currentPath,
         destination,
-        shouldRedirect: currentPath !== destination
+        shouldRedirect: currentPath !== destination,
+        wasGuest,
+        returnPath,
+        pendingAction
       });
 
       // Only navigate if we're not already at the correct destination

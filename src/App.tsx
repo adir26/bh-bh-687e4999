@@ -107,7 +107,59 @@ import IdeabookDetail from "./pages/IdeabookDetail";
 import AdminInspiration from "./pages/admin/AdminInspiration";
 import PublicSupplierProfile from "./pages/PublicSupplierProfile";
 import PublicProductView from "./pages/PublicProductView";
+import PublicHomepage from "./pages/PublicHomepage";
 import { SiteFooter } from "./components/SiteFooter";
+import { useGuestMode } from "./hooks/useGuestMode";
+
+// Wrapper for public routes that can be accessed in guest mode
+const PublicRouteWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isGuestMode } = useGuestMode();
+  const { user } = useAuth();
+  
+  // If in guest mode, render directly
+  if (isGuestMode) {
+    return <>{children}</>;
+  }
+  
+  // If authenticated user, render with protection
+  if (user) {
+    return (
+      <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+        <OnboardingGuard>
+          {children}
+        </OnboardingGuard>
+      </ProtectedRoute>
+    );
+  }
+  
+  // Default behavior for non-guest, non-authenticated
+  return <>{children}</>;
+};
+
+// Wrapper for homepage that handles guest mode vs authenticated mode
+const PublicHomeWrapper: React.FC = () => {
+  const { isGuestMode } = useGuestMode();
+  const { user } = useAuth();
+  
+  // If in guest mode, show public homepage
+  if (isGuestMode) {
+    return <PublicHomepage />;
+  }
+  
+  // If authenticated user, show protected homepage
+  if (user) {
+    return (
+      <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
+        <OnboardingGuard>
+          <Index />
+        </OnboardingGuard>
+      </ProtectedRoute>
+    );
+  }
+  
+  // Default: redirect to auth for non-guest, non-authenticated
+  return <Navigate to="/auth" replace />;
+};
 
 const App = () => {
   return (
@@ -121,14 +173,8 @@ const App = () => {
               {import.meta.env.DEV && new URLSearchParams(window.location.search).has('debug') && <QueryDebugOverlay />}
               <div className="min-h-screen bg-white">
               <Routes>
-                {/* Home page - requires completed onboarding for clients/suppliers */}
-                <Route path="/" element={
-                  <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
-                    <OnboardingGuard>
-                      <Index />
-                    </OnboardingGuard>
-                  </ProtectedRoute>
-                } />
+                {/* Home page - supports guest mode */}
+                <Route path="/" element={<PublicHomeWrapper />} />
                 <Route path="/app-exclusive" element={<AppExclusive />} />
                 <Route path="/auth" element={
                   <RedirectIfAuthenticated>
@@ -274,7 +320,9 @@ const App = () => {
                   </OnboardingGuard>
                 } />
                 <Route path="/quotes/:quoteId" element={<QuoteView />} />
-                <Route path="/search" element={<Search />} />
+                
+                {/* Public routes - accessible in guest mode */}
+                <Route path="/search" element={<PublicRouteWrapper><Search /></PublicRouteWrapper>} />
                 <Route path="/favorites" element={<ProtectedRoute allowedRoles={['client', 'supplier']}><Favorites /></ProtectedRoute>} />
                 <Route path="/orders" element={<Orders />} />
                 <Route path="/orders/:orderId/status" element={<OrderStatus />} />
@@ -331,8 +379,8 @@ const App = () => {
                 <Route path="/s/:slug" element={<PublicSupplierProfile />} />
                 <Route path="/s/:slug/p/:productId" element={<PublicProductView />} />
                 
-                {/* Inspiration routes */}
-                <Route path="/inspiration" element={<Inspiration />} />
+                {/* Inspiration routes - public */}
+                <Route path="/inspiration" element={<PublicRouteWrapper><Inspiration /></PublicRouteWrapper>} />
                 <Route path="/inspiration/photo/:id" element={<PhotoDetail />} />
                 <Route path="/ideabooks" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
