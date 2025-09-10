@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole, getRoleHomeRoute, getOnboardingStartRoute, getRouteFromStep } from '@/utils/authRouting';
+import { useGuestMode } from '@/hooks/useGuestMode';
 
 interface OnboardingGuardProps {
   children: React.ReactNode;
@@ -15,6 +16,7 @@ interface OnboardingGuardProps {
 export const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children, role }) => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
+  const { isGuestMode } = useGuestMode();
 
   // Show loading while auth state is being determined
   if (loading) {
@@ -26,6 +28,11 @@ export const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children, role
         </div>
       </div>
     );
+  }
+
+  // In guest mode, redirect onboarding routes to home
+  if (isGuestMode && !user) {
+    return <Navigate to="/" replace />;
   }
 
   // If no user, redirect to auth with current location
