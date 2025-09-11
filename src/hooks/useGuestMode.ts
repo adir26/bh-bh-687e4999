@@ -50,6 +50,14 @@ export const clearGuestMode = (): void => {
   sessionStorage.removeItem('appMode');
 };
 
+// Helper function to clear welcome screen flag and guest mode when user authenticates
+export const clearWelcomeState = (): void => {
+  sessionStorage.removeItem('hasSeenWelcome');
+  sessionStorage.removeItem('guestMode');
+  sessionStorage.removeItem('appMode');
+  sessionStorage.removeItem('guestBannerDismissed');
+};
+
 // Helper function to get guest mode URL params
 export const getGuestModeParams = (): string => {
   const isGuest = sessionStorage.getItem('guestMode') === 'true';

@@ -108,6 +108,7 @@ import AdminInspiration from "./pages/admin/AdminInspiration";
 import PublicSupplierProfile from "./pages/PublicSupplierProfile";
 import PublicProductView from "./pages/PublicProductView";
 import PublicHomepage from "./pages/PublicHomepage";
+import Welcome from "./pages/Welcome";
 import { SiteFooter } from "./components/SiteFooter";
 import { useGuestMode } from "./hooks/useGuestMode";
 
@@ -148,10 +149,22 @@ const PublicRouteWrapper: React.FC<{ children: React.ReactNode }> = ({ children 
   return <>{children}</>;
 };
 
-// Wrapper for homepage that handles guest mode vs authenticated mode
-const PublicHomeWrapper: React.FC = () => {
+// Wrapper for homepage that handles guest mode vs authenticated mode vs new visitors
+const HomeWrapper: React.FC = () => {
   const { isGuestMode } = useGuestMode();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  
+  // Show loading while auth state is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">טוען...</p>
+        </div>
+      </div>
+    );
+  }
   
   // If in guest mode, show public homepage
   if (isGuestMode) {
@@ -169,7 +182,15 @@ const PublicHomeWrapper: React.FC = () => {
     );
   }
   
-  // Default: redirect to auth for non-guest, non-authenticated
+  // For new visitors (not authenticated, not in guest mode), show welcome page
+  // Check if user has previously chosen a path (to avoid showing welcome every time)
+  const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
+  if (!hasSeenWelcome) {
+    sessionStorage.setItem('hasSeenWelcome', 'true');
+    return <Welcome />;
+  }
+  
+  // Default: redirect to auth for returning users
   return <Navigate to="/auth" replace />;
 };
 
@@ -185,8 +206,9 @@ const App = () => {
               {import.meta.env.DEV && new URLSearchParams(window.location.search).has('debug') && <QueryDebugOverlay />}
               <div className="min-h-screen bg-white">
               <Routes>
-                {/* Home page - supports guest mode */}
-                <Route path="/" element={<PublicHomeWrapper />} />
+                {/* Home page - supports guest mode and welcome for new visitors */}
+                <Route path="/" element={<HomeWrapper />} />
+                <Route path="/welcome" element={<Welcome />} />
                 <Route path="/app-exclusive" element={<AppExclusive />} />
                 <Route path="/auth" element={
                   <RedirectIfAuthenticated>

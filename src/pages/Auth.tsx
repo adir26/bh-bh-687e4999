@@ -207,6 +207,29 @@ const Auth: React.FC = () => {
             </p>
           </div>
 
+          {/* Guest Mode Option */}
+          <Card className="bg-muted/30 border-dashed">
+            <CardContent className="p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-3">
+                רוצים לעיין בלי להירשם?
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  sessionStorage.setItem('guestMode', 'true');
+                  navigate('/?guest=1');
+                }}
+                className="h-10 px-6"
+              >
+                המשיכו כאורח
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                יכולות מוגבלות • ללא שמירת נתונים
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Google OAuth Button */}
           
 

@@ -10,6 +10,7 @@ export const GuestModeIndicator: React.FC = () => {
 
   const handleSignIn = () => {
     sessionStorage.setItem('returnPath', window.location.pathname);
+    sessionStorage.setItem('attemptedAction', 'guest_upgrade');
     navigate('/auth');
   };
 
@@ -30,7 +31,7 @@ export const GuestModeIndicator: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="text-sm text-primary/80">
             <span className="font-medium">אתה עוין כאורח.</span>
-            <span className="mr-2">היכנס כדי לשמור פריטים ולצור קשר עם ספקים.</span>
+            <span className="mr-2">התחבר כדי לשמור פריטים, ליצור קשר עם ספקים ולקבל הצעות מחיר.</span>
           </div>
         </div>
         

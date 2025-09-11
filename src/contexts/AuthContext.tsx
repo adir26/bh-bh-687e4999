@@ -7,6 +7,7 @@ import { UserRole, getPostAuthRoute, getRoleHomeRoute } from '@/utils/authRoutin
 import { InputSanitizer } from '@/utils/inputSanitizer';
 import { useProfile } from '@/hooks/useProfile';
 import { withTimeout } from '@/lib/withTimeout';
+import { clearWelcomeState } from '@/hooks/useGuestMode';
 
 interface Profile {
   id: string;
@@ -144,9 +145,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (wasGuest) {
         console.log('[AUTH] Guest-to-authenticated transition detected');
         
-        // Clear guest mode
-        sessionStorage.removeItem('guestMode');
-        sessionStorage.removeItem('appMode');
+        // Clear all guest and welcome state
+        clearWelcomeState();
         
         // If there's a return path, go there without guest params
         if (returnPath && returnPath !== '/auth') {
@@ -156,6 +156,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           navigate(returnPath, { replace: true });
           return;
         }
+      } else {
+        // For normal logins/signups, also clear welcome state to prevent showing welcome again
+        sessionStorage.removeItem('hasSeenWelcome');
       }
 
       // Get the destination based on current auth state
