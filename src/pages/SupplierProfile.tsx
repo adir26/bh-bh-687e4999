@@ -3,7 +3,8 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Star, Phone, MessageCircle, Heart, Share2, ShoppingBag, Eye, Calendar, Bookmark } from 'lucide-react';
 import { getSupplierById } from '@/data/suppliers';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRequireAuth } from '@/hooks/useRequireAuth';
+import { useRequireAuth, type GatedAction } from '@/hooks/useRequireAuth';
+import { useDeepLinkAction } from '@/hooks/useDeepLinkAction';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { showToast } from '@/utils/toast';
@@ -29,12 +30,35 @@ const SupplierProfile = () => {
   // since this route is for clients to view supplier information
   const isOwnProfile = false;
   
+  // Handle deep-link actions
+  const handleDeepLinkAction = (action: GatedAction) => {
+    switch (action) {
+      case 'contact_supplier':
+        setIsContactModalOpen(true);
+        break;
+      case 'book_meeting':
+        setIsMeetingModalOpen(true);
+        break;
+      case 'save_favorite':
+        handleToggleFavorite();
+        break;
+      default:
+        console.log('Unhandled deep-link action:', action);
+    }
+  };
+
+  const { hasDeepLinkAction } = useDeepLinkAction(handleDeepLinkAction, [
+    'contact_supplier',
+    'book_meeting', 
+    'save_favorite'
+  ]);
+
   useEffect(() => {
     if (user && id) {
       checkExistingInteractions();
     }
     
-    // Auto-open contact modal if ?contact=true in URL
+    // Legacy support: Auto-open contact modal if ?contact=true in URL
     if (searchParams.get('contact') === 'true') {
       setIsContactModalOpen(true);
     }

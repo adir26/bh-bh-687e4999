@@ -8,16 +8,20 @@ export interface GuestModeState {
   setShowLoginModal: (show: boolean) => void;
   attemptedAction: string | null;
   setAttemptedAction: (action: string | null) => void;
+  returnPath: string | null;
+  setReturnPath: (path: string | null) => void;
 }
 
 export const useGuestMode = (): GuestModeState => {
   const location = useLocation();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [attemptedAction, setAttemptedAction] = useState<string | null>(null);
+  const [returnPath, setReturnPath] = useState<string | null>(null);
   
   const urlParams = new URLSearchParams(location.search);
   const isGuestMode = urlParams.get('guest') === '1';
   const isAppMode = urlParams.get('app') === 'ios';
+  const actionParam = urlParams.get('action');
 
   // Store guest mode state in sessionStorage for navigation persistence
   useEffect(() => {
@@ -29,13 +33,25 @@ export const useGuestMode = (): GuestModeState => {
     }
   }, [isGuestMode, isAppMode]);
 
+  // Handle deep-link actions for guests
+  useEffect(() => {
+    if (actionParam && isGuestMode) {
+      // Store the full path with action param for post-login execution
+      setReturnPath(location.pathname + location.search);
+      setAttemptedAction(actionParam);
+      setShowLoginModal(true);
+    }
+  }, [actionParam, isGuestMode, location.pathname, location.search]);
+
   return {
     isGuestMode,
     isAppMode,
     showLoginModal,
     setShowLoginModal,
     attemptedAction,
-    setAttemptedAction
+    setAttemptedAction,
+    returnPath,
+    setReturnPath
   };
 };
 
