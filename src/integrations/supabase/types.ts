@@ -1076,22 +1076,34 @@ export type Database = {
       }
       notification_preferences: {
         Row: {
+          categories: Json
+          created_at: string
+          email_opt_in: boolean
           marketing: boolean
           orders: boolean
+          push_opt_in: boolean
           system: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
+          categories?: Json
+          created_at?: string
+          email_opt_in?: boolean
           marketing?: boolean
           orders?: boolean
+          push_opt_in?: boolean
           system?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
+          categories?: Json
+          created_at?: string
+          email_opt_in?: boolean
           marketing?: boolean
           orders?: boolean
+          push_opt_in?: boolean
           system?: boolean
           updated_at?: string
           user_id?: string
@@ -1105,7 +1117,9 @@ export type Database = {
           created_at: string
           id: string
           is_read: boolean | null
+          message: string
           metadata: Json | null
+          payload: Json
           priority: string | null
           read_at: string | null
           title: string
@@ -1118,7 +1132,9 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean | null
+          message: string
           metadata?: Json | null
+          payload?: Json
           priority?: string | null
           read_at?: string | null
           title: string
@@ -1131,7 +1147,9 @@ export type Database = {
           created_at?: string
           id?: string
           is_read?: boolean | null
+          message?: string
           metadata?: Json | null
+          payload?: Json
           priority?: string | null
           read_at?: string | null
           title?: string
@@ -2742,6 +2760,16 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      create_notification: {
+        Args: {
+          p_message: string
+          p_payload?: Json
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       delete_user_account: {
         Args: { user_id: string }
         Returns: undefined
@@ -2812,6 +2840,14 @@ export type Database = {
       }
       log_performance_metric: {
         Args: { p_labels?: Json; p_metric_name: string; p_metric_value: number }
+        Returns: undefined
+      }
+      mark_all_notifications_read: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      mark_notification_read: {
+        Args: { notification_id: string }
         Returns: undefined
       }
       promote_to_admin: {

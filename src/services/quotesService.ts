@@ -225,6 +225,7 @@ export const quotesService = {
         user_id: clientId,
         title: 'הצעת מחיר חדשה התקבלה',
         content: `הצעת מחיר חדשה ממתינה לאישורך`,
+        message: `הצעת מחיר חדשה ממתינה לאישורך`,
         type: 'quote_received',
         action_url: `/quotes/${quoteId}`,
         metadata: { quote_id: quoteId }
@@ -259,6 +260,7 @@ export const quotesService = {
         user_id: quote.supplier_id,
         title: 'הצעת מחיר אושרה!',
         content: `הצעת המחיר שלך אושרה על ידי הלקוח`,
+        message: `הצעת המחיר שלך אושרה על ידי הלקוח`,
         type: 'quote_accepted',
         action_url: `/supplier/quotes/${quoteId}`,
         metadata: { quote_id: quoteId }
@@ -292,6 +294,7 @@ export const quotesService = {
         user_id: quote.supplier_id,
         title: 'הצעת מחיר נדחתה',
         content: `הצעת המחיר שלך נדחתה על ידי הלקוח`,
+        message: `הצעת המחיר שלך נדחתה על ידי הלקוח`,
         type: 'quote_rejected',
         action_url: `/supplier/quotes/${quoteId}`,
         metadata: { quote_id: quoteId }

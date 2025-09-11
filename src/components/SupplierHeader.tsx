@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, ArrowLeft } from 'lucide-react';
+import { NotificationBell } from '@/components/NotificationBell';
 
 interface SupplierHeaderProps {
   title: string;
@@ -48,25 +49,7 @@ export const SupplierHeader: React.FC<SupplierHeaderProps> = ({
             </div>
           </div>
           
-          {showNotifications && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/supplier/notifications')}
-              className="relative"
-              aria-label="התראות"
-            >
-              <Bell className="w-5 h-5" />
-              {unreadNotifications > 0 && (
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center text-xs p-0"
-                >
-                  {unreadNotifications}
-                </Badge>
-              )}
-            </Button>
-          )}
+          {showNotifications && <NotificationBell />}
         </div>
       </div>
     </div>
