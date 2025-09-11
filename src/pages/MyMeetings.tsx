@@ -1,27 +1,18 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Calendar, Clock, Trash2, Eye } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { Trash2, Calendar, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
+import { supabase } from '@/integrations/supabase/client';
 import { showToast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
-import { supaSelect } from '@/lib/supaFetch';
 import { PageBoundary } from '@/components/system/PageBoundary';
+import { Skeleton } from '@/components/ui/skeleton';
 
-interface Meeting {
-  id: string;
-  supplier_id: string;
-  datetime: string;
-  status: string;
-  notes: string | null;
-  created_at: string;
-}
-
-const MyMeetings = () => {
-  const navigate = useNavigate();
+export default function MyMeetings() {
   const { user } = useAuth();
+  const { invalidateMeetings } = useQueryInvalidation();
 
   const { data: meetings = [], isLoading } = useQuery({
     queryKey: ['meetings', user?.id],
@@ -61,7 +52,7 @@ const MyMeetings = () => {
 
       if (error) throw error;
       
-      // TODO: Add queryClient.invalidateQueries(['meetings', user?.id]);
+      invalidateMeetings(user?.id);
       showToast.success('הפגישה נמחקה');
     } catch (error) {
       console.error('Error deleting meeting:', error);

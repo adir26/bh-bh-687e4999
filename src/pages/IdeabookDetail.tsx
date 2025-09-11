@@ -9,8 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
 import { toast } from 'sonner';
 import { Ideabook, IdeabookPhoto, IdeabookCollaborator } from '@/types/inspiration';
 import { getPublicImageUrl } from '@/utils/imageUrls';
@@ -23,6 +25,7 @@ export default function IdeabookDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { invalidateIdeabook } = useQueryInvalidation();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showCollaborators, setShowCollaborators] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -169,7 +172,7 @@ export default function IdeabookDetail() {
 
       if (error) throw error;
 
-      // TODO: Add queryClient.invalidateQueries(['ideabook', id, user?.id]);
+      invalidateIdeabook(id!, user?.id);
       toast.success('התמונה הוסרה מהאידאבוק');
     } catch (error) {
       console.error('Error removing photo:', error);
@@ -217,11 +220,10 @@ export default function IdeabookDetail() {
 
       if (error) throw error;
 
-      // TODO: Add queryClient.invalidateQueries(['ideabook', id, user?.id]);
+      invalidateIdeabook(id!, user?.id);
       toast.success('משתף נוסף בהצלחה');
       setNewCollaboratorEmail('');
       setNewCollaboratorRole('viewer');
-      toast.success('משתף נוסף בהצלחה');
     } catch (error) {
       console.error('Error adding collaborator:', error);
       toast.error('שגיאה בהוספת המשתף');
@@ -242,8 +244,7 @@ export default function IdeabookDetail() {
 
       if (error) throw error;
 
-      // TODO: Add queryClient.invalidateQueries(['ideabook', id, user?.id]);
-      toast.success('המשתף הוסר בהצלחה');
+      invalidateIdeabook(id!, user?.id);
       toast.success('המשתף הוסר בהצלחה');
     } catch (error) {
       console.error('Error removing collaborator:', error);
@@ -269,12 +270,18 @@ export default function IdeabookDetail() {
       }
     >
       {isLoading ? (
-        <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
+        <div className="min-h-screen bg-background p-4 pb-32">
           <div className="container mx-auto">
-            <div className="h-8 bg-muted rounded mb-6" />
+            <div className="flex justify-between items-center mb-6">
+              <Skeleton className="h-8 w-48" />
+              <div className="flex gap-2">
+                <Skeleton className="h-8 w-24" />
+                <Skeleton className="h-8 w-24" />
+              </div>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="aspect-square bg-muted rounded-lg" />
+                <Skeleton key={i} className="aspect-square" />
               ))}
             </div>
           </div>
@@ -295,7 +302,7 @@ export default function IdeabookDetail() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Link to="/ideabooks">
+              <Link to="/ideabooks" aria-label="חזור לאידאבוקים">
                 <Button variant="ghost" size="sm">
                   <ArrowRight className="h-4 w-4 ml-2" />
                   חזור
@@ -327,6 +334,7 @@ export default function IdeabookDetail() {
                   size="sm"
                   onClick={() => setViewMode('grid')}
                   className="h-8 w-8 p-0"
+                  aria-label="תצוגת רשת"
                 >
                   <Grid className="h-4 w-4" />
                 </Button>
@@ -335,13 +343,14 @@ export default function IdeabookDetail() {
                   size="sm"
                   onClick={() => setViewMode('list')}
                   className="h-8 w-8 p-0"
+                  aria-label="תצוגת רשימה"
                 >
                   <List className="h-4 w-4" />
                 </Button>
               </div>
 
               {ideabook.is_public && (
-                <Button variant="outline" size="sm" onClick={shareIdeabook}>
+                <Button variant="outline" size="sm" onClick={shareIdeabook} aria-label="שיתוף האידאבוק">
                   <Share2 className="h-4 w-4 ml-2" />
                   שיתוף
                 </Button>
@@ -350,7 +359,7 @@ export default function IdeabookDetail() {
               {(userRole === 'owner' || userRole === 'editor') && (
                 <Dialog open={showCollaborators} onOpenChange={setShowCollaborators}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" aria-label="ניהול משתפים">
                       <Users className="h-4 w-4 ml-2" />
                       משתפים
                     </Button>
@@ -410,6 +419,7 @@ export default function IdeabookDetail() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => removeCollaborator(collaborator.id)}
+                                  aria-label={`הסר את ${collaborator.profiles.full_name || collaborator.profiles.email}`}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -424,7 +434,7 @@ export default function IdeabookDetail() {
               )}
 
               {userRole === 'owner' && (
-                <Button variant="outline" size="sm" onClick={() => setShowSettings(true)}>
+                <Button variant="outline" size="sm" onClick={() => setShowSettings(true)} aria-label="הגדרות האידאבוק">
                   <Settings className="h-4 w-4 ml-2" />
                   הגדרות
                 </Button>
@@ -447,7 +457,7 @@ export default function IdeabookDetail() {
               }
             </p>
             {userRole !== 'viewer' && (
-              <Link to="/inspiration">
+              <Link to="/inspiration" aria-label="עבור לגלריית השראה">
                 <Button>
                   עבור לגלריית השראה
                 </Button>
@@ -459,7 +469,7 @@ export default function IdeabookDetail() {
             {photos.map((ideabookPhoto) => (
               <Card key={ideabookPhoto.id} className="group overflow-hidden">
                 <CardContent className="p-0 relative">
-                  <Link to={`/inspiration/photo/${ideabookPhoto.photos.id}`}>
+                  <Link to={`/inspiration/photo/${ideabookPhoto.photos.id}`} aria-label={`צפה בתמונה: ${ideabookPhoto.photos.title}`}>
                     <div className={viewMode === 'grid' ? 'aspect-square' : 'aspect-video md:aspect-square'}>
                       <img
                         src={getPublicImageUrl(ideabookPhoto.photos.storage_path)}

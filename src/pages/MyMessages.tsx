@@ -1,14 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, MessageCircle, Trash2, Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Trash2, ExternalLink, ArrowRight, MessageCircle, Eye } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
+import { supabase } from '@/integrations/supabase/client';
 import { showToast } from '@/utils/toast';
 import { useQuery } from '@tanstack/react-query';
-import { supaSelect } from '@/lib/supaFetch';
 import { PageBoundary } from '@/components/system/PageBoundary';
+import { Skeleton } from '@/components/ui/skeleton';
+import { supaSelect } from '@/lib/supaFetch';
 
 interface Lead {
   id: string;
@@ -16,12 +19,12 @@ interface Lead {
   notes: string;
   status: string;
   created_at: string;
-  // We'll need to join with suppliers data manually since we don't have foreign keys
 }
 
-const MyMessages = () => {
+export default function MyMessages() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { invalidateLeads } = useQueryInvalidation();
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ['leads', user?.id],
@@ -41,7 +44,6 @@ const MyMessages = () => {
           }
         );
       } catch (error: any) {
-        // If table doesn't exist, return empty array instead of throwing
         if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
           return [];
         }
@@ -61,8 +63,7 @@ const MyMessages = () => {
 
       if (error) throw error;
       
-      // Invalidate query to refetch leads
-      // TODO: Add queryClient.invalidateQueries(['leads', user?.id]);
+      invalidateLeads(user?.id);
       showToast.success('ההודעה נמחקה');
     } catch (error) {
       console.error('Error deleting lead:', error);
@@ -72,114 +73,106 @@ const MyMessages = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      new: { text: 'חדש', color: 'bg-blue-100 text-blue-800' },
-      responded: { text: 'נענה', color: 'bg-green-100 text-green-800' },
-      archived: { text: 'בארכיון', color: 'bg-gray-100 text-gray-800' }
+      new: { text: 'חדש', variant: 'default' as const },
+      responded: { text: 'נענה', variant: 'secondary' as const },
+      archived: { text: 'בארכיון', variant: 'outline' as const }
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.new;
     
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+      <Badge variant={config.variant}>
         {config.text}
-      </span>
+      </Badge>
     );
   };
 
   return (
-    <PageBoundary 
-      timeout={10000}
-      fallback={
-        <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
-          <div className="flex items-center justify-center flex-1">
-            <div className="text-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground">טוען הודעות...</p>
-            </div>
-          </div>
-        </div>
-      }
-    >
+    <PageBoundary>
       {isLoading ? (
-        <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
-          <div className="flex items-center justify-center flex-1">
-            <div className="text-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground">טוען הודעות...</p>
+        <div className="min-h-screen bg-background p-4 pb-32">
+          <div className="container mx-auto">
+            <Skeleton className="h-8 w-48 mb-6" />
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-4">
+                    <Skeleton className="h-6 w-32 mb-2" />
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-24" />
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>
       ) : (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <button onClick={() => navigate(-1)} className="p-2">
-          <ArrowRight className="w-6 h-6" />
-        </button>
-        <span className="text-lg font-semibold">ההודעות שלי</span>
-        <div className="w-10" />
-      </div>
+        <div className="min-h-screen bg-background p-4 pb-32">
+          <div className="container mx-auto">
+            <header className="mb-6">
+              <h1 className="text-2xl font-bold">ההודעות שלי</h1>
+            </header>
 
-      {/* Content */}
-      <div className="flex-1 p-4">
-        {leads.length === 0 ? (
-          <div className="text-center py-8">
-            <MessageCircle className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">אין הודעות</h3>
-            <p className="text-gray-500 mb-4">עדיין לא שלחת הודעות לספקים</p>
-            <Button onClick={() => navigate('/')}>
-              חזרה לדף הבית
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {leads.map((lead) => (
-              <Card key={lead.id} className="border border-gray-200">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h4 className="font-semibold text-gray-900">ספק ID: {lead.supplier_id}</h4>
-                        {getStatusBadge(lead.status)}
+            {!leads || leads.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="max-w-md mx-auto">
+                  <div className="bg-muted rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <ExternalLink className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h2 className="text-lg font-semibold mb-2">אין הודעות עדיין</h2>
+                  <p className="text-muted-foreground mb-4">
+                    כאשר תשלח הודעות לספקים או תקבל הודעות, הן יופיעו כאן.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4" role="list" aria-label="רשימת הודעות">
+                {leads.map((lead) => (
+                  <Card key={lead.id} role="listitem">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-medium">
+                              ספק: {lead.supplier_id}
+                            </span>
+                            {getStatusBadge(lead.status)}
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2" dir="rtl">
+                            {lead.notes}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            נשלח: {new Date(lead.created_at).toLocaleDateString('he-IL')}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 mr-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(`/supplier/${lead.supplier_id}`, '_blank')}
+                            aria-label={`צפה בפרטי הספק ${lead.supplier_id}`}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteLead(lead.id)}
+                            className="text-red-600 hover:text-red-700 hover:border-red-300"
+                            aria-label={`מחק הודעה לספק ${lead.supplier_id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                        {lead.notes}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        נשלח: {new Date(lead.created_at).toLocaleDateString('he-IL')}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate(`/supplier/${lead.supplier_id}`)}
-                      className="flex-1"
-                    >
-                      <Eye className="w-4 h-4 ml-2" />
-                      צפה בספק
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => deleteLead(lead.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
+        </div>
       )}
     </PageBoundary>
   );
-};
-
-export default MyMessages;
+}

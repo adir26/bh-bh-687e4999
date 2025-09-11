@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
 import { toast } from 'sonner';
 import { Photo, ProductTag } from '@/types/inspiration';
 import { getPublicImageUrl } from '@/utils/imageUrls';
@@ -20,6 +22,7 @@ export default function PhotoDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { invalidatePhoto } = useQueryInvalidation();
   const [showProductDetails, setShowProductDetails] = useState<string | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
 
@@ -112,7 +115,7 @@ export default function PhotoDetail() {
           .insert({ photo_id: photo.id, user_id: user.id });
       }
 
-      // TODO: Add queryClient.invalidateQueries(['photo', id, user?.id]);
+      invalidatePhoto(id!, user?.id);
       toast.success(photo.is_liked ? 'הוסר מהמועדפים' : 'נוסף למועדפים');
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -146,8 +149,8 @@ export default function PhotoDetail() {
   };
 
   const contactSupplier = (supplierId: string) => {
-    // TODO: Open contact modal or navigate to messaging
-    toast.success('פותח צ\'אט עם הספק...');
+    // Navigate to supplier profile with contact action
+    navigate(`/supplier/${supplierId}?action=contact_supplier`);
   };
 
 
@@ -155,21 +158,21 @@ export default function PhotoDetail() {
     <PageBoundary 
       timeout={15000}
       fallback={
-        <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
+        <div className="min-h-screen bg-background p-4 pb-32">
           <div className="container mx-auto max-w-4xl">
-            <div className="aspect-video bg-muted rounded-lg mb-6" />
-            <div className="h-8 bg-muted rounded mb-4" />
-            <div className="h-4 bg-muted rounded w-2/3" />
+            <Skeleton className="aspect-video rounded-lg mb-6" />
+            <Skeleton className="h-8 w-3/4 mb-4" />
+            <Skeleton className="h-4 w-2/3" />
           </div>
         </div>
       }
     >
       {isLoading ? (
-        <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
+        <div className="min-h-screen bg-background p-4 pb-32">
           <div className="container mx-auto max-w-4xl">
-            <div className="aspect-video bg-muted rounded-lg mb-6" />
-            <div className="h-8 bg-muted rounded mb-4" />
-            <div className="h-4 bg-muted rounded w-2/3" />
+            <Skeleton className="aspect-video rounded-lg mb-6" />
+            <Skeleton className="h-8 w-3/4 mb-4" />
+            <Skeleton className="h-4 w-2/3" />
           </div>
         </div>
       ) : data === null ? (
@@ -186,7 +189,7 @@ export default function PhotoDetail() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border p-4">
         <div className="container mx-auto flex items-center justify-between">
-          <Link to="/inspiration">
+          <Link to="/inspiration" aria-label="חזור לגלריה">
             <Button variant="ghost" size="sm">
               <ArrowRight className="h-4 w-4 ml-2" />
               חזור
@@ -198,17 +201,18 @@ export default function PhotoDetail() {
               variant={photo.is_liked ? "default" : "outline"}
               size="sm"
               onClick={toggleLike}
+              aria-label={photo.is_liked ? 'בטל לייק' : 'תן לייק לתמונה'}
             >
               <Heart className={`h-4 w-4 ml-2 ${photo.is_liked ? 'fill-current' : ''}`} />
               {photo.is_liked ? 'אהבתי' : 'לייק'}
             </Button>
             
-            <Button variant="outline" size="sm" onClick={saveToIdeabook}>
+            <Button variant="outline" size="sm" onClick={saveToIdeabook} aria-label="שמור תמונה לאידאבוק">
               <Bookmark className="h-4 w-4 ml-2" />
               שמור
             </Button>
             
-            <Button variant="outline" size="sm" onClick={sharePhoto}>
+            <Button variant="outline" size="sm" onClick={sharePhoto} aria-label="שתף תמונה">
               <Share2 className="h-4 w-4 ml-2" />
               שתף
             </Button>
@@ -225,22 +229,24 @@ export default function PhotoDetail() {
                 src={getPublicImageUrl(photo.storage_path)}
                 alt={photo.title}
                 className="w-full h-auto max-h-[80vh] object-contain"
+                role="img"
               />
               
               {/* Product Tags Overlay */}
               {productTags.map((tag) => (
-                <button
-                  key={tag.id}
-                  className="absolute w-8 h-8 bg-primary rounded-full border-2 border-background shadow-lg flex items-center justify-center hover:scale-110 transition-transform cursor-pointer"
-                  style={{
-                    left: `${tag.tag_position.x}%`,
-                    top: `${tag.tag_position.y}%`,
-                    transform: 'translate(-50%, -50%)'
-                  }}
-                  onClick={() => setShowProductDetails(tag.id)}
-                >
-                  <Tag className="h-4 w-4 text-primary-foreground" />
-                </button>
+                  <button
+                    key={tag.id}
+                    className="absolute w-8 h-8 bg-primary rounded-full border-2 border-background shadow-lg flex items-center justify-center hover:scale-110 transition-transform cursor-pointer focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                    style={{
+                      left: `${tag.tag_position.x}%`,
+                      top: `${tag.tag_position.y}%`,
+                      transform: 'translate(-50%, -50%)'
+                    }}
+                    onClick={() => setShowProductDetails(tag.id)}
+                    aria-label={tag.products?.name ? `מוצר: ${tag.products.name}` : 'פרטי מוצר'}
+                  >
+                    <Tag className="h-4 w-4 text-primary-foreground" />
+                  </button>
               ))}
             </div>
           </div>
@@ -285,7 +291,7 @@ export default function PhotoDetail() {
                                 </p>
                               )}
                             </div>
-                            <Link to={`/products/${tag.products.id}`}>
+                            <Link to={`/products/${tag.products.id}`} aria-label={`צפה במוצר: ${tag.products.name}`}>
                               <Button size="sm" variant="outline">
                                 <ExternalLink className="h-4 w-4 ml-2" />
                                 צפה
@@ -306,6 +312,7 @@ export default function PhotoDetail() {
                             <Button
                               size="sm"
                               onClick={() => contactSupplier(tag.profiles!.id)}
+                              aria-label={`צור קשר עם ${tag.profiles!.full_name || tag.profiles!.email}`}
                             >
                               <MessageCircle className="h-4 w-4 ml-2" />
                               צור קשר
@@ -320,14 +327,17 @@ export default function PhotoDetail() {
             )}
 
             {/* Related Photos */}
-            <div>
+            <section>
               <h3 className="font-semibold mb-3">תמונות דומות</h3>
               <div className="grid grid-cols-2 gap-3">
-                {/* TODO: Add related photos based on tags/style */}
-                <div className="aspect-square bg-muted rounded-lg animate-pulse" />
-                <div className="aspect-square bg-muted rounded-lg animate-pulse" />
+                <div className="aspect-square bg-muted rounded-lg flex items-center justify-center text-muted-foreground" aria-label="מקום לתמונה דומה">
+                  <span className="text-sm">בקרוב</span>
+                </div>
+                <div className="aspect-square bg-muted rounded-lg flex items-center justify-center text-muted-foreground" aria-label="מקום לתמונה דומה">
+                  <span className="text-sm">בקרוב</span>
+                </div>
               </div>
-            </div>
+            </section>
           </div>
         </div>
       </div>

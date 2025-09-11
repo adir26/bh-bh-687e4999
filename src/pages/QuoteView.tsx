@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Download, Check, X, MessageCircle } from 'lucide-react';
 import { quotesService, Quote, QuoteItem } from '@/services/quotesService';
 import { showToast } from '@/utils/toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
 import { supabase } from '@/integrations/supabase/client';
 import { pdf } from '@react-pdf/renderer';
 import { QuotePDF } from '@/components/quotes/QuotePDF';
@@ -16,6 +18,7 @@ export default function QuoteView() {
   const { quoteId } = useParams<{ quoteId: string }>();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const { invalidateQuote } = useQueryInvalidation();
 
   const { data, isLoading } = useQuery({
     queryKey: ['quote', quoteId, user?.id],
@@ -69,7 +72,7 @@ export default function QuoteView() {
 
     try {
       await quotesService.acceptQuote(quote.id);
-      // TODO: Add queryClient.invalidateQueries(['quote', quoteId, user?.id]);
+      invalidateQuote(quoteId!, user?.id);
       showToast.success('הצעת המחיר אושרה');
     } catch (error) {
       console.error('Failed to accept quote:', error);
@@ -82,7 +85,7 @@ export default function QuoteView() {
 
     try {
       await quotesService.rejectQuote(quote.id);
-      // TODO: Add queryClient.invalidateQueries(['quote', quoteId, user?.id]);
+      invalidateQuote(quoteId!, user?.id);
       showToast.success('הצעת המחיר נדחתה');
     } catch (error) {
       console.error('Failed to reject quote:', error);
@@ -136,17 +139,28 @@ export default function QuoteView() {
       timeout={15000}
       fallback={
         <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">טוען...</div>
+          <div className="text-center">
+            <Skeleton className="h-8 w-48 mx-auto mb-4" />
+            <Skeleton className="h-4 w-32 mx-auto" />
+          </div>
         </div>
       }
     >
       {isLoading ? (
         <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">טוען...</div>
+          <div className="text-center">
+            <Skeleton className="h-8 w-48 mx-auto mb-4" />
+            <Skeleton className="h-4 w-32 mx-auto" />
+          </div>
         </div>
       ) : data === null ? (
         <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">הצעת המחיר לא נמצאה</div>
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-4">הצעת המחיר לא נמצאה</h2>
+            <Button onClick={() => navigate(-1)} aria-label="חזור לעמוד הקודם">
+              חזור
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="min-h-screen bg-background" dir="rtl">
@@ -172,6 +186,7 @@ export default function QuoteView() {
                           size="sm"
                           onClick={() => navigate(-1)}
                           className="flex items-center gap-2"
+                          aria-label="חזור לעמוד הקודם"
                         >
                           <ArrowLeft className="w-4 h-4" />
                           חזור
@@ -189,7 +204,7 @@ export default function QuoteView() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+                        <Button variant="outline" size="sm" onClick={handleDownloadPDF} aria-label="הורד הצעת מחיר כ-PDF">
                           <Download className="w-4 h-4 ml-1" />
                           הורד PDF
                         </Button>
@@ -293,11 +308,12 @@ export default function QuoteView() {
 
                   {/* Action Buttons for Client */}
                   {canRespond && (
-                    <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3" role="group" aria-label="פעולות על הצעת המחיר">
                       <Button 
                         variant="blue" 
                         className="flex-1" 
                         onClick={handleAccept}
+                        aria-label="אשר הצעת מחיר זו"
                       >
                         <Check className="w-4 h-4 ml-1" />
                         אשר הצעת מחיר
@@ -306,6 +322,7 @@ export default function QuoteView() {
                         variant="destructive" 
                         className="flex-1" 
                         onClick={handleReject}
+                        aria-label="דחה הצעת מחיר זו"
                       >
                         <X className="w-4 h-4 ml-1" />
                         דחה הצעת מחיר
@@ -314,6 +331,7 @@ export default function QuoteView() {
                         variant="outline" 
                         className="flex-1" 
                         onClick={() => navigate(`/messages?supplier=${quote.supplier_id}`)}
+                        aria-label="צור קשר עם הספק"
                       >
                         <MessageCircle className="w-4 h-4 ml-1" />
                         צור קשר עם הספק
