@@ -27,71 +27,8 @@ const NotificationPreferences = () => {
     isBlocked
   } = useNotificationPermissions();
 
-  // Transactional notifications (critical business communications)
-  const transactionalTypes = [
-    {
-      key: "orderUpdates" as keyof NotificationSettings,
-      title: "עדכוני הזמנות",
-      description: "סטטוס הזמנה, משלוח ותשלומים",
-      supplierOnly: false,
-      critical: true
-    },
-    {
-      key: "quoteResponses" as keyof NotificationSettings,
-      title: "תגובות להצעות מחיר",
-      description: "אישורים ודחיות של הצעות מחיר",
-      supplierOnly: false,
-      critical: true
-    },
-    {
-      key: "paymentConfirmations" as keyof NotificationSettings,
-      title: "אישורי תשלום",
-      description: "הודעות תשלום והחזרים",
-      supplierOnly: false,
-      critical: true
-    },
-    {
-      key: "supportMessages" as keyof NotificationSettings,
-      title: "הודעות תמיכה",
-      description: "הודעות משירות הלקוחות",
-      supplierOnly: false,
-      critical: false
-    }
-  ];
-
-  // Marketing notifications (require explicit opt-in, OFF by default)
-  const marketingTypes = [
-    {
-      key: "promotions" as keyof NotificationSettings,
-      title: "מבצעים והנחות",
-      description: "הודעות שיווק ומבצעים מיוחדים",
-      supplierOnly: false,
-      marketing: true
-    },
-    {
-      key: "newFeatures" as keyof NotificationSettings,
-      title: "עדכוני מוצר",
-      description: "תכונות חדשות ושדרגוים",
-      supplierOnly: false,
-      marketing: true
-    },
-    {
-      key: "newsletters" as keyof NotificationSettings,
-      title: "ניוזלטר",
-      description: "תוכן שבועי וטיפים",
-      supplierOnly: false,
-      marketing: true
-    }
-  ];
-
-  const channels = [
-    { key: "push", label: "התראות דחופות", icon: "🔔", requiresPermission: true },
-    { key: "email", label: "אימייל", icon: "📧", requiresPermission: false },
-    { key: "sms", label: "SMS", icon: "📱", requiresPermission: false }
-  ];
-
   const handleSave = () => {
-    // Save settings to server here
+    // Settings are automatically saved when changed via updateSetting
     toast({
       title: "ההעדפות נשמרו",
       description: "העדפות ההתראות שלך עודכנו בהצלחה.",
@@ -186,64 +123,76 @@ const NotificationPreferences = () => {
           </Alert>
         )}
 
-        {/* Transactional Notifications */}
+        {/* System Notifications */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5 text-orange-500" />
-                  התראות עסקיות
+                  התראות מערכת
                   <Badge variant="secondary" className="text-xs">חיוני</Badge>
                 </CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  התראות חשובות על הזמנות, תשלומים ושירות
+                  התראות אבטחה והודעות מערכת קריטיות
                 </p>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {transactionalTypes.map(notificationType => (
-                <div key={notificationType.key} className="border-b border-border pb-4 last:border-b-0">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <Label className="font-medium text-sm flex items-center gap-2">
-                        {notificationType.title}
-                        {notificationType.critical && (
-                          <Badge variant="outline" className="text-xs">קריטי</Badge>
-                        )}
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {notificationType.description}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4">
-                    {channels.map(channel => (
-                      <div key={channel.key} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm">{channel.icon}</span>
-                          <span className="text-sm font-medium">{channel.label}</span>
-                          {channel.requiresPermission && !hasPermission && (
-                            <Lock className="w-3 h-3 text-muted-foreground" />
-                          )}
-                        </div>
-                        <Switch
-                          checked={settings[notificationType.key][channel.key as keyof typeof settings[typeof notificationType.key]]}
-                          onCheckedChange={(enabled) => updateSetting(
-                            notificationType.key, 
-                            channel.key as 'push' | 'email' | 'sms', 
-                            enabled
-                          )}
-                          disabled={channel.requiresPermission && !hasPermission}
-                        />
-                      </div>
-                    ))}
-                  </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">🔔</div>
+                <div>
+                  <Label className="font-medium">התראות מערכת</Label>
+                  <p className="text-xs text-muted-foreground">הודעות אבטחה וגישה</p>
                 </div>
-              ))}
+                {!hasPermission && (
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                )}
+              </div>
+              <Switch
+                checked={settings.system}
+                onCheckedChange={(enabled) => updateSetting('system', enabled)}
+                disabled={!hasPermission}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Business Notifications */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="w-5 h-5 text-blue-500" />
+                  התראות עסקיות
+                  <Badge variant="secondary" className="text-xs">חשוב</Badge>
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  הזמנות, הצעות מחיר ושירות לקוחות
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">📦</div>
+                <div>
+                  <Label className="font-medium">עדכוני הזמנות</Label>
+                  <p className="text-xs text-muted-foreground">סטטוס, משלוח ותשלומים</p>
+                </div>
+                {!hasPermission && (
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                )}
+              </div>
+              <Switch
+                checked={settings.orders}
+                onCheckedChange={(enabled) => updateSetting('orders', enabled)}
+                disabled={!hasPermission}
+              />
             </div>
           </CardContent>
         </Card>
@@ -252,7 +201,7 @@ const NotificationPreferences = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bell className="w-5 h-5 text-blue-500" />
+              <Bell className="w-5 h-5 text-green-500" />
               התראות שיווק
               <Badge variant="outline" className="text-xs">אופציונלי</Badge>
             </CardTitle>
@@ -261,44 +210,19 @@ const NotificationPreferences = () => {
             </p>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {marketingTypes.map(notificationType => (
-                <div key={notificationType.key} className="border-b border-border pb-4 last:border-b-0">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <Label className="font-medium text-sm">
-                        {notificationType.title}
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {notificationType.description}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4">
-                    {channels.map(channel => (
-                      <div key={channel.key} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm">{channel.icon}</span>
-                          <span className="text-sm font-medium">{channel.label}</span>
-                          {channel.requiresPermission && !hasPermission && (
-                            <Lock className="w-3 h-3 text-muted-foreground" />
-                          )}
-                        </div>
-                        <Switch
-                          checked={settings[notificationType.key][channel.key as keyof typeof settings[typeof notificationType.key]]}
-                          onCheckedChange={(enabled) => updateSetting(
-                            notificationType.key, 
-                            channel.key as 'push' | 'email' | 'sms', 
-                            enabled
-                          )}
-                          disabled={channel.requiresPermission && !hasPermission}
-                        />
-                      </div>
-                    ))}
-                  </div>
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="text-2xl">🎯</div>
+                <div>
+                  <Label className="font-medium">מבצעים ועדכונים</Label>
+                  <p className="text-xs text-muted-foreground">הנחות, תכונות חדשות וטיפים</p>
                 </div>
-              ))}
+              </div>
+              <Switch
+                checked={settings.marketing}
+                onCheckedChange={(enabled) => updateSetting('marketing', enabled)}
+                disabled={false} // Marketing doesn't require OS permission
+              />
             </div>
           </CardContent>
         </Card>
@@ -336,7 +260,7 @@ const NotificationPreferences = () => {
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              <strong>התראות קריטיות:</strong> אישורי תשלום והתראות אבטחה יישלחו תמיד, 
+              <strong>התראות קריטיות:</strong> התראות אבטחה ומערכת יישלחו תמיד, 
               ללא קשר להגדרות אלה.
             </AlertDescription>
           </Alert>
@@ -346,7 +270,7 @@ const NotificationPreferences = () => {
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>התראות דחופות דורשות אישור בדפדפן</li>
               <li>הגדרות שיווק נפרדות ואופציונליות לחלוטין</li>
-              <li>עלויות SMS עשויות לחול בהתאם לספק הסלולר</li>
+              <li>השינויים נשמרים אוטומטית</li>
               <li>ניתן לשנות הגדרות בכל עת</li>
             </ul>
           </div>

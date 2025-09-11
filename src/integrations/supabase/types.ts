@@ -1074,6 +1074,30 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          marketing: boolean
+          orders: boolean
+          system: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          marketing?: boolean
+          orders?: boolean
+          system?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          marketing?: boolean
+          orders?: boolean
+          system?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
@@ -2844,6 +2868,10 @@ export type Database = {
       set_limit: {
         Args: { "": number }
         Returns: number
+      }
+      set_notification_pref: {
+        Args: { p_marketing: boolean; p_orders: boolean; p_system: boolean }
+        Returns: undefined
       }
       show_limit: {
         Args: Record<PropertyKey, never>

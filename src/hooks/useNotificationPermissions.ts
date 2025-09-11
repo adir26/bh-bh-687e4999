@@ -1,42 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export type NotificationPermissionState = 'default' | 'granted' | 'denied';
 
 export interface NotificationSettings {
-  // Transactional (critical business notifications)
-  orderUpdates: { push: boolean; email: boolean; sms: boolean };
-  quoteResponses: { push: boolean; email: boolean; sms: boolean };
-  paymentConfirmations: { push: boolean; email: boolean; sms: boolean };
-  supportMessages: { push: boolean; email: boolean; sms: boolean };
-  
-  // Marketing (requires separate opt-in)
-  promotions: { push: boolean; email: boolean; sms: boolean };
-  newFeatures: { push: boolean; email: boolean; sms: boolean };
-  newsletters: { push: boolean; email: boolean; sms: boolean };
+  system: boolean;
+  orders: boolean; 
+  marketing: boolean;
 }
 
 export const useNotificationPermissions = () => {
   const [permissionState, setPermissionState] = useState<NotificationPermissionState>('default');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Default settings - ALL OFF per App Store guidelines
+  // Default settings - ALL OFF per App Store guidelines  
   const [settings, setSettings] = useState<NotificationSettings>({
-    // Transactional - OFF by default until permission granted
-    orderUpdates: { push: false, email: false, sms: false },
-    quoteResponses: { push: false, email: false, sms: false },
-    paymentConfirmations: { push: false, email: false, sms: false },
-    supportMessages: { push: false, email: false, sms: false },
-    
-    // Marketing - MUST remain OFF until explicit opt-in
-    promotions: { push: false, email: false, sms: false },
-    newFeatures: { push: false, email: false, sms: false },
-    newsletters: { push: false, email: false, sms: false },
+    system: false,    // System notifications (critical)
+    orders: false,    // Order/business notifications  
+    marketing: false  // Marketing notifications (explicit opt-in required)
   });
 
-  // Check initial permission state
+  // Check initial permission state and load preferences
   useEffect(() => {
     checkPermissionState();
+    loadPreferences();
   }, []);
 
   const checkPermissionState = useCallback(async () => {
@@ -45,15 +33,10 @@ export const useNotificationPermissions = () => {
         const permission = Notification.permission as NotificationPermissionState;
         setPermissionState(permission);
         
-        // If permission was previously denied, ensure all push notifications are off
+        // If permission was previously denied, ensure notifications are handled properly
         if (permission === 'denied') {
-          setSettings(prev => {
-            const updated = { ...prev };
-            Object.keys(updated).forEach(key => {
-              updated[key as keyof NotificationSettings].push = false;
-            });
-            return updated;
-          });
+          // We maintain the preferences but they won't work for push notifications
+          console.log('Notification permission denied by user');
         }
       }
     } catch (error) {
@@ -105,29 +88,104 @@ export const useNotificationPermissions = () => {
     return false;
   }, []);
 
-  const updateSetting = useCallback((
+  const loadPreferences = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error loading preferences:', error);
+        return;
+      }
+
+      if (data) {
+        setSettings({
+          system: data.system,
+          orders: data.orders,
+          marketing: data.marketing
+        });
+      }
+    } catch (error) {
+      console.error('Error loading preferences:', error);
+    }
+  }, []);
+
+  const savePreferences = useCallback(async (newSettings: NotificationSettings) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "שגיאה",
+          description: "עליך להתחבר כדי לשמור העדפות.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      const { error } = await supabase.rpc('set_notification_pref', {
+        p_system: newSettings.system,
+        p_orders: newSettings.orders,
+        p_marketing: newSettings.marketing
+      });
+
+      if (error) {
+        console.error('Error saving preferences:', error);
+        toast({
+          title: "שגיאה",
+          description: "לא ניתן לשמור את ההעדפות.",
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בשמירת ההעדפות.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  }, []);
+
+  const updateSetting = useCallback(async (
     category: keyof NotificationSettings,
-    channel: 'push' | 'email' | 'sms',
     enabled: boolean
   ) => {
-    // Block push notifications if permission not granted
-    if (channel === 'push' && permissionState !== 'granted' && enabled) {
+    // Block if no permission for system/orders notifications
+    if ((category === 'system' || category === 'orders') && permissionState !== 'granted' && enabled) {
       toast({
         title: "הרשאה נדרשת",
-        description: "עליך לאשר התראות בדפדפן כדי לקבל התראות דחופות.",
+        description: "עליך לאשר התראות בדפדפן כדי לקבל התראות.",
         variant: "destructive"
       });
       return;
     }
 
-    setSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [channel]: enabled
-      }
-    }));
-  }, [permissionState]);
+    const newSettings = {
+      ...settings,
+      [category]: enabled
+    };
+    
+    setSettings(newSettings);
+    
+    // Save to backend
+    const saved = await savePreferences(newSettings);
+    if (saved) {
+      toast({
+        title: "נשמר",
+        description: "ההעדפות שלך נשמרו בהצלחה.",
+      });
+    }
+  }, [permissionState, settings, savePreferences]);
 
   const openSystemSettings = useCallback(() => {
     // For web - guide user to browser settings
@@ -145,6 +203,8 @@ export const useNotificationPermissions = () => {
     updateSetting,
     openSystemSettings,
     checkPermissionState,
+    loadPreferences,
+    savePreferences,
     hasPermission: permissionState === 'granted',
     isBlocked: permissionState === 'denied'
   };
