@@ -10,12 +10,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
+import { DeleteAccountModal } from "@/components/modals/DeleteAccountModal";
 
 const Settings = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isSupplier = location.pathname.startsWith('/supplier/');
   
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "יוחנן כהן",
     email: "yohanan@example.com",
@@ -256,7 +258,31 @@ const Settings = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Account Deletion */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-destructive">מחיקת חשבון</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              מחיקת החשבון תסיר לצמיתות את כל הנתונים שלך מהמערכת. פעולה זו לא ניתנת לביטול.
+            </p>
+            <Button
+              variant="destructive"
+              onClick={() => setShowDeleteModal(true)}
+              className="w-full"
+            >
+              מחק חשבון
+            </Button>
+          </CardContent>
+        </Card>
       </div>
+
+      <DeleteAccountModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 };
