@@ -55,9 +55,5 @@
 	<!-- Photo Library Write Permission -->
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>We save images generated in the app to your photo library when you choose to download them.</string>
-	
-	<!-- User Tracking Permission -->
-	<key>NSUserTrackingUsageDescription</key>
-	<string>Allow tracking so we can measure ad performance by linking your activity with third-party data. This is optional and not required to use the app.</string>
 </dict>
 </plist>

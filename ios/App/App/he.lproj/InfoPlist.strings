@@ -6,6 +6,3 @@
 
 /* Photo Library Write Permission */
 "NSPhotoLibraryAddUsageDescription" = "אנו שומרים תמונות שנוצרו באפליקציה לספריית התמונות שלך כאשר אתה בוחר להוריד אותן.";
-
-/* User Tracking Permission */
-"NSUserTrackingUsageDescription" = "אפשר מעקב כדי שנוכל למדוד ביצועי פרסומות על ידי קישור הפעילות שלך עם נתונים של צד שלישי. זה אופציונלי ולא נדרש לשימוש באפליקציה.";
