@@ -384,21 +384,21 @@ const App = () => {
                 <Route path="/orders/:orderId/status" element={<OrderStatus />} />
                 <Route path="/orders/:orderId/tracking" element={<LiveDeliveryTracking />} />
                 <Route path="/profile" element={<ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}><Profile /></ProtectedRoute>} />
-                <Route path="/top-suppliers" element={<TopSuppliers />} />
-                <Route path="/new-suppliers" element={<NewSuppliers />} />
-                <Route path="/hot-now" element={<HotNow />} />
-                <Route path="/local-deals" element={<LocalDeals />} />
-                <Route path="/popular-now" element={<PopularNow />} />
-                <Route path="/supplier/:id" element={<SupplierProfile />} />
-                <Route path="/supplier/:id/products" element={<SupplierProductsView />} />
-                <Route path="/supplier/:id/reviews" element={<SupplierReviews />} />
+                <Route path="/top-suppliers" element={<PublicRouteWrapper><TopSuppliers /></PublicRouteWrapper>} />
+                <Route path="/new-suppliers" element={<PublicRouteWrapper><NewSuppliers /></PublicRouteWrapper>} />
+                <Route path="/hot-now" element={<PublicRouteWrapper><HotNow /></PublicRouteWrapper>} />
+                <Route path="/local-deals" element={<PublicRouteWrapper><LocalDeals /></PublicRouteWrapper>} />
+                <Route path="/popular-now" element={<PublicRouteWrapper><PopularNow /></PublicRouteWrapper>} />
+                <Route path="/supplier/:id" element={<PublicRouteWrapper><SupplierProfile /></PublicRouteWrapper>} />
+                <Route path="/supplier/:id/products" element={<PublicRouteWrapper><SupplierProductsView /></PublicRouteWrapper>} />
+                <Route path="/supplier/:id/reviews" element={<PublicRouteWrapper><SupplierReviews /></PublicRouteWrapper>} />
                 <Route path="/supplier/profile/preview" element={
                   <ProtectedRoute allowedRoles={['supplier']}>
                     <SupplierProfilePreview />
                   </ProtectedRoute>
                 } />
-                <Route path="/category/:category/suppliers" element={<CategorySuppliers />} />
-                <Route path="/support" element={<Support />} />
+                <Route path="/category/:category/suppliers" element={<PublicRouteWrapper><CategorySuppliers /></PublicRouteWrapper>} />
+                <Route path="/support" element={<PublicRouteWrapper><Support /></PublicRouteWrapper>} />
                 <Route path="/support/chat/:id" element={<SupportChat />} />
                 <Route path="/complaint/:orderId" element={<ComplaintForm />} />
                 <Route path="/support/complaint/:id" element={<ComplaintDetails />} />
@@ -408,7 +408,7 @@ const App = () => {
                     <Settings />
                   </ProtectedRoute>
                 } />
-                <Route path="/faq" element={<FAQ />} />
+                <Route path="/faq" element={<PublicRouteWrapper><FAQ /></PublicRouteWrapper>} />
                 <Route path="/notifications-preferences" element={<NotificationPreferences />} />
                 <Route path="/supplier/notifications-preferences" element={
                   <ProtectedRoute allowedRoles={['supplier']}>
