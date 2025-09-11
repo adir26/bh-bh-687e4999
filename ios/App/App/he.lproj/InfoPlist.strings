@@ -1,0 +1,11 @@
+/* Camera Permission */
+"NSCameraUsageDescription" = "אנו משתמשים במצלמה כדי לצלם תמונות או סרטונים שאתה מצרף להזמנות, הצעות מחיר, ביקורות או פניות לתמיכה (לדוגמה, תיעוד בעיה או מוצר).";
+
+/* Photo Library Read Permission */
+"NSPhotoLibraryUsageDescription" = "אנו ניגשים לספריית התמונות שלך כדי שתוכל לצרף תמונות קיימות להזמנות, ביקורות ופניות תמיכה.";
+
+/* Photo Library Write Permission */
+"NSPhotoLibraryAddUsageDescription" = "אנו שומרים תמונות שנוצרו באפליקציה לספריית התמונות שלך כאשר אתה בוחר להוריד אותן.";
+
+/* User Tracking Permission */
+"NSUserTrackingUsageDescription" = "אפשר מעקב כדי שנוכל למדוד ביצועי פרסומות על ידי קישור הפעילות שלך עם נתונים של צד שלישי. זה אופציונלי ולא נדרש לשימוש באפליקציה.";

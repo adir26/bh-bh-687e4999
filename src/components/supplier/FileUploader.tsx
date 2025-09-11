@@ -2,9 +2,10 @@ import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, X, File, Image } from 'lucide-react';
+import { Upload, X, File, Image, Camera, ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useCapacitorCamera } from '@/hooks/useCapacitorCamera';
 
 interface FileUploaderProps {
   orderId: string;
@@ -33,18 +34,11 @@ export function FileUploader({
   const [uploading, setUploading] = useState(false);
   const [label, setLabel] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { takePhoto, selectFromGallery, isNative, isLoading: cameraLoading } = useCapacitorCamera();
+  
+  const isImageUpload = accept.includes('image/*');
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file size
-    const maxSizeBytes = maxSizeMB * 1024 * 1024;
-    if (file.size > maxSizeBytes) {
-      toast.error(`הקובץ גדול מדי. גודל מקסימלי: ${maxSizeMB}MB`);
-      return;
-    }
-
+  const uploadFile = async (file: File) => {
     setUploading(true);
     try {
       // Create unique file path
@@ -99,6 +93,34 @@ export function FileUploader({
     }
   };
 
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      toast.error(`הקובץ גדול מדי. גודל מקסימלי: ${maxSizeMB}MB`);
+      return;
+    }
+
+    await uploadFile(file);
+  };
+
+  const handleTakePhoto = async () => {
+    const file = await takePhoto();
+    if (file) {
+      await uploadFile(file);
+    }
+  };
+
+  const handleSelectFromGallery = async () => {
+    const file = await selectFromGallery();
+    if (file) {
+      await uploadFile(file);
+    }
+  };
+
   return (
     <div className={`space-y-4 ${className}`}>
       <div>
@@ -113,27 +135,54 @@ export function FileUploader({
       </div>
 
       <div>
-        <Label htmlFor="file-upload">בחר קובץ</Label>
-        <div className="flex items-center gap-2">
-          <Input
-            ref={fileInputRef}
-            id="file-upload"
-            type="file"
-            accept={accept}
-            onChange={handleFileSelect}
-            disabled={uploading}
-            className="flex-1"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="flex-shrink-0"
-          >
-            <Upload className="w-4 h-4 ml-2" />
-            {uploading ? 'מעלה...' : 'העלה'}
-          </Button>
+        <Label htmlFor="file-upload">העלה קובץ</Label>
+        <div className="space-y-3">
+          {isNative && isImageUpload && (
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleTakePhoto}
+                disabled={uploading || cameraLoading}
+                className="h-16 flex-col"
+              >
+                <Camera className="h-5 w-5 mb-1" />
+                <span className="text-xs">צלם תמונה</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSelectFromGallery}
+                disabled={uploading || cameraLoading}
+                className="h-16 flex-col"
+              >
+                <ImageIcon className="h-5 w-5 mb-1" />
+                <span className="text-xs">בחר מהגלריה</span>
+              </Button>
+            </div>
+          )}
+          
+          <div className="flex items-center gap-2">
+            <Input
+              ref={fileInputRef}
+              id="file-upload"
+              type="file"
+              accept={accept}
+              onChange={handleFileSelect}
+              disabled={uploading}
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="flex-shrink-0"
+            >
+              <Upload className="w-4 h-4 ml-2" />
+              {uploading ? 'מעלה...' : 'העלה'}
+            </Button>
+          </div>
         </div>
       </div>
 

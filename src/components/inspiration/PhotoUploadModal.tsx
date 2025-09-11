@@ -7,11 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Upload, X, Plus } from 'lucide-react';
+import { Upload, X, Plus, Camera, ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { UploadPhotoData } from '@/types/inspiration';
+import { useCapacitorCamera } from '@/hooks/useCapacitorCamera';
 
 interface PhotoUploadModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
 export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: PhotoUploadModalProps) {
   const { user } = useAuth();
+  const { takePhoto, selectFromGallery, isNative, isLoading: cameraLoading } = useCapacitorCamera();
   const [files, setFiles] = useState<File[]>([]);
   const [formData, setFormData] = useState<UploadPhotoData>({
     title: '',
@@ -57,6 +59,20 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
     });
 
     setFiles(prev => [...prev, ...validFiles]);
+  };
+
+  const handleTakePhoto = async () => {
+    const file = await takePhoto();
+    if (file) {
+      setFiles(prev => [...prev, file]);
+    }
+  };
+
+  const handleSelectFromGallery = async () => {
+    const file = await selectFromGallery();
+    if (file) {
+      setFiles(prev => [...prev, file]);
+    }
   };
 
   const removeFile = (index: number) => {
@@ -194,8 +210,33 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
         <div className="p-4 space-y-6">
           {/* File Upload */}
           <div>
-            <Label>בחר תמונות</Label>
-            <div className="mt-2">
+            <Label>הוסף תמונות</Label>
+            <div className="mt-2 space-y-3">
+              {isNative && (
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleTakePhoto}
+                    disabled={uploading || cameraLoading}
+                    className="h-20 flex-col"
+                  >
+                    <Camera className="h-6 w-6 mb-1" />
+                    <span className="text-xs">צלם תמונה</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleSelectFromGallery}
+                    disabled={uploading || cameraLoading}
+                    className="h-20 flex-col"
+                  >
+                    <ImageIcon className="h-6 w-6 mb-1" />
+                    <span className="text-xs">בחר מהגלריה</span>
+                  </Button>
+                </div>
+              )}
+              
               <input
                 type="file"
                 multiple
@@ -207,10 +248,10 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
               />
               <label
                 htmlFor="file-upload"
-                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-muted-foreground/25 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
               >
-                <Upload className="h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground">לחץ לבחירת תמונות</p>
+                <Upload className="h-6 w-6 text-muted-foreground mb-1" />
+                <p className="text-sm text-muted-foreground">או לחץ לבחירת קבצים</p>
                 <p className="text-xs text-muted-foreground">JPG, PNG, WebP - עד 10MB</p>
               </label>
             </div>
