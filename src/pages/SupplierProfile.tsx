@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Star, Phone, MessageCircle, Heart, Share2, ShoppingBag, Eye, Calendar, Bookmark } from 'lucide-react';
 import { getSupplierById } from '@/data/suppliers';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { showToast } from '@/utils/toast';
@@ -15,6 +16,7 @@ const SupplierProfile = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const supplier = id ? getSupplierById(id) : undefined;
   
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -116,59 +118,49 @@ const SupplierProfile = () => {
   }
 
   const handleContactSupplier = () => {
-    if (!user) {
-      showToast.error('יש להתחבר כדי ליצור קשר עם ספק');
-      navigate('/auth');
-      return;
-    }
-    setIsContactModalOpen(true);
+    requireAuth('contact_supplier', () => {
+      setIsContactModalOpen(true);
+    });
   };
 
   const handleScheduleMeeting = () => {
-    if (!user) {
-      showToast.error('יש להתחבר כדי לקבוע פגישה');
-      navigate('/auth');
-      return;
-    }
-    setIsMeetingModalOpen(true);
+    requireAuth('book_meeting', () => {
+      setIsMeetingModalOpen(true);
+    });
   };
 
   const handleToggleFavorite = async () => {
-    if (!user) {
-      showToast.error('יש להתחבר כדי לשמור ספק');
-      navigate('/auth');
-      return;
-    }
+    requireAuth('save_favorite', async () => {
+      try {
+        if (isFavorited) {
+          // Remove from favorites
+          const { error } = await supabase
+            .from('favorites')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('supplier_id', id);
 
-    try {
-      if (isFavorited) {
-        // Remove from favorites
-        const { error } = await supabase
-          .from('favorites')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('supplier_id', id);
+          if (error) throw error;
+          setIsFavorited(false);
+          showToast.success('הספק הוסר מהמועדפים');
+        } else {
+          // Add to favorites
+          const { error } = await supabase
+            .from('favorites')
+            .insert({
+              user_id: user.id,
+              supplier_id: id
+            });
 
-        if (error) throw error;
-        setIsFavorited(false);
-        showToast.success('הספק הוסר מהמועדפים');
-      } else {
-        // Add to favorites
-        const { error } = await supabase
-          .from('favorites')
-          .insert({
-            user_id: user.id,
-            supplier_id: id
-          });
-
-        if (error) throw error;
-        setIsFavorited(true);
-        showToast.success('הספק נוסף למועדפים');
+          if (error) throw error;
+          setIsFavorited(true);
+          showToast.success('הספק נוסף למועדפים');
+        }
+      } catch (error) {
+        console.error('Error toggling favorite:', error);
+        showToast.error('שגיאה בעדכון המועדפים');
       }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      showToast.error('שגיאה בעדכון המועדפים');
-    }
+    });
   };
 
   const handleShare = async () => {

@@ -220,9 +220,9 @@ const App = () => {
                 {/* Redirect /login to /auth for consistency */}
                 <Route path="/login" element={<Navigate to="/auth" replace />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/accessibility" element={<Accessibility />} />
-                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy-policy" element={<PublicRouteWrapper><PrivacyPolicy /></PublicRouteWrapper>} />
+                <Route path="/accessibility" element={<PublicRouteWrapper><Accessibility /></PublicRouteWrapper>} />
+                <Route path="/terms" element={<PublicRouteWrapper><Terms /></PublicRouteWrapper>} />
                 <Route path="/notifications" element={<Notifications />} />
                 {/* Role picker - protected from completed users, only for new users */}
                 <Route path="/onboarding/role-picker" element={
@@ -380,7 +380,11 @@ const App = () => {
                 {/* Public routes - accessible in guest mode */}
                 <Route path="/search" element={<PublicRouteWrapper><Search /></PublicRouteWrapper>} />
                 <Route path="/favorites" element={<ProtectedRoute allowedRoles={['client', 'supplier']}><Favorites /></ProtectedRoute>} />
-                <Route path="/orders" element={<Orders />} />
+                <Route path="/orders" element={
+                  <ProtectedRoute allowedRoles={['client', 'supplier']}>
+                    <Orders />
+                  </ProtectedRoute>
+                } />
                 <Route path="/orders/:orderId/status" element={<OrderStatus />} />
                 <Route path="/orders/:orderId/tracking" element={<LiveDeliveryTracking />} />
                 <Route path="/profile" element={<ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}><Profile /></ProtectedRoute>} />
@@ -432,12 +436,12 @@ const App = () => {
                 } />
                 
                 {/* Public supplier routes - no authentication required */}
-                <Route path="/s/:slug" element={<PublicSupplierProfile />} />
-                <Route path="/s/:slug/p/:productId" element={<PublicProductView />} />
+                <Route path="/s/:slug" element={<PublicRouteWrapper><PublicSupplierProfile /></PublicRouteWrapper>} />
+                <Route path="/s/:slug/p/:productId" element={<PublicRouteWrapper><PublicProductView /></PublicRouteWrapper>} />
                 
                 {/* Inspiration routes - public */}
                 <Route path="/inspiration" element={<PublicRouteWrapper><Inspiration /></PublicRouteWrapper>} />
-                <Route path="/inspiration/photo/:id" element={<PhotoDetail />} />
+                <Route path="/inspiration/photo/:id" element={<PublicRouteWrapper><PhotoDetail /></PublicRouteWrapper>} />
                 <Route path="/ideabooks" element={
                   <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
                     <Ideabooks />
