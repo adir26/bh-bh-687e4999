@@ -2718,6 +2718,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      delete_user_account: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
       generate_lead_number: {
         Args: Record<PropertyKey, never>
         Returns: string

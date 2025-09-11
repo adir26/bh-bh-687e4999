@@ -42,16 +42,16 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({ isOpen, 
     setIsDeleting(true);
     
     try {
-      // Call the account deletion function
-      const { error } = await supabase.rpc('delete_user_account', {
+      // Delete user data from our database (includes profile deletion)
+      const { error: dbError } = await supabase.rpc('delete_user_account', {
         user_id: user.id
       });
 
-      if (error) {
-        console.error('Account deletion error:', error);
+      if (dbError) {
+        console.error('Database deletion error:', dbError);
         toast({
           title: 'שגיאה במחיקת החשבון',
-          description: 'אירעה שגיאה במחיקת החשבון. אנא פנה לתמיכה.',
+          description: 'אירעה שגיאה במחיקת נתוני החשבון. אנא פנה לתמיכה.',
           variant: 'destructive'
         });
         setIsDeleting(false);
