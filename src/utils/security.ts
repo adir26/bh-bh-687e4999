@@ -15,20 +15,19 @@ export const sanitizeText = (text: string): string => {
 export const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
   
-  if (password.length < 8) {
-    errors.push('הסיסמה חייבת להכיל לפחות 8 תווים');
+  if (!password || password.length < 8) {
+    errors.push('סיסמה חייבת 8+ תווים ולשלב אותיות + (מספרים או סימנים)');
+    return { isValid: false, errors };
   }
   
-  if (!/[A-Z]/.test(password)) {
-    errors.push('הסיסמה חייבת להכיל לפחות אות גדולה אחת');
-  }
-  
-  if (!/[a-z]/.test(password)) {
-    errors.push('הסיסמה חייבת להכיל לפחות אות קטנה אחת');
-  }
-  
-  if (!/[0-9]/.test(password)) {
-    errors.push('הסיסמה חייבת להכיל לפחות ספרה אחת');
+  const hasLetter = /[A-Za-z]/.test(password);
+  const hasDigit = /\d/.test(password);
+  const hasSymbol = /[^A-Za-z0-9]/.test(password);
+  const classes = (hasLetter ? 1 : 0) + (hasDigit ? 1 : 0) + (hasSymbol ? 1 : 0);
+
+  // Require letters + (numbers OR symbols)
+  if (!hasLetter || classes < 2) {
+    errors.push('סיסמה חייבת 8+ תווים ולשלב אותיות + (מספרים או סימנים)');
   }
   
   return {

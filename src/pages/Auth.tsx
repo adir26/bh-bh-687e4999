@@ -115,8 +115,19 @@ const Auth: React.FC = () => {
       toast.error('כתובת האימייל לא תקינה');
       return;
     }
-    if (signupForm.password.length < 6) {
-      toast.error('הסיסמה חייבת להכיל לפחות 6 תווים');
+    // Password validation using the new relaxed policy
+    if (signupForm.password.length < 8) {
+      toast.error('סיסמה חייבת 8+ תווים ולשלב אותיות + (מספרים או סימנים)');
+      return;
+    }
+    
+    const hasLetter = /[A-Za-z]/.test(signupForm.password);
+    const hasDigit = /\d/.test(signupForm.password);
+    const hasSymbol = /[^A-Za-z0-9]/.test(signupForm.password);
+    const classes = (hasLetter ? 1 : 0) + (hasDigit ? 1 : 0) + (hasSymbol ? 1 : 0);
+
+    if (!hasLetter || classes < 2) {
+      toast.error('סיסמה חייבת 8+ תווים ולשלב אותיות + (מספרים או סימנים)');
       return;
     }
     if (!signupForm.fullName.trim() || signupForm.fullName.trim().length < 2) {
@@ -297,10 +308,10 @@ const Auth: React.FC = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-password">סיסמה</Label>
-                      <Input id="signup-password" type="password" placeholder="בחרו סיסמה חזקה (לפחות 6 תווים)" value={signupForm.password} onChange={e => setSignupForm({
+                      <Input id="signup-password" type="password" placeholder="סיסמה באורך 8 תווים לפחות, ולכלול אותיות וגם (מספרים או סימנים)" value={signupForm.password} onChange={e => setSignupForm({
                       ...signupForm,
                       password: e.target.value
-                    })} required className="h-12 text-base" autoComplete="new-password" minLength={6} />
+                    })} required className="h-12 text-base" autoComplete="new-password" minLength={8} />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="signup-role">סוג המשתמש</Label>

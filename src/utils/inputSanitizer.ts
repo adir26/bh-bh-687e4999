@@ -170,24 +170,18 @@ class InputSanitizer {
   static validatePassword(password: string): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
     
-    if (!password || password.length < 12) {
-      errors.push('Password must be at least 12 characters long');
+    if (!password || password.length < 8) {
+      errors.push('Password must be 8+ chars and include letters + (numbers or symbols)');
     }
     
-    if (!/[A-Z]/.test(password)) {
-      errors.push('Password must contain at least one uppercase letter');
-    }
-    
-    if (!/[a-z]/.test(password)) {
-      errors.push('Password must contain at least one lowercase letter');
-    }
-    
-    if (!/\d/.test(password)) {
-      errors.push('Password must contain at least one number');
-    }
-    
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      errors.push('Password must contain at least one special character');
+    const hasLetter = /[A-Za-z]/.test(password);
+    const hasDigit = /\d/.test(password);
+    const hasSymbol = /[^A-Za-z0-9]/.test(password);
+    const classes = (hasLetter ? 1 : 0) + (hasDigit ? 1 : 0) + (hasSymbol ? 1 : 0);
+
+    // Require letters + (numbers OR symbols)
+    if (!hasLetter || classes < 2) {
+      errors.push('Password must be 8+ chars and include letters + (numbers or symbols)');
     }
     
     // Check against common passwords

@@ -17,7 +17,9 @@ import registrationImage from '@/assets/registration-building.jpg';
 const registrationSchema = z.object({
   fullName: z.string().min(2, 'שם מלא חייב להכיל לפחות 2 תווים'),
   email: z.string().email('כתובת אימייל לא תקינה'),
-  password: z.string().min(6, 'סיסמה חייבת להכיל לפחות 6 תווים'),
+  password: z.string()
+    .min(8, 'סיסמה חייבת 8+ תווים ולשלב אותיות + (מספרים או סימנים)')
+    .regex(/^(?=.*[A-Za-z])(?:(?=.*\d)|(?=.*[^A-Za-z0-9])).{8,}$/, 'סיסמה חייבת 8+ תווים ולשלב אותיות + (מספרים או סימנים)'),
   phonePrefix: z.string().min(1, 'יש לבחור קידומת'),
   phoneNumber: z.string().min(7, 'מספר טלפון לא תקין'),
   role: z.enum(['client', 'supplier'], { required_error: 'יש לבחור תפקיד' }),
