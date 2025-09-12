@@ -831,6 +831,47 @@ export type Database = {
           },
         ]
       }
+      lead_automations: {
+        Row: {
+          created_at: string
+          executed_at: string | null
+          id: string
+          lead_id: string
+          next_run_at: string
+          rule_config: Json | null
+          rule_type: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          executed_at?: string | null
+          id?: string
+          lead_id: string
+          next_run_at: string
+          rule_config?: Json | null
+          rule_type: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          executed_at?: string | null
+          id?: string
+          lead_id?: string
+          next_run_at?: string
+          rule_config?: Json | null
+          rule_type?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_automations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_history: {
         Row: {
           changed_by: string | null
@@ -887,6 +928,7 @@ export type Database = {
           created_at: string
           estimated_value: number | null
           expected_close_date: string | null
+          first_response_at: string | null
           id: string
           last_contact_date: string | null
           lead_number: string
@@ -897,6 +939,8 @@ export type Database = {
           priority: string | null
           probability: number | null
           project_id: string | null
+          sla_risk: boolean | null
+          snoozed_until: string | null
           source: string | null
           status: string | null
           supplier_id: string | null
@@ -912,6 +956,7 @@ export type Database = {
           created_at?: string
           estimated_value?: number | null
           expected_close_date?: string | null
+          first_response_at?: string | null
           id?: string
           last_contact_date?: string | null
           lead_number: string
@@ -922,6 +967,8 @@ export type Database = {
           priority?: string | null
           probability?: number | null
           project_id?: string | null
+          sla_risk?: boolean | null
+          snoozed_until?: string | null
           source?: string | null
           status?: string | null
           supplier_id?: string | null
@@ -937,6 +984,7 @@ export type Database = {
           created_at?: string
           estimated_value?: number | null
           expected_close_date?: string | null
+          first_response_at?: string | null
           id?: string
           last_contact_date?: string | null
           lead_number?: string
@@ -947,6 +995,8 @@ export type Database = {
           priority?: string | null
           probability?: number | null
           project_id?: string | null
+          sla_risk?: boolean | null
+          snoozed_until?: string | null
           source?: string | null
           status?: string | null
           supplier_id?: string | null
@@ -2873,6 +2923,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      auto_assign_leads: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       check_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -2931,6 +2985,10 @@ export type Database = {
           section_type: string
         }[]
       }
+      get_sla_metrics: {
+        Args: { p_days?: number; p_supplier_id: string }
+        Returns: Json
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -2970,6 +3028,10 @@ export type Database = {
       mark_notification_read: {
         Args: { notification_id: string }
         Returns: undefined
+      }
+      process_sla_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       promote_to_admin: {
         Args: { target_user_id: string }
@@ -3053,6 +3115,10 @@ export type Database = {
       slugify_company_name: {
         Args: { name: string }
         Returns: string
+      }
+      snooze_lead: {
+        Args: { p_hours?: number; p_lead_id: string }
+        Returns: boolean
       }
       supplier_dashboard_metrics: {
         Args: { _from: string; _supplier_id: string; _to: string }

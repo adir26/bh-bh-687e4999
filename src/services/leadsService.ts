@@ -6,15 +6,20 @@ export interface Lead {
   id: string;
   supplier_id: string | null;
   client_id: string | null;
+  assigned_to: string | null;
   name: string | null;
   contact_phone: string | null;
   contact_email: string | null;
   source: string | null;
   status: LeadStatus;
+  priority: string | null;
   last_contact_date: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
+  first_response_at?: string | null;
+  snoozed_until?: string | null;
+  sla_risk?: boolean;
 }
 
 export interface LeadFilters {
