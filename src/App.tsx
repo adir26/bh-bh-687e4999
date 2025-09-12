@@ -55,6 +55,7 @@ import QuoteBuilder from "./pages/supplier/QuoteBuilder";
 import ProposalBuilder from "./pages/supplier/ProposalBuilder";
 import SupplierOrders from "./pages/supplier/Orders";
 import SupplierNotifications from "./pages/supplier/Notifications";
+import NotificationSettings from "./pages/supplier/NotificationSettings";
 import SupplierAnalytics from "./pages/supplier/Analytics";
 import SupplierCRM from "./pages/supplier/CRM";
 import QuoteView from "./pages/QuoteView";
@@ -368,6 +369,11 @@ const App = () => {
                 <Route path="/supplier/notifications" element={
                   <OnboardingGuard role="supplier">
                     <SupplierNotifications />
+                  </OnboardingGuard>
+                } />
+                <Route path="/supplier/notification-settings" element={
+                  <OnboardingGuard role="supplier">
+                    <NotificationSettings />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/analytics" element={

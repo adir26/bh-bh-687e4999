@@ -116,7 +116,14 @@ const SupplierNotifications = () => {
           <ArrowRight className="w-5 h-5" />
         </Button>
         <h1 className="text-lg font-bold text-center flex-1">התראות</h1>
-        <div className="w-9" />
+        <Button 
+          onClick={() => navigate('/supplier/notification-settings')} 
+          variant="ghost" 
+          size="sm" 
+          className="p-2"
+        >
+          <Filter className="w-5 h-5" />
+        </Button>
       </header>
 
       {/* Summary and filters */}
