@@ -12,6 +12,11 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { leadsService, Lead, LeadStatus } from '@/services/leadsService';
+import { crmAutomationService } from '@/services/crmAutomationService';
+import { SLABadge } from '@/components/crm/SLABadge';
+import { LeadAssignmentDropdown } from '@/components/crm/LeadAssignmentDropdown';
+import { SLAMetricsWidget } from '@/components/crm/SLAMetricsWidget';
+import { QuickActionsMenu } from '@/components/crm/QuickActionsMenu';
 import { Phone, Mail, StickyNote, MessageCircle, FileText, ArrowUpDown, AlertCircle, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
@@ -124,12 +129,44 @@ function SupplierCRMContent() {
     }
   });
 
+  const snoozeMutation = useMutation({
+    mutationFn: ({ leadId, hours }: { leadId: string; hours: number }) =>
+      crmAutomationService.snoozeLead(leadId, hours),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
+      toast({ title: 'Lead snoozed' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to snooze lead', description: error.message, variant: 'destructive' });
+    }
+  });
+
+  const assignMutation = useMutation({
+    mutationFn: ({ leadId, assigneeId }: { leadId: string; assigneeId: string }) =>
+      crmAutomationService.assignLead(leadId, assigneeId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
+      toast({ title: 'Lead assigned' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to assign lead', description: error.message, variant: 'destructive' });
+    }
+  });
+
   const addNote = (leadId: string, note: string) => {
     addNoteMutation.mutate({ leadId, note });
   };
 
   const createQuote = (leadId: string) => {
     createQuoteMutation.mutate(leadId);
+  };
+
+  const snoozeLead = (leadId: string, hours: number) => {
+    snoozeMutation.mutate({ leadId, hours });
+  };
+
+  const assignLead = (leadId: string, assigneeId: string) => {
+    assignMutation.mutate({ leadId, assigneeId });
   };
 
   const Kanban = () => (
@@ -145,13 +182,20 @@ function SupplierCRMContent() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <SortableContext items={(leadsByStatus[status] || []).map((l) => l.id)} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-3">
-                    {(leadsByStatus[status] || []).map((lead) => (
-                      <LeadCard key={lead.id} lead={lead} onAddNote={addNote} onCreateQuote={createQuote} />
-                    ))}
-                  </div>
-                </SortableContext>
+                 <SortableContext items={(leadsByStatus[status] || []).map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                   <div className="space-y-3">
+                     {(leadsByStatus[status] || []).map((lead) => (
+                       <LeadCard 
+                         key={lead.id} 
+                         lead={lead} 
+                         onAddNote={addNote} 
+                         onCreateQuote={createQuote}
+                         onSnooze={snoozeLead}
+                         onAssign={assignLead}
+                       />
+                     ))}
+                   </div>
+                 </SortableContext>
               </CardContent>
             </Card>
           </div>
@@ -167,37 +211,50 @@ function SupplierCRMContent() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
-                <th className="p-3 text-left">Name</th>
-                <th className="p-3 text-left">Phone</th>
-                <th className="p-3 text-left">Email</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-left">Last Contact</th>
-                <th className="p-3 text-left">Actions</th>
+                 <th className="p-3 text-left">Name</th>
+                 <th className="p-3 text-left">Phone</th>
+                 <th className="p-3 text-left">Email</th>
+                 <th className="p-3 text-left">Status</th>
+                 <th className="p-3 text-left">SLA</th>
+                 <th className="p-3 text-left">Assigned</th>
+                 <th className="p-3 text-left">Last Contact</th>
+                 <th className="p-3 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {leads.map((l) => (
                 <tr key={l.id} className="border-b">
-                  <td className="p-3">{l.name || '—'}</td>
-                  <td className="p-3">
-                    {l.contact_phone ? (
-                      <a href={`tel:${l.contact_phone}`} className="underline">{l.contact_phone}</a>
-                    ) : '—'}
-                  </td>
-                  <td className="p-3">
-                    {l.contact_email ? (
-                      <a href={`mailto:${l.contact_email}`} className="underline">{l.contact_email}</a>
-                    ) : '—'}
-                  </td>
-                  <td className="p-3"><Badge>{statusLabel(l.status)}</Badge></td>
-                  <td className="p-3">{l.last_contact_date ? format(new Date(l.last_contact_date), 'dd/MM/yy HH:mm') : '—'}</td>
-                  <td className="p-3">
-                    <div className="flex flex-wrap gap-2">
-                      <Button size="sm" variant="secondary" onClick={() => toast({ title: 'Chat not available yet' })}><MessageCircle className="h-4 w-4" /></Button>
-                      <Button size="sm" variant="secondary" onClick={() => createQuote(l.id)}><FileText className="h-4 w-4" /></Button>
-                      <AddNoteInline onSave={(note) => addNote(l.id, note)} />
-                    </div>
-                  </td>
+                   <td className="p-3">{l.name || '—'}</td>
+                   <td className="p-3">
+                     {l.contact_phone ? (
+                       <a href={`tel:${l.contact_phone}`} className="underline">{l.contact_phone}</a>
+                     ) : '—'}
+                   </td>
+                   <td className="p-3">
+                     {l.contact_email ? (
+                       <a href={`mailto:${l.contact_email}`} className="underline">{l.contact_email}</a>
+                     ) : '—'}
+                   </td>
+                   <td className="p-3"><Badge>{statusLabel(l.status)}</Badge></td>
+                   <td className="p-3">
+                     <SLABadge lead={l} />
+                   </td>
+                   <td className="p-3">
+                     <LeadAssignmentDropdown 
+                       leadId={l.id} 
+                       currentAssignee={l.assigned_to} 
+                       onAssign={assignLead}
+                     />
+                   </td>
+                   <td className="p-3">{l.last_contact_date ? format(new Date(l.last_contact_date), 'dd/MM/yy HH:mm') : '—'}</td>
+                   <td className="p-3">
+                     <QuickActionsMenu 
+                       leadId={l.id}
+                       onAddNote={addNote}
+                       onCreateQuote={createQuote}
+                       onSnooze={snoozeLead}
+                     />
+                   </td>
                 </tr>
               ))}
             </tbody>
@@ -209,9 +266,14 @@ function SupplierCRMContent() {
 
   return (
     <main className="mx-auto max-w-7xl space-y-4 p-4">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold">Leads CRM</h1>
-        <p className="text-sm text-muted-foreground">Manage your pipeline: drag between stages, add notes, and create quotes.</p>
+      <header className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Leads CRM</h1>
+            <p className="text-sm text-muted-foreground">Manage your pipeline: drag between stages, add notes, and create quotes.</p>
+          </div>
+        </div>
+        <SLAMetricsWidget supplierId={user?.id} />
       </header>
 
       <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -284,7 +346,19 @@ export default function SupplierCRM() {
   );
 }
 
-function LeadCard({ lead, onAddNote, onCreateQuote }: { lead: Lead; onAddNote: (id: string, note: string) => void; onCreateQuote: (id: string) => void }) {
+function LeadCard({ 
+  lead, 
+  onAddNote, 
+  onCreateQuote, 
+  onSnooze, 
+  onAssign 
+}: { 
+  lead: Lead; 
+  onAddNote: (id: string, note: string) => void; 
+  onCreateQuote: (id: string) => void;
+  onSnooze: (id: string, hours: number) => void;
+  onAssign: (id: string, assigneeId: string) => void;
+}) {
   return (
     <div id={lead.id} className="rounded-md border p-3 shadow-sm">
       <div className="flex items-start justify-between">
@@ -292,7 +366,17 @@ function LeadCard({ lead, onAddNote, onCreateQuote }: { lead: Lead; onAddNote: (
           <div className="font-medium">{lead.name || '—'}</div>
           <div className="mt-1 text-xs text-muted-foreground">{lead.source || '—'}</div>
         </div>
-        <Badge>{statusLabel(lead.status)}</Badge>
+        <div className="flex items-center gap-2">
+          <SLABadge lead={lead} />
+          <Badge>{statusLabel(lead.status)}</Badge>
+        </div>
+      </div>
+      <div className="mt-2">
+        <LeadAssignmentDropdown 
+          leadId={lead.id} 
+          currentAssignee={lead.assigned_to} 
+          onAssign={onAssign}
+        />
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
         {lead.contact_phone && (
@@ -303,9 +387,12 @@ function LeadCard({ lead, onAddNote, onCreateQuote }: { lead: Lead; onAddNote: (
         )}
       </div>
       <div className="mt-3 flex items-center gap-2">
-        <Button variant="secondary" size="sm" onClick={() => onCreateQuote(lead.id)}><FileText className="mr-2 h-4 w-4" />Quote</Button>
-        <AddNoteInline onSave={(note) => onAddNote(lead.id, note)} />
-        <Button variant="ghost" size="sm" onClick={() => alert('Chat not available yet')}><MessageCircle className="mr-2 h-4 w-4" />Chat</Button>
+        <QuickActionsMenu 
+          leadId={lead.id}
+          onAddNote={onAddNote}
+          onCreateQuote={onCreateQuote}
+          onSnooze={onSnooze}
+        />
       </div>
       {lead.last_contact_date && (
         <div className="mt-2 text-xs text-muted-foreground">Last contact: {format(new Date(lead.last_contact_date), 'dd/MM/yy HH:mm')}</div>
