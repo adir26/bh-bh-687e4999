@@ -2874,6 +2874,115 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_messages: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_url: string | null
+          id: string
+          is_internal: boolean
+          message_text: string | null
+          read_by: Json
+          sender_id: string
+          ticket_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          is_internal?: boolean
+          message_text?: string | null
+          read_by?: Json
+          sender_id: string
+          ticket_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          is_internal?: boolean
+          message_text?: string | null
+          read_by?: Json
+          sender_id?: string
+          ticket_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_ticket_messages_ticket_id"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          assigned_to: string | null
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          description: string | null
+          escalated_at: string | null
+          id: string
+          opened_by: string
+          order_id: string
+          priority: string
+          reason: string
+          sla_due_at: string | null
+          status: string
+          ticket_number: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          description?: string | null
+          escalated_at?: string | null
+          id?: string
+          opened_by: string
+          order_id: string
+          priority?: string
+          reason: string
+          sla_due_at?: string | null
+          status?: string
+          ticket_number?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          description?: string | null
+          escalated_at?: string | null
+          id?: string
+          opened_by?: string
+          order_id?: string
+          priority?: string
+          reason?: string
+          sla_due_at?: string | null
+          status?: string
+          ticket_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_tickets_order_id"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_analytics: {
         Row: {
           created_at: string
@@ -3104,6 +3213,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      close_ticket: {
+        Args: { p_reason?: string; p_ticket_id: string }
+        Returns: undefined
+      }
       create_notification: {
         Args: {
           p_message: string
@@ -3124,6 +3237,10 @@ export type Database = {
       }
       delete_user_account: {
         Args: { user_id: string }
+        Returns: undefined
+      }
+      escalate_overdue_tickets: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       generate_lead_number: {
@@ -3208,6 +3325,10 @@ export type Database = {
       }
       mark_order_messages_read: {
         Args: { p_message_ids?: string[]; p_order_id: string }
+        Returns: undefined
+      }
+      mark_ticket_messages_read: {
+        Args: { p_message_ids?: string[]; p_ticket_id: string }
         Returns: undefined
       }
       process_sla_reminders: {
