@@ -473,7 +473,7 @@ const SupplierProfile = () => {
           />
           <ScheduleMeetingModal
             isOpen={isMeetingModalOpen}
-            onClose={() => setIsMeetingModalOpen(false)}
+            onOpenChange={setIsMeetingModalOpen}
             supplierId={supplier.id}
             supplierName={supplier.name}
           />

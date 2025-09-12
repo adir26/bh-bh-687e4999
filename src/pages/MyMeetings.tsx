@@ -1,203 +1,360 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Calendar, Clock, User, Phone, MessageCircle, Check, X, Clock3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Calendar, MapPin, ArrowRight, Clock, Eye } from 'lucide-react';
+import { MeetingService, BookingWithDetails } from '@/services/meetingService';
+import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
-import { supabase } from '@/integrations/supabase/client';
-import { showToast } from '@/utils/toast';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { OnboardingGuard } from '@/components/OnboardingGuard';
 import { PageBoundary } from '@/components/system/PageBoundary';
-import { Skeleton } from '@/components/ui/skeleton';
-import { supaSelect } from '@/lib/supaFetch';
+import { format, parseISO, isPast, isFuture } from 'date-fns';
+import { he } from 'date-fns/locale';
 
-interface Meeting {
-  id: string;
-  supplier_id: string;
-  meeting_date: string;
-  meeting_time?: string;
-  location?: string;
-  notes?: string;
-  status: string;
-  created_at: string;
-}
+const MyMeetings = () => {
+  const [activeTab, setActiveTab] = useState('upcoming');
+  const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
 
-export default function MyMeetings() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const { invalidateMeetings } = useQueryInvalidation();
-
-  const { data: meetings = [], isLoading } = useQuery({
-    queryKey: ['meetings', user?.id],
+  const { data: bookings, isLoading } = useQuery({
+    queryKey: ['user-bookings', user?.id],
+    queryFn: () => MeetingService.getUserBookings(user!.id),
     enabled: !!user?.id,
-    queryFn: async ({ signal }) => {
-      try {
-        return await supaSelect<Meeting[]>(
-          supabase
-            .from('meetings')
-            .select('*')
-            .eq('user_id', user?.id)
-            .order('meeting_date', { ascending: true }),
-          { 
-            signal,
-            errorMessage: 'שגיאה בטעינת הפגישות',
-            timeoutMs: 10_000
-          }
-        );
-      } catch (error: any) {
-        if (error.message?.includes('relation') || error.message?.includes('does not exist')) {
-          return [];
-        }
-        throw error;
-      }
-    },
-    retry: 1,
-    staleTime: 60_000,
   });
 
-  const deleteMeeting = async (meetingId: string) => {
-    try {
-      const { error } = await supabase
-        .from('meetings')
-        .delete()
-        .eq('id', meetingId);
+  // Update booking status mutation (for suppliers)
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ bookingId, status, notes }: { 
+      bookingId: string; 
+      status: 'confirmed' | 'rejected'; 
+      notes?: string 
+    }) => MeetingService.updateBookingStatus(bookingId, status, notes),
+    onSuccess: (_, { status }) => {
+      toast({
+        title: status === 'confirmed' ? "פגישה אושרה" : "פגישה נדחתה",
+        description: status === 'confirmed' 
+          ? "הלקוח יקבל הודעת אישור" 
+          : "הלקוח יקבל הודעה על הדחיה",
+      });
+      queryClient.invalidateQueries({ queryKey: ['user-bookings'] });
+    },
+    onError: () => {
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן לעדכן את סטטוס הפגישה",
+        variant: "destructive",
+      });
+    }
+  });
 
-      if (error) throw error;
-      
-      invalidateMeetings(user?.id);
-      showToast.success('הפגישה נמחקה');
-    } catch (error) {
-      console.error('Error deleting meeting:', error);
-      showToast.error('שגיאה במחיקת הפגישה');
+  // Cancel booking mutation (for clients)
+  const cancelMutation = useMutation({
+    mutationFn: (bookingId: string) => MeetingService.cancelBooking(bookingId),
+    onSuccess: () => {
+      toast({
+        title: "פגישה בוטלה",
+        description: "הספק יקבל הודעה על הביטול",
+      });
+      queryClient.invalidateQueries({ queryKey: ['user-bookings'] });
+    },
+    onError: () => {
+      toast({
+        title: "שגיאה", 
+        description: "לא ניתן לבטל את הפגישה",
+        variant: "destructive",
+      });
+    }
+  });
+
+  if (!user || !profile) {
+    return (
+      <PageBoundary>
+        <div className="min-h-screen bg-background flex items-center justify-center" dir="rtl">
+          <div className="text-center space-y-4">
+            <Calendar className="h-12 w-12 text-muted-foreground mx-auto" />
+            <div>
+              <h3 className="font-semibold text-foreground">התחבר כדי לראות פגישות</h3>
+              <p className="text-sm text-muted-foreground">
+                התחבר לחשבון שלך כדי לראות את הפגישות שלך
+              </p>
+            </div>
+          </div>
+        </div>
+      </PageBoundary>
+    );
+  }
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-600">ממתין לאישור</Badge>;
+      case 'confirmed':
+        return <Badge variant="outline" className="text-green-600 border-green-600">אושר</Badge>;
+      case 'rejected':
+        return <Badge variant="outline" className="text-red-600 border-red-600">נדחה</Badge>;
+      case 'cancelled':
+        return <Badge variant="outline" className="text-gray-600 border-gray-600">בוטל</Badge>;
+      case 'completed':
+        return <Badge variant="outline" className="text-blue-600 border-blue-600">הושלם</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { text: 'ממתין', variant: 'secondary' as const },
-      confirmed: { text: 'מאושר', variant: 'default' as const },
-      cancelled: { text: 'בוטל', variant: 'destructive' as const }
+  const formatDateTime = (dateTime: string) => {
+    const date = parseISO(dateTime);
+    return {
+      date: format(date, 'EEEE, dd MMMM', { locale: he }),
+      time: format(date, 'HH:mm', { locale: he })
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+  };
+
+  const isUserSupplier = profile.role === 'supplier';
+  const pendingBookings = bookings?.filter(b => b.status === 'pending') || [];
+  const upcomingBookings = bookings?.filter(b => 
+    ['confirmed'].includes(b.status) && isFuture(parseISO(b.starts_at))
+  ) || [];
+  const pastBookings = bookings?.filter(b => 
+    ['completed', 'rejected', 'cancelled'].includes(b.status) || 
+    (b.status === 'confirmed' && isPast(parseISO(b.starts_at)))
+  ) || [];
+
+  if (isLoading) {
+    return (
+      <PageBoundary>
+        <div className="min-h-screen bg-background flex items-center justify-center" dir="rtl">
+          <div className="flex items-center gap-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+            <span className="text-muted-foreground">טוען פגישות...</span>
+          </div>
+        </div>
+      </PageBoundary>
+    );
+  }
+
+  const renderBookingCard = (booking: BookingWithDetails) => {
+    const { date, time } = formatDateTime(booking.starts_at);
+    const endTime = format(parseISO(booking.ends_at), 'HH:mm', { locale: he });
+    const otherUser = isUserSupplier ? booking.client : booking.supplier;
     
     return (
-      <Badge variant={config.variant}>
-        {config.text}
-      </Badge>
+      <Card key={booking.id} className="border-0 shadow-sm rounded-xl">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle className="text-lg text-right text-foreground">
+                פגישה עם {otherUser?.full_name || 'משתמש'}
+              </CardTitle>
+              <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>{date}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  <span>{time} - {endTime}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              {getStatusBadge(booking.status)}
+            </div>
+          </div>
+          
+          {booking.notes && (
+            <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+              <p className="text-sm text-right">{booking.notes}</p>
+            </div>
+          )}
+        </CardHeader>
+
+        <CardContent className="pt-0">
+          <div className="flex gap-3">
+            {/* Client actions */}
+            {!isUserSupplier && booking.status === 'pending' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => cancelMutation.mutate(booking.id)}
+                disabled={cancelMutation.isPending}
+                className="flex-1"
+              >
+                <X className="w-4 h-4 ml-1" />
+                ביטול בקשה
+              </Button>
+            )}
+            
+            {!isUserSupplier && booking.status === 'confirmed' && isFuture(parseISO(booking.starts_at)) && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => window.open(`mailto:${otherUser?.email}`, '_self')}
+                >
+                  <MessageCircle className="w-4 h-4 ml-1" />
+                  שלח הודעה
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => cancelMutation.mutate(booking.id)}
+                  disabled={cancelMutation.isPending}
+                  className="flex-1"
+                >
+                  <X className="w-4 h-4 ml-1" />
+                  בטל פגישה
+                </Button>
+              </>
+            )}
+
+            {/* Supplier actions */}
+            {isUserSupplier && booking.status === 'pending' && (
+              <>
+                <Button
+                  size="sm"
+                  onClick={() => updateStatusMutation.mutate({ 
+                    bookingId: booking.id, 
+                    status: 'confirmed' 
+                  })}
+                  disabled={updateStatusMutation.isPending}
+                  className="flex-1"
+                >
+                  <Check className="w-4 h-4 ml-1" />
+                  אשר פגישה
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => updateStatusMutation.mutate({ 
+                    bookingId: booking.id, 
+                    status: 'rejected' 
+                  })}
+                  disabled={updateStatusMutation.isPending}
+                  className="flex-1"
+                >
+                  <X className="w-4 h-4 ml-1" />
+                  דחה
+                </Button>
+              </>
+            )}
+            
+            {isUserSupplier && booking.status === 'confirmed' && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => window.open(`mailto:${otherUser?.email}`, '_self')}
+              >
+                <Phone className="w-4 h-4 ml-1" />
+                צור קשר
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     );
   };
 
   return (
-    <PageBoundary
-      timeout={15000}
-      fallback={
-        <div className="min-h-screen bg-background p-4 pb-32">
-          <div className="container mx-auto">
-            <Skeleton className="h-8 w-48 mb-6" />
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="p-4">
-                    <Skeleton className="h-6 w-48 mb-2" />
-                    <Skeleton className="h-4 w-32 mb-2" />
-                    <Skeleton className="h-4 w-24" />
-                  </CardContent>
-                </Card>
-              ))}
+    <OnboardingGuard>
+      <PageBoundary>
+        <div className="min-h-screen bg-background" dir="rtl">
+          <div className="max-w-md mx-auto bg-background pb-nav-safe">
+            {/* Header */}
+            <div className="bg-background border-b border-border px-6 py-6">
+              <h1 className="text-2xl font-bold text-foreground text-right">הפגישות שלי</h1>
             </div>
-          </div>
-        </div>
-      }
-    >
-      {isLoading ? (
-        <div className="min-h-screen bg-background p-4 pb-32">
-          <div className="container mx-auto">
-            <Skeleton className="h-8 w-48 mb-6" />
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="p-4">
-                    <Skeleton className="h-6 w-48 mb-2" />
-                    <Skeleton className="h-4 w-32 mb-2" />
-                    <Skeleton className="h-4 w-24" />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="min-h-screen bg-background p-4 pb-32">
-          <div className="container mx-auto">
-            <header className="mb-6">
-              <h1 className="text-2xl font-bold">הפגישות שלי</h1>
-            </header>
 
-            {!meetings || meetings.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="max-w-md mx-auto">
-                  <div className="bg-muted rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <Calendar className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h2 className="text-lg font-semibold mb-2">אין פגישות מתוכננות</h2>
-                  <p className="text-muted-foreground mb-4">
-                    כאשר תקבע פגישות עם ספקים, הן יופיעו כאן.
-                  </p>
-                </div>
+            {/* Tabs */}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <div className="bg-background border-b border-border px-6 py-2">
+                <TabsList className="grid w-full grid-cols-3 h-12 bg-muted/50">
+                  {isUserSupplier && (
+                    <TabsTrigger
+                      value="pending"
+                      className="rounded-xl text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    >
+                      בקשות ({pendingBookings.length})
+                    </TabsTrigger>
+                  )}
+                  <TabsTrigger
+                    value="upcoming"
+                    className="rounded-xl text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    קרובות ({upcomingBookings.length})
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="past"
+                    className="rounded-xl text-sm font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  >
+                    עבר ({pastBookings.length})
+                  </TabsTrigger>
+                </TabsList>
               </div>
-            ) : (
-              <div className="space-y-4" role="list" aria-label="רשימת פגישות">
-                {meetings.map((meeting) => (
-                  <Card key={meeting.id} role="listitem">
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold mb-2">
-                            פגישה עם ספק {meeting.supplier_id}
-                          </h3>
-                          <div className="space-y-1 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4" />
-                              <span>
-                                {new Date(meeting.meeting_date).toLocaleDateString('he-IL')} 
-                                {meeting.meeting_time && ` בשעה ${meeting.meeting_time}`}
-                              </span>
-                            </div>
-                            {meeting.location && (
-                              <div className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4" />
-                                <span>{meeting.location}</span>
-                              </div>
-                            )}
-                            {meeting.notes && (
-                              <div className="mt-2">
-                                <span className="font-medium">הערות: </span>
-                                <span>{meeting.notes}</span>
-                              </div>
-                            )}
-                          </div>
+
+              {/* Content */}
+              <div className="flex-1 px-6 py-6">
+                {/* Pending bookings (suppliers only) */}
+                {isUserSupplier && (
+                  <TabsContent value="pending" className="mt-0">
+                    <div className="space-y-4">
+                      {pendingBookings.length > 0 ? (
+                        pendingBookings.map(renderBookingCard)
+                      ) : (
+                        <div className="text-center py-16">
+                          <Clock3 className="w-20 h-20 bg-muted/50 rounded-full p-5 mx-auto mb-6 text-muted-foreground" />
+                          <h3 className="text-xl font-semibold text-foreground mb-3">אין בקשות ממתינות</h3>
+                          <p className="text-muted-foreground">כשלקוחות יבקשו פגישות, הן יופיעו כאן</p>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteMeeting(meeting.id)}
-                          className="text-red-600 hover:text-red-700 hover:border-red-300"
-                          aria-label={`מחק פגישה עם ספק ${meeting.supplier_id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      )}
+                    </div>
+                  </TabsContent>
+                )}
+
+                {/* Upcoming bookings */}
+                <TabsContent value="upcoming" className="mt-0">
+                  <div className="space-y-4">
+                    {upcomingBookings.length > 0 ? (
+                      upcomingBookings.map(renderBookingCard)
+                    ) : (
+                      <div className="text-center py-16">
+                        <Calendar className="w-20 h-20 bg-muted/50 rounded-full p-5 mx-auto mb-6 text-muted-foreground" />
+                        <h3 className="text-xl font-semibold text-foreground mb-3">אין פגישות קרובות</h3>
+                        <p className="text-muted-foreground">
+                          {isUserSupplier 
+                            ? "פגישות מאושרות יופיעו כאן" 
+                            : "הזמן פגישות עם ספקים ותראה אותן כאן"
+                          }
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* Past bookings */}
+                <TabsContent value="past" className="mt-0">
+                  <div className="space-y-4">
+                    {pastBookings.length > 0 ? (
+                      pastBookings.map(renderBookingCard)
+                    ) : (
+                      <div className="text-center py-16">
+                        <Clock className="w-20 h-20 bg-muted/50 rounded-full p-5 mx-auto mb-6 text-muted-foreground" />
+                        <h3 className="text-xl font-semibold text-foreground mb-3">אין פגישות בעבר</h3>
+                        <p className="text-muted-foreground">פגישות שהושלמו יופיעו כאן</p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
               </div>
-            )}
+            </Tabs>
           </div>
         </div>
-      )}
-    </PageBoundary>
+      </PageBoundary>
+    </OnboardingGuard>
   );
-}
+};
+
+export default MyMeetings;

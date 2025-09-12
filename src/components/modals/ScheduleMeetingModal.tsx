@@ -1,183 +1,269 @@
 import React, { useState } from 'react';
+import { Calendar, Clock, User, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Calendar, Clock } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { showToast } from '@/utils/toast';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { MeetingService, TimeSlot } from '@/services/meetingService';
+import { toast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { format, parseISO, addDays, startOfWeek } from 'date-fns';
+import { he } from 'date-fns/locale';
 
 interface ScheduleMeetingModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
   supplierId: string;
   supplierName: string;
 }
 
 export const ScheduleMeetingModal: React.FC<ScheduleMeetingModalProps> = ({
   isOpen,
-  onClose,
+  onOpenChange,
   supplierId,
   supplierName
 }) => {
-  const { user } = useAuth();
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [notes, setNotes] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 0 }));
+  const queryClient = useQueryClient();
 
-  // Generate time slots for the next 7 days
-  const generateTimeSlots = () => {
-    const slots = [];
-    const today = new Date();
-    
-    for (let i = 1; i <= 7; i++) {
-      const slotDate = new Date(today);
-      slotDate.setDate(today.getDate() + i);
+  // Fetch available time slots for the current week
+  const { data: timeSlots, isLoading } = useQuery({
+    queryKey: ['available-slots', supplierId, currentWeek],
+    queryFn: async () => {
+      const slots = await MeetingService.getAvailableTimeSlots(
+        supplierId,
+        currentWeek,
+        7 // One week
+      );
       
-      // Skip weekends for business meetings
-      if (slotDate.getDay() !== 0 && slotDate.getDay() !== 6) {
-        const dateStr = slotDate.toISOString().split('T')[0];
-        const dayName = slotDate.toLocaleDateString('he-IL', { weekday: 'long' });
-        const displayDate = slotDate.toLocaleDateString('he-IL');
-        
-        slots.push({
-          value: dateStr,
-          label: `${dayName}, ${displayDate}`
-        });
-      }
-    }
-    return slots;
-  };
-
-  const timeSlots = [
-    { value: '09:00', label: '09:00' },
-    { value: '10:00', label: '10:00' },
-    { value: '11:00', label: '11:00' },
-    { value: '14:00', label: '14:00' },
-    { value: '15:00', label: '15:00' },
-    { value: '16:00', label: '16:00' },
-  ];
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) {
-      showToast.error('יש להתחבר כדי לקבוע פגישה');
-      return;
-    }
-
-    if (!date || !time) {
-      showToast.error('נא לבחור תאריך ושעה');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const datetime = new Date(`${date}T${time}:00`);
+      // Group slots by date
+      const groupedSlots: Record<string, TimeSlot[]> = {};
+      slots.forEach(slot => {
+        if (!groupedSlots[slot.date]) {
+          groupedSlots[slot.date] = [];
+        }
+        groupedSlots[slot.date].push(slot);
+      });
       
-      const { error } = await supabase
-        .from('meetings')
-        .insert({
-          user_id: user.id,
-          supplier_id: supplierId,
-          datetime: datetime.toISOString(),
-          status: 'pending',
-          notes: notes || null
-        });
+      return groupedSlots;
+    },
+    enabled: isOpen
+  });
 
-      if (error) throw error;
-
-      showToast.success('בקשת הפגישה נשלחה בהצלחה');
-      setDate('');
-      setTime('');
+  // Create booking mutation
+  const createBookingMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedSlot) throw new Error('No slot selected');
+      
+      const startsAt = new Date(`${selectedSlot.date}T${selectedSlot.start_time}`).toISOString();
+      const endsAt = new Date(`${selectedSlot.date}T${selectedSlot.end_time}`).toISOString();
+      
+      return MeetingService.createBooking(supplierId, startsAt, endsAt, notes);
+    },
+    onSuccess: () => {
+      toast({
+        title: "בקשת פגישה נשלחה",
+        description: "הספק יקבל הודעה ויחזור אליך בקרוב",
+      });
+      queryClient.invalidateQueries({ queryKey: ['user-bookings'] });
+      onOpenChange(false);
+      setSelectedSlot(null);
       setNotes('');
-      onClose();
-    } catch (error) {
-      console.error('Error scheduling meeting:', error);
-      showToast.error('שגיאה בקביעת הפגישה');
-    } finally {
-      setIsLoading(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "שגיאה בשליחת בקשה",
+        description: error.message || "נסה שוב מאוחר יותר",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleBookMeeting = () => {
+    if (!selectedSlot) return;
+    createBookingMutation.mutate();
+  };
+
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    const newWeek = new Date(currentWeek);
+    if (direction === 'prev') {
+      newWeek.setDate(newWeek.getDate() - 7);
+    } else {
+      newWeek.setDate(newWeek.getDate() + 7);
+    }
+    
+    // Don't go to past weeks
+    if (newWeek >= startOfWeek(new Date(), { weekStartsOn: 0 })) {
+      setCurrentWeek(newWeek);
     }
   };
+
+  const getDayName = (dateStr: string) => {
+    return format(parseISO(dateStr), 'EEEE', { locale: he });
+  };
+
+  const getDateFormatted = (dateStr: string) => {
+    return format(parseISO(dateStr), 'dd/MM', { locale: he });
+  };
+
+  // Generate dates for current week
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(currentWeek);
+    date.setDate(date.getDate() + i);
+    return date.toISOString().split('T')[0];
+  });
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="text-right flex items-center gap-2">
             <Calendar className="w-5 h-5" />
             קביעת פגישה עם {supplierName}
           </DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="date">תאריך *</Label>
-            <select
-              id="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full p-2 border rounded-md"
-              required
+
+        <div className="space-y-6">
+          {/* Week Navigation */}
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateWeek('next')}
             >
-              <option value="">בחר תאריך</option>
-              {generateTimeSlots().map((slot) => (
-                <option key={slot.value} value={slot.value}>
-                  {slot.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="time">שעה *</Label>
-            <select
-              id="time"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full p-2 border rounded-md"
-              required
-            >
-              <option value="">בחר שעה</option>
-              {timeSlots.map((slot) => (
-                <option key={slot.value} value={slot.value}>
-                  {slot.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="notes">הערות (אופציונלי)</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="פרטים נוספים לגבי הפגישה..."
-              rows={3}
-            />
-          </div>
-          
-          <div className="flex gap-3 pt-4">
-            <Button 
-              type="submit" 
-              className="flex-1"
-              disabled={isLoading}
-            >
-              {isLoading ? 'שולח בקשה...' : 'שלח בקשת פגישה'}
+              השבוע הבא
             </Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onClose}
-              disabled={isLoading}
+            
+            <div className="text-center">
+              <span className="font-medium">
+                {format(currentWeek, 'dd/MM', { locale: he })} - {format(addDays(currentWeek, 6), 'dd/MM', { locale: he })}
+              </span>
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigateWeek('prev')}
+              disabled={currentWeek <= startOfWeek(new Date(), { weekStartsOn: 0 })}
             >
+              השבוע הקודם
+            </Button>
+          </div>
+
+          {/* Available Time Slots */}
+          <div className="space-y-4">
+            {isLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+                <p className="text-muted-foreground mt-2">טוען זמנים פנויים...</p>
+              </div>
+            ) : (
+              <>
+                {weekDates.map(date => {
+                  const daySlots = timeSlots?.[date] || [];
+                  const availableSlots = daySlots.filter(slot => slot.available);
+                  
+                  if (availableSlots.length === 0) return null;
+                  
+                  return (
+                    <Card key={date} className="p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="text-sm font-medium">
+                          {getDayName(date)} {getDateFormatted(date)}
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {availableSlots.length} זמנים פנויים
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        {availableSlots.map((slot, index) => (
+                          <Button
+                            key={index}
+                            variant={selectedSlot === slot ? "default" : "outline"}
+                            size="sm"
+                            className="text-sm"
+                            onClick={() => setSelectedSlot(slot)}
+                          >
+                            <Clock className="w-3 h-3 mr-1" />
+                            {slot.start_time} - {slot.end_time}
+                          </Button>
+                        ))}
+                      </div>
+                    </Card>
+                  );
+                })}
+                
+                {weekDates.every(date => !timeSlots?.[date]?.some(slot => slot.available)) && (
+                  <div className="text-center py-8">
+                    <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="font-medium text-foreground mb-2">אין זמנים פנויים השבוע</h3>
+                    <p className="text-sm text-muted-foreground">נסה לבחור שבוע אחר או צור קשר עם הספק</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Selected Slot & Notes */}
+          {selectedSlot && (
+            <Card className="p-4 bg-muted/50">
+              <div className="flex items-center gap-2 mb-3">
+                <User className="w-4 h-4" />
+                <span className="font-medium">פרטי הפגישה</span>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span>
+                    {getDayName(selectedSlot.date)} {getDateFormatted(selectedSlot.date)}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span>{selectedSlot.start_time} - {selectedSlot.end_time}</span>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium mb-2 block">
+                    הערות לפגישה (אופציונלי)
+                  </label>
+                  <Textarea
+                    placeholder="פרט על נושא הפגישה או דרישות מיוחדות..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4">
+            <Button
+              onClick={handleBookMeeting}
+              disabled={!selectedSlot || createBookingMutation.isPending}
+              className="flex-1"
+            >
+              {createBookingMutation.isPending ? "שולח בקשה..." : "שלח בקשת פגישה"}
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={createBookingMutation.isPending}
+            >
+              <X className="w-4 h-4" />
               ביטול
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -148,6 +148,75 @@ export type Database = {
         }
         Relationships: []
       }
+      availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          start_time: string
+          supplier_id: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          start_time: string
+          supplier_id: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          start_time?: string
+          supplier_id?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          client_id: string
+          created_at: string
+          ends_at: string
+          id: string
+          notes: string | null
+          starts_at: string
+          status: string
+          supplier_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          ends_at: string
+          id?: string
+          notes?: string | null
+          starts_at: string
+          status?: string
+          supplier_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          ends_at?: string
+          id?: string
+          notes?: string | null
+          starts_at?: string
+          status?: string
+          supplier_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -3209,6 +3278,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      check_booking_conflict: {
+        Args: {
+          p_ends_at: string
+          p_exclude_booking_id?: string
+          p_starts_at: string
+          p_supplier_id: string
+        }
+        Returns: boolean
+      }
       check_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
@@ -3480,9 +3558,17 @@ export type Database = {
           reviews_count: number
         }[]
       }
+      toggle_favorite: {
+        Args: { p_entity_id: string; p_entity_type: string }
+        Returns: boolean
+      }
       validate_admin_session: {
         Args: { _user_id: string }
         Returns: Json
+      }
+      validate_booking_availability: {
+        Args: { p_ends_at: string; p_starts_at: string; p_supplier_id: string }
+        Returns: boolean
       }
     }
     Enums: {
