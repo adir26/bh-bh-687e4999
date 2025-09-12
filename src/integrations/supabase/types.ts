@@ -2005,6 +2005,82 @@ export type Database = {
           },
         ]
       }
+      proposal_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          proposal_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          proposal_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          proposal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_events_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposals: {
+        Row: {
+          created_at: string
+          html_content: string | null
+          id: string
+          pdf_url: string | null
+          quote_id: string
+          status: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          pdf_url?: string | null
+          quote_id: string
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          pdf_url?: string | null
+          quote_id?: string
+          status?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_items: {
         Row: {
           created_at: string
@@ -2305,6 +2381,47 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      signature_links: {
+        Row: {
+          acted_at: string | null
+          acted_by: string | null
+          action: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          proposal_id: string
+          token: string
+        }
+        Insert: {
+          acted_at?: string | null
+          acted_by?: string | null
+          action?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          proposal_id: string
+          token?: string
+        }
+        Update: {
+          acted_at?: string | null
+          acted_by?: string | null
+          action?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          proposal_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signature_links_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supplier_verifications: {
         Row: {
@@ -2770,6 +2887,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_proposal_from_quote: {
+        Args: { p_html_content?: string; p_quote_id: string }
+        Returns: string
+      }
       delete_user_account: {
         Args: { user_id: string }
         Returns: undefined
@@ -2901,6 +3022,10 @@ export type Database = {
           updated_order: Database["public"]["Tables"]["orders"]["Row"]
         }[]
       }
+      send_proposal_for_signature: {
+        Args: { p_proposal_id: string }
+        Returns: string
+      }
       set_limit: {
         Args: { "": number }
         Returns: number
@@ -2916,6 +3041,10 @@ export type Database = {
       show_trgm: {
         Args: { "": string }
         Returns: string[]
+      }
+      sign_proposal: {
+        Args: { p_action: string; p_actor_id?: string; p_token: string }
+        Returns: Json
       }
       slugify: {
         Args: { txt: string }

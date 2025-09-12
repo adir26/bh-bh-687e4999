@@ -57,6 +57,7 @@ import SupplierOrders from "./pages/supplier/Orders";
 import SupplierNotifications from "./pages/supplier/Notifications";
 import NotificationSettings from "./pages/supplier/NotificationSettings";
 import SupplierAnalytics from "./pages/supplier/Analytics";
+import ProposalSignature from "./pages/ProposalSignature";
 import SupplierCRM from "./pages/supplier/CRM";
 import QuoteView from "./pages/QuoteView";
 import Support from "./pages/Support";
