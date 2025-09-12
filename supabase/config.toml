@@ -2,3 +2,6 @@ project_id = "yislkmhnitznvbxfpcxd"
 
 [functions.crm-automation-scheduler]
 verify_jwt = false
+
+[functions.payment-webhook]
+verify_jwt = false

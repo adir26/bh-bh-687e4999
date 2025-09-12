@@ -1305,6 +1305,82 @@ export type Database = {
           },
         ]
       }
+      order_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          meta: Json | null
+          order_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          meta?: Json | null
+          order_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          meta?: Json | null
+          order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          id: string
+          mime_type: string | null
+          order_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_url: string
+          id?: string
+          mime_type?: string | null
+          order_id: string
+          uploaded_by: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+          order_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_files_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -1333,6 +1409,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_messages: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_url: string | null
+          id: string
+          message_text: string | null
+          order_id: string
+          read_by: Json | null
+          sender_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          message_text?: string | null
+          order_id: string
+          read_by?: Json | null
+          sender_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          message_text?: string | null
+          order_id?: string
+          read_by?: Json | null
+          sender_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_messages_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
@@ -1532,6 +1652,59 @@ export type Database = {
             columns: ["supplier_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_links: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          expires_at: string | null
+          external_id: string | null
+          id: string
+          order_id: string
+          paid_at: string | null
+          payment_url: string | null
+          provider: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          expires_at?: string | null
+          external_id?: string | null
+          id?: string
+          order_id: string
+          paid_at?: string | null
+          payment_url?: string | null
+          provider?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          expires_at?: string | null
+          external_id?: string | null
+          id?: string
+          order_id?: string
+          paid_at?: string | null
+          payment_url?: string | null
+          provider?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_links_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -2941,6 +3114,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_order_event: {
+        Args: { p_event_type: string; p_meta?: Json; p_order_id: string }
+        Returns: string
+      }
       create_proposal_from_quote: {
         Args: { p_html_content?: string; p_quote_id: string }
         Returns: string
@@ -3027,6 +3204,10 @@ export type Database = {
       }
       mark_notification_read: {
         Args: { notification_id: string }
+        Returns: undefined
+      }
+      mark_order_messages_read: {
+        Args: { p_message_ids?: string[]; p_order_id: string }
         Returns: undefined
       }
       process_sla_reminders: {
