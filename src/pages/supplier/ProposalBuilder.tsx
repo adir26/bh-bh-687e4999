@@ -100,16 +100,16 @@ const ProposalBuilder: React.FC = () => {
 
       setProposalData(prev => ({
         ...prev,
-        quoteNumber: quote.quote_number,
-        creationDate: quote.created_at,
+        quoteNumber: `Q-${quote.quote.id.slice(-6)}`,
+        creationDate: quote.quote.created_at.split('T')[0],
         clientInfo: {
-          name: quote.client?.full_name || '',
-          email: quote.client?.email || '',
+          name: '',
+          email: '',
           phone: ''
         },
         items,
-        discount: ((quote.discount_amount / quote.subtotal) * 100) || 0,
-        vat: ((quote.tax_amount / quote.subtotal) * 100) || 17
+        discount: 0,
+        vat: ((quote.quote.tax_amount / quote.quote.subtotal) * 100) || 17
       }));
     }
   }, [quote]);

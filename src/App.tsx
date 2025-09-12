@@ -383,6 +383,7 @@ const App = () => {
                   </OnboardingGuard>
                 } />
                 <Route path="/quotes/:quoteId" element={<QuoteView />} />
+                <Route path="/sign/:token" element={<ProposalSignature />} />
                 
                 {/* Public routes - accessible in guest mode */}
                 <Route path="/search" element={<PublicRouteWrapper><Search /></PublicRouteWrapper>} />
