@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
+import { SafeImage } from '@/utils/imageErrorHandling';
 
 interface SupplierCardProps {
   logo: string;
@@ -23,10 +24,11 @@ export const SupplierCard: React.FC<SupplierCardProps> = ({
     >
       <CardContent className="p-3 xs:p-4 flex flex-col items-center gap-2 xs:gap-3">
         <div className="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-muted">
-          <img 
+          <SafeImage 
             src={logo} 
             alt={name}
             className="w-full h-full object-cover"
+            showLoader={true}
           />
         </div>
         <div className="flex flex-col items-center gap-2 xs:gap-3 text-center flex-1">

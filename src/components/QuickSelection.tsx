@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { SafeImage } from '@/utils/imageErrorHandling';
 
 interface QuickSelectionItem {
   id: string;
@@ -23,11 +24,12 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
           aria-label={item.title}
         >
           <div className="flex flex-col items-center w-full">
-            <img
+            <SafeImage
               src={item.image}
               alt={item.title}
               className="w-12 h-12 xs:w-16 xs:h-16 rounded-full object-cover"
               loading="lazy"
+              showLoader={true}
             />
           </div>
           <div className="flex flex-col items-center w-full">

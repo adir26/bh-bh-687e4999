@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from './ui/button';
+import { User } from 'lucide-react';
 interface HeaderProps {
   userName?: string;
 }
@@ -27,9 +28,15 @@ export const Header: React.FC<HeaderProps> = ({
   const displayName = profile?.full_name || userName || 'אורח';
   return <header className="flex justify-between items-center self-stretch bg-neutral-50 pt-3 pb-2 px-3 xs:pt-4 xs:pb-2 xs:px-4 sm:px-5">
       <div className="flex w-10 h-10 xs:w-12 xs:h-12 items-center">
-        {user ? <img src="https://api.builder.io/api/v1/image/assets/TEMP/25232c54ada7ccb23c097ee9c1cf936b2eb0aece?width=64" alt="User avatar" className="w-7 h-7 xs:w-8 xs:h-8 shrink-0 rounded-2xl object-cover" /> : <Button variant="outline" size="sm" onClick={handleAuthClick} className="text-xs">
+        {user ? (
+          <div className="w-7 h-7 xs:w-8 xs:h-8 shrink-0 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <User className="w-4 h-4 text-primary" />
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" onClick={handleAuthClick} className="text-xs">
             התחברות
-          </Button>}
+          </Button>
+        )}
       </div>
       <div className="flex flex-col items-center flex-[1_0_0] px-2">
         

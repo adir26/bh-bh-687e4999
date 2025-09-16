@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { SafeImage } from '@/utils/imageErrorHandling';
 import heroImage from '@/assets/home-hero.jpg';
 
 interface HeroSectionProps {
@@ -10,10 +11,11 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({ onCTAClick }) => {
   return (
     <div className="relative h-64 mx-4 mb-6 rounded-2xl overflow-hidden">
-      <img 
+      <SafeImage 
         src={heroImage}
         alt="בנו את הבית החלומות שלכם"
         className="w-full h-full object-cover"
+        showLoader={true}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
       

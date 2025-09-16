@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from './ui/card';
+import { SafeImage } from '@/utils/imageErrorHandling';
 
 interface ProjectCardProps {
   name: string;
@@ -26,10 +27,11 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     >
       <CardContent className="p-0 flex flex-col">
         <div className="w-full h-28 xs:h-30 sm:h-32 overflow-hidden rounded-t-lg">
-          <img 
+          <SafeImage 
             src={image} 
             alt={name}
             className="w-full h-full object-cover"
+            showLoader={true}
           />
         </div>
         <div className="p-3 xs:p-4 flex flex-col items-center gap-1 xs:gap-2 text-center">

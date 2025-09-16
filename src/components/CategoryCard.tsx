@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { SafeImage } from '@/utils/imageErrorHandling';
 
 interface CategoryCardProps {
   title: string;
@@ -42,11 +43,12 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
 
   return (
     <article className={`mobile-card flex ${getSizeClasses()} flex-col ${className}`}>
-      <img
+      <SafeImage
         src={image}
         alt={title}
         className={`${getImageSizeClasses()} w-full shrink-0 rounded-t-xl object-cover`}
         loading="lazy"
+        showLoader={true}
       />
       <div className="flex flex-col items-center gap-3 xs:gap-4 flex-1 p-3 xs:p-4">
         <div className="flex flex-col items-center gap-1 xs:gap-2 text-center">

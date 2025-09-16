@@ -1,4 +1,5 @@
 import React from 'react';
+import { SafeImage } from '@/utils/imageErrorHandling';
 
 interface TopBannerProps {
   title: string;
@@ -13,10 +14,11 @@ export const TopBanner: React.FC<TopBannerProps> = ({
 }) => {
   return (
     <div className="w-full relative min-h-[300px] mb-6">
-      <img 
+      <SafeImage 
         src={backgroundImage}
         alt={title}
         className="w-full h-[300px] object-cover"
+        showLoader={true}
       />
       <div className="absolute inset-0 bg-black/40 flex flex-col justify-center items-center text-white px-4">
         <h1 className="text-2xl font-bold mb-2 text-center">{title}</h1>

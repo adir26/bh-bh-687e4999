@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { SafeImage } from '@/utils/imageErrorHandling';
 import adImage from '@/assets/ad-banner.jpg';
 
 interface AdBannerProps {
@@ -10,10 +11,11 @@ export const AdBanner: React.FC<AdBannerProps> = ({ onAdClick }) => {
   return (
     <div className="w-full px-4 mb-6">
       <div className="relative h-40 rounded-2xl overflow-hidden bg-gradient-to-r from-primary/5 to-accent/5 border border-border/50">
-        <img 
+        <SafeImage 
           src={adImage}
           alt="פרסומת מיוחדת"
           className="w-full h-full object-cover opacity-90"
+          showLoader={true}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" />
         
