@@ -3,7 +3,7 @@ import { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { UserRole, getPostAuthRoute, getRoleHomeRoute } from '@/utils/authRouting';
+import { UserRole, getPostAuthRoute, getRoleHomeRoute, routeAfterLogin } from '@/utils/authRouting';
 import { InputSanitizer } from '@/utils/inputSanitizer';
 import { useProfile } from '@/hooks/useProfile';
 import { withTimeout } from '@/lib/withTimeout';
@@ -161,13 +161,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sessionStorage.removeItem('hasSeenWelcome');
       }
 
-      // Get the destination based on current auth state
-      const destination = getPostAuthRoute({
-        role: (profile as Profile).role as UserRole,
-        onboarding_completed: (profile as Profile).onboarding_completed,
-        onboarding_step: (profile as Profile).onboarding_step,
-        fromPath: returnPath || (currentPath === '/auth' ? null : currentPath),
-      });
+      // Get the destination based on current auth state using routeAfterLogin
+      const destination = routeAfterLogin(profile);
 
       console.log('[AUTH] Post-auth redirect decision:', {
         currentPath,

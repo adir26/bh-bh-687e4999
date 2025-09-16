@@ -57,6 +57,34 @@ export const getRoleHomeRoute = (role: UserRole): string => {
 };
 
 /**
+ * Route users after login based on profile role and onboarding state
+ */
+export const routeAfterLogin = (profile: any): string => {
+  // 1) If no role, go to role picker
+  if (!profile?.role || !['client', 'supplier', 'admin'].includes(profile.role)) {
+    console.log('[AUTH ROUTING] No role found, routing to role picker');
+    return '/onboarding/role-picker';
+  }
+
+  // 2) If onboarding completed or skipped, go to role-specific home
+  const onboardingDone = profile.onboarding_completed || 
+                        profile.onboarding_skipped || 
+                        profile.onboarding_status === 'completed';
+
+  if (onboardingDone) {
+    const homeRoute = profile.role === 'supplier' ? '/supplier/dashboard' : '/';
+    console.log('[AUTH ROUTING] Onboarding complete/skipped, routing to:', homeRoute);
+    return homeRoute;
+  }
+
+  // 3) Otherwise, start/resume onboarding
+  const step = profile.onboarding_step || 0;
+  const onboardingRoute = step > 0 ? getRouteFromStep(profile.role, step) : getOnboardingStartRoute(profile.role);
+  console.log('[AUTH ROUTING] Starting/resuming onboarding:', onboardingRoute);
+  return onboardingRoute;
+};
+
+/**
  * Determine the final destination after authentication/profile load
  */
 export const getPostAuthRoute = (opts: {
@@ -69,33 +97,25 @@ export const getPostAuthRoute = (opts: {
 
   console.log('[AUTH ROUTING] Determining route for:', opts);
 
-  // 1) If onboarding completed → honor return path or go to role home
-  if (onboarding_completed) {
-    // If user came from a protected page, honor it (but not auth pages)
-    if (fromPath && !fromPath.startsWith('/auth') && !fromPath.startsWith('/onboarding')) {
-      console.log('[AUTH ROUTING] Onboarding completed, returning to original path:', fromPath);
-      return fromPath;
-    }
-    
-    const roleRoute = getRoleHomeRoute(role);
-    console.log('[AUTH ROUTING] Onboarding completed, routing to role home:', roleRoute);
-    return roleRoute;
+  // Use the new routeAfterLogin function for consistent logic
+  const profile = {
+    role,
+    onboarding_completed,
+    onboarding_step,
+    onboarding_status: onboarding_completed ? 'completed' : 'in_progress'
+  };
+
+  const destination = routeAfterLogin(profile);
+
+  // Honor return path only if onboarding is complete and path is not auth/onboarding
+  if (onboarding_completed && fromPath && 
+      !fromPath.startsWith('/auth') && 
+      !fromPath.startsWith('/onboarding')) {
+    console.log('[AUTH ROUTING] Onboarding completed, returning to original path:', fromPath);
+    return fromPath;
   }
 
-  // 2) If onboarding not completed, check status and role
-  // Step 0 with known role should start onboarding, not go to role picker
-  const step = onboarding_step || 0;
-  
-  // Only go to role picker if role is truly unknown/missing or invalid
-  if (!role || !['client', 'supplier', 'admin'].includes(role as string)) {
-    console.log('[AUTH ROUTING] Role unknown or invalid, routing to role picker');
-    return '/onboarding/role-picker';
-  }
-  
-  // Otherwise start or resume role-specific onboarding
-  const route = step > 0 ? getRouteFromStep(role, step) : getOnboardingStartRoute(role);
-  console.log('[AUTH ROUTING] Starting/resuming onboarding for role:', role, 'at step:', step, '→', route);
-  return route;
+  return destination;
 };
 
 /**
