@@ -9,6 +9,7 @@ import {
   OrdersResponse,
   Refund
 } from '@/types/admin';
+import { FEATURES } from '@/config/featureFlags';
 
 export const useAdminOrders = (
   filters: OrderFilters,
@@ -33,7 +34,7 @@ export const useAdminOrders = (
         query = query.eq('status', filters.status as any);
       }
       
-      if (filters.payment_status) {
+      if (FEATURES.PAYMENTS_ENABLED && filters.payment_status) {
         query = query.eq('payment_status', filters.payment_status);
       }
       
@@ -143,6 +144,10 @@ export const useOrderMutations = () => {
   // Update payment status
   const updatePaymentStatus = useMutation({
     mutationFn: async ({ id, payment_status }: { id: string; payment_status: string }) => {
+      if (!FEATURES.PAYMENTS_ENABLED) {
+        throw new Error('Payments are disabled at the moment');
+      }
+
       const { error } = await supabase
         .from('orders')
         .update({ 

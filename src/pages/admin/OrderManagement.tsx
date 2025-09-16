@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAdminOrders, useOrderMutations, useOrderRefunds, useOrderRealtimeSubscription } from "@/hooks/useAdminOrders";
 import { OrderFilters, PaginationParams, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from "@/types/admin";
 import { toast } from "sonner";
+import { FEATURES } from "@/config/featureFlags";
 
 const ITEMS_PER_PAGE = 25;
 
@@ -206,20 +207,22 @@ export default function AdminOrderManagement() {
               </SelectContent>
             </Select>
             
-            <Select value={filters.payment_status || ""} onValueChange={(value) => 
-              setFilters(prev => ({ ...prev, payment_status: value }))
-            }>
-              <SelectTrigger className="w-40 font-hebrew">
-                <SelectValue placeholder="תשלום" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">הכל</SelectItem>
-                <SelectItem value="unpaid">לא שולם</SelectItem>
-                <SelectItem value="paid">שולם</SelectItem>
-                <SelectItem value="partial">שולם חלקית</SelectItem>
-                <SelectItem value="refunded">הוחזר</SelectItem>
-              </SelectContent>
-            </Select>
+            {FEATURES.PAYMENTS_ENABLED && (
+              <Select value={filters.payment_status || ""} onValueChange={(value) => 
+                setFilters(prev => ({ ...prev, payment_status: value }))
+              }>
+                <SelectTrigger className="w-40 font-hebrew">
+                  <SelectValue placeholder="תשלום" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">הכל</SelectItem>
+                  <SelectItem value="unpaid">לא שולם</SelectItem>
+                  <SelectItem value="paid">שולם</SelectItem>
+                  <SelectItem value="partial">שולם חלקית</SelectItem>
+                  <SelectItem value="refunded">הוחזר</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
 
             <Button variant="outline" size="sm" className="font-hebrew min-h-button">
               <Filter className="h-4 w-4 ml-2" />
@@ -297,10 +300,12 @@ export default function AdminOrderManagement() {
                       <span className="font-bold">{formatCurrency(Number(order.amount))}</span>
                     </div>
                     
-                    <div className="flex items-center justify-between text-right">
-                      <span>תשלום:</span>
-                      {getPaymentStatusBadge(order.payment_status || 'unpaid')}
-                    </div>
+                    {FEATURES.PAYMENTS_ENABLED && (
+                      <div className="flex items-center justify-between text-right">
+                        <span>תשלום:</span>
+                        {getPaymentStatusBadge(order.payment_status || 'unpaid')}
+                      </div>
+                    )}
 
                     <div className="flex items-center justify-between text-right">
                       <span>תאריך:</span>
@@ -356,7 +361,9 @@ export default function AdminOrderManagement() {
                 <TableHead className="text-right">ספק</TableHead>
                 <TableHead className="text-right">סכום</TableHead>
                 <TableHead className="text-right">סטטוס</TableHead>
-                <TableHead className="text-right">תשלום</TableHead>
+                {FEATURES.PAYMENTS_ENABLED && (
+                  <TableHead className="text-right">תשלום</TableHead>
+                )}
                 <TableHead className="text-right">תאריך</TableHead>
                 <TableHead className="w-12 text-right"></TableHead>
               </TableRow>
@@ -380,7 +387,9 @@ export default function AdminOrderManagement() {
                     {formatCurrency(Number(order.amount))}
                   </TableCell>
                   <TableCell className="text-right">{getStatusBadge(order.status)}</TableCell>
-                  <TableCell className="text-right">{getPaymentStatusBadge(order.payment_status || 'unpaid')}</TableCell>
+                  {FEATURES.PAYMENTS_ENABLED && (
+                    <TableCell className="text-right">{getPaymentStatusBadge(order.payment_status || 'unpaid')}</TableCell>
+                  )}
                   <TableCell className="text-right">{formatDate(order.created_at)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

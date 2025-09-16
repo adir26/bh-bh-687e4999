@@ -17,6 +17,7 @@ import {
   CreditCard,
   Users
 } from "lucide-react";
+import { FEATURES } from "@/config/featureFlags";
 
 export default function SystemSettings() {
   const [settings, setSettings] = useState({
@@ -97,10 +98,12 @@ export default function SystemSettings() {
             <Mail className="h-4 w-4" />
             אימייל
           </TabsTrigger>
-          <TabsTrigger value="payments" className="flex items-center gap-2 font-hebrew">
-            <CreditCard className="h-4 w-4" />
-            תשלומים
-          </TabsTrigger>
+          {FEATURES.PAYMENTS_ENABLED && (
+            <TabsTrigger value="payments" className="flex items-center gap-2 font-hebrew">
+              <CreditCard className="h-4 w-4" />
+              תשלומים
+            </TabsTrigger>
+          )}
           <TabsTrigger value="users" className="flex items-center gap-2 font-hebrew">
             <Users className="h-4 w-4" />
             משתמשים
@@ -281,52 +284,54 @@ export default function SystemSettings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="payments" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-right font-hebrew">הגדרות תשלומים</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2 text-right">
-                <Label htmlFor="commission-rate" className="font-hebrew">אחוז עמלה (%)</Label>
-                <Input
-                  id="commission-rate"
-                  type="number"
-                  min="0"
-                  max="20"
-                  step="0.1"
-                  value={settings.commissionRate}
-                  onChange={(e) => updateSetting("commissionRate", parseFloat(e.target.value))}
-                  className="text-right"
-                  dir="rtl"
-                />
-              </div>
-              <div className="space-y-2 text-right">
-                <Label htmlFor="payment-timeout" className="font-hebrew">זמן פקיעת תשלום (שעות)</Label>
-                <Input
-                  id="payment-timeout"
-                  type="number"
-                  value={settings.paymentTimeout}
-                  onChange={(e) => updateSetting("paymentTimeout", parseInt(e.target.value))}
-                  className="text-right"
-                  dir="rtl"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Switch
-                  checked={settings.autoPayouts}
-                  onCheckedChange={(checked) => updateSetting("autoPayouts", checked)}
-                />
-                <div className="space-y-0.5 text-right">
-                  <Label className="font-hebrew">תשלומים אוטומטיים</Label>
-                  <p className="text-sm text-muted-foreground font-hebrew">
-                    עיבוד אוטומטי של תשלומים לספקים
-                  </p>
+        {FEATURES.PAYMENTS_ENABLED && (
+          <TabsContent value="payments" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-right font-hebrew">הגדרות תשלומים</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2 text-right">
+                  <Label htmlFor="commission-rate" className="font-hebrew">אחוז עמלה (%)</Label>
+                  <Input
+                    id="commission-rate"
+                    type="number"
+                    min="0"
+                    max="20"
+                    step="0.1"
+                    value={settings.commissionRate}
+                    onChange={(e) => updateSetting("commissionRate", parseFloat(e.target.value))}
+                    className="text-right"
+                    dir="rtl"
+                  />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                <div className="space-y-2 text-right">
+                  <Label htmlFor="payment-timeout" className="font-hebrew">זמן פקיעת תשלום (שעות)</Label>
+                  <Input
+                    id="payment-timeout"
+                    type="number"
+                    value={settings.paymentTimeout}
+                    onChange={(e) => updateSetting("paymentTimeout", parseInt(e.target.value))}
+                    className="text-right"
+                    dir="rtl"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Switch
+                    checked={settings.autoPayouts}
+                    onCheckedChange={(checked) => updateSetting("autoPayouts", checked)}
+                  />
+                  <div className="space-y-0.5 text-right">
+                    <Label className="font-hebrew">תשלומים אוטומטיים</Label>
+                    <p className="text-sm text-muted-foreground font-hebrew">
+                      עיבוד אוטומטי של תשלומים לספקים
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         <TabsContent value="users" className="space-y-4">
           <Card>

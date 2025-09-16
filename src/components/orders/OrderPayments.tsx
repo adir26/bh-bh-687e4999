@@ -7,6 +7,7 @@ import { CreditCard, ExternalLink, Plus, CheckCircle, Clock, XCircle } from 'luc
 import { format } from 'date-fns';
 import { orderService, PaymentLink, Order } from '@/services/orderService';
 import { useAuth } from '@/contexts/AuthContext';
+import { FEATURES } from '@/config/featureFlags';
 
 interface OrderPaymentsProps {
   orderId: string;
@@ -14,6 +15,11 @@ interface OrderPaymentsProps {
 }
 
 export function OrderPayments({ orderId, order }: OrderPaymentsProps) {
+  // Return null if payments are disabled
+  if (!FEATURES.PAYMENTS_ENABLED) {
+    return null;
+  }
+
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();

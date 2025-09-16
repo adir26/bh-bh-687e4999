@@ -12,6 +12,7 @@ import { OrderTimeline } from '@/components/orders/OrderTimeline';
 import { OrderChat } from '@/components/orders/OrderChat';
 import { OrderFiles } from '@/components/orders/OrderFiles';
 import { OrderPayments } from '@/components/orders/OrderPayments';
+import { FEATURES } from '@/config/featureFlags';
 import { OpenDisputeModal } from '@/components/tickets/OpenDisputeModal';
 import { TicketDetails } from '@/components/tickets/TicketDetails';
 import { TicketStatusBadge } from '@/components/tickets/TicketStatusBadge';
@@ -248,7 +249,9 @@ function OrderDetailsContent() {
         {/* Right Column */}
         <div className="space-y-6">
           <OrderChat orderId={order.id} />
-          <OrderPayments orderId={order.id} order={order} />
+          {FEATURES.PAYMENTS_ENABLED && (
+            <OrderPayments orderId={order.id} order={order} />
+          )}
         </div>
       </div>
 

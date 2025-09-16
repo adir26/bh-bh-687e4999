@@ -231,6 +231,11 @@ export const orderService = {
   },
 
   async getPaymentLinks(orderId: string): Promise<PaymentLink[]> {
+    const { FEATURES } = await import('@/config/featureFlags');
+    if (!FEATURES.PAYMENTS_ENABLED) {
+      throw new Error('Payments are disabled at the moment');
+    }
+
     const { data, error } = await supabase
       .from('payment_links')
       .select('*')
@@ -246,6 +251,10 @@ export const orderService = {
     amount: number, 
     currency: string = 'USD'
   ): Promise<PaymentLink> {
+    const { FEATURES } = await import('@/config/featureFlags');
+    if (!FEATURES.PAYMENTS_ENABLED) {
+      throw new Error('Payments are disabled at the moment');
+    }
     const { data, error } = await supabase
       .from('payment_links')
       .insert({
