@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Star, MapPin, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { SafeImage } from '@/utils/imageErrorHandling';
 import type { SearchableItem } from '@/data/searchData';
 
 interface SearchResultsProps {
@@ -102,13 +103,11 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
           onClick={() => handleResultClick(item)}
         >
           <div className="flex gap-3">
-            <img
+            <SafeImage
               src={item.image}
               alt={item.title}
               className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-              onError={(e) => {
-                e.currentTarget.src = '/placeholder.svg';
-              }}
+              showLoader={true}
             />
             
             <div className="flex-1 min-w-0">

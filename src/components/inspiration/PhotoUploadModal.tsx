@@ -30,6 +30,7 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
   const { user } = useAuth();
   const { takePhoto, selectFromGallery, isNative, isLoading: cameraLoading } = useCapacitorCamera();
   const [files, setFiles] = useState<File[]>([]);
+  const [fileUrls, setFileUrls] = useState<Map<string, string>>(new Map());
   const [formData, setFormData] = useState<UploadPhotoData>({
     title: '',
     description: '',
@@ -58,7 +59,22 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
       return true;
     });
 
-    setFiles(prev => [...prev, ...validFiles]);
+    if (validFiles.length > 0) {
+      setFiles(prev => {
+        const newFiles = [...prev, ...validFiles];
+        
+        // Create object URLs for new files only
+        const newUrls = new Map(fileUrls);
+        validFiles.forEach(file => {
+          if (!newUrls.has(file.name)) {
+            newUrls.set(file.name, URL.createObjectURL(file));
+          }
+        });
+        setFileUrls(newUrls);
+        
+        return newFiles;
+      });
+    }
   };
 
   const handleTakePhoto = async () => {
@@ -76,7 +92,21 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
   };
 
   const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    setFiles(prev => {
+      const fileToRemove = prev[index];
+      const newFiles = prev.filter((_, i) => i !== index);
+      
+      // Clean up object URL
+      if (fileToRemove && fileUrls.has(fileToRemove.name)) {
+        const url = fileUrls.get(fileToRemove.name)!;
+        URL.revokeObjectURL(url);
+        const newUrls = new Map(fileUrls);
+        newUrls.delete(fileToRemove.name);
+        setFileUrls(newUrls);
+      }
+      
+      return newFiles;
+    });
   };
 
   const addTag = () => {
@@ -180,6 +210,7 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
       
       // Reset form
       setFiles([]);
+      setFileUrls(new Map());
       setFormData({
         title: '',
         description: '',
@@ -264,7 +295,7 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
                   {files.map((file, index) => (
                     <div key={index} className="relative">
                       <img
-                        src={URL.createObjectURL(file)}
+                        src={fileUrls.get(file.name) || URL.createObjectURL(file)}
                         alt={file.name}
                         className="w-full h-20 object-cover rounded border"
                       />

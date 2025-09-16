@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import placeholderImage from '@/assets/placeholder.jpg';
 
 /**
@@ -9,6 +9,8 @@ interface SafeImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   alt: string;
   fallbackSrc?: string;
   showLoader?: boolean;
+  containerClassName?: string;
+  imgClassName?: string;
   onError?: (event: React.SyntheticEvent<HTMLImageElement, Event>) => void;
   onLoad?: (event: React.SyntheticEvent<HTMLImageElement, Event>) => void;
 }
@@ -18,6 +20,8 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   alt,
   fallbackSrc = placeholderImage,
   showLoader = false,
+  containerClassName = '',
+  imgClassName = '',
   onError,
   onLoad,
   className = '',
@@ -25,35 +29,44 @@ export const SafeImage: React.FC<SafeImageProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(showLoader);
   const [hasError, setHasError] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState(src);
+  const [loadAttempts, setLoadAttempts] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  const handleLoad = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  // Memoize current src to prevent unnecessary re-renders
+  const currentSrc = useMemo(() => {
+    if (hasError && fallbackSrc) return fallbackSrc;
+    return src;
+  }, [src, hasError, fallbackSrc]);
+
+  const handleLoad = useCallback((event: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setIsLoading(false);
     setHasError(false);
     onLoad?.(event);
-  };
+  }, [onLoad]);
 
-  const handleError = (event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  const handleError = useCallback((event: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setIsLoading(false);
-    if (!hasError && fallbackSrc && currentSrc !== fallbackSrc) {
+    
+    // Prevent infinite error loop
+    if (!hasError && fallbackSrc && loadAttempts < 2) {
       setHasError(true);
-      setCurrentSrc(fallbackSrc);
+      setLoadAttempts(prev => prev + 1);
     }
+    
     onError?.(event);
-  };
+  }, [hasError, fallbackSrc, loadAttempts, onError]);
 
-  // Update src when prop changes
+  // Reset error state when src changes
   React.useEffect(() => {
-    if (src !== currentSrc && !hasError) {
-      setCurrentSrc(src);
-      setIsLoading(showLoader);
+    if (src && src !== currentSrc && !src.includes('blob:')) {
       setHasError(false);
+      setLoadAttempts(0);
+      setIsLoading(showLoader);
     }
-  }, [src, hasError, showLoader]);
+  }, [src, showLoader]);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${containerClassName || className}`}>
       {isLoading && showLoader && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted animate-pulse">
           <div className="w-6 h-6 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin"></div>
@@ -65,7 +78,8 @@ export const SafeImage: React.FC<SafeImageProps> = ({
         alt={alt}
         onLoad={handleLoad}
         onError={handleError}
-        className={`${className} ${isLoading && showLoader ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+        className={`${imgClassName || className} ${isLoading && showLoader ? 'opacity-0' : 'opacity-100'} transition-opacity duration-200`}
+        loading="lazy"
         {...props}
       />
     </div>
