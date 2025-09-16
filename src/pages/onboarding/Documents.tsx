@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, ChevronRight, Upload, File, X } from 'lucide-react';
 import OnboardingProgress from '@/components/OnboardingProgress';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboardingSkip } from '@/hooks/useOnboardingSkip';
 import documentsImage from '@/assets/documents.jpg';
 
 interface UploadedFile {

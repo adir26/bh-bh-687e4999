@@ -2152,6 +2152,7 @@ export type Database = {
           onboarding_completed_at: string | null
           onboarding_context: Json | null
           onboarding_data: Json | null
+          onboarding_skipped: boolean | null
           onboarding_status:
             | Database["public"]["Enums"]["onboarding_status"]
             | null
@@ -2177,6 +2178,7 @@ export type Database = {
           onboarding_completed_at?: string | null
           onboarding_context?: Json | null
           onboarding_data?: Json | null
+          onboarding_skipped?: boolean | null
           onboarding_status?:
             | Database["public"]["Enums"]["onboarding_status"]
             | null
@@ -2202,6 +2204,7 @@ export type Database = {
           onboarding_completed_at?: string | null
           onboarding_context?: Json | null
           onboarding_data?: Json | null
+          onboarding_skipped?: boolean | null
           onboarding_status?:
             | Database["public"]["Enums"]["onboarding_status"]
             | null

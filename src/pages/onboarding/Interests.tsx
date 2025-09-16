@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, ChevronRight, Utensils, Zap, FileText, Lightbulb, Tag, Phone, MessageCircle, Mail } from 'lucide-react';
 import OnboardingProgress from '@/components/OnboardingProgress';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboardingSkip } from '@/hooks/useOnboardingSkip';
 import { toast } from 'sonner';
 import interestsImage from '@/assets/interests.jpg';
 
@@ -74,7 +75,8 @@ const languages = [
 
 export default function OnboardingInterests() {
   const navigate = useNavigate();
-  const { user, completeOnboarding, updateOnboardingStep } = useAuth();
+  const { user, updateOnboardingStep } = useAuth();
+  const { skipOnboarding, completeOnboarding } = useOnboardingSkip();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['hebrew']);
@@ -164,10 +166,17 @@ export default function OnboardingInterests() {
     <div className="min-h-screen bg-background flex flex-col" dir="rtl">
       {/* Header */}
       <div className="p-4 flex justify-between items-center border-b border-border">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-4">
           <button onClick={handleBack} className="p-2 hover:bg-muted rounded-lg transition-colors">
             <ChevronRight className="w-5 h-5" />
           </button>
+          <Button 
+            variant="ghost" 
+            onClick={skipOnboarding}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            דילוג
+          </Button>
         </div>
         <button 
           onClick={() => navigate('/')}

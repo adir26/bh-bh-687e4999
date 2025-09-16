@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import OnboardingProgress from '@/components/OnboardingProgress';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboardingSkip } from '@/hooks/useOnboardingSkip';
 import luxuryBuilding from '@/assets/luxury-building.jpg';
 
 const homeDetailsSchema = z.object({
@@ -25,6 +26,7 @@ type HomeDetailsForm = z.infer<typeof homeDetailsSchema>;
 export default function OnboardingHomeDetails() {
   const navigate = useNavigate();
   const { updateOnboardingStep } = useAuth();
+  const { skipOnboarding } = useOnboardingSkip();
 
   const form = useForm<HomeDetailsForm>({
     resolver: zodResolver(homeDetailsSchema),
@@ -58,10 +60,17 @@ export default function OnboardingHomeDetails() {
     <div className="min-h-screen bg-background flex flex-col" dir="rtl">
       {/* Header */}
       <div className="p-4 flex justify-between items-center border-b border-border">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-4">
           <button onClick={handleBack} className="p-2 hover:bg-muted rounded-lg transition-colors">
             <ChevronRight className="w-5 h-5" />
           </button>
+          <Button 
+            variant="ghost" 
+            onClick={skipOnboarding}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            דילוג
+          </Button>
         </div>
         <button 
           onClick={() => navigate('/')}

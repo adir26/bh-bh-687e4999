@@ -16,6 +16,7 @@ import { he } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import OnboardingProgress from '@/components/OnboardingProgress';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboardingSkip } from '@/hooks/useOnboardingSkip';
 import projectPlanningImage from '@/assets/project-planning.jpg';
 
 const projectPlanningSchema = z.object({
@@ -38,6 +39,7 @@ const projectOptions = [
 export default function OnboardingProjectPlanning() {
   const navigate = useNavigate();
   const { updateOnboardingStep } = useAuth();
+  const { skipOnboarding } = useOnboardingSkip();
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [showOtherInput, setShowOtherInput] = useState(false);
 

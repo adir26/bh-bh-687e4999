@@ -52,8 +52,13 @@ export const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children, role
     return <Navigate to={correctRoute} replace />;
   }
 
-  // If onboarding not completed, redirect to saved step or start
-  if (!profile.onboarding_completed && profile.onboarding_status !== 'completed') {
+  // Check if onboarding is completed or skipped
+  const onboardingCompleted = profile.onboarding_completed || 
+    (profile as any).onboarding_skipped || 
+    profile.onboarding_status === 'completed';
+  
+  // If onboarding not completed and not skipped, redirect to saved step or start
+  if (!onboardingCompleted) {
     const userRole = (profile.role as UserRole) || 'client';
     const step = profile.onboarding_step || 0;
     const onboardingRoute = step > 0 ? getRouteFromStep(userRole, step) : getOnboardingStartRoute(userRole);

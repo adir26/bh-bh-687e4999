@@ -3,10 +3,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import OnboardingProgress from '@/components/OnboardingProgress';
+import { useOnboardingSkip } from '@/hooks/useOnboardingSkip';
 import supplierWelcomeImage from '@/assets/supplier-welcome.jpg';
 
 export default function SupplierWelcome() {
   const navigate = useNavigate();
+  const { skipOnboarding } = useOnboardingSkip();
 
   const handleStart = () => {
     navigate('/onboarding/supplier-company-info');
@@ -15,7 +17,14 @@ export default function SupplierWelcome() {
   return (
     <div className="min-h-screen bg-background flex flex-col" dir="rtl">
       {/* Header */}
-      <div className="p-4 flex justify-end items-center border-b border-border">
+      <div className="p-4 flex justify-between items-center border-b border-border">
+        <Button 
+          variant="ghost" 
+          onClick={skipOnboarding}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          דילוג
+        </Button>
         <button 
           onClick={() => navigate('/registration')}
           className="text-muted-foreground hover:text-foreground text-xl font-light w-8 h-8 flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
