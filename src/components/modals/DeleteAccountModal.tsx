@@ -42,36 +42,56 @@ export const DeleteAccountModal: React.FC<DeleteAccountModalProps> = ({ isOpen, 
     setIsDeleting(true);
     
     try {
-      // Delete user data from our database (includes profile deletion)
-      const { error: dbError } = await supabase.rpc('delete_user_account', {
-        user_id: user.id
-      });
-
-      if (dbError) {
-        console.error('Database deletion error:', dbError);
-        toast({
-          title: 'שגיאה במחיקת החשבון',
-          description: 'אירעה שגיאה במחיקת נתוני החשבון. אנא פנה לתמיכה.',
-          variant: 'destructive'
-        });
-        setIsDeleting(false);
-        return;
+      // 1) Get current session JWT
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        throw new Error('No session token available');
       }
+
+      // 2) Call edge function for complete account deletion
+      const res = await fetch(
+        `https://yislkmhnitznvbxfpcxd.supabase.co/functions/v1/delete-account`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ confirm: true })
+        }
+      );
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Delete endpoint failed: ${text}`);
+      }
+
+      // 3) Local sign-out and cleanup
+      await supabase.auth.signOut();
+      
+      // Clear all local storage and session storage
+      sessionStorage.clear();
+      localStorage.clear();
 
       // Show success screen
       setShowSuccess(true);
       
-      // Sign out after a short delay
-      setTimeout(async () => {
-        await signOut();
-        navigate('/auth', { replace: true });
+      // Navigate to public homepage after delay
+      setTimeout(() => {
+        navigate('/', { replace: true });
       }, 3000);
+
+      toast({
+        title: 'החשבון נמחק בהצלחה',
+        description: 'החשבון שלך נמחק לצמיתות מהמערכת.',
+      });
 
     } catch (error) {
       console.error('Account deletion error:', error);
       toast({
-        title: 'שגיאה במערכת',
-        description: 'אירעה שגיאה לא צפויה. אנא נסה שוב מאוחר יותר.',
+        title: 'שגיאה במחיקת החשבון',
+        description: 'אירעה שגיאה במחיקת החשבון. נסה שוב או פנה לתמיכה.',
         variant: 'destructive'
       });
       setIsDeleting(false);
