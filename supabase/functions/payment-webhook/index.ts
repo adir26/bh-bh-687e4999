@@ -62,11 +62,20 @@ serve(async (req) => {
     if (payload.status === 'completed') {
       updates.paid_at = new Date().toISOString();
       
+      // Get current order to calculate new paid amount
+      const { data: currentOrder } = await supabase
+        .from('orders')
+        .select('paid_amount')
+        .eq('id', paymentLink.order_id)
+        .single();
+
+      const newPaidAmount = (currentOrder?.paid_amount || 0) + paymentLink.amount;
+      
       // Update order paid amount
       const { error: orderError } = await supabase
         .from('orders')
         .update({
-          paid_amount: supabase.sql`COALESCE(paid_amount, 0) + ${paymentLink.amount}`
+          paid_amount: newPaidAmount
         })
         .eq('id', paymentLink.order_id);
 

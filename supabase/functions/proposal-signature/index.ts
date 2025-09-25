@@ -64,11 +64,11 @@ const handler = async (req: Request): Promise<Response> => {
         )
       `)
       .eq('token', token)
-      .single();
+      .maybeSingle();
 
     if (!proposalError && proposalData?.proposal) {
-      const proposal = proposalData.proposal;
-      const quote = proposal.quote;
+      const proposal = proposalData.proposal as any;
+      const quote = proposal.quote as any;
       
       // Send notification to supplier about the signature
       await supabase.functions.invoke('fanout-notifications', {
