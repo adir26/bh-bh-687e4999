@@ -58,6 +58,8 @@ import SupplierNotifications from "./pages/supplier/Notifications";
 import NotificationSettings from "./pages/supplier/NotificationSettings";
 import SupplierAnalytics from "./pages/supplier/Analytics";
 import SupplierFiles from "./pages/supplier/Files";
+import OrderChangeOrders from "./pages/supplier/OrderChangeOrders";
+import ChangeOrderDetails from "./pages/supplier/ChangeOrderDetails";
 import ProposalSignature from "./pages/ProposalSignature";
 import SupplierCRM from "./pages/supplier/CRM";
 import QuoteView from "./pages/QuoteView";
@@ -380,6 +382,16 @@ const App = () => {
                 <Route path="/supplier/orders" element={
                   <OnboardingGuard role="supplier">
                     <SupplierOrders />
+                  </OnboardingGuard>
+                } />
+                <Route path="/supplier/orders/:orderId/change-orders" element={
+                  <OnboardingGuard role="supplier">
+                    <OrderChangeOrders />
+                  </OnboardingGuard>
+                } />
+                <Route path="/supplier/change-orders/:id" element={
+                  <OnboardingGuard role="supplier">
+                    <ChangeOrderDetails />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/notifications" element={

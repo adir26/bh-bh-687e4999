@@ -325,6 +325,138 @@ export type Database = {
           },
         ]
       }
+      change_order_events: {
+        Row: {
+          actor_id: string | null
+          change_order_id: string
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          actor_id?: string | null
+          change_order_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          actor_id?: string | null
+          change_order_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
+      change_order_items: {
+        Row: {
+          change_order_id: string
+          created_at: string
+          description: string | null
+          id: string
+          item_type: string
+          line_total: number
+          name: string
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          change_order_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_type: string
+          line_total: number
+          name: string
+          quantity?: number
+          unit_price: number
+        }
+        Update: {
+          change_order_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_type?: string
+          line_total?: number
+          name?: string
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: []
+      }
+      change_orders: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          client_id: string
+          co_number: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          order_id: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          sent_at: string | null
+          status: string
+          subtotal: number
+          supplier_id: string
+          tax_amount: number | null
+          time_delta_days: number | null
+          title: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_id: string
+          co_number: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          order_id: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          supplier_id: string
+          tax_amount?: number | null
+          time_delta_days?: number | null
+          title: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_id?: string
+          co_number?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          order_id?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          supplier_id?: string
+          tax_amount?: number | null
+          time_delta_days?: number | null
+          title?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_profiles: {
         Row: {
           budget_range: string | null
@@ -3474,6 +3606,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      approve_change_order: {
+        Args: { p_approver_id: string; p_change_order_id: string }
+        Returns: Json
+      }
       auto_assign_leads: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -3524,6 +3660,10 @@ export type Database = {
       escalate_overdue_tickets: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_co_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       generate_lead_number: {
         Args: Record<PropertyKey, never>
