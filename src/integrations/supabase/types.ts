@@ -3006,6 +3006,192 @@ export type Database = {
         }
         Relationships: []
       }
+      selection_approvals: {
+        Row: {
+          allowance_amount: number
+          approval_token: string | null
+          approved_at: string | null
+          approved_by: string | null
+          client_id: string
+          created_at: string | null
+          expires_at: string | null
+          group_id: string
+          id: string
+          order_id: string
+          over_allowance_amount: number
+          selected_items: Json
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          allowance_amount?: number
+          approval_token?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          client_id: string
+          created_at?: string | null
+          expires_at?: string | null
+          group_id: string
+          id?: string
+          order_id: string
+          over_allowance_amount?: number
+          selected_items?: Json
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          allowance_amount?: number
+          approval_token?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          client_id?: string
+          created_at?: string | null
+          expires_at?: string | null
+          group_id?: string
+          id?: string
+          order_id?: string
+          over_allowance_amount?: number
+          selected_items?: Json
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "selection_approvals_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "selection_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      selection_comments: {
+        Row: {
+          comment_text: string
+          created_at: string | null
+          group_id: string
+          id: string
+          is_internal: boolean | null
+          user_id: string
+        }
+        Insert: {
+          comment_text: string
+          created_at?: string | null
+          group_id: string
+          id?: string
+          is_internal?: boolean | null
+          user_id: string
+        }
+        Update: {
+          comment_text?: string
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          is_internal?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "selection_comments_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "selection_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      selection_groups: {
+        Row: {
+          allowance_amount: number | null
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          order_id: string
+          supplier_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          allowance_amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          order_id: string
+          supplier_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          allowance_amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          order_id?: string
+          supplier_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      selection_items: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          group_id: string
+          id: string
+          image_url: string | null
+          is_available: boolean | null
+          name: string
+          price: number
+          sku: string | null
+          specifications: Json | null
+          vendor_info: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          group_id: string
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name: string
+          price?: number
+          sku?: string | null
+          specifications?: Json | null
+          vendor_info?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          group_id?: string
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          name?: string
+          price?: number
+          sku?: string | null
+          specifications?: Json | null
+          vendor_info?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "selection_items_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "selection_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       signature_links: {
         Row: {
           acted_at: string | null
@@ -3610,9 +3796,21 @@ export type Database = {
         Args: { p_approver_id: string; p_change_order_id: string }
         Returns: Json
       }
+      approve_selections: {
+        Args: {
+          p_approval_token: string
+          p_client_signature?: string
+          p_selected_items: Json
+        }
+        Returns: Json
+      }
       auto_assign_leads: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      calculate_selection_totals: {
+        Args: { p_group_id: string; p_selected_items: Json }
+        Returns: Json
       }
       check_booking_conflict: {
         Args: {
