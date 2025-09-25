@@ -148,6 +148,53 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_jobs: {
+        Row: {
+          automation_id: string
+          created_at: string | null
+          delivery_log: Json | null
+          entity_id: string
+          entity_type: string
+          error_message: string | null
+          executed_at: string | null
+          id: string
+          scheduled_for: string
+          status: string | null
+        }
+        Insert: {
+          automation_id: string
+          created_at?: string | null
+          delivery_log?: Json | null
+          entity_id: string
+          entity_type: string
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          scheduled_for: string
+          status?: string | null
+        }
+        Update: {
+          automation_id?: string
+          created_at?: string | null
+          delivery_log?: Json | null
+          entity_id?: string
+          entity_type?: string
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          scheduled_for?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_jobs_automation_id_fkey"
+            columns: ["automation_id"]
+            isOneToOne: false
+            referencedRelation: "communication_automations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       availability: {
         Row: {
           created_at: string
@@ -324,6 +371,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      communication_automations: {
+        Row: {
+          channel: string
+          created_at: string | null
+          created_by: string | null
+          delay_hours: number | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          message_template: Json
+          name: string
+          supplier_id: string | null
+          template_id: string | null
+          trigger_conditions: Json | null
+          trigger_event: string
+          updated_at: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string | null
+          created_by?: string | null
+          delay_hours?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          message_template?: Json
+          name: string
+          supplier_id?: string | null
+          template_id?: string | null
+          trigger_conditions?: Json | null
+          trigger_event: string
+          updated_at?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string | null
+          created_by?: string | null
+          delay_hours?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          message_template?: Json
+          name?: string
+          supplier_id?: string | null
+          template_id?: string | null
+          trigger_conditions?: Json | null
+          trigger_event?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      communication_opt_outs: {
+        Row: {
+          automation_type: string | null
+          channel: string
+          id: string
+          opted_out_at: string | null
+          reason: string | null
+          supplier_id: string | null
+          user_id: string
+        }
+        Insert: {
+          automation_type?: string | null
+          channel: string
+          id?: string
+          opted_out_at?: string | null
+          reason?: string | null
+          supplier_id?: string | null
+          user_id: string
+        }
+        Update: {
+          automation_type?: string | null
+          channel?: string
+          id?: string
+          opted_out_at?: string | null
+          reason?: string | null
+          supplier_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       companies: {
         Row: {
@@ -2376,6 +2504,42 @@ export type Database = {
           },
         ]
       }
+      quiet_hours_config: {
+        Row: {
+          created_at: string | null
+          days_of_week: number[] | null
+          end_time: string
+          id: string
+          is_active: boolean | null
+          start_time: string
+          supplier_id: string | null
+          timezone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          days_of_week?: number[] | null
+          end_time?: string
+          id?: string
+          is_active?: boolean | null
+          start_time?: string
+          supplier_id?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          days_of_week?: number[] | null
+          end_time?: string
+          id?: string
+          is_active?: boolean | null
+          start_time?: string
+          supplier_id?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       quote_items: {
         Row: {
           created_at: string
@@ -2517,6 +2681,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      rate_limits_config: {
+        Row: {
+          channel: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          max_per_day: number | null
+          max_per_hour: number | null
+          supplier_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          channel: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_per_day?: number | null
+          max_per_hour?: number | null
+          supplier_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          channel?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_per_day?: number | null
+          max_per_hour?: number | null
+          supplier_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       refunds: {
         Row: {
