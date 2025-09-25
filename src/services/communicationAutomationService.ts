@@ -75,7 +75,7 @@ export const communicationAutomationService = {
     const { data, error } = await query.order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    return (data || []) as CommunicationAutomation[];
   },
 
   async getTemplateAutomations(): Promise<CommunicationAutomation[]> {
@@ -86,7 +86,7 @@ export const communicationAutomationService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data || [];
+    return (data || []) as CommunicationAutomation[];
   },
 
   async createAutomation(automation: Omit<CommunicationAutomation, 'id' | 'created_at' | 'updated_at'>): Promise<CommunicationAutomation> {
@@ -97,7 +97,7 @@ export const communicationAutomationService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return data as CommunicationAutomation;
   },
 
   async updateAutomation(id: string, updates: Partial<CommunicationAutomation>): Promise<CommunicationAutomation> {
@@ -109,7 +109,7 @@ export const communicationAutomationService = {
       .single();
     
     if (error) throw error;
-    return data;
+    return data as CommunicationAutomation;
   },
 
   async deleteAutomation(id: string): Promise<void> {
@@ -146,7 +146,7 @@ export const communicationAutomationService = {
       .limit(100);
     
     if (error) throw error;
-    return data || [];
+    return (data || []) as AutomationJob[];
   },
 
   async getJobStats(supplierId?: string): Promise<{
