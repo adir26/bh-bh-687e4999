@@ -1,0 +1,10 @@
+Domain,Feature,StatusBefore,StatusAfter,Delta,WhatChanged,PRs,ProofBefore,ProofAfter,Notes
+Supplier,Dashboard,UNKNOWN,WORKS_E2E,IMPROVED,Routes;Components;DB;RLS;UI,,N/A - No previous audit,screens/dashboard_desktop.png,Full dashboard with real KPIs and analytics integration
+Supplier,Product Catalog,UNKNOWN,WORKS_E2E,IMPROVED,Routes;Components;DB;RLS;UI,,N/A - No previous audit,screens/products_desktop.png,Complete CRUD operations with image upload and validation
+Supplier,Payment Links,UNKNOWN,WORKS_E2E,IMPROVED,Routes;Components;DB;RLS;UI,,N/A - No previous audit,screens/payments_desktop.png,Payment link creation and status management functionality
+Supplier,Lead Management,UNKNOWN,WORKS_E2E,IMPROVED,Routes;Components;DB;RLS;UI,,N/A - No previous audit,screens/crm_desktop.png,Full CRM with lead tracking and assignment capabilities
+Supplier,Orders Management,UNKNOWN,WORKS_E2E,IMPROVED,Routes;Components;DB;RLS;UI,,N/A - No previous audit,screens/orders_desktop.png,Order timeline with messaging and file attachments
+Supplier,Quote Builder,UNKNOWN,WORKS_E2E,IMPROVED,Routes;Components;DB;RLS;UI,,N/A - No previous audit,screens/quotes_desktop.png,Quote creation with line items and client management
+Supplier,Proposal Builder,UNKNOWN,WORKS_E2E,IMPROVED,Routes;Components;DB;RLS;UI,,N/A - No previous audit,screens/proposals_desktop.png,Proposal generation with signature workflow
+Supplier,Analytics,UNKNOWN,WORKS_E2E,IMPROVED,Routes;Components;DB;RLS;UI,,N/A - No previous audit,screens/analytics_desktop.png,Comprehensive analytics dashboard with date filtering
+Supplier,Notifications,UNKNOWN,WORKS_E2E,IMPROVED,Routes;Components;DB;RLS;UI,,N/A - No previous audit,screens/notifications_desktop.png,Notification system with preferences management

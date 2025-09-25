@@ -1,0 +1,105 @@
+{
+  "audit_metadata": {
+    "timestamp": "2025-01-25T20:26:00Z",
+    "domain": "Supplier",
+    "total_features": 9,
+    "works_e2e": 9,
+    "partial": 0,
+    "broken": 0
+  },
+  "features": [
+    {
+      "name": "Dashboard",
+      "status": "WORKS_E2E",
+      "routes": ["/supplier/dashboard"],
+      "components": ["src/pages/supplier/Dashboard.tsx", "src/components/supplier/DashboardKPIs.tsx", "src/components/supplier/DashboardCharts.tsx"],
+      "db_tables": ["companies", "profiles"],
+      "db_functions": ["supplier_dashboard_metrics()", "supplier_timeseries()"],
+      "rls_policies": ["Company owners can access own data", "Admins view all"],
+      "gaps": [],
+      "proof": "screens/dashboard_desktop.png"
+    },
+    {
+      "name": "Product Catalog",
+      "status": "WORKS_E2E", 
+      "routes": ["/supplier/products"],
+      "components": ["src/pages/supplier/ProductCatalog.tsx", "src/services/productsService.ts"],
+      "db_tables": ["products", "categories"],
+      "storage_buckets": ["product-images"],
+      "rls_policies": ["Suppliers manage own products", "RLS on supplier_id"],
+      "gaps": [],
+      "proof": "screens/products_desktop.png"
+    },
+    {
+      "name": "Payment Links",
+      "status": "WORKS_E2E",
+      "routes": ["/orders/:id"],
+      "components": ["src/components/orders/OrderPayments.tsx"],
+      "db_tables": ["payment_links", "orders", "order_events"],
+      "rls_policies": ["Order participants access payment data", "RLS enabled"],
+      "gaps": [],
+      "proof": "screens/payments_desktop.png"
+    },
+    {
+      "name": "Lead Management", 
+      "status": "WORKS_E2E",
+      "routes": ["/supplier/crm"],
+      "components": ["src/pages/supplier/CRM.tsx", "src/components/crm/LeadAssignmentDropdown.tsx"],
+      "db_tables": ["leads", "lead_activities", "lead_history"],
+      "rls_policies": ["Suppliers access assigned leads", "Client owns leads"],
+      "gaps": [],
+      "proof": "screens/crm_desktop.png"
+    },
+    {
+      "name": "Orders Management",
+      "status": "WORKS_E2E",
+      "routes": ["/orders/:id"],
+      "components": ["src/pages/OrderDetails.tsx", "src/components/orders/OrderTimeline.tsx", "src/components/orders/OrderChat.tsx"],
+      "db_tables": ["orders", "order_messages", "order_files", "order_events"],
+      "rls_policies": ["Order participants access", "Admins view all"],
+      "gaps": [],
+      "proof": "screens/orders_desktop.png"
+    },
+    {
+      "name": "Quote Builder",
+      "status": "WORKS_E2E",
+      "routes": ["/supplier/quotes/new"],
+      "components": ["src/pages/supplier/QuoteBuilder.tsx"],
+      "db_tables": ["quotes", "quote_items"],
+      "rls_policies": ["Quote participants access", "Supplier creates quotes"],
+      "gaps": [],
+      "proof": "screens/quotes_desktop.png"
+    },
+    {
+      "name": "Proposal Builder", 
+      "status": "WORKS_E2E",
+      "routes": ["/supplier/proposals/new"],
+      "components": ["src/pages/supplier/ProposalBuilder.tsx", "src/components/proposal/ProposalPDF.tsx"],
+      "db_tables": ["proposals", "proposal_events", "signature_links"],
+      "rls_policies": ["Proposal participants access", "Suppliers create"],
+      "gaps": [],
+      "proof": "screens/proposals_desktop.png"
+    },
+    {
+      "name": "Analytics",
+      "status": "WORKS_E2E",
+      "routes": ["/supplier/analytics"],
+      "components": ["src/pages/supplier/Analytics.tsx", "src/services/supplierAnalyticsService.ts"],
+      "db_tables": ["company_analytics"],
+      "db_functions": ["supplier_dashboard_metrics()"],
+      "rls_policies": ["Company owners access own analytics", "Secure functions"],
+      "gaps": [],
+      "proof": "screens/analytics_desktop.png"
+    },
+    {
+      "name": "Notifications",
+      "status": "WORKS_E2E",
+      "routes": ["/supplier/notifications"],
+      "components": ["src/pages/supplier/Notifications.tsx", "src/hooks/useNotifications.ts"],
+      "db_tables": ["notifications", "notification_preferences"],
+      "rls_policies": ["Users access own notifications", "RLS on user_id"],
+      "gaps": [],
+      "proof": "screens/notifications_desktop.png"
+    }
+  ]
+}

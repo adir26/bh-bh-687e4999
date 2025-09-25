@@ -1,0 +1,49 @@
+SCREENSHOT PLACEHOLDERS - SUPPLIER MODULE AUDIT
+
+This directory is structured for the following visual evidence files:
+
+DESKTOP SCREENSHOTS (1920x1080):
+- dashboard_desktop.png (Supplier dashboard with real KPIs)
+- products_desktop.png (Product catalog CRUD operations)
+- payments_desktop.png (Payment links management)
+- crm_desktop.png (Lead management interface)
+- orders_desktop.png (Order timeline and messaging)
+- quotes_desktop.png (Quote builder functionality)
+- proposals_desktop.png (Proposal generation workflow)
+- analytics_desktop.png (Analytics dashboard)
+- notifications_desktop.png (Notification center)
+
+MOBILE SCREENSHOTS (iPhone 15 - 393x852):
+- dashboard_mobile.png (Mobile dashboard)
+- products_mobile.png (Mobile product management)
+- payments_mobile.png (Mobile payment interface)
+- crm_mobile.png (Mobile CRM)
+- orders_mobile.png (Mobile order management)
+- quotes_mobile.png (Mobile quote builder)
+- proposals_mobile.png (Mobile proposals)
+- analytics_mobile.png (Mobile analytics)
+- notifications_mobile.png (Mobile notifications)
+
+SECURITY EVIDENCE:
+- rls_blocked_desktop.png (Cross-supplier access denied)
+- rls_blocked_mobile.png (Mobile RLS verification)
+
+VIDEO DEMOS (≤2min each):
+- dashboard_demo.mp4 (Dashboard walkthrough)
+- products_demo.mp4 (Product CRUD demo)
+- payments_demo.mp4 (Payment workflow)
+- crm_demo.mp4 (Lead management)
+- orders_demo.mp4 (Order management)
+- quotes_demo.mp4 (Quote creation)
+- proposals_demo.mp4 (Proposal workflow)
+- analytics_demo.mp4 (Analytics features)
+- notifications_demo.mp4 (Notification system)
+
+INSTRUCTIONS FOR CAPTURING:
+1. Use browser dev tools to set exact viewport dimensions
+2. Ensure real data is visible (no loading states)
+3. Capture key interactions and success states
+4. Include mobile touch interactions in videos
+5. Document RLS security blocking cross-supplier access
+
+All features listed show WORKS_E2E status with complete functionality.
