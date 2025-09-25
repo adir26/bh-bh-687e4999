@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { supaSelect, supaUpdate } from '@/lib/supaFetch';
+import { showToast } from '@/utils/toast';
 
 export interface Notification {
   id: string;
@@ -15,6 +17,7 @@ export interface Notification {
   created_at: string;
   action_url?: string;
   priority?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface NotificationPreferences {
@@ -33,23 +36,25 @@ export interface NotificationPreferences {
 }
 
 export function useNotifications(filters?: { type?: string; unread?: boolean }) {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['notifications', filters],
     queryFn: async () => {
-      let query = supabase
+      let supaQuery = supabase
         .from('notifications')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (filters?.type) {
-        query = query.eq('type', filters.type);
+        supaQuery = supaQuery.eq('type', filters.type);
       }
 
       if (filters?.unread) {
-        query = query.is('read_at', null);
+        supaQuery = supaQuery.is('read_at', null);
       }
 
-      const data = await supaSelect<Notification[]>(query, {
+      const data = await supaSelect<Notification[]>(supaQuery, {
         errorMessage: 'שגיאה בטעינת התראות'
       });
 
@@ -57,6 +62,54 @@ export function useNotifications(filters?: { type?: string; unread?: boolean }) 
     },
     staleTime: 30_000, // 30 seconds
   });
+
+  // Set up realtime subscription
+  useEffect(() => {
+    const setupRealtime = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const channel = supabase
+        .channel('notifications-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*', // Listen to all changes (INSERT, UPDATE, DELETE)
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Notification change:', payload);
+            
+            // Invalidate and refetch notifications
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+            
+            // Show toast for new notifications
+            if (payload.eventType === 'INSERT' && payload.new) {
+              const notification = payload.new as Notification;
+              showToast.info(notification.title);
+            }
+          }
+        )
+        .subscribe();
+
+      return channel;
+    };
+
+    let channelPromise = setupRealtime();
+
+    return () => {
+      channelPromise.then(channel => {
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
+      });
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function useNotificationCount() {
@@ -87,7 +140,12 @@ export function useMarkNotificationRead() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
     },
+    onError: (error) => {
+      console.error('Failed to mark notification as read:', error);
+      showToast.error('שגיאה בסימון ההתראה כנקראה');
+    }
   });
 }
 
@@ -101,7 +159,13 @@ export function useMarkAllNotificationsRead() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+      showToast.success('כל ההתראות סומנו כנקראו');
     },
+    onError: (error) => {
+      console.error('Failed to mark all notifications as read:', error);
+      showToast.error('שגיאה בסימון כל ההתראות כנקראות');
+    }
   });
 }
 

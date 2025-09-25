@@ -3316,6 +3316,10 @@ export type Database = {
         Args: { p_html_content?: string; p_quote_id: string }
         Returns: string
       }
+      create_sample_notifications: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
       delete_user_account: {
         Args: { user_id: string }
         Returns: undefined
