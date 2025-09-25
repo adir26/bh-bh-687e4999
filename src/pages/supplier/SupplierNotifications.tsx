@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Bell, CheckCheck, Filter } from 'lucide-react';
+import { ArrowRight, Bell, CheckCheck, Filter, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from '@/hooks/useNotifications';
+import { useCreateTestNotification } from '@/hooks/useCreateTestNotification';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -26,6 +27,7 @@ const SupplierNotifications = () => {
   
   const markAsRead = useMarkNotificationRead();
   const markAllAsRead = useMarkAllNotificationsRead();
+  const createTestNotification = useCreateTestNotification();
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -123,6 +125,15 @@ const SupplierNotifications = () => {
           className="p-2"
         >
           <Filter className="w-5 h-5" />
+        </Button>
+        <Button
+          onClick={() => createTestNotification.mutate()}  
+          variant="ghost"
+          size="sm"
+          className="p-2"
+          disabled={createTestNotification.isPending}
+        >
+          <Plus className="w-5 h-5" />
         </Button>
       </header>
 
