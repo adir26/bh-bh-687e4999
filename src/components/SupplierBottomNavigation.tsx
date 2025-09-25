@@ -45,6 +45,11 @@ export const SupplierBottomNavigation: React.FC = () => {
       action: () => window.location.href = '/supplier/quotes'
     },
     {
+      icon: Upload,
+      label: 'ספריית קבצים',
+      action: () => window.location.href = '/supplier/files'
+    },
+    {
       icon: Package,
       label: 'ניהול הזמנות',
       action: () => window.location.href = '/supplier/orders'
@@ -53,11 +58,6 @@ export const SupplierBottomNavigation: React.FC = () => {
       icon: MessageCircle,
       label: 'התראות',
       action: () => window.location.href = '/supplier/notifications'
-    },
-    {
-      icon: Upload,
-      label: 'אנליטיקס ודוחות',
-      action: () => window.location.href = '/supplier/analytics'
     }
   ];
 

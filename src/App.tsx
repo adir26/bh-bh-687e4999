@@ -57,6 +57,7 @@ import SupplierOrders from "./pages/supplier/Orders";
 import SupplierNotifications from "./pages/supplier/Notifications";
 import NotificationSettings from "./pages/supplier/NotificationSettings";
 import SupplierAnalytics from "./pages/supplier/Analytics";
+import SupplierFiles from "./pages/supplier/Files";
 import ProposalSignature from "./pages/ProposalSignature";
 import SupplierCRM from "./pages/supplier/CRM";
 import QuoteView from "./pages/QuoteView";
@@ -394,6 +395,11 @@ const App = () => {
                 <Route path="/supplier/analytics" element={
                   <OnboardingGuard role="supplier">
                     <SupplierAnalytics />
+                  </OnboardingGuard>
+                } />
+                <Route path="/supplier/files" element={
+                  <OnboardingGuard role="supplier">
+                    <SupplierFiles />
                   </OnboardingGuard>
                 } />
                 <Route path="/quotes/:quoteId" element={<QuoteView />} />
