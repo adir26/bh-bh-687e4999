@@ -277,6 +277,44 @@ export const orderService = {
     return data as PaymentLink;
   },
 
+  async markPaymentAsPaid(paymentLinkId: string): Promise<void> {
+    const { FEATURES } = await import('@/config/featureFlags');
+    if (!FEATURES.PAYMENTS_ENABLED) {
+      throw new Error('Payments are disabled at the moment');
+    }
+
+    // Simulate webhook call to mark payment as paid
+    const response = await supabase.functions.invoke('payment-webhook', {
+      body: {
+        provider: 'manual',
+        external_id: paymentLinkId,
+        status: 'completed',
+        metadata: { marked_manually: true }
+      }
+    });
+
+    if (response.error) {
+      throw new Error(response.error.message || 'Failed to mark payment as paid');
+    }
+  },
+
+  async copyPaymentLink(paymentLink: PaymentLink): Promise<void> {
+    // For now, we'll copy a demo payment URL
+    const paymentUrl = paymentLink.payment_url || `https://pay.example.com/payment/${paymentLink.id}`;
+    
+    try {
+      await navigator.clipboard.writeText(paymentUrl);
+    } catch (err) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = paymentUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+    }
+  },
+
   async updateOrderStatus(
     orderId: string, 
     newStatus: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled',

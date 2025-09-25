@@ -1,3 +1,3 @@
 export const FEATURES = {
-  PAYMENTS_ENABLED: false,
+  PAYMENTS_ENABLED: true,
 };
