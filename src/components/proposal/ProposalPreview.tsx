@@ -29,7 +29,7 @@ interface ProposalPreviewProps {
     vat: number;
     notes: string;
     terms: string;
-    template: 'modern' | 'minimal' | 'classic';
+    template: 'modern' | 'minimal' | 'classic' | 'premium' | 'corporate';
   };
   calculations: {
     subtotalAmount: number;
@@ -42,6 +42,20 @@ interface ProposalPreviewProps {
 export const ProposalPreview: React.FC<ProposalPreviewProps> = ({ data, calculations }) => {
   const getThemeClasses = () => {
     switch (data.template) {
+      case 'premium':
+        return {
+          headerBg: 'bg-gradient-to-r from-purple-50 to-pink-50',
+          headerBorder: 'border-purple-500',
+          accentColor: 'text-purple-600',
+          primaryColor: 'text-purple-900',
+        };
+      case 'corporate':
+        return {
+          headerBg: 'bg-gradient-to-r from-gray-50 to-blue-50',
+          headerBorder: 'border-gray-600',
+          accentColor: 'text-gray-700',
+          primaryColor: 'text-gray-900',
+        };
       case 'minimal':
         return {
           headerBg: 'bg-slate-50',
@@ -176,7 +190,12 @@ export const ProposalPreview: React.FC<ProposalPreviewProps> = ({ data, calculat
         <div className="text-center text-sm text-muted-foreground border-t pt-4">
           <p>הצעה זו בתוקף למשך 30 יום מתאריך ההצעה</p>
           <Badge variant="secondary" className="mt-2">
-            תבנית: {data.template === 'modern' ? 'מודרני' : data.template === 'minimal' ? 'מינימלי' : 'קלאסי'}
+            תבנית: {
+              data.template === 'premium' ? 'פרימיום - תבנית A' :
+              data.template === 'corporate' ? 'קורפורטיבי - תבנית B' :
+              data.template === 'modern' ? 'מודרני' : 
+              data.template === 'minimal' ? 'מינימלי' : 'קלאסי'
+            }
           </Badge>
         </div>
       </CardContent>

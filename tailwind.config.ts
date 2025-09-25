@@ -36,7 +36,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Heebo', 'system-ui', 'sans-serif'],
-        hebrew: ['Heebo', 'Arial', 'sans-serif'],
+        hebrew: ['Rubik', 'Heebo', 'Arial', 'sans-serif'],
+        proposal: ['Rubik', 'Heebo', 'system-ui', 'sans-serif'],
       },
       colors: {
 				border: 'hsl(var(--border))',
