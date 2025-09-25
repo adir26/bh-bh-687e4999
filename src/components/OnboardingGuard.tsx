@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole, getRoleHomeRoute, getOnboardingStartRoute, getRouteFromStep } from '@/utils/authRouting';
 import { useGuestMode } from '@/hooks/useGuestMode';
+import { isPublicRoute } from '@/utils/publicRoutes';
 
 interface OnboardingGuardProps {
   children: React.ReactNode;
@@ -28,6 +29,11 @@ export const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children, role
         </div>
       </div>
     );
+  }
+
+  // Allow guests on public routes without onboarding checks
+  if (isGuestMode && !user && isPublicRoute(location.pathname)) {
+    return <>{children}</>;
   }
 
   // In guest mode, redirect onboarding routes to home

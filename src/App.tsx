@@ -113,6 +113,7 @@ import PublicHomepage from "./pages/PublicHomepage";
 import Welcome from "./pages/Welcome";
 import { SiteFooter } from "./components/SiteFooter";
 import { useGuestMode } from "./hooks/useGuestMode";
+import { isPublicRoute } from "./utils/publicRoutes";
 
 // Wrapper for onboarding routes that redirects guests to home
 const OnboardingRouteWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -129,10 +130,23 @@ const OnboardingRouteWrapper: React.FC<{ children: React.ReactNode }> = ({ child
 // Wrapper for public routes that can be accessed in guest mode
 const PublicRouteWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isGuestMode } = useGuestMode();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const location = useLocation();
   
-  // If in guest mode, render directly
-  if (isGuestMode) {
+  // Show loading while auth state is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">טוען...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // If in guest mode OR the route is public, render directly without auth checks
+  if (isGuestMode || isPublicRoute(location.pathname)) {
     return <>{children}</>;
   }
   
@@ -147,8 +161,8 @@ const PublicRouteWrapper: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   }
   
-  // Default behavior for non-guest, non-authenticated
-  return <>{children}</>;
+  // For non-guest, non-authenticated users on protected routes, redirect to auth
+  return <Navigate to="/auth" state={{ from: location }} replace />;
 };
 
 // Wrapper for homepage that handles guest mode vs authenticated mode vs new visitors

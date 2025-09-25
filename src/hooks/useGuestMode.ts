@@ -19,8 +19,10 @@ export const useGuestMode = (): GuestModeState => {
   const [returnPath, setReturnPath] = useState<string | null>(null);
   
   const urlParams = new URLSearchParams(location.search);
-  const isGuestMode = urlParams.get('guest') === '1';
-  const isAppMode = urlParams.get('app') === 'ios';
+  const urlGuestMode = urlParams.get('guest') === '1';
+  const storedGuestMode = sessionStorage.getItem('guestMode') === 'true';
+  const isGuestMode = urlGuestMode || storedGuestMode;
+  const isAppMode = urlParams.get('app') === 'ios' || sessionStorage.getItem('appMode') === 'ios';
   const actionParam = urlParams.get('action');
 
   // Store guest mode state in sessionStorage for navigation persistence

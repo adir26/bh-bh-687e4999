@@ -1,6 +1,8 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGuestMode } from '@/hooks/useGuestMode';
+import { isPublicRoute } from '@/utils/publicRoutes';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,6 +16,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   redirectTo = '/auth' 
 }) => {
   const { user, profile, loading } = useAuth();
+  const { isGuestMode } = useGuestMode();
   const location = useLocation();
 
   // Show loading while auth state is being determined
@@ -26,6 +29,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         </div>
       </div>
     );
+  }
+
+  // Allow guests on public routes
+  if (!user && isGuestMode && isPublicRoute(location.pathname)) {
+    return <>{children}</>;
   }
 
   // Redirect to login if not authenticated
