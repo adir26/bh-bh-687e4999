@@ -1608,6 +1608,218 @@ export type Database = {
           },
         ]
       }
+      mood_board_comments: {
+        Row: {
+          client_email: string | null
+          client_name: string | null
+          comment_text: string
+          created_at: string
+          id: string
+          is_supplier: boolean
+          item_id: string | null
+          mood_board_id: string
+          user_id: string | null
+        }
+        Insert: {
+          client_email?: string | null
+          client_name?: string | null
+          comment_text: string
+          created_at?: string
+          id?: string
+          is_supplier?: boolean
+          item_id?: string | null
+          mood_board_id: string
+          user_id?: string | null
+        }
+        Update: {
+          client_email?: string | null
+          client_name?: string | null
+          comment_text?: string
+          created_at?: string
+          id?: string
+          is_supplier?: boolean
+          item_id?: string | null
+          mood_board_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mood_board_comments_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "mood_board_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mood_board_comments_mood_board_id_fkey"
+            columns: ["mood_board_id"]
+            isOneToOne: false
+            referencedRelation: "mood_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mood_board_items: {
+        Row: {
+          created_at: string
+          currency: string | null
+          description: string | null
+          display_order: number
+          height: number
+          id: string
+          image_url: string
+          is_featured: boolean
+          mood_board_id: string
+          position_x: number
+          position_y: number
+          price: number | null
+          product_id: string | null
+          supplier_id: string
+          supplier_notes: string | null
+          title: string
+          updated_at: string
+          width: number
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          display_order?: number
+          height?: number
+          id?: string
+          image_url: string
+          is_featured?: boolean
+          mood_board_id: string
+          position_x?: number
+          position_y?: number
+          price?: number | null
+          product_id?: string | null
+          supplier_id: string
+          supplier_notes?: string | null
+          title: string
+          updated_at?: string
+          width?: number
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          display_order?: number
+          height?: number
+          id?: string
+          image_url?: string
+          is_featured?: boolean
+          mood_board_id?: string
+          position_x?: number
+          position_y?: number
+          price?: number | null
+          product_id?: string | null
+          supplier_id?: string
+          supplier_notes?: string | null
+          title?: string
+          updated_at?: string
+          width?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mood_board_items_mood_board_id_fkey"
+            columns: ["mood_board_id"]
+            isOneToOne: false
+            referencedRelation: "mood_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mood_board_reactions: {
+        Row: {
+          client_identifier: string | null
+          created_at: string
+          id: string
+          item_id: string | null
+          mood_board_id: string
+          reaction_type: string
+          user_id: string | null
+        }
+        Insert: {
+          client_identifier?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          mood_board_id: string
+          reaction_type?: string
+          user_id?: string | null
+        }
+        Update: {
+          client_identifier?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          mood_board_id?: string
+          reaction_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mood_board_reactions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "mood_board_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mood_board_reactions_mood_board_id_fkey"
+            columns: ["mood_board_id"]
+            isOneToOne: false
+            referencedRelation: "mood_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mood_boards: {
+        Row: {
+          client_can_interact: boolean
+          client_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          order_id: string | null
+          share_token: string
+          status: string
+          supplier_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_can_interact?: boolean
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          order_id?: string | null
+          share_token?: string
+          status?: string
+          supplier_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_can_interact?: boolean
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          order_id?: string | null
+          share_token?: string
+          status?: string
+          supplier_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           categories: Json
@@ -3920,6 +4132,10 @@ export type Database = {
       }
     }
     Functions: {
+      add_mood_board_item_to_selection: {
+        Args: { p_item_id: string; p_selection_group_id: string }
+        Returns: string
+      }
       admin_assign_leads: {
         Args: { _lead_ids: string[]; _supplier_id: string }
         Returns: number
@@ -4061,6 +4277,20 @@ export type Database = {
           section_priority: number
           section_title: string
           section_type: string
+        }[]
+      }
+      get_mood_board_by_token: {
+        Args: { p_token: string }
+        Returns: {
+          client_can_interact: boolean
+          client_id: string
+          created_at: string
+          description: string
+          id: string
+          status: string
+          supplier_id: string
+          title: string
+          updated_at: string
         }[]
       }
       get_sla_metrics: {
