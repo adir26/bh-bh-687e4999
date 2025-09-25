@@ -60,6 +60,8 @@ import SupplierAnalytics from "./pages/supplier/Analytics";
 import SupplierFiles from "./pages/supplier/Files";
 import OrderChangeOrders from "./pages/supplier/OrderChangeOrders";
 import ChangeOrderDetails from "./pages/supplier/ChangeOrderDetails";
+import OrderSelections from "./pages/supplier/OrderSelections";
+import SelectionApproval from "./pages/SelectionApproval";
 import ProposalSignature from "./pages/ProposalSignature";
 import SupplierCRM from "./pages/supplier/CRM";
 import QuoteView from "./pages/QuoteView";
@@ -394,6 +396,11 @@ const App = () => {
                     <ChangeOrderDetails />
                   </OnboardingGuard>
                 } />
+                <Route path="/supplier/orders/:id/selections" element={
+                  <OnboardingGuard role="supplier">
+                    <OrderSelections />
+                  </OnboardingGuard>
+                } />
                 <Route path="/supplier/notifications" element={
                   <OnboardingGuard role="supplier">
                     <SupplierNotifications />
@@ -478,6 +485,7 @@ const App = () => {
                 {/* Public supplier routes - no authentication required */}
                 <Route path="/s/:slug" element={<PublicRouteWrapper><PublicSupplierProfile /></PublicRouteWrapper>} />
                 <Route path="/s/:slug/p/:productId" element={<PublicRouteWrapper><PublicProductView /></PublicRouteWrapper>} />
+                <Route path="/s/:slug/orders/:orderId/selections/:groupId?" element={<PublicRouteWrapper><SelectionApproval /></PublicRouteWrapper>} />
                 
                 {/* Inspiration routes - public */}
                 <Route path="/inspiration" element={<PublicRouteWrapper><Inspiration /></PublicRouteWrapper>} />
