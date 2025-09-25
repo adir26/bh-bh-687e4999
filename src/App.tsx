@@ -61,8 +61,8 @@ import SupplierFiles from "./pages/supplier/Files";
 import OrderChangeOrders from "./pages/supplier/OrderChangeOrders";
 import ChangeOrderDetails from "./pages/supplier/ChangeOrderDetails";
 import OrderSelections from "./pages/supplier/OrderSelections";
-import { SelectionApproval } from "@/pages/SelectionApproval";
-import { OrderBudget } from "@/pages/supplier/OrderBudget";
+import SelectionApproval from "@/pages/SelectionApproval";
+import OrderBudget from "@/pages/supplier/OrderBudget";
 import { MoodBoards } from "@/pages/supplier/MoodBoards";
 import { MoodBoardEditor } from "@/pages/supplier/MoodBoardEditor";
 import { PublicMoodBoard } from "@/pages/PublicMoodBoard";
@@ -410,6 +410,16 @@ const App = () => {
                     <OrderBudget />
                   </OnboardingGuard>
                 } />
+                <Route path="/supplier/mood-boards" element={
+                  <OnboardingGuard role="supplier">
+                    <MoodBoards />
+                  </OnboardingGuard>
+                } />
+                <Route path="/supplier/mood-boards/:id" element={
+                  <OnboardingGuard role="supplier">
+                    <MoodBoardEditor />
+                  </OnboardingGuard>
+                } />
                 <Route path="/supplier/notifications" element={
                   <OnboardingGuard role="supplier">
                     <SupplierNotifications />
@@ -495,6 +505,7 @@ const App = () => {
                 <Route path="/s/:slug" element={<PublicRouteWrapper><PublicSupplierProfile /></PublicRouteWrapper>} />
                 <Route path="/s/:slug/p/:productId" element={<PublicRouteWrapper><PublicProductView /></PublicRouteWrapper>} />
                 <Route path="/s/:slug/orders/:orderId/selections/:groupId?" element={<PublicRouteWrapper><SelectionApproval /></PublicRouteWrapper>} />
+                <Route path="/boards/:token" element={<PublicRouteWrapper><PublicMoodBoard /></PublicRouteWrapper>} />
                 
                 {/* Inspiration routes - public */}
                 <Route path="/inspiration" element={<PublicRouteWrapper><Inspiration /></PublicRouteWrapper>} />

@@ -167,16 +167,14 @@ export function MoodBoardEditor() {
       </div>
 
       {items.length === 0 ? (
-        <EmptyState
-          title="אין פריטים בלוח הרגש עדיין"
-          description="הוסף פריטים כדי להתחיל לבנות את לוח הרגש שלך"
-          action={
-            <Button onClick={() => setShowAddItemDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              הוסף פריט ראשון
-            </Button>
-          }
-        />
+        <div className="text-center py-12">
+          <h3 className="text-lg font-semibold mb-2">אין פריטים בלוח הרגש עדיין</h3>
+          <p className="text-muted-foreground mb-4">הוסף פריטים כדי להתחיל לבנות את לוח הרגש שלך</p>
+          <Button onClick={() => setShowAddItemDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            הוסף פריט ראשון
+          </Button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {items.map((item) => (

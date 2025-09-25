@@ -1,16 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Copy, ExternalLink } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PageHeader } from '@/components/ui/page-header';
-import { EmptyState } from '@/components/ui/empty-state';
 import { MoodBoardCard } from '@/components/moodboard/MoodBoardCard';
 import { useMoodBoards, useCreateMoodBoard, useDeleteMoodBoard } from '@/hooks/useMoodBoards';
 import { isFeatureEnabled } from '@/config/featureFlags';
@@ -34,17 +31,17 @@ export function MoodBoards() {
   if (!isFeatureEnabled('MOOD_BOARDS_ENABLED')) {
     return (
       <div className="container mx-auto p-6">
-        <EmptyState
-          title="תכונה לא זמינה"
-          description="תכונת לוחות הרגש אינה פעילה כרגע"
-        />
+        <div className="text-center py-12">
+          <h3 className="text-lg font-semibold mb-2">תכונה לא זמינה</h3>
+          <p className="text-muted-foreground">תכונת לוחות הרגש אינה פעילה כרגע</p>
+        </div>
       </div>
     );
   }
 
   const handleCreate = async () => {
     if (!newMoodBoard.title.trim()) {
-      toast.error('נא להזין שם للوח הרגש');
+      toast.error('נא להזין שם לוח הרגש');
       return;
     }
 
@@ -84,10 +81,12 @@ export function MoodBoards() {
   if (isLoading) {
     return (
       <div className="container mx-auto p-6">
-        <PageHeader
-          title="לוחות רגש"
-          description="נהל לוחות רגש ושתף אותם עם לקוחות"
-        />
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold">לוחות רגש</h1>
+            <p className="text-muted-foreground">נהל לוחות רגש ושתף אותם עם לקוחות</p>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-64 rounded-lg" />
@@ -99,65 +98,64 @@ export function MoodBoards() {
 
   return (
     <div className="container mx-auto p-6">
-      <PageHeader
-        title="לוחות רגש"
-        action={
-          <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                לוח רגש חדש
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>יצירת לוח רגש חדש</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="title">שם הלוח *</Label>
-                  <Input
-                    id="title"
-                    value={newMoodBoard.title}
-                    onChange={(e) => setNewMoodBoard(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="הזן שם للوח"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">תיאור</Label>
-                  <Textarea
-                    id="description"
-                    value={newMoodBoard.description}
-                    onChange={(e) => setNewMoodBoard(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="תיאור קצר של הלוח"
-                    rows={3}
-                  />
-                </div>
-                <div className="flex gap-4">
-                  <Button onClick={handleCreate} disabled={createMoodBoard.isPending} className="flex-1">
-                    {createMoodBoard.isPending ? 'יוצר...' : 'צור לוח'}
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="flex-1">
-                    ביטול
-                  </Button>
-                </div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">לוחות רגש</h1>
+          <p className="text-muted-foreground">נהל לוחות רגש ושתף אותם עם לקוחות</p>
+        </div>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              לוח רגש חדש
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>יצירת לוח רגש חדש</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="title">שם הלוח *</Label>
+                <Input
+                  id="title"
+                  value={newMoodBoard.title}
+                  onChange={(e) => setNewMoodBoard(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="הזן שם לוח"
+                />
               </div>
-            </DialogContent>
-          </Dialog>
-        }
-      />
+              <div>
+                <Label htmlFor="description">תיאור</Label>
+                <Textarea
+                  id="description"
+                  value={newMoodBoard.description}
+                  onChange={(e) => setNewMoodBoard(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="תיאור קצר של הלוח"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-4">
+                <Button onClick={handleCreate} disabled={createMoodBoard.isPending} className="flex-1">
+                  {createMoodBoard.isPending ? 'יוצר...' : 'צור לוח'}
+                </Button>
+                <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="flex-1">
+                  ביטול
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {!moodBoards || moodBoards.length === 0 ? (
-        <EmptyState
-          title="אין לוחות רגש עדיין"
-          description="צור לוח רגש ראשון כדי להתחיל לשתף אותו עם לקוחות"
-          action={
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              צור לוח רגש ראשון
-            </Button>
-          }
-        />
+        <div className="text-center py-12">
+          <h3 className="text-lg font-semibold mb-2">אין לוחות רגש עדיין</h3>
+          <p className="text-muted-foreground mb-4">צור לוח רגש ראשון כדי להתחיל לשתף אותו עם לקוחות</p>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            צור לוח רגש ראשון
+          </Button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
           {moodBoards.map((moodBoard) => (

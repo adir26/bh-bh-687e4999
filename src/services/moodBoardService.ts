@@ -134,7 +134,7 @@ export const moodBoardService = {
         updated_at: result.updated_at,
         title: result.title,
         description: result.description,
-        status: result.status,
+        status: result.status as 'draft' | 'shared' | 'approved' | 'archived',
         order_id: undefined
       };
     }
