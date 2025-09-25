@@ -264,6 +264,161 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_categories: {
+        Row: {
+          actual_amount: number
+          budget_id: string
+          committed_amount: number
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          name: string
+          planned_amount: number
+          updated_at: string | null
+          variance_amount: number
+          variance_percentage: number
+        }
+        Insert: {
+          actual_amount?: number
+          budget_id: string
+          committed_amount?: number
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          name: string
+          planned_amount?: number
+          updated_at?: string | null
+          variance_amount?: number
+          variance_percentage?: number
+        }
+        Update: {
+          actual_amount?: number
+          budget_id?: string
+          committed_amount?: number
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          name?: string
+          planned_amount?: number
+          updated_at?: string | null
+          variance_amount?: number
+          variance_percentage?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_categories_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_transactions: {
+        Row: {
+          amount: number
+          budget_id: string
+          category_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          reference_id: string | null
+          reference_type: string
+          transaction_date: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          budget_id: string
+          category_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type: string
+          transaction_date?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          budget_id?: string
+          category_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          reference_type?: string
+          transaction_date?: string | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_transactions_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "budget_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budgets: {
+        Row: {
+          client_id: string
+          created_at: string | null
+          id: string
+          imported_at: string | null
+          imported_from_quote_id: string | null
+          order_id: string
+          supplier_id: string
+          total_actual: number
+          total_committed: number
+          total_planned: number
+          updated_at: string | null
+          variance: number
+        }
+        Insert: {
+          client_id: string
+          created_at?: string | null
+          id?: string
+          imported_at?: string | null
+          imported_from_quote_id?: string | null
+          order_id: string
+          supplier_id: string
+          total_actual?: number
+          total_committed?: number
+          total_planned?: number
+          updated_at?: string | null
+          variance?: number
+        }
+        Update: {
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          imported_at?: string | null
+          imported_from_quote_id?: string | null
+          order_id?: string
+          supplier_id?: string
+          total_actual?: number
+          total_committed?: number
+          total_planned?: number
+          updated_at?: string | null
+          variance?: number
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -3792,6 +3947,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      apply_change_order_to_budget: {
+        Args: {
+          p_amount: number
+          p_budget_id: string
+          p_category_id: string
+          p_change_order_id: string
+        }
+        Returns: undefined
+      }
       approve_change_order: {
         Args: { p_approver_id: string; p_change_order_id: string }
         Returns: Json
@@ -3927,6 +4091,15 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      import_budget_from_quote: {
+        Args: {
+          p_client_id: string
+          p_order_id: string
+          p_quote_id: string
+          p_supplier_id: string
+        }
+        Returns: string
+      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
@@ -3957,6 +4130,19 @@ export type Database = {
       }
       promote_to_admin: {
         Args: { target_user_id: string }
+        Returns: undefined
+      }
+      recalculate_budget_totals: {
+        Args: { p_budget_id: string }
+        Returns: undefined
+      }
+      record_payment_actual: {
+        Args: {
+          p_amount: number
+          p_budget_id: string
+          p_category_id: string
+          p_payment_link_id: string
+        }
         Returns: undefined
       }
       refresh_all_analytics: {

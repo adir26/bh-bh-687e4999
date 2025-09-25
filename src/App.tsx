@@ -62,6 +62,7 @@ import OrderChangeOrders from "./pages/supplier/OrderChangeOrders";
 import ChangeOrderDetails from "./pages/supplier/ChangeOrderDetails";
 import OrderSelections from "./pages/supplier/OrderSelections";
 import SelectionApproval from "./pages/SelectionApproval";
+import OrderBudget from "./pages/supplier/OrderBudget";
 import ProposalSignature from "./pages/ProposalSignature";
 import SupplierCRM from "./pages/supplier/CRM";
 import QuoteView from "./pages/QuoteView";
@@ -399,6 +400,11 @@ const App = () => {
                 <Route path="/supplier/orders/:id/selections" element={
                   <OnboardingGuard role="supplier">
                     <OrderSelections />
+                  </OnboardingGuard>
+                } />
+                <Route path="/supplier/orders/:id/budget" element={
+                  <OnboardingGuard role="supplier">
+                    <OrderBudget />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/notifications" element={
