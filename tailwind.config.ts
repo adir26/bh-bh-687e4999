@@ -28,6 +28,7 @@ export default {
 			// Mobile-first breakpoints
 			'mobile': {'max': '639px'},
 			'tablet': {'min': '640px', 'max': '1023px'},
+			'ipad': {'min': '768px', 'max': '1024px'},
 			'desktop': {'min': '1024px'},
 			// Touch device specific
 			'touch': {'raw': '(hover: none) and (pointer: coarse)'},

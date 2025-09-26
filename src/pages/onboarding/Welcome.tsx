@@ -12,7 +12,10 @@ export default function OnboardingWelcome() {
   const { updateOnboardingStep } = useAuth();
   const { skipOnboarding } = useOnboardingSkip();
 
-  const handleStart = async () => {
+  const handleStart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     try {
       // Update onboarding step to 2 when moving to home details
       if (updateOnboardingStep) {
@@ -28,7 +31,7 @@ export default function OnboardingWelcome() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col" dir="rtl">
+    <div className="min-h-[100svh] bg-background flex flex-col" dir="rtl">
       {/* Header */}
       <div className="p-4 flex justify-between items-center border-b border-border">
         <Button 
@@ -75,11 +78,12 @@ export default function OnboardingWelcome() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-8 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-safe z-[70] pointer-events-auto">
         <div className="max-w-md mx-auto">
           <Button 
             onClick={handleStart}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium min-h-touch pointer-events-auto touch-manipulation"
+            style={{ touchAction: 'manipulation' }}
           >
             התחילו
           </Button>

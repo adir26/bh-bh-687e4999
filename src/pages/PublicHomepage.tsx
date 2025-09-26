@@ -65,7 +65,7 @@ const PublicHomepage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-[100svh] bg-background">
       {/* Guest mode indicator banner */}
       {isGuestMode && <GuestModeIndicator />}
       
