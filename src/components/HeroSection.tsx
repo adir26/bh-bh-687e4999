@@ -33,7 +33,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCTAClick }) => {
             variant="blue"
             size="lg"
             showArrow={true}
-            className="w-fit"
+            className="w-fit min-h-touch pointer-events-auto touch-manipulation"
+            style={{ touchAction: 'manipulation' }}
           >
             התחילו עכשיו
           </Button>

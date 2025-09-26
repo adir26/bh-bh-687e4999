@@ -70,7 +70,7 @@ const PublicHomepage: React.FC = () => {
       {isGuestMode && <GuestModeIndicator />}
       
       {/* Hero section */}
-      <HeroSection />
+      <HeroSection onCTAClick={handleCTAClick} />
       
       {/* Main content */}
       <div className="container mx-auto px-4 py-8 space-y-12">
