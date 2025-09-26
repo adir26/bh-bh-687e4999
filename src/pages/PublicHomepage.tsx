@@ -4,7 +4,6 @@ import { CategorySection } from '@/components/CategorySection';
 import { SectionTitle } from '@/components/SectionTitle';
 import { SupplierSection } from '@/components/SupplierSection';
 import { BottomCTA } from '@/components/BottomCTA';
-import { SiteFooter } from '@/components/SiteFooter';
 import { GuestModeIndicator } from '@/components/GuestModeIndicator';
 import { LoginModal } from '@/components/modals/LoginModal';
 import { useGuestMode } from '@/hooks/useGuestMode';
@@ -99,9 +98,6 @@ const PublicHomepage: React.FC = () => {
         buttonText={isGuestMode ? "התחבר עכשיו" : "גלה עוד"}
         onButtonClick={handleCTAClick}
       />
-      
-      {/* Footer */}
-      <SiteFooter />
 
       {/* Login Modal for Guest Actions */}
       <LoginModal 

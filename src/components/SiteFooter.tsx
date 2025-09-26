@@ -1,11 +1,28 @@
 import { Link } from "react-router-dom";
 import { getGuestModeParams } from "@/hooks/useGuestMode";
+import { useLayoutEffect, useRef } from "react";
 
 export function SiteFooter() {
   const guestParams = getGuestModeParams();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    
+    const setVar = () => {
+      const h = el.getBoundingClientRect().height;
+      document.documentElement.style.setProperty("--footer-h", `${h}px`);
+    };
+    
+    setVar();
+    const ro = new ResizeObserver(setVar);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   
   return (
-    <footer className="sticky bottom-0 bg-background border-t border-border mt-auto z-40 pb-safe">
+    <footer ref={ref} className="sticky bottom-0 bg-white/90 backdrop-blur border-t border-border mt-auto z-40">
       <div className="container mx-auto px-4 py-6 pb-24 ipad:pb-8 md:pb-8">
         <nav className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8 text-sm">
           <Link 
@@ -31,6 +48,7 @@ export function SiteFooter() {
           </Link>
         </nav>
       </div>
+      <div className="h-[calc(env(safe-area-inset-bottom,0))]" />
     </footer>
   );
 }

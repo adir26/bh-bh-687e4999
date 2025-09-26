@@ -229,8 +229,14 @@ const App = () => {
               <Toaster />
               <Sonner />
               {import.meta.env.DEV && new URLSearchParams(window.location.search).has('debug') && <QueryDebugOverlay />}
-              <div className="min-h-screen bg-white">
-              <Routes>
+              <div className="min-h-[100svh] flex flex-col bg-white">
+              <main 
+                className="flex-1"
+                style={{
+                  paddingBottom: "calc(80px + var(--footer-h, 0px) + env(safe-area-inset-bottom, 0px))",
+                }}
+              >
+                <Routes>
                 {/* Home page - supports guest mode and welcome for new visitors */}
                 <Route path="/" element={<HomeWrapper />} />
                 <Route path="/welcome" element={<Welcome />} />
@@ -615,10 +621,11 @@ const App = () => {
                     <AdminLayout><SystemSettings /></AdminLayout>
                   </ProtectedRoute>
                 } />
-                
+                 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+                </Routes>
+              </main>
                 <ConditionalNavigation />
                 <SiteFooter />
               </div>

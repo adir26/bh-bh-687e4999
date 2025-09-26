@@ -70,7 +70,12 @@ export const BottomNavigation: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+    <div 
+      className="fixed inset-x-0 z-50 flex justify-center px-4" 
+      style={{
+        bottom: "calc(var(--footer-h, 0px) + env(safe-area-inset-bottom, 0px))",
+      }}
+    >
       <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-3xl px-2 py-3 shadow-lg shadow-black/10 max-w-md w-full">
         <div className="flex justify-around items-center">
           {navItems.map((item) => {
