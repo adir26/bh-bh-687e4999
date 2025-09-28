@@ -22,7 +22,7 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
   };
 
   return (
-    <div className="w-full bg-button-secondary py-8 px-4 pb-nav-safe text-center relative z-[70]">
+    <div className="w-full bg-button-secondary py-4 px-4 pb-nav-safe text-center relative z-[70]">
       <h2 className="text-lg font-semibold text-gray-800 mb-4">
         {title}
       </h2>
