@@ -278,7 +278,8 @@ All colors MUST be HSL.
 
   /* Enhanced mobile navigation spacing - prevents bottom nav overlap */
   .pb-nav-safe {
-    padding-bottom: max(env(safe-area-inset-bottom) + 7rem, 8rem);
+    /* Bottom spacing that accounts for iOS safe area + bottom nav (~64px) + measured footer height */
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 64px + var(--footer-h, 0px));
   }
 
   /* Enhanced mobile touch utilities */
