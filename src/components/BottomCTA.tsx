@@ -13,12 +13,18 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
   buttonText, 
   onButtonClick 
 }) => {
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onButtonClick) {
-      onButtonClick();
-    }
+  const handleStartNow = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault?.();
+    e.stopPropagation?.();
+
+    // prevent double taps
+    if ((window as any).__starting) return;
+    (window as any).__starting = true;
+
+    Promise.resolve()
+      .then(() => onButtonClick?.())
+      .catch(err => console.error("Start Now error:", err))
+      .finally(() => { (window as any).__starting = false; });
   };
 
   return (
@@ -27,7 +33,7 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
         {title}
       </h2>
       <Button 
-        onClick={handleClick}
+        onClick={handleStartNow}
         variant="blue"
         size="lg"
         showArrow={true}

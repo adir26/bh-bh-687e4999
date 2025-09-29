@@ -9,6 +9,20 @@ interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onCTAClick }) => {
+  const handleStartNow = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault?.();
+    e.stopPropagation?.();
+
+    // prevent double taps
+    if ((window as any).__starting) return;
+    (window as any).__starting = true;
+
+    Promise.resolve()
+      .then(() => onCTAClick?.())
+      .catch(err => console.error("Start Now error:", err))
+      .finally(() => { (window as any).__starting = false; });
+  };
+
   return (
     <div className="relative h-64 mx-4 mb-6 rounded-2xl overflow-hidden">
       <SafeImage 
@@ -29,7 +43,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCTAClick }) => {
             מהתכנון ועד המסירה - כל הספקים במקום אחד
           </p>
           <Button 
-            onClick={onCTAClick}
+            onClick={handleStartNow}
             variant="blue"
             size="lg"
             showArrow={true}
