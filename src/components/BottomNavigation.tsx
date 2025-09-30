@@ -71,7 +71,7 @@ export const BottomNavigation: React.FC = () => {
 
   return (
     <div 
-      className="fixed inset-x-0 z-50 flex justify-center px-4" 
+      className="md:hidden fixed inset-x-0 z-50 flex justify-center px-4" 
       style={{
         bottom: "calc(var(--footer-h, 0px) + env(safe-area-inset-bottom, 0px))",
       }}

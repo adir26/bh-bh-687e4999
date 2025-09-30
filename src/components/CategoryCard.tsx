@@ -20,13 +20,15 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   size = "medium"
 }) => {
   const getSizeClasses = () => {
+    // On mobile: fixed widths for horizontal scroll
+    // On tablet+: no width constraints (flex to grid cell)
     switch (size) {
       case 'small':
-        return 'min-w-36 w-36 xs:min-w-40 xs:w-40 sm:min-w-48 sm:w-48';
+        return 'min-w-36 w-36 xs:min-w-40 xs:w-40 sm:min-w-48 sm:w-48 md:min-w-0 md:w-full';
       case 'large':
-        return 'min-w-52 w-52 xs:min-w-60 xs:w-60 sm:min-w-72 sm:w-72';
+        return 'min-w-52 w-52 xs:min-w-60 xs:w-60 sm:min-w-72 sm:w-72 md:min-w-0 md:w-full';
       default:
-        return 'min-w-44 w-44 xs:min-w-52 xs:w-52 sm:min-w-60 sm:w-60';
+        return 'min-w-44 w-44 xs:min-w-52 xs:w-52 sm:min-w-60 sm:w-60 md:min-w-0 md:w-full';
     }
   };
 
@@ -46,7 +48,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
       <SafeImage
         src={image}
         alt={title}
-        className={`${getImageSizeClasses()} w-full shrink-0 rounded-t-xl object-cover`}
+        className={`${getImageSizeClasses()} w-full shrink-0 rounded-t-xl object-cover md:aspect-[4/3]`}
         loading="lazy"
         showLoader={true}
       />

@@ -11,6 +11,7 @@ import { SecurityMiddleware } from "./components/SecurityMiddleware";
 import { RedirectIfAuthenticated } from "@/components/RedirectIfAuthenticated";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { SupplierBottomNavigation } from "@/components/SupplierBottomNavigation";
+import { TabletNavigation } from "@/components/TabletNavigation";
 import { queryClient } from "./lib/queryClient";
 import QueryDebugOverlay from "./dev/QueryDebugOverlay";
 import Index from "./pages/Index";
@@ -229,13 +230,15 @@ const App = () => {
               <Toaster />
               <Sonner />
               {import.meta.env.DEV && new URLSearchParams(window.location.search).has('debug') && <QueryDebugOverlay />}
-              <div className="min-h-[100svh] flex flex-col bg-white">
-              <main 
-                className="flex-1"
-                style={{
-                  paddingBottom: "calc(80px + var(--footer-h, 0px) + env(safe-area-inset-bottom, 0px))",
-                }}
-              >
+              <div className="min-h-[100svh] flex w-full bg-white">
+                <TabletNavigation />
+                <div className="flex-1 flex flex-col min-w-0">
+                  <main 
+                    className="flex-1"
+                    style={{
+                      paddingBottom: "calc(80px + var(--footer-h, 0px) + env(safe-area-inset-bottom, 0px))",
+                    }}
+                  >
                 <Routes>
                 {/* Home page - supports guest mode and welcome for new visitors */}
                 <Route path="/" element={<HomeWrapper />} />
@@ -625,9 +628,10 @@ const App = () => {
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
-              </main>
-                <ConditionalNavigation />
-                <SiteFooter />
+                  </main>
+                  <ConditionalNavigation />
+                  <SiteFooter />
+                </div>
               </div>
             </TooltipProvider>
           </SecurityMiddleware>
