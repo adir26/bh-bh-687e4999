@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
   const displayName = profile?.full_name || userName || 'אורח';
-  return <header className="flex justify-between items-center self-stretch bg-neutral-50 pt-3 pb-2 px-3 xs:pt-4 xs:pb-2 xs:px-4 sm:px-5">
+  return <header className="md:hidden flex justify-between items-center self-stretch bg-neutral-50 pt-3 pb-2 px-3 xs:pt-4 xs:pb-2 xs:px-4 sm:px-5">
       <div className="flex w-10 h-10 xs:w-12 xs:h-12 items-center">
         {user ? (
           <div className="w-7 h-7 xs:w-8 xs:h-8 shrink-0 rounded-2xl bg-primary/10 flex items-center justify-center">

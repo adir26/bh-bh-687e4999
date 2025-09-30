@@ -369,8 +369,8 @@ const Index = () => {
 
   return (
     <OnboardingGuard role="client">
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-background">
-        <main className="flex flex-col items-start w-full bg-muted/30 pb-nav-safe">
+      <div className="flex w-full min-h-screen flex-col items-start bg-background">
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl flex flex-col items-start w-full bg-muted/30 pb-nav-safe">
           <div className="flex flex-col items-start w-full">
             <Header userName="איתן" />
             
