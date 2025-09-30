@@ -378,7 +378,7 @@ const Index = () => {
             <OnboardingStatusBanner />
             
             {/* Hero Section */}
-            <HeroSection onCTAClick={handleHeroCTA} />
+            <HeroSection href="/onboarding/welcome" />
           
           <div className="w-full">
             <SectionTitle title="בחירה מהירה" />
@@ -527,7 +527,7 @@ const Index = () => {
           <BottomCTA 
             title="מוכנים להתחיל את הפרויקט שלכם?"
             buttonText="בואו נתחיל"
-            onButtonClick={handleBottomCTA}
+            href="/onboarding/welcome"
           />
         </div>
       </main>

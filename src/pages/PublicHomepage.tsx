@@ -61,8 +61,9 @@ const PublicHomepage: React.FC = () => {
     console.log('Supplier clicked:', supplier.name);
   };
 
-  const handleCTAClick = () => {
+  const handleCTAClick = (e?: React.MouseEvent) => {
     if (isGuestMode) {
+      e?.preventDefault();
       setShowLoginModal(true);
     }
   };
@@ -73,7 +74,10 @@ const PublicHomepage: React.FC = () => {
       {isGuestMode && <GuestModeIndicator />}
       
       {/* Hero section */}
-      <HeroSection onCTAClick={handleCTAClick} />
+      <HeroSection 
+        href={isGuestMode ? '#' : '/onboarding/welcome'}
+        onCTAClick={handleCTAClick} 
+      />
       
       {/* Main content */}
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-8 space-y-12">
@@ -100,6 +104,7 @@ const PublicHomepage: React.FC = () => {
       <BottomCTA 
         title={isGuestMode ? "מוכן להתחיל?" : "חפש ספקים נוספים"}
         buttonText={isGuestMode ? "התחבר עכשיו" : "גלה עוד"}
+        href={isGuestMode ? '#' : '/onboarding/welcome'}
         onButtonClick={handleCTAClick}
       />
 
