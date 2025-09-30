@@ -103,6 +103,12 @@ const Auth: React.FC = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Prevent double submission
+    if (isLoading) {
+      console.log('[AUTH_PAGE] Signup already in progress, ignoring duplicate submission');
+      return;
+    }
+
     // Form validation
     if (!signupForm.email || !signupForm.password || !signupForm.fullName) {
       toast.error('אנא מלא את כל השדות הדרושים');
@@ -148,7 +154,23 @@ const Auth: React.FC = () => {
         full_name: signupForm.fullName,
         role: signupForm.role
       });
-      if (!error && data) {
+      
+      if (error) {
+        console.error('[AUTH_PAGE] Signup error:', error);
+        
+        // Provide clear, actionable error messages
+        let errorMessage = error.message || 'שגיאה בהרשמה. אנא נסה שוב';
+        if (error.message?.includes('שגיאה בשמירת נתונים')) {
+          errorMessage = 'אירעה שגיאה בשמירת הנתונים. אנא נסה שוב במספר שניות';
+        } else if (error.message?.includes('כבר רשום')) {
+          errorMessage = 'המייל כבר רשום במערכת. נסה להתחבר או השתמש במייל אחר';
+        }
+        
+        toast.error(errorMessage);
+        return;
+      }
+      
+      if (data) {
         console.log('[AUTH_PAGE] Signup result:', {
           hasUser: !!data.user,
           hasSession: !!data.session
@@ -158,6 +180,7 @@ const Auth: React.FC = () => {
         if (data.user && data.session) {
           // User is logged in immediately - navigation handled in AuthContext
           console.log('[AUTH_PAGE] Immediate signup success');
+          toast.success('נרשמת בהצלחה! מעביר אותך לתהליך ההתחלה...');
         } else {
           // Email confirmation required, show message and switch to login tab
           console.log('[AUTH_PAGE] Email confirmation required');
@@ -169,9 +192,14 @@ const Auth: React.FC = () => {
           toast.success('הרשמה בוצעה בהצלחה! אנא בדוק את האימייל שלך לאישור החשבון ולאחר מכן התחבר.');
         }
       }
-    } catch (error) {
-      console.error('Signup error:', error);
-      toast.error('שגיאה בהרשמה');
+    } catch (error: any) {
+      console.error('[AUTH_PAGE] Unexpected signup error:', error);
+      
+      const errorMessage = error.message?.includes('שגיאה בשמירת נתונים') 
+        ? 'אירעה שגיאה בשמירת הנתונים. אנא נסה שוב במספר שניות'
+        : 'שגיאה בהרשמה. אנא נסה שוב';
+        
+      toast.error(errorMessage);
     }
     setIsLoading(false);
   };
@@ -329,7 +357,7 @@ const Auth: React.FC = () => {
                       </Select>
                     </div>
                     <Button type="submit" className="w-full h-12 text-base" disabled={isLoading}>
-                      {isLoading ? 'נרשם...' : 'הרשמה'}
+                      {isLoading ? 'מעבד את הרישום...' : 'הרשמה'}
                     </Button>
                   </form>
                 </CardContent>

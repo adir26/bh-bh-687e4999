@@ -236,14 +236,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           errorMessage = "כתובת האימייל לא תקינה";
         } else if (error.message.includes('Signup is disabled')) {
           errorMessage = "ההרשמה מושבתת זמנית";
+        } else if (error.message.includes('duplicate') || error.message.includes('23505')) {
+          errorMessage = "אירעה שגיאה בשמירת הנתונים. אנא נסה שוב במספר שניות";
         }
+        
+        console.error('[AUTH] Signup error details:', {
+          message: error.message,
+          code: error.code,
+          details: error
+        });
         
         toast({
           title: "שגיאה בהרשמה",
           description: errorMessage,
           variant: "destructive"
         });
-        return { error };
+        return { error: { ...error, message: errorMessage } };
       }
 
       // Check if user is immediately available (no email confirmation required)

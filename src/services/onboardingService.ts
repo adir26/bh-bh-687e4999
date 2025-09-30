@@ -53,6 +53,13 @@ class OnboardingService {
     try {
       const startTime = Date.now();
       
+      // Check if client profile already exists
+      const { data: existingProfile } = await supabase
+        .from('client_profiles')
+        .select('user_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+
       // Save client profile data
       const clientProfileData = {
         user_id: userId,
@@ -73,11 +80,35 @@ class OnboardingService {
         }
       };
 
-      const { error: clientProfileError } = await supabase
-        .from('client_profiles')
-        .upsert(clientProfileData);
+      if (existingProfile) {
+        // Update existing profile
+        const { error: clientProfileError } = await supabase
+          .from('client_profiles')
+          .update(clientProfileData)
+          .eq('user_id', userId);
 
-      if (clientProfileError) throw clientProfileError;
+        if (clientProfileError) throw clientProfileError;
+      } else {
+        // Insert new profile
+        const { error: clientProfileError } = await supabase
+          .from('client_profiles')
+          .insert(clientProfileData);
+
+        if (clientProfileError) {
+          // If we get a duplicate key error, it means another process created it
+          // Try to update instead
+          if (clientProfileError.code === '23505') {
+            const { error: updateError } = await supabase
+              .from('client_profiles')
+              .update(clientProfileData)
+              .eq('user_id', userId);
+            
+            if (updateError) throw updateError;
+          } else {
+            throw clientProfileError;
+          }
+        }
+      }
 
       // Update profile to mark onboarding as completed with new schema
       const { error: profileError } = await supabase
