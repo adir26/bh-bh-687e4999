@@ -8,6 +8,10 @@ import { GuestModeIndicator } from '@/components/GuestModeIndicator';
 import { LoginModal } from '@/components/modals/LoginModal';
 import { useGuestMode } from '@/hooks/useGuestMode';
 import { suppliers } from '@/data/suppliers';
+import modernKitchenImage from '@/assets/modern-kitchen-hero.jpg';
+import luxuryBathroomImage from '@/assets/luxury-bathroom-hero.jpg';
+import designerFurnitureImage from '@/assets/designer-furniture-hero.jpg';
+import renovationImage from '@/assets/professional-renovation-hero.jpg';
 
 // Sample categories for guest mode
 const sampleCategories = [
@@ -15,28 +19,28 @@ const sampleCategories = [
     id: '1',
     title: 'מטבחים',
     subtitle: 'עיצוב וייצור מטבחים',
-    image: '/src/assets/kitchen-design.jpg',
+    image: modernKitchenImage,
     size: 'medium' as const
   },
   {
     id: '2',
     title: 'חדרי רחצה',
     subtitle: 'אביזרים ועיצוב',
-    image: '/src/assets/luxury-bathroom-accessories.jpg',
+    image: luxuryBathroomImage,
     size: 'medium' as const
   },
   {
     id: '3',
     title: 'ריהוט',
     subtitle: 'ריהוט לבית ולמשרד',
-    image: '/src/assets/furniture.jpg',
+    image: designerFurnitureImage,
     size: 'medium' as const
   },
   {
     id: '4',
     title: 'שיפוצים',
     subtitle: 'קבלנים ושיפוצים',
-    image: '/src/assets/renovation.jpg',
+    image: renovationImage,
     size: 'medium' as const
   }
 ];

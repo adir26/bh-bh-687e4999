@@ -1,4 +1,13 @@
 // Supplier data for different categories
+import kitchenLogo from '@/assets/kitchen-company-logo.jpg';
+import furnitureLogo from '@/assets/furniture-company-logo.jpg';
+import hvacLogo from '@/assets/hvac-company-logo.jpg';
+import renovationLogo from '@/assets/renovation-company-logo.jpg';
+import modernKitchenImage from '@/assets/modern-kitchen-hero.jpg';
+import luxuryBathroomImage from '@/assets/luxury-bathroom-hero.jpg';
+import designerFurnitureImage from '@/assets/designer-furniture-hero.jpg';
+import renovationImage from '@/assets/professional-renovation-hero.jpg';
+
 export interface Supplier {
   id: string;
   name: string;
@@ -34,7 +43,7 @@ export const suppliers: Supplier[] = [
     id: 'semel-kitchens',
     name: 'סמל מטבחים',
     tagline: 'מטבחים יוקרתיים ומעוצבים',
-    logo: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
+    logo: kitchenLogo,
     category: 'kitchens',
     rating: 4.8,
     reviewCount: 124,
@@ -43,29 +52,29 @@ export const suppliers: Supplier[] = [
     description: 'אנו מתמחים בעיצוב וייצור מטבחים יוקרתיים ברמה הגבוהה ביותר. עם ניסיון של מעל 15 שנה בתחום, אנו מביאים פתרונות מתקדמים ועיצובים ייחודיים.',
     services: ['עיצוב מטבחים', 'ייצור על פי מידה', 'התקנה מקצועית', 'שירות לקוחות'],
     gallery: [
-      'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1556909109-4096c61c0a45?w=400&h=300&fit=crop'
+      modernKitchenImage,
+      modernKitchenImage
     ],
     products: [
       {
         id: '1',
         name: 'מטבח מודרני קלאסיק',
         price: 25000,
-        image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
+        image: modernKitchenImage,
         description: 'מטבח יוקרתי עם גימור עליון'
       },
       {
         id: '2',
         name: 'מטבח מינימליסטי',
         price: 18000,
-        image: 'https://images.unsplash.com/photo-1556909109-4096c61c0a45?w=400&h=300&fit=crop',
+        image: modernKitchenImage,
         description: 'עיצוב נקי ופונקציונלי'
       },
       {
         id: '3',
         name: 'מטבח כפרי',
         price: 22000,
-        image: 'https://images.unsplash.com/photo-1556909106-f06c0620e19c?w=400&h=300&fit=crop',
+        image: modernKitchenImage,
         description: 'סטייל כפרי חם ומזמין'
       }
     ],
@@ -97,7 +106,7 @@ export const suppliers: Supplier[] = [
     id: 'aviv-kitchens',
     name: 'אביב מטבחים',
     tagline: 'פתרונות מטבח חכמים ומודרניים',
-    logo: 'https://images.unsplash.com/photo-1556909109-4096c61c0a45?w=400&h=300&fit=crop',
+    logo: kitchenLogo,
     category: 'kitchens',
     rating: 4.6,
     reviewCount: 89,
@@ -106,22 +115,22 @@ export const suppliers: Supplier[] = [
     description: 'מתמחים בפתרונות מטבח חדשניים ומודרניים. אנו מספקים שירות מקצועי מתכנון ועד התקנה.',
     services: ['תכנון מטבחים', 'ייצור רהיטי מטבח', 'התקנה', 'תחזוקה'],
     gallery: [
-      'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
-      'https://images.unsplash.com/photo-1556909109-4096c61c0a45?w=400&h=300&fit=crop'
+      modernKitchenImage,
+      modernKitchenImage
     ],
     products: [
       {
         id: '1',
         name: 'מטבח חכם',
         price: 20000,
-        image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
+        image: modernKitchenImage,
         description: 'מטבח עם טכנולוגיה חכמה'
       },
       {
         id: '2',
         name: 'מטבח קומפקטי',
         price: 15000,
-        image: 'https://images.unsplash.com/photo-1556909109-4096c61c0a45?w=400&h=300&fit=crop',
+        image: modernKitchenImage,
         description: 'פתרון מושלם לדירות קטנות'
       }
     ],
@@ -146,7 +155,7 @@ export const suppliers: Supplier[] = [
     id: 'premium-kitchens',
     name: 'פרימיום מטבחים',
     tagline: 'מטבחים יוקרתיים במחירים שווים',
-    logo: 'https://images.unsplash.com/photo-1556909106-f06c0620e19c?w=400&h=300&fit=crop',
+    logo: kitchenLogo,
     category: 'kitchens',
     rating: 4.9,
     reviewCount: 156,
@@ -155,14 +164,14 @@ export const suppliers: Supplier[] = [
     description: 'חברת מטבחים מובילה המתמחה במטבחים יוקרתיים עם חומרים איכותיים ועיצוב מתקדם.',
     services: ['מטבחים יוקרתיים', 'עיצוב אישי', 'התקנה מקצועית'],
     gallery: [
-      'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop'
+      modernKitchenImage
     ],
     products: [
       {
         id: '1',
         name: 'מטבח יוקרה פרימיום',
         price: 35000,
-        image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=400&h=300&fit=crop',
+        image: modernKitchenImage,
         description: 'מטבח יוקרתי ברמה הגבוהה ביותר'
       }
     ],
@@ -174,7 +183,7 @@ export const suppliers: Supplier[] = [
     id: 'modern-furniture',
     name: 'מודרן ריהוט',
     tagline: 'ריהוט מודרני ואיכותי',
-    logo: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop',
+    logo: furnitureLogo,
     category: 'furniture',
     rating: 4.7,
     reviewCount: 78,
@@ -183,21 +192,21 @@ export const suppliers: Supplier[] = [
     description: 'מתמחים בריהוט מודרני ועיצוב פנים. מגוון רחב של רהיטים איכותיים למשרד ולבית.',
     services: ['ריהוט משרדי', 'ריהוט בית', 'עיצוב פנים', 'התקנה'],
     gallery: [
-      'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop'
+      designerFurnitureImage
     ],
     products: [
       {
         id: '1',
         name: 'ספה מודרנית',
         price: 4500,
-        image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop',
+        image: designerFurnitureImage,
         description: 'ספה נוחה ומעוצבת'
       },
       {
         id: '2',
         name: 'שולחן עבודה',
         price: 2200,
-        image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=300&fit=crop',
+        image: designerFurnitureImage,
         description: 'שולחן עבודה ארגונומי'
       }
     ],
@@ -229,7 +238,7 @@ export const suppliers: Supplier[] = [
     id: 'classic-furniture',
     name: 'קלאסיק רהיטים',
     tagline: 'רהיטים קלאסיים בטוב טעם',
-    logo: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=300&fit=crop',
+    logo: furnitureLogo,
     category: 'furniture',
     rating: 4.5,
     reviewCount: 92,
@@ -243,7 +252,7 @@ export const suppliers: Supplier[] = [
         id: '1',
         name: 'ארון עץ מלא',
         price: 3800,
-        image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=300&fit=crop',
+        image: designerFurnitureImage,
         description: 'ארון עץ מלא בסגנון קלאסי'
       }
     ],
@@ -255,7 +264,7 @@ export const suppliers: Supplier[] = [
     id: 'cool-air',
     name: 'קול אייר',
     tagline: 'מיזוג אוויר מקצועי',
-    logo: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=400&h=300&fit=crop',
+    logo: hvacLogo,
     category: 'air-conditioning',
     rating: 4.8,
     reviewCount: 134,
@@ -269,7 +278,7 @@ export const suppliers: Supplier[] = [
         id: '1',
         name: 'מזגן אינוורטר',
         price: 2800,
-        image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=400&h=300&fit=crop',
+        image: hvacLogo,
         description: 'מזגן חסכוני ושקט'
       }
     ],
@@ -281,7 +290,7 @@ export const suppliers: Supplier[] = [
     id: 'renovation-pro',
     name: 'שיפוצי פרו',
     tagline: 'שיפוצים מקצועיים ואמינים',
-    logo: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=400&h=300&fit=crop',
+    logo: renovationLogo,
     category: 'renovation',
     rating: 4.6,
     reviewCount: 67,
@@ -295,7 +304,7 @@ export const suppliers: Supplier[] = [
         id: '1',
         name: 'חבילת שיפוץ מלאה',
         price: 45000,
-        image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=400&h=300&fit=crop',
+        image: renovationImage,
         description: 'שיפוץ מלא לדירת 3 חדרים'
       }
     ],
