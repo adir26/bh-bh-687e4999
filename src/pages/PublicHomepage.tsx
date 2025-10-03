@@ -98,8 +98,9 @@ const PublicHomepage: React.FC = () => {
 
       {/* Bottom CTA */}
       <BottomCTA 
-        title={isGuestMode ? "מוכן להתחיל?" : "חפש ספקים נוספים"}
-        buttonText={isGuestMode ? "התחבר עכשיו" : "גלה עוד"}
+        title="מוכנים להתחיל את הפרויקט שלכם?"
+        buttonText="בואו נתחיל"
+        href="/welcome"
         onButtonClick={handleCTAClick}
       />
 

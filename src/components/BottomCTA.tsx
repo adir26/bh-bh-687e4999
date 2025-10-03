@@ -1,30 +1,23 @@
-
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 
 interface BottomCTAProps {
   title: string;
   buttonText: string;
+  href?: string;
   onButtonClick?: () => void;
 }
 
 export const BottomCTA: React.FC<BottomCTAProps> = ({ 
   title, 
-  buttonText, 
+  buttonText,
+  href = '/welcome',
   onButtonClick 
 }) => {
-  const handleStartNow = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault?.();
-    e.stopPropagation?.();
-
-    // prevent double taps
-    if ((window as any).__starting) return;
-    (window as any).__starting = true;
-
-    Promise.resolve()
-      .then(() => onButtonClick?.())
-      .catch(err => console.error("Start Now error:", err))
-      .finally(() => { (window as any).__starting = false; });
+  const handleClick = (e: React.MouseEvent) => {
+    // Optional callback for additional logic (e.g., tracking, modal opening)
+    onButtonClick?.();
   };
 
   return (
@@ -33,14 +26,16 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
         {title}
       </h2>
       <Button 
-        onClick={handleStartNow}
+        asChild
         variant="blue"
         size="lg"
         showArrow={true}
-        className="px-8 py-2 min-h-touch pointer-events-auto touch-manipulation"
-        style={{ touchAction: 'manipulation' }}
+        className="px-8 py-2 min-h-touch"
+        data-testid="start-now"
       >
-        {buttonText}
+        <Link to={href} onClick={handleClick}>
+          {buttonText}
+        </Link>
       </Button>
     </div>
   );
