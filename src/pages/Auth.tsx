@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import loginImage from '@/assets/login-interior.jpg';
+import loginImage from '@/assets/auth-luxury-building.jpg';
 const Auth: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({
@@ -227,7 +227,7 @@ const Auth: React.FC = () => {
   return <div className="min-h-screen flex pb-safe">
       {/* Right side - Image (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative">
-        <img src={loginImage} alt="Interior design" className="object-cover w-full h-full" />
+        <img src={loginImage} alt="בניין יוקרתי" className="object-cover w-full h-full" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
           <div className="text-white">
             <h2 className="text-3xl font-bold mb-2">ברוכים הבאים לפלטפורמה המובילה</h2>
