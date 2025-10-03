@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface BottomCTAProps {
@@ -26,7 +27,6 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
         asChild
         variant="blue"
         size="lg"
-        showArrow={true}
         className="px-8 py-2 min-h-touch pointer-events-auto touch-manipulation"
         data-testid="start-now"
       >
@@ -34,8 +34,10 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
           to={href}
           onClick={onButtonClick}
           style={{ touchAction: 'manipulation' }}
+          className="inline-flex items-center gap-2"
         >
           {buttonText}
+          <ArrowRight className="w-4 h-4" />
         </Link>
       </Button>
     </div>

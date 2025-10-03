@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SafeImage } from '@/utils/imageErrorHandling';
+import { ArrowRight } from 'lucide-react';
 import heroImage from '@/assets/home-hero.jpg';
 
 interface HeroSectionProps {
@@ -35,7 +36,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/welcome', onC
             asChild
             variant="blue"
             size="lg"
-            showArrow={true}
             className="w-fit min-h-touch pointer-events-auto touch-manipulation"
             data-testid="start-now"
           >
@@ -43,8 +43,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/welcome', onC
               to={href}
               onClick={onCTAClick}
               style={{ touchAction: 'manipulation' }}
+              className="inline-flex items-center gap-2"
             >
               התחילו עכשיו
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </Button>
         </div>
