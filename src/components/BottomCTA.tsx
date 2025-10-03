@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
+import { ArrowRight } from 'lucide-react';
 
 interface BottomCTAProps {
   title: string;
@@ -29,12 +30,12 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
         asChild
         variant="blue"
         size="lg"
-        showArrow={true}
         className="px-8 py-2 min-h-touch"
         data-testid="start-now"
       >
-        <Link to={href} onClick={handleClick}>
+        <Link to={href} onClick={handleClick} className="inline-flex items-center gap-2">
           {buttonText}
+          <ArrowRight className="w-4 h-4" />
         </Link>
       </Button>
     </div>
