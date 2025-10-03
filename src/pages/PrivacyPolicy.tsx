@@ -14,7 +14,7 @@ export default function PrivacyPolicy() {
         <section className="mb-12">
           <header className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">מדיניות פרטיות</h1>
-            <p className="text-sm text-muted-foreground">עודכנה לאחרונה: אוגוסט 2025</p>
+            <p className="text-sm text-muted-foreground">עודכנה לאחרונה: 3 אוקטובר 2025</p>
           </header>
           
           <div className="prose prose-slate max-w-none text-right" dir="rtl">
@@ -89,7 +89,7 @@ export default function PrivacyPolicy() {
         <section>
           <header className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">Privacy Policy</h1>
-            <p className="text-sm text-muted-foreground">Last updated: August 2025</p>
+            <p className="text-sm text-muted-foreground">Last updated: October 3, 2025</p>
           </header>
           
           <div className="prose prose-slate max-w-none" dir="ltr">

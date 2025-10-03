@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Upload, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,7 +22,13 @@ interface Order {
 const ComplaintForm = () => {
   const navigate = useNavigate();
   const { orderId } = useParams();
+  const [searchParams] = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Get complaint type and IDs from URL params
+  const complaintType = searchParams.get('type'); // 'order' or 'review'
+  const reviewId = searchParams.get('reviewId');
+  const supplierId = searchParams.get('supplierId');
   
   const [formData, setFormData] = useState({
     reason: '',
@@ -43,14 +49,22 @@ const ComplaintForm = () => {
     orderDate: '2024-01-15'
   };
 
-  const complaintReasons = [
-    { value: 'delay', label: 'עיכוב במשלוח/הגעה' },
-    { value: 'wrong_item', label: 'פריט שגוי/לא תואם להזמנה' },
-    { value: 'quality_issue', label: 'בעיית איכות/פגם במוצר' },
-    { value: 'service_issue', label: 'בעיה בשירות/התנהגות' },
-    { value: 'billing_issue', label: 'בעיה בחיוב/תשלום' },
-    { value: 'other', label: 'אחר' }
-  ];
+  const complaintReasons = complaintType === 'review' 
+    ? [
+        { value: 'inappropriate_content', label: 'תוכן לא הולם/פוגעני' },
+        { value: 'spam', label: 'ספאם או פרסומת' },
+        { value: 'fake_review', label: 'ביקורת מזויפת' },
+        { value: 'harassment', label: 'הטרדה או איומים' },
+        { value: 'other', label: 'אחר' }
+      ]
+    : [
+        { value: 'delay', label: 'עיכוב במשלוח/הגעה' },
+        { value: 'wrong_item', label: 'פריט שגוי/לא תואם להזמנה' },
+        { value: 'quality_issue', label: 'בעיית איכות/פגם במוצר' },
+        { value: 'service_issue', label: 'בעיה בשירות/התנהגות' },
+        { value: 'billing_issue', label: 'בעיה בחיוב/תשלום' },
+        { value: 'other', label: 'אחר' }
+      ];
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
@@ -169,15 +183,20 @@ const ComplaintForm = () => {
             <ArrowRight className="w-5 h-5" />
           </Button>
           <div className="text-right flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">דווח על בעיה</h1>
-            <p className="text-gray-600 text-sm">הזמנה #{order.invoiceNumber}</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">
+              {complaintType === 'review' ? 'דווח על ביקורת' : 'דווח על בעיה'}
+            </h1>
+            {complaintType !== 'review' && (
+              <p className="text-gray-600 text-sm">הזמנה #{order.invoiceNumber}</p>
+            )}
           </div>
         </div>
       </div>
 
       <div className="p-4 space-y-6">
-        {/* Order Details */}
-        <Card className="border-0 shadow-sm rounded-xl">
+        {/* Order Details - Only show for order complaints */}
+        {complaintType !== 'review' && (
+          <Card className="border-0 shadow-sm rounded-xl">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg text-gray-900">פרטי ההזמנה</CardTitle>
           </CardHeader>
@@ -200,6 +219,7 @@ const ComplaintForm = () => {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Complaint Form */}
         <Card className="border-0 shadow-sm rounded-xl">

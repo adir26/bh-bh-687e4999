@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowRight, Star, MessageSquare } from 'lucide-react';
+import { ArrowRight, Star, MessageSquare, Flag } from 'lucide-react';
 import { getSupplierById } from '@/data/suppliers';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,6 +30,10 @@ const SupplierReviews = () => {
         }`}
       />
     ));
+  };
+
+  const handleReportReview = (reviewId: string) => {
+    navigate(`/complaint-form?type=review&reviewId=${reviewId}&supplierId=${id}`);
   };
 
   return (
@@ -85,6 +89,15 @@ const SupplierReviews = () => {
                         {review.comment}
                       </p>
                       <span className="text-xs text-gray-500">{review.date}</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleReportReview(review.id)}
+                        className="mt-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Flag className="h-4 w-4 ml-2" />
+                        דווח על תוכן לא הולם
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
