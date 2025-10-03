@@ -60,7 +60,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {children}
-        {showArrow && (variant === "blue" || variant === "default") && (
+        {!asChild && showArrow && (variant === "blue" || variant === "default") && (
           <ArrowRight className="w-4 h-4 mr-1" />
         )}
       </Comp>
