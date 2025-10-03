@@ -1,26 +1,18 @@
-
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SafeImage } from '@/utils/imageErrorHandling';
+import { ArrowRight } from 'lucide-react';
 import heroImage from '@/assets/home-hero.jpg';
 
 interface HeroSectionProps {
+  href?: string;
   onCTAClick?: () => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onCTAClick }) => {
-  const handleStartNow = (e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault?.();
-    e.stopPropagation?.();
-
-    // prevent double taps
-    if ((window as any).__starting) return;
-    (window as any).__starting = true;
-
-    Promise.resolve()
-      .then(() => onCTAClick?.())
-      .catch(err => console.error("Start Now error:", err))
-      .finally(() => { (window as any).__starting = false; });
+export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/welcome', onCTAClick }) => {
+  const handleClick = () => {
+    onCTAClick?.();
   };
 
   return (
@@ -42,16 +34,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCTAClick }) => {
           <p className="text-sm text-white/90 leading-relaxed">
             מהתכנון ועד המסירה - כל הספקים במקום אחד
           </p>
-          <Button 
-            onClick={handleStartNow}
-            variant="blue"
-            size="lg"
-            showArrow={true}
-            className="w-fit min-h-touch pointer-events-auto touch-manipulation"
-            style={{ touchAction: 'manipulation' }}
+          <Link 
+            to={href}
+            onClick={handleClick}
+            className="inline-block"
           >
-            התחילו עכשיו
-          </Button>
+            <Button 
+              variant="blue"
+              size="lg"
+              className="w-fit min-h-touch pointer-events-auto touch-manipulation inline-flex items-center gap-2"
+              style={{ touchAction: 'manipulation' }}
+            >
+              התחילו עכשיו
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
