@@ -1,22 +1,31 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface BottomCTAProps {
   title: string;
   buttonText: string;
-  href?: string;
   onButtonClick?: () => void;
 }
 
 export const BottomCTA: React.FC<BottomCTAProps> = ({ 
   title, 
-  buttonText,
-  href = '/welcome',
+  buttonText, 
   onButtonClick 
 }) => {
+  const handleStartNow = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault?.();
+    e.stopPropagation?.();
+
+    // prevent double taps
+    if ((window as any).__starting) return;
+    (window as any).__starting = true;
+
+    Promise.resolve()
+      .then(() => onButtonClick?.())
+      .catch(err => console.error("Start Now error:", err))
+      .finally(() => { (window as any).__starting = false; });
+  };
 
   return (
     <div className="w-full bg-button-secondary py-4 px-4 pb-nav-safe text-center relative z-[70]">
@@ -24,21 +33,14 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
         {title}
       </h2>
       <Button 
-        asChild
+        onClick={handleStartNow}
         variant="blue"
         size="lg"
+        showArrow={true}
         className="px-8 py-2 min-h-touch pointer-events-auto touch-manipulation"
-        data-testid="start-now"
+        style={{ touchAction: 'manipulation' }}
       >
-        <Link 
-          to={href}
-          onClick={onButtonClick}
-          style={{ touchAction: 'manipulation' }}
-          className="inline-flex items-center gap-2"
-        >
-          {buttonText}
-          <ArrowRight className="w-4 h-4" />
-        </Link>
+        {buttonText}
       </Button>
     </div>
   );

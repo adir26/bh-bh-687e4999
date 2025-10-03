@@ -22,7 +22,7 @@ export function SiteFooter() {
   }, []);
   
   return (
-    <footer ref={ref} className="app-sticky-footer bg-white/90 backdrop-blur border-t border-border">
+    <footer ref={ref} className="bg-white/90 backdrop-blur border-t border-border mt-auto z-40 md:sticky md:bottom-0">
       <div className="container mx-auto px-4 py-4 md:py-6">
         <nav className="flex flex-wrap justify-center items-center gap-3 sm:gap-6 text-sm">
           <Link 

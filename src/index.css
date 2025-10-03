@@ -437,45 +437,6 @@ All colors MUST be HSL.
     margin-right: auto;
     margin-left: 0;
   }
-
-  /* Footer overlay fix - prevent tap interception */
-  .app-sticky-footer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 10;
-    pointer-events: none;
-    height: 80px;
-  }
-
-  .app-sticky-footer * {
-    pointer-events: auto;
-  }
-
-  /* Main content padding for footer */
-  .app-main {
-    padding-bottom: max(80px, env(safe-area-inset-bottom));
-  }
-
-  /* iPad landscape - lower z-index */
-  @media (min-width: 834px) {
-    .app-sticky-footer {
-      z-index: 5;
-    }
-  }
-
-  /* Focus visible styles for keyboard navigation */
-  button:focus-visible,
-  a:focus-visible {
-    outline: 2px solid hsl(var(--primary));
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-
-  .min-h-touch {
-    min-height: 44px;
-  }
 }
 
 /* Mobile-specific overrides */
