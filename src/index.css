@@ -112,6 +112,12 @@ All colors MUST be HSL.
     --button-secondary-hover: 214 100% 15%;
     --button-secondary-foreground: 214 100% 60%;
   }
+
+  /* Focus styles for accessibility and keyboard navigation */
+  button:focus-visible,
+  a:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2;
+  }
 }
 
 /* Typography Design System - Assistant Font */

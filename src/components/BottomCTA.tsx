@@ -35,6 +35,7 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
           size="lg"
           className="px-8 py-2 min-h-touch pointer-events-auto touch-manipulation inline-flex items-center gap-2"
           style={{ touchAction: 'manipulation' }}
+          data-testid="start-now-bottom"
         >
           {buttonText}
           <ArrowRight className="h-4 w-4" />
