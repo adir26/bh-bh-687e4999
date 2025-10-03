@@ -10,7 +10,7 @@ interface HeroSectionProps {
   onCTAClick?: () => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/onboarding/welcome', onCTAClick }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/welcome', onCTAClick }) => {
 
   return (
     <div className="relative h-64 mx-4 mb-6 rounded-2xl overflow-hidden">

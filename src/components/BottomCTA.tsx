@@ -13,7 +13,7 @@ interface BottomCTAProps {
 export const BottomCTA: React.FC<BottomCTAProps> = ({ 
   title, 
   buttonText,
-  href = '/onboarding/welcome',
+  href = '/welcome',
   onButtonClick 
 }) => {
 
