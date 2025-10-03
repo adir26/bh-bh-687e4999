@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { HeroSection } from '@/components/HeroSection';
 import { CategorySection } from '@/components/CategorySection';
 import { SectionTitle } from '@/components/SectionTitle';
@@ -46,6 +47,7 @@ const sampleCategories = [
 ];
 
 const PublicHomepage: React.FC = () => {
+  const navigate = useNavigate();
   const { 
     isGuestMode, 
     showLoginModal, 
@@ -55,10 +57,24 @@ const PublicHomepage: React.FC = () => {
 
   const handleCategoryClick = (category: typeof sampleCategories[0]) => {
     console.log('Category clicked:', category.title);
+    
+    // Map category title to route
+    const categoryRoutes: Record<string, string> = {
+      'מטבחים': '/category/kitchens/suppliers',
+      'חדרי רחצה': '/category/bathroom/suppliers',
+      'ריהוט': '/category/furniture/suppliers',
+      'שיפוצים': '/category/renovation/suppliers'
+    };
+    
+    const route = categoryRoutes[category.title];
+    if (route) {
+      navigate(route);
+    }
   };
 
   const handleSupplierClick = (supplier: any) => {
     console.log('Supplier clicked:', supplier.name);
+    navigate(`/supplier/${supplier.id}`);
   };
 
   const handleCTAClick = () => {
