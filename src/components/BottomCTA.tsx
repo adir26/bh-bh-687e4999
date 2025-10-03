@@ -26,18 +26,17 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
       <h2 className="text-lg font-semibold text-gray-800 mb-4">
         {title}
       </h2>
-      <Button 
-        asChild
-        variant="blue"
-        size="lg"
-        className="px-8 py-2 min-h-touch"
-        data-testid="start-now"
-      >
-        <Link to={href} onClick={handleClick} className="inline-flex items-center gap-2">
-          {buttonText}
-          <ArrowRight className="w-4 h-4" />
+        <Link to={href} onClick={handleClick} className="inline-block">
+          <Button 
+            variant="blue"
+            size="lg"
+            className="px-8 py-2 min-h-touch inline-flex items-center gap-2"
+            data-testid="start-now"
+          >
+            {buttonText}
+            <ArrowRight className="w-4 h-4" />
+          </Button>
         </Link>
-      </Button>
     </div>
   );
 };

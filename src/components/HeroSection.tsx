@@ -35,18 +35,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/welcome', onC
           <p className="text-sm text-white/90 leading-relaxed">
             מהתכנון ועד המסירה - כל הספקים במקום אחד
           </p>
-          <Button 
-            asChild
-            variant="blue"
-            size="lg"
-            className="w-fit min-h-touch"
-            data-testid="start-now"
-          >
-            <Link to={href} onClick={handleClick} className="inline-flex items-center gap-2">
+          <Link to={href} onClick={handleClick} className="inline-block">
+            <Button 
+              variant="blue"
+              size="lg"
+              className="w-fit min-h-touch inline-flex items-center gap-2"
+              data-testid="start-now"
+            >
               התחילו עכשיו
               <ArrowRight className="w-4 h-4" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
