@@ -1,19 +1,26 @@
+
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SafeImage } from '@/utils/imageErrorHandling';
 import heroImage from '@/assets/home-hero.jpg';
-import { ArrowRight } from 'lucide-react';
 
 interface HeroSectionProps {
-  href?: string;
   onCTAClick?: () => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/welcome', onCTAClick }) => {
-  const handleClick = (e: React.MouseEvent) => {
-    // Optional callback for additional logic (e.g., tracking, modal opening)
-    onCTAClick?.();
+export const HeroSection: React.FC<HeroSectionProps> = ({ onCTAClick }) => {
+  const handleStartNow = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault?.();
+    e.stopPropagation?.();
+
+    // prevent double taps
+    if ((window as any).__starting) return;
+    (window as any).__starting = true;
+
+    Promise.resolve()
+      .then(() => onCTAClick?.())
+      .catch(err => console.error("Start Now error:", err))
+      .finally(() => { (window as any).__starting = false; });
   };
 
   return (
@@ -35,17 +42,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/welcome', onC
           <p className="text-sm text-white/90 leading-relaxed">
             מהתכנון ועד המסירה - כל הספקים במקום אחד
           </p>
-          <Link to={href} onClick={handleClick} className="inline-block">
-            <Button 
-              variant="blue"
-              size="lg"
-              className="w-fit min-h-touch inline-flex items-center gap-2"
-              data-testid="start-now"
-            >
-              התחילו עכשיו
-              <ArrowRight className="w-4 h-4" />
-            </Button>
-          </Link>
+          <Button 
+            onClick={handleStartNow}
+            variant="blue"
+            size="lg"
+            showArrow={true}
+            className="w-fit min-h-touch pointer-events-auto touch-manipulation"
+            style={{ touchAction: 'manipulation' }}
+          >
+            התחילו עכשיו
+          </Button>
         </div>
       </div>
     </div>

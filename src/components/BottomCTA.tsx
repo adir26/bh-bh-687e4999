@@ -1,24 +1,30 @@
+
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
-import { ArrowRight } from 'lucide-react';
 
 interface BottomCTAProps {
   title: string;
   buttonText: string;
-  href?: string;
   onButtonClick?: () => void;
 }
 
 export const BottomCTA: React.FC<BottomCTAProps> = ({ 
   title, 
-  buttonText,
-  href = '/welcome',
+  buttonText, 
   onButtonClick 
 }) => {
-  const handleClick = (e: React.MouseEvent) => {
-    // Optional callback for additional logic (e.g., tracking, modal opening)
-    onButtonClick?.();
+  const handleStartNow = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault?.();
+    e.stopPropagation?.();
+
+    // prevent double taps
+    if ((window as any).__starting) return;
+    (window as any).__starting = true;
+
+    Promise.resolve()
+      .then(() => onButtonClick?.())
+      .catch(err => console.error("Start Now error:", err))
+      .finally(() => { (window as any).__starting = false; });
   };
 
   return (
@@ -26,17 +32,16 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
       <h2 className="text-lg font-semibold text-gray-800 mb-4">
         {title}
       </h2>
-        <Link to={href} onClick={handleClick} className="inline-block">
-          <Button 
-            variant="blue"
-            size="lg"
-            className="px-8 py-2 min-h-touch inline-flex items-center gap-2"
-            data-testid="start-now"
-          >
-            {buttonText}
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </Link>
+      <Button 
+        onClick={handleStartNow}
+        variant="blue"
+        size="lg"
+        showArrow={true}
+        className="px-8 py-2 min-h-touch pointer-events-auto touch-manipulation"
+        style={{ touchAction: 'manipulation' }}
+      >
+        {buttonText}
+      </Button>
     </div>
   );
 };

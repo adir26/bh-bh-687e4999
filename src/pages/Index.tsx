@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useGuestMode } from '@/hooks/useGuestMode';
 import { OnboardingGuard } from '@/components/OnboardingGuard';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
@@ -31,13 +30,6 @@ import homeLoansImg from '@/assets/home-loans.jpg';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { isGuestMode } = useGuestMode();
-  
-  // For guests or logged-out users, send them to /welcome (public).
-  // For authenticated users, send them to onboarding.
-  const ctaHref = user && !isGuestMode ? '/onboarding/welcome' : '/welcome';
-  
   // Quick selection data
   const quickSelectionItems = [
     {
@@ -386,7 +378,7 @@ const Index = () => {
             <OnboardingStatusBanner />
             
             {/* Hero Section */}
-            <HeroSection href={ctaHref} onCTAClick={handleHeroCTA} />
+            <HeroSection onCTAClick={handleHeroCTA} />
           
           <div className="w-full">
             <SectionTitle title="בחירה מהירה" />
@@ -535,7 +527,6 @@ const Index = () => {
           <BottomCTA 
             title="מוכנים להתחיל את הפרויקט שלכם?"
             buttonText="בואו נתחיל"
-            href={ctaHref}
             onButtonClick={handleBottomCTA}
           />
         </div>
