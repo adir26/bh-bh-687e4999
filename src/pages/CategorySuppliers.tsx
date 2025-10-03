@@ -15,6 +15,10 @@ const CategorySuppliers = () => {
       'furniture': 'ריהוט',
       'air-conditioning': 'מיזוג אוויר',
       'renovation': 'שיפוצים',
+      'bathroom': 'חדרי רחצה',
+      'bedroom': 'חדרי שינה',
+      'garden': 'גינות',
+      'living-room': 'סלון',
       'mortgage': 'יועצי משכנתאות',
       'moving': 'הובלות',
       'loans': 'הלוואות'

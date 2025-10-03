@@ -7,6 +7,10 @@ import modernKitchenImage from '@/assets/modern-kitchen-hero.jpg';
 import luxuryBathroomImage from '@/assets/luxury-bathroom-hero.jpg';
 import designerFurnitureImage from '@/assets/designer-furniture-hero.jpg';
 import renovationImage from '@/assets/professional-renovation-hero.jpg';
+import bathroomLogo from '@/assets/category-bathroom.jpg';
+import bedroomLogo from '@/assets/category-bedroom.jpg';
+import gardenLogo from '@/assets/category-garden.jpg';
+import livingRoomLogo from '@/assets/category-living-room.jpg';
 
 export interface Supplier {
   id: string;
@@ -309,6 +313,218 @@ export const suppliers: Supplier[] = [
       }
     ],
     reviews: []
+  },
+
+  // Bathroom suppliers
+  {
+    id: 'luxury-bathrooms',
+    name: 'חדרי רחצה יוקרתיים',
+    tagline: 'חדרי אמבטיה מעוצבים',
+    logo: bathroomLogo,
+    category: 'bathroom',
+    rating: 4.7,
+    reviewCount: 95,
+    phone: '050-5555555',
+    location: 'תל אביב',
+    description: 'מתמחים בעיצוב והתקנה של חדרי רחצה יוקרתיים. שירות מלא כולל אריחים, אבזור ותאורה.',
+    services: ['עיצוב חדרי רחצה', 'התקנת אבזור', 'ריצוף וחיפוי', 'תאורה'],
+    gallery: [luxuryBathroomImage],
+    products: [
+      {
+        id: '1',
+        name: 'חדר רחצה מלא',
+        price: 28000,
+        image: luxuryBathroomImage,
+        description: 'חבילה מלאה לחדר רחצה יוקרתי'
+      },
+      {
+        id: '2',
+        name: 'מקלחון זכוכית',
+        price: 3500,
+        image: luxuryBathroomImage,
+        description: 'מקלחון זכוכית מעוצב'
+      }
+    ],
+    reviews: [
+      {
+        id: '1',
+        customerName: 'דנה גולן',
+        rating: 5,
+        comment: 'חדר האמבטיה שלנו נראה מדהים! עבודה מקצועית.',
+        date: '2024-01-16'
+      }
+    ]
+  },
+  {
+    id: 'bathroom-solutions',
+    name: 'פתרונות אמבטיה',
+    tagline: 'אבזור ועיצוב חדרי רחצה',
+    logo: bathroomLogo,
+    category: 'bathroom',
+    rating: 4.5,
+    reviewCount: 68,
+    phone: '053-6666666',
+    location: 'נתניה',
+    description: 'חנות אבזור חדרי רחצה עם מגוון רחב של אביזרים ופתרונות עיצוב.',
+    services: ['אבזור חדרי רחצה', 'ייעוץ עיצובי', 'התקנה'],
+    gallery: [],
+    products: [
+      {
+        id: '1',
+        name: 'כיור מעוצב',
+        price: 1800,
+        image: luxuryBathroomImage,
+        description: 'כיור דגם מיוחד'
+      }
+    ],
+    reviews: []
+  },
+
+  // Bedroom suppliers
+  {
+    id: 'dream-bedrooms',
+    name: 'חדרי שינה חלום',
+    tagline: 'ריהוט חדרי שינה מעוצבים',
+    logo: bedroomLogo,
+    category: 'bedroom',
+    rating: 4.8,
+    reviewCount: 112,
+    phone: '054-7777777',
+    location: 'רעננה',
+    description: 'מתמחים בעיצוב וייצור חדרי שינה מושלמים. מגוון רחב של ארונות, מיטות ושידות.',
+    services: ['חדרי שינה מעוצבים', 'ארונות הזזה', 'מיטות מתכווננות'],
+    gallery: [bedroomLogo],
+    products: [
+      {
+        id: '1',
+        name: 'חדר שינה מלא',
+        price: 18000,
+        image: bedroomLogo,
+        description: 'חבילת חדר שינה מלאה'
+      },
+      {
+        id: '2',
+        name: 'ארון הזזה',
+        price: 8500,
+        image: bedroomLogo,
+        description: 'ארון הזזה 3 דלתות'
+      }
+    ],
+    reviews: [
+      {
+        id: '1',
+        customerName: 'יעל מזרחי',
+        rating: 5,
+        comment: 'חדר השינה המושלם! תודה על השירות המקצועי.',
+        date: '2024-01-13'
+      }
+    ]
+  },
+  {
+    id: 'elegant-bedrooms',
+    name: 'חדרי שינה אלגנטיים',
+    tagline: 'עיצוב חדרי שינה יוקרתי',
+    logo: bedroomLogo,
+    category: 'bedroom',
+    rating: 4.6,
+    reviewCount: 87,
+    phone: '052-8888888',
+    location: 'כפר סבא',
+    description: 'חדרי שינה יוקרתיים בעיצוב מודרני וקלאסי.',
+    services: ['חדרי שינה יוקרתיים', 'עיצוב אישי', 'ייצור על פי מידה'],
+    gallery: [],
+    products: [
+      {
+        id: '1',
+        name: 'מיטה יוקרתית',
+        price: 6500,
+        image: bedroomLogo,
+        description: 'מיטה זוגית מעוצבת'
+      }
+    ],
+    reviews: []
+  },
+
+  // Garden suppliers
+  {
+    id: 'green-gardens',
+    name: 'גנים ירוקים',
+    tagline: 'עיצוב והקמת גינות',
+    logo: gardenLogo,
+    category: 'garden',
+    rating: 4.9,
+    reviewCount: 143,
+    phone: '050-9999999',
+    location: 'הוד השרון',
+    description: 'מומחים בעיצוב והקמת גינות מרהיבות. שירות מלא כולל תכנון, שתילה ותחזוקה.',
+    services: ['עיצוב גינות', 'שתילה', 'השקיה אוטומטית', 'תחזוקה'],
+    gallery: [gardenLogo],
+    products: [
+      {
+        id: '1',
+        name: 'עיצוב גינה מלא',
+        price: 35000,
+        image: gardenLogo,
+        description: 'תכנון והקמת גינה מלאה'
+      },
+      {
+        id: '2',
+        name: 'מערכת השקיה',
+        price: 5500,
+        image: gardenLogo,
+        description: 'מערכת השקיה אוטומטית'
+      }
+    ],
+    reviews: [
+      {
+        id: '1',
+        customerName: 'אורי שמש',
+        rating: 5,
+        comment: 'הגינה שלנו נראית מדהים! תודה על העבודה המקצועית.',
+        date: '2024-01-17'
+      }
+    ]
+  },
+
+  // Living room suppliers
+  {
+    id: 'luxury-living',
+    name: 'סלון יוקרה',
+    tagline: 'ריהוט סלון מעוצב',
+    logo: livingRoomLogo,
+    category: 'living-room',
+    rating: 4.7,
+    reviewCount: 104,
+    phone: '053-1010101',
+    location: 'ראשון לציון',
+    description: 'מתמחים בריהוט סלון יוקרתי ומעוצב. מגוון רחב של ספות, שולחנות וכורסאות.',
+    services: ['ריהוט סלון', 'עיצוב פנים', 'התקנה'],
+    gallery: [livingRoomLogo],
+    products: [
+      {
+        id: '1',
+        name: 'סלון מלא',
+        price: 22000,
+        image: livingRoomLogo,
+        description: 'חבילת סלון מלאה'
+      },
+      {
+        id: '2',
+        name: 'ספה פינתית',
+        price: 8500,
+        image: livingRoomLogo,
+        description: 'ספה פינתית מודרנית'
+      }
+    ],
+    reviews: [
+      {
+        id: '1',
+        customerName: 'תמר כהן',
+        rating: 5,
+        comment: 'הסלון שלנו נראה מושלם! שירות מעולה.',
+        date: '2024-01-15'
+      }
+    ]
   }
 ];
 

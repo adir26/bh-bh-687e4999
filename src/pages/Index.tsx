@@ -342,7 +342,32 @@ const Index = () => {
   };
 
   const handleCategoryClick = (item: any) => {
-    showToast.comingSoon(`קטגוריה: ${item.title}`);
+    // Map item subtitle to navigation routes
+    const categoryRoutes: Record<string, string> = {
+      'מטבחים': '/category/kitchens/suppliers',
+      'מבצעים': '/local-deals',
+      'ריהוט': '/category/furniture/suppliers',
+      'מיזוג': '/category/air-conditioning/suppliers',
+      'שיפוצים': '/category/renovation/suppliers',
+      'חדרי רחצה': '/category/bathroom/suppliers',
+      'חדרי שינה': '/category/bedroom/suppliers',
+      'גינות': '/category/garden/suppliers',
+      'סלון': '/category/living-room/suppliers',
+      'יועצים': '/support',
+      'הובלות': '/support',
+      'הלוואות': '/support',
+      'מבצעים מקומיים': '/local-deals',
+      'חם עכשיו': '/hot-now',
+      'פופולרי עכשיו': '/popular-now'
+    };
+    
+    const route = categoryRoutes[item.subtitle];
+    if (route) {
+      navigate(route);
+    } else {
+      // Fallback for items without a mapped route
+      showToast.comingSoon(`קטגוריה: ${item.title}`);
+    }
   };
 
   const handleSupplierClick = (supplier: any) => {

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { SafeImage } from '@/utils/imageErrorHandling';
+import { Button } from './ui/button';
 
 interface CategoryCardProps {
   title: string;
@@ -44,7 +45,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
   };
 
   return (
-    <article className={`mobile-card flex ${getSizeClasses()} flex-col ${className}`}>
+    <article className={`mobile-card flex ${getSizeClasses()} flex-col pointer-events-auto ${className}`}>
       <SafeImage
         src={image}
         alt={title}
@@ -61,15 +62,18 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
             {subtitle}
           </p>
         </div>
-        <button
-          className="mobile-button flex h-9 xs:h-10 min-w-20 xs:min-w-[84px] max-w-[480px] justify-center items-center bg-secondary hover:bg-secondary/80 px-3 xs:px-4 py-0 focus-ring"
+        <Button
+          variant="secondary"
+          size="sm"
+          className="mobile-button h-9 xs:h-10 min-w-20 xs:min-w-[84px] max-w-[480px] touch-manipulation"
           onClick={onViewClick}
           aria-label={`עוד על ${title}`}
+          style={{ touchAction: 'manipulation' }}
         >
-          <span className="text-secondary-foreground text-center text-xs xs:text-sm font-bold leading-tight xs:leading-5">
+          <span className="text-center text-xs xs:text-sm font-bold leading-tight xs:leading-5">
             עוד
           </span>
-        </button>
+        </Button>
       </div>
     </article>
   );
