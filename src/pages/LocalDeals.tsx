@@ -1,167 +1,168 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import { Header } from '@/components/Header';
-import { SectionTitle } from '@/components/SectionTitle';
-import { CategorySection } from '@/components/CategorySection';
-import { BottomCTA } from '@/components/BottomCTA';
-import { showToast } from '@/utils/toast';
+import { ArrowRight, MapPin, Loader2, Package, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useLocalSuppliers } from '@/hooks/useLocalSuppliers';
 
 const LocalDeals = () => {
   const navigate = useNavigate();
-
-  // Local deals data
-  const localDeals = [
-    {
-      id: '1',
-      title: 'שיפוץ מטבח - הנחה 20%',
-      subtitle: 'מבצע מקומי - תל אביב',
-      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'מיזוג אוויר - מחיר מיוחד',
-      subtitle: 'מבצע מקומי - רמת גן',
-      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'רהיטים למשפחות חדשות',
-      subtitle: 'מבצע מקומי - כפר סבא',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=480&h=480&fit=crop'
-    }
-  ];
-
-  const exclusiveOffers = [
-    {
-      id: '1',
-      title: 'פקט שיפוץ בבית',
-      subtitle: 'חבילה מיוחדת לבתי פרטיים',
-      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'עיצוב חדר הילדים',
-      subtitle: 'הצעה מיוחדת למשפחות',
-      image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'שיפוץ חדר רחצה מהיר',
-      subtitle: 'תוך שבוע אחד בלבד',
-      image: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=480&h=480&fit=crop'
-    }
-  ];
-
-  const limitedTimeOffers = [
-    {
-      id: '1',
-      title: 'הובלה חינם השבוע',
-      subtitle: 'מוגבל לשבוע הזה בלבד',
-      image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'ייעוץ משכנתא חינם',
-      subtitle: 'הצעה ליום השלשה בלבד',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'בדיקת מיזוג חינם',
-      subtitle: 'השבוע בלבד - לא תחמיצו',
-      image: 'https://images.unsplash.com/photo-1634638324170-0cd3b310f2ae?w=480&h=480&fit=crop'
-    }
-  ];
-
-  const communityDeals = [
-    {
-      id: '1',
-      title: 'מבצע שכונתי - גדרה',
-      subtitle: 'הנחות לתושבי השכונה',
-      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'מבצע קהילתי - רעננה',
-      subtitle: 'שיפוצים לקהילה',
-      image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'הנחה לוועד בית - הרצליה',
-      subtitle: 'הצעה מיוחדת לוועדי בתים',
-      image: 'https://images.unsplash.com/photo-1607083206325-cad9886eacb8?w=480&h=480&fit=crop'
-    }
-  ];
-
-  // Event handlers
-  const handleDealClick = (deal: any) => {
-    showToast.success(`נבחר מבצע: ${deal.title} - צור קשר עם הספק`);
-  };
-
-  const handleCTAClick = () => {
-    navigate('/onboarding/welcome');
-  };
+  const { userLocation, suppliersByCategory, isLoading, hasLocation } = useLocalSuppliers();
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-white">
-      <main className="flex flex-col items-start w-full bg-neutral-50 pb-nav-safe">
-        <div className="flex flex-col items-start w-full">
-          {/* Back Arrow Button */}
-          <div className="w-full px-4 pt-4 pb-2">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-sm border hover:bg-gray-50 transition-colors"
-              aria-label="חזרה"
-            >
-              <ArrowRight className="w-5 h-5 text-gray-600" />
-            </button>
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background" dir="rtl">
+      {/* Header */}
+      <div className="bg-white px-6 py-6 rounded-b-3xl shadow-sm sticky top-0 z-10">
+        <div className="flex items-center gap-4 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="p-2 hover:bg-gray-100 rounded-xl"
+          >
+            <ArrowRight className="w-5 h-5" />
+          </Button>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-gray-900">ספקים בקרבתי</h1>
+            {hasLocation && userLocation?.city && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                <MapPin className="w-4 h-4" />
+                <span>{userLocation.city}</span>
+              </div>
+            )}
           </div>
-          
-          <Header userName="איתן" />
-          
-          <div className="w-full">
-            <SectionTitle title="מבצעים מקומיים באזור שלך" />
-            <CategorySection 
-              items={localDeals} 
-              onItemClick={handleDealClick}
-            />
-          </div>
-
-          <div className="w-full">
-            <SectionTitle title="הצעות בלעדיות" />
-            <CategorySection 
-              items={exclusiveOffers} 
-              onItemClick={handleDealClick}
-            />
-          </div>
-
-          <div className="w-full">
-            <SectionTitle title="מבצעים לזמן מוגבל" />
-            <CategorySection 
-              items={limitedTimeOffers} 
-              onItemClick={handleDealClick}
-            />
-          </div>
-
-          <div className="w-full">
-            <SectionTitle title="מבצעי קהילה" />
-            <CategorySection 
-              items={communityDeals} 
-              onItemClick={handleDealClick}
-            />
-          </div>
-
-          {/* Bottom CTA */}
-          <BottomCTA 
-            title="אל תפספסו את המבצעים הכי טובים"
-            buttonText="צרו קשר עכשיו"
-            onButtonClick={handleCTAClick}
-          />
         </div>
-      </main>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 space-y-6 pb-nav-safe">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : !hasLocation ? (
+          <Card className="border-0 shadow-sm rounded-xl">
+            <CardContent className="p-8 text-center">
+              <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold text-foreground mb-2">לא מצאנו את המיקום שלך</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                כדי להציג ספקים בקרבתך, נא עדכן את כתובתך בהגדרות האונבורדינג
+              </p>
+              <Button onClick={() => navigate('/onboarding/home-details')}>
+                עדכן כתובת
+              </Button>
+            </CardContent>
+          </Card>
+        ) : suppliersByCategory.length === 0 ? (
+          <Card className="border-0 shadow-sm rounded-xl">
+            <CardContent className="p-8 text-center">
+              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold text-foreground mb-2">אין ספקים באזור שלך</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                לא מצאנו ספקים ב{userLocation?.city} כרגע. נסה לחפש בכל הספקים
+              </p>
+              <Button onClick={() => navigate('/')}>
+                חזור לדף הבית
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            {/* Info Banner */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-blue-900 text-sm mb-1">
+                  ספקים מומלצים באזורך
+                </h4>
+                <p className="text-xs text-blue-700">
+                  הספקים המוצגים פעילים ב{userLocation?.city} ובעלי דירוג גבוה
+                </p>
+              </div>
+            </div>
+
+            {/* Suppliers by Category */}
+            {suppliersByCategory.map(({ category, suppliers }) => (
+              <div key={category.id} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    {category.icon && <span>{category.icon}</span>}
+                    {category.name}
+                  </h2>
+                  <Badge variant="secondary" className="text-xs">
+                    {suppliers.length} ספקים
+                  </Badge>
+                </div>
+                
+                <div className="space-y-3">
+                  {suppliers.map((supplier) => (
+                    <Card 
+                      key={supplier.id}
+                      className="border-0 shadow-sm hover:shadow-md transition-shadow cursor-pointer rounded-xl"
+                      onClick={() => navigate(`/supplier/${supplier.id}`)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          {supplier.logo_url ? (
+                            <img 
+                              src={supplier.logo_url} 
+                              alt={supplier.name}
+                              className="w-16 h-16 rounded-xl object-cover"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center">
+                              <Package className="w-8 h-8 text-primary" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <h3 className="font-semibold text-foreground text-sm line-clamp-1">
+                                {supplier.name}
+                              </h3>
+                              {supplier.featured && (
+                                <Badge className="bg-amber-500 text-white text-xs px-2 py-0.5">
+                                  מומלץ
+                                </Badge>
+                              )}
+                            </div>
+                            {supplier.description && (
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {supplier.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-3 mt-2">
+                              {supplier.rating && supplier.rating > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-amber-500 text-sm">★</span>
+                                  <span className="text-xs font-medium text-foreground">
+                                    {supplier.rating.toFixed(1)}
+                                  </span>
+                                  {supplier.review_count && supplier.review_count > 0 && (
+                                    <span className="text-xs text-muted-foreground">
+                                      ({supplier.review_count})
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {supplier.city && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <MapPin className="w-3 h-3" />
+                                  <span>{supplier.city}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
     </div>
   );
 };
