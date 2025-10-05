@@ -60,19 +60,27 @@ const Profile = () => {
   // Page load timer for performance tracking
   usePageLoadTimer('profile');
   
+  // Debug logging
+  console.log('[Profile] User:', user?.id, 'Profile:', profile?.id);
+
   const form = useForm<UserProfile>({
     defaultValues: {
+      fullName: profile?.full_name || '',
+      email: profile?.email || ''
+    },
+    values: {
       fullName: profile?.full_name || '',
       email: profile?.email || ''
     }
   });
 
-  // Fetch user orders with React Query
+  // Fetch user orders with React Query - only when user and profile are ready
   const { data: userOrders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['user-orders', user?.id],
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!profile,
     queryFn: async ({ signal }) => {
       try {
+        console.log('[Profile] Fetching orders for user:', user!.id);
         const data = await supaSelect<any[]>(
           supabase
             .from('orders')
@@ -85,15 +93,18 @@ const Profile = () => {
             timeoutMs: 10_000
           }
         );
+        console.log('[Profile] Orders loaded:', data?.length || 0);
         return data || [];
       } catch (error: any) {
         // Handle missing table or RLS issues gracefully
-        console.log('Orders query failed, returning empty array:', error.message);
+        console.log('[Profile] Orders query failed, returning empty array:', error.message);
         return [];
       }
     },
     retry: 1,
     staleTime: 60_000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   // Fetch onboarding data from localStorage
