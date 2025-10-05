@@ -244,6 +244,7 @@ const Settings = () => {
               <Button
                 variant="ghost"
                 className="w-full justify-start h-12 px-4"
+                onClick={() => navigate('/terms')}
               >
                 תנאי שימוש
               </Button>
