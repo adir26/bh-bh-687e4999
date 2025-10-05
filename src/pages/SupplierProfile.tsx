@@ -18,7 +18,7 @@ const SupplierProfile = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
-  const { requireAuth } = useRequireAuth();
+  const { requireAuth, requireAuthAsync } = useRequireAuth();
   const supplier = id ? getSupplierById(id) : undefined;
   
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -145,7 +145,7 @@ const SupplierProfile = () => {
   };
 
   const handleToggleFavorite = async () => {
-    requireAuth('save_favorite', async () => {
+    await requireAuthAsync('save_favorite', async () => {
       try {
         const added = await FavoritesService.toggle('supplier', id);
         setIsFavorited(added);
