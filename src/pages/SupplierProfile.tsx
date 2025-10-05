@@ -11,6 +11,7 @@ import { showToast } from '@/utils/toast';
 import { ContactSupplierModal } from '@/components/modals/ContactSupplierModal';
 import { ScheduleMeetingModal } from '@/components/modals/ScheduleMeetingModal';
 import { supabase } from '@/integrations/supabase/client';
+import { FavoritesService } from '@/services/favoritesService';
 
 const SupplierProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -70,20 +71,10 @@ const SupplierProfile = () => {
     try {
       // Check if supplier is favorited
       try {
-        const { data: favoriteData, error: favoriteError } = await supabase
-          .from('favorites')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('supplier_id', id)
-          .maybeSingle();
-        
-        if (favoriteError && favoriteError.code !== 'PGRST116') {
-          console.error('Error checking favorites:', favoriteError);
-        } else {
-          setIsFavorited(!!favoriteData);
-        }
+        const isFav = await FavoritesService.isFavorited('supplier', id, user.id);
+        setIsFavorited(isFav);
       } catch (error) {
-        console.error('Error in favorites query:', error);
+        console.error('Error checking favorites:', error);
         // Continue with default state if favorites check fails
       }
       
@@ -156,30 +147,9 @@ const SupplierProfile = () => {
   const handleToggleFavorite = async () => {
     requireAuth('save_favorite', async () => {
       try {
-        if (isFavorited) {
-          // Remove from favorites
-          const { error } = await supabase
-            .from('favorites')
-            .delete()
-            .eq('user_id', user.id)
-            .eq('supplier_id', id);
-
-          if (error) throw error;
-          setIsFavorited(false);
-          showToast.success('הספק הוסר מהמועדפים');
-        } else {
-          // Add to favorites
-          const { error } = await supabase
-            .from('favorites')
-            .insert({
-              user_id: user.id,
-              supplier_id: id
-            });
-
-          if (error) throw error;
-          setIsFavorited(true);
-          showToast.success('הספק נוסף למועדפים');
-        }
+        const added = await FavoritesService.toggle('supplier', id);
+        setIsFavorited(added);
+        showToast.success(added ? 'הספק נוסף למועדפים' : 'הספק הוסר מהמועדפים');
       } catch (error) {
         console.error('Error toggling favorite:', error);
         showToast.error('שגיאה בעדכון המועדפים');
