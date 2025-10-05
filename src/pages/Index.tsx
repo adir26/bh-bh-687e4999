@@ -60,7 +60,7 @@ const Index = () => {
     },
     {
       id: '5',
-      title: 'המובילים בspike',
+      title: 'המובילים בבונים פה',
       image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=256'
     }
   ];
@@ -336,7 +336,7 @@ const Index = () => {
       navigate('/new-suppliers');
     } else if (item.id === '4') { // חם עכשיו
       navigate('/hot-now');
-    } else if (item.id === '5') { // המובילים בspike
+    } else if (item.id === '5') { // המובילים בבונים פה
       navigate('/top-suppliers');
     }
   };
