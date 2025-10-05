@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { isInGuestMode } from '@/hooks/useGuestMode';
+import { useCategorySuppliers } from '@/hooks/useCategorySuppliers';
 import { OnboardingGuard } from '@/components/OnboardingGuard';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
@@ -33,6 +34,11 @@ const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isGuest = isInGuestMode();
+  
+  // Load suppliers from database
+  const { data: mortgageAdvisorsData = [] } = useCategorySuppliers('mortgage-advisors');
+  const { data: movingServicesData = [] } = useCategorySuppliers('moving-services');
+  const { data: homeLoansData = [] } = useCategorySuppliers('home-loans');
   
   // Calculate CTA href based on auth state
   const ctaHref = user && !isGuest ? '/onboarding/welcome' : '/welcome';
@@ -353,9 +359,9 @@ const Index = () => {
       'חדרי שינה': '/category/bedroom/suppliers',
       'גינות': '/category/garden/suppliers',
       'סלון': '/category/living-room/suppliers',
-      'יועצים': '/support',
-      'הובלות': '/support',
-      'הלוואות': '/support',
+      'יועצים': '/category/mortgage-advisors/suppliers',
+      'הובלות': '/category/moving-services/suppliers',
+      'הלוואות': '/category/home-loans/suppliers',
       'מבצעים מקומיים': '/local-deals',
       'חם עכשיו': '/hot-now',
       'פופולרי עכשיו': '/popular-now'
@@ -495,26 +501,38 @@ const Index = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitle title="יועצי משכנתאות וביטוח" />
-            <CategorySection 
-              items={mortgageAdvisors} 
-              onItemClick={handleCategoryClick}
+            <SectionTitleWithButton 
+              title="יועצי משכנתאות וביטוח" 
+              buttonText="לכל היועצים"
+              onButtonClick={() => handleAllSuppliersClick('mortgage-advisors')}
+            />
+            <SupplierSection 
+              suppliers={mortgageAdvisorsData} 
+              onSupplierClick={handleSupplierClick}
             />
           </div>
 
           <div className="w-full">
-            <SectionTitle title="הובלות" />
-            <CategorySection 
-              items={movingServices} 
-              onItemClick={handleCategoryClick}
+            <SectionTitleWithButton 
+              title="הובלות" 
+              buttonText="לכל חברות ההובלה"
+              onButtonClick={() => handleAllSuppliersClick('moving-services')}
+            />
+            <SupplierSection 
+              suppliers={movingServicesData} 
+              onSupplierClick={handleSupplierClick}
             />
           </div>
 
           <div className="w-full">
-            <SectionTitle title="הלוואות" />
-            <CategorySection 
-              items={homeLoans} 
-              onItemClick={handleCategoryClick}
+            <SectionTitleWithButton 
+              title="הלוואות" 
+              buttonText="לכל ספקי ההלוואות"
+              onButtonClick={() => handleAllSuppliersClick('home-loans')}
+            />
+            <SupplierSection 
+              suppliers={homeLoansData} 
+              onSupplierClick={handleSupplierClick}
             />
           </div>
 
