@@ -121,6 +121,7 @@ const Auth: React.FC = () => {
       toast.error('כתובת האימייל לא תקינה');
       return;
     }
+    
     // Password validation using the new relaxed policy
     if (signupForm.password.length < 8) {
       toast.error('סיסמה חייבת 8+ תווים ולשלב אותיות + (מספרים או סימנים)');
@@ -136,27 +137,34 @@ const Auth: React.FC = () => {
       toast.error('סיסמה חייבת 8+ תווים ולשלב אותיות + (מספרים או סימנים)');
       return;
     }
+    
     if (!signupForm.fullName.trim() || signupForm.fullName.trim().length < 2) {
       toast.error('אנא הזן שם מלא תקין');
       return;
     }
+
     setIsLoading(true);
+    let processingComplete = false;
+    
     try {
       console.log('[AUTH_PAGE] Starting signup for:', {
         email: signupForm.email,
         role: signupForm.role,
         fullName: signupForm.fullName
       });
-      const {
-        error,
-        data
-      } = await signUp(signupForm.email, signupForm.password, {
-        full_name: signupForm.fullName,
-        role: signupForm.role
-      });
+      
+      const { error, data } = await signUp(
+        signupForm.email, 
+        signupForm.password, 
+        {
+          full_name: signupForm.fullName,
+          role: signupForm.role
+        }
+      );
       
       if (error) {
         console.error('[AUTH_PAGE] Signup error:', error);
+        processingComplete = true;
         
         // Provide clear, actionable error messages
         let errorMessage = error.message || 'שגיאה בהרשמה. אנא נסה שוב';
@@ -167,6 +175,7 @@ const Auth: React.FC = () => {
         }
         
         toast.error(errorMessage);
+        setIsLoading(false);
         return;
       }
       
@@ -178,12 +187,16 @@ const Auth: React.FC = () => {
 
         // Check if user is immediately available (no email confirmation required)
         if (data.user && data.session) {
-          // User is logged in immediately - navigation handled in AuthContext
-          console.log('[AUTH_PAGE] Immediate signup success');
+          // User is logged in immediately - let AuthContext handle navigation
+          // Don't set isLoading(false) here - let the page unmount naturally during navigation
+          console.log('[AUTH_PAGE] Immediate signup success - navigation handled by AuthContext');
           toast.success('נרשמת בהצלחה! מעביר אותך לתהליך ההתחלה...');
+          processingComplete = true;
         } else {
           // Email confirmation required, show message and switch to login tab
           console.log('[AUTH_PAGE] Email confirmation required');
+          processingComplete = true;
+          setIsLoading(false);
           setActiveTab('login');
           setLoginForm({
             email: signupForm.email,
@@ -194,14 +207,20 @@ const Auth: React.FC = () => {
       }
     } catch (error: any) {
       console.error('[AUTH_PAGE] Unexpected signup error:', error);
+      processingComplete = true;
       
       const errorMessage = error.message?.includes('שגיאה בשמירת נתונים') 
         ? 'אירעה שגיאה בשמירת הנתונים. אנא נסה שוב במספר שניות'
         : 'שגיאה בהרשמה. אנא נסה שוב';
         
       toast.error(errorMessage);
+      setIsLoading(false);
+    } finally {
+      // Only clear loading if we didn't successfully complete signup with immediate session
+      if (!processingComplete) {
+        setIsLoading(false);
+      }
     }
-    setIsLoading(false);
   };
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);

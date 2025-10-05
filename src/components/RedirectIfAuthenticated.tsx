@@ -25,11 +25,12 @@ export const RedirectIfAuthenticated: React.FC<RedirectIfAuthenticatedProps> = (
 
   // If user is authenticated and has profile, redirect using centralized rules
   if (user && profile) {
+    const location = window.location;
     const destination = getPostAuthRoute({
       role: profile.role as UserRole,
       onboarding_completed: profile.onboarding_completed,
       onboarding_step: profile.onboarding_step,
-      fromPath: null, // No previous path when redirecting from /auth
+      fromPath: location.pathname, // Pass current path for better routing decisions
     });
 
     console.log('[REDIRECT_IF_AUTH] Authenticated user on /auth, redirecting to:', destination);

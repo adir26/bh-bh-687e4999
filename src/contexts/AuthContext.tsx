@@ -8,6 +8,7 @@ import { InputSanitizer } from '@/utils/inputSanitizer';
 import { useProfile } from '@/hooks/useProfile';
 import { withTimeout } from '@/lib/withTimeout';
 import { clearWelcomeState } from '@/hooks/useGuestMode';
+import { clearAuthStorage, clearUserSpecificFlags } from '@/utils/authCleanup';
 
 interface Profile {
   id: string;
@@ -134,57 +135,70 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Centralized post-auth redirect - single source of truth
     const handlePostAuthRedirect = () => {
-      const currentPath = location.pathname;
-      
-      // Skip redirect logic for certain paths to avoid loops
-      if (currentPath.startsWith('/onboarding') || 
-          currentPath.startsWith('/admin') ||
-          currentPath === '/auth/callback') {
-        return;
-      }
-
-      // Handle guest-to-authenticated transition
-      if (wasGuest) {
-        console.log('[AUTH] Guest-to-authenticated transition detected');
+      try {
+        const currentPath = location.pathname;
         
-        // Clear all guest and welcome state
-        clearWelcomeState();
-        
-        // If there's a return path, go there without guest params
-        if (returnPath && returnPath !== '/auth') {
-          console.log('[AUTH] Returning to path after guest login:', returnPath);
-          sessionStorage.removeItem('returnPath');
-          sessionStorage.removeItem('pendingAction');
-          navigate(returnPath, { replace: true });
+        // Skip redirect logic for certain paths to avoid loops
+        if (currentPath.startsWith('/onboarding') || 
+            currentPath.startsWith('/admin') ||
+            currentPath === '/auth/callback') {
           return;
         }
-      } else {
-        // For normal logins/signups, also clear welcome state to prevent showing welcome again
-        sessionStorage.removeItem('hasSeenWelcome');
-      }
 
-      // Get the destination based on current auth state using routeAfterLogin
-      const destination = routeAfterLogin(profile);
+        // Handle guest-to-authenticated transition
+        if (wasGuest) {
+          console.log('[AUTH] Guest-to-authenticated transition detected');
+          
+          // Clear all guest and welcome state
+          clearWelcomeState();
+          
+          // If there's a return path, go there without guest params
+          if (returnPath && returnPath !== '/auth') {
+            console.log('[AUTH] Returning to path after guest login:', returnPath);
+            sessionStorage.removeItem('returnPath');
+            sessionStorage.removeItem('pendingAction');
+            navigate(returnPath, { replace: true });
+            return;
+          }
+        } else {
+          // For normal logins/signups, also clear welcome state to prevent showing welcome again
+          sessionStorage.removeItem('hasSeenWelcome');
+        }
 
-      console.log('[AUTH] Post-auth redirect decision:', {
-        currentPath,
-        destination,
-        shouldRedirect: currentPath !== destination,
-        wasGuest,
-        returnPath,
-        pendingAction
-      });
+        // Get the destination based on current auth state using routeAfterLogin
+        const destination = routeAfterLogin(profile);
 
-      // Only navigate if we're not already at the correct destination
-      if (currentPath !== destination && !sessionStorage.getItem(`redirected_${user.id}`)) {
-        console.log('[AUTH] Redirecting from', currentPath, 'to', destination);
-        sessionStorage.setItem(`redirected_${user.id}`, 'true');
-        navigate(destination, { replace: true });
+        console.log('[AUTH] Post-auth redirect decision:', {
+          currentPath,
+          destination,
+          shouldRedirect: currentPath !== destination,
+          wasGuest,
+          returnPath,
+          pendingAction
+        });
+
+        // Only navigate if we're not already at the correct destination
+        if (currentPath !== destination && !sessionStorage.getItem(`redirected_${user.id}`)) {
+          console.log('[AUTH] Redirecting from', currentPath, 'to', destination);
+          sessionStorage.setItem(`redirected_${user.id}`, 'true');
+          navigate(destination, { replace: true });
+        }
+      } catch (error) {
+        console.error('[AUTH] Navigation error:', error);
+        // Clear problematic flags on error
+        if (user?.id) {
+          clearUserSpecificFlags(user.id);
+        }
       }
     };
 
     // Small delay to ensure all auth state is settled
-    setTimeout(handlePostAuthRedirect, 100);
+    const timeoutId = setTimeout(handlePostAuthRedirect, 100);
+    
+    // Cleanup timeout on unmount or dependency change
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [user, profile, loading, location.pathname, navigate]);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
@@ -384,18 +398,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      console.log('[AUTH] Starting sign out process');
+      const currentUserId = user?.id;
+      
+      const { error } = await supabase.auth.signOut();
+      
+      // Clear ALL auth-related storage regardless of error
+      clearAuthStorage(currentUserId);
+      
+      // Clear state
+      setUser(null);
+      setSession(null);
+      
+      if (error) {
+        console.error('[AUTH] Sign out error:', error);
+        toast({
+          title: "שגיאה בהתנתקות",
+          description: error.message,
+          variant: "destructive"
+        });
+      } else {
+        console.log('[AUTH] Sign out successful');
+        toast({
+          title: "התנתקת בהצלחה",
+          description: "להתראות!"
+        });
+      }
+      
+      // Navigate to auth page
+      navigate('/auth', { replace: true });
+    } catch (error: any) {
+      console.error('[AUTH] SignOut unexpected error:', error);
+      
+      // Still clear storage even on error
+      clearAuthStorage(user?.id);
+      setUser(null);
+      setSession(null);
+      
       toast({
         title: "שגיאה בהתנתקות",
-        description: error.message,
+        description: "אירעה שגיאה. ננסה שוב.",
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "התנתקת בהצלחה",
-        description: "להתראות!"
-      });
+      
+      // Navigate anyway
+      navigate('/auth', { replace: true });
     }
   };
 
