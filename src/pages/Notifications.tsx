@@ -1,63 +1,89 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Bell, BellRing, Clock, MessageCircle } from 'lucide-react';
+import { ArrowRight, Bell, BellRing, Clock, MessageCircle, Package, FileText, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { useNotifications, useMarkNotificationRead } from '@/hooks/useNotifications';
+import { formatDistanceToNow } from 'date-fns';
+import { he } from 'date-fns/locale';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Notifications = () => {
   const navigate = useNavigate();
+  const { data: notifications = [], isLoading } = useNotifications();
+  const markAsRead = useMarkNotificationRead();
 
-  const notifications = [
-    {
-      id: '1',
-      type: 'order',
-      title: 'עדכון הזמנה',
-      message: 'ההזמנה שלך #12345 נשלחה ותגיע מחר',
-      time: '5 דקות',
-      read: false,
-      icon: BellRing
-    },
-    {
-      id: '2',
-      type: 'promotion',
-      title: 'מבצע מיוחד',
-      message: 'הנחה של 20% על כל המטבחים החודש',
-      time: '2 שעות',
-      read: false,
-      icon: Bell
-    },
-    {
-      id: '3',
-      type: 'message',
-      title: 'הודעה חדשה',
-      message: 'קיבלת הודעה מספק המטבחים "דלתא עיצובים"',
-      time: '1 יום',
-      read: true,
-      icon: MessageCircle
-    },
-    {
-      id: '4',
-      type: 'reminder',
-      title: 'תזכורת',
-      message: 'זכור לסיים את תהליך הרישום שלך',
-      time: '2 ימים',
-      read: true,
-      icon: Clock
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'lead_new':
+      case 'lead_assigned':
+        return BellRing;
+      case 'quote_accepted':
+      case 'quote_viewed':
+      case 'quote_new':
+        return FileText;
+      case 'order_status_change':
+      case 'order_new':
+        return Package;
+      case 'message_new':
+        return MessageCircle;
+      case 'review_new':
+        return Star;
+      case 'reminder':
+        return Clock;
+      default:
+        return Bell;
     }
-  ];
+  };
 
   const handleBackClick = () => {
     navigate(-1);
   };
 
   const handleNotificationClick = (notification: any) => {
-    console.log('Notification clicked:', notification);
-    // Handle notification click based on type
-    if (notification.type === 'order') {
-      navigate('/orders');
-    } else if (notification.type === 'message') {
-      navigate('/orders'); // or messages page
+    // Mark as read if unread
+    if (!notification.is_read) {
+      markAsRead.mutate(notification.id);
+    }
+
+    // Navigate based on notification type and payload
+    if (notification.action_url) {
+      navigate(notification.action_url);
+      return;
+    }
+
+    const payload = notification.payload || {};
+
+    switch (notification.type) {
+      case 'order_status_change':
+      case 'order_new':
+        if (payload.order_id) {
+          navigate(`/orders/${payload.order_id}`);
+        } else {
+          navigate('/orders');
+        }
+        break;
+      case 'lead_new':
+      case 'lead_assigned':
+        if (payload.lead_id) {
+          navigate('/supplier/crm');
+        }
+        break;
+      case 'quote_accepted':
+      case 'quote_viewed':
+      case 'quote_new':
+        navigate('/supplier/orders');
+        break;
+      case 'message_new':
+        navigate('/my-messages');
+        break;
+      case 'review_new':
+        navigate('/supplier/profile');
+        break;
+      default:
+        // No navigation for other types
+        break;
     }
   };
 
@@ -79,7 +105,24 @@ const Notifications = () => {
 
       {/* Content */}
       <main className="flex-1 p-4 space-y-3">
-        {notifications.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Skeleton className="w-10 h-10 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-1/2" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : notifications.length === 0 ? (
           <div className="text-center py-12">
             <Bell className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-lg font-semibold mb-2">אין התראות חדשות</h2>
@@ -87,39 +130,44 @@ const Notifications = () => {
           </div>
         ) : (
           notifications.map((notification) => {
-            const IconComponent = notification.icon;
+            const IconComponent = getNotificationIcon(notification.type);
+            const timeAgo = formatDistanceToNow(new Date(notification.created_at), { 
+              addSuffix: true, 
+              locale: he 
+            });
+            
             return (
               <Card
                 key={notification.id}
                 className={`cursor-pointer transition-colors hover:bg-muted/50 ${
-                  !notification.read ? 'border-primary/20 bg-primary/5' : ''
+                  !notification.is_read ? 'border-primary/20 bg-primary/5' : ''
                 }`}
                 onClick={() => handleNotificationClick(notification)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <div className={`p-2 rounded-full ${
-                      !notification.read ? 'bg-primary/10' : 'bg-muted'
+                      !notification.is_read ? 'bg-primary/10' : 'bg-muted'
                     }`}>
                       <IconComponent className={`w-4 h-4 ${
-                        !notification.read ? 'text-primary' : 'text-muted-foreground'
+                        !notification.is_read ? 'text-primary' : 'text-muted-foreground'
                       }`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className={`font-semibold text-sm ${
-                          !notification.read ? 'text-foreground' : 'text-muted-foreground'
+                          !notification.is_read ? 'text-foreground' : 'text-muted-foreground'
                         }`}>
                           {notification.title}
                         </h3>
                         <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {notification.time}
+                          {timeAgo}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                         {notification.message}
                       </p>
-                      {!notification.read && (
+                      {!notification.is_read && (
                         <div className="w-2 h-2 bg-primary rounded-full mt-2" />
                       )}
                     </div>
