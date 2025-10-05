@@ -23,6 +23,7 @@ export interface Supplier {
   phone: string;
   location: string;
   description: string;
+  slug?: string;
   services: string[];
   gallery: string[];
   products: {

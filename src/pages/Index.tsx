@@ -14,7 +14,7 @@ import { CategorySection } from '@/components/CategorySection';
 import { SupplierSection } from '@/components/SupplierSection';
 import { BottomCTA } from '@/components/BottomCTA';
 import { OnboardingStatusBanner } from '@/components/OnboardingStatusBanner';
-import { getSuppliersByCategory } from '@/data/suppliers';
+import { getSuppliersByCategory, Supplier } from '@/data/suppliers';
 import { showToast } from '@/utils/toast';
 
 // Import local images
@@ -376,8 +376,14 @@ const Index = () => {
     }
   };
 
-  const handleSupplierClick = (supplier: any) => {
-    navigate(`/supplier/${supplier.id}`);
+  const handleSupplierClick = (supplier: Supplier) => {
+    console.log('Supplier clicked:', supplier.name);
+    // Navigate using slug for DB suppliers, fallback to ID for static data
+    if (supplier.slug) {
+      navigate(`/s/${supplier.slug}`);
+    } else {
+      navigate(`/supplier/${supplier.id}`);
+    }
   };
 
   const handleAllSuppliersClick = (category: string) => {
@@ -506,9 +512,18 @@ const Index = () => {
               buttonText="לכל היועצים"
               onButtonClick={() => handleAllSuppliersClick('mortgage-advisors')}
             />
-            <SupplierSection 
-              suppliers={mortgageAdvisorsData} 
-              onSupplierClick={handleSupplierClick}
+            <CategorySection 
+              items={mortgageAdvisorsData.map(supplier => ({
+                id: supplier.id,
+                title: supplier.name,
+                subtitle: supplier.tagline,
+                image: supplier.logo,
+                size: 'medium' as const
+              }))}
+              onItemClick={(item) => {
+                const supplier = mortgageAdvisorsData.find(s => s.id === item.id);
+                if (supplier) handleSupplierClick(supplier);
+              }}
             />
           </div>
 
@@ -518,9 +533,18 @@ const Index = () => {
               buttonText="לכל חברות ההובלה"
               onButtonClick={() => handleAllSuppliersClick('moving-services')}
             />
-            <SupplierSection 
-              suppliers={movingServicesData} 
-              onSupplierClick={handleSupplierClick}
+            <CategorySection 
+              items={movingServicesData.map(supplier => ({
+                id: supplier.id,
+                title: supplier.name,
+                subtitle: supplier.tagline,
+                image: supplier.logo,
+                size: 'medium' as const
+              }))}
+              onItemClick={(item) => {
+                const supplier = movingServicesData.find(s => s.id === item.id);
+                if (supplier) handleSupplierClick(supplier);
+              }}
             />
           </div>
 
@@ -530,9 +554,18 @@ const Index = () => {
               buttonText="לכל ספקי ההלוואות"
               onButtonClick={() => handleAllSuppliersClick('home-loans')}
             />
-            <SupplierSection 
-              suppliers={homeLoansData} 
-              onSupplierClick={handleSupplierClick}
+            <CategorySection 
+              items={homeLoansData.map(supplier => ({
+                id: supplier.id,
+                title: supplier.name,
+                subtitle: supplier.tagline,
+                image: supplier.logo,
+                size: 'medium' as const
+              }))}
+              onItemClick={(item) => {
+                const supplier = homeLoansData.find(s => s.id === item.id);
+                if (supplier) handleSupplierClick(supplier);
+              }}
             />
           </div>
 

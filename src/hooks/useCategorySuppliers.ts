@@ -31,7 +31,7 @@ export const useCategorySuppliers = (categorySlug: string) => {
       // Get company details
       const { data: companies, error: companiesError } = await supabase
         .from('companies')
-        .select('*')
+        .select('id, name, description, logo_url, phone, city, rating, review_count, slug')
         .in('id', companyIds)
         .eq('status', 'approved')
         .eq('is_public', true)
@@ -52,6 +52,7 @@ export const useCategorySuppliers = (categorySlug: string) => {
         phone: company.phone || '',
         location: company.city || '',
         description: company.description || '',
+        slug: company.slug || '',
         services: [],
         gallery: [],
         products: [],

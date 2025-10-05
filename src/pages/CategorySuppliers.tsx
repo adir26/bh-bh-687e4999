@@ -2,12 +2,15 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Heart } from 'lucide-react';
 import { showToast } from '@/utils/toast';
-import { getSuppliersByCategory } from '@/data/suppliers';
+import { useCategorySuppliers } from '@/hooks/useCategorySuppliers';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Store } from 'lucide-react';
 
 const CategorySuppliers = () => {
   const { category } = useParams<{ category: string }>();
   const navigate = useNavigate();
-  const suppliers = category ? getSuppliersByCategory(category) : [];
+  
+  const { data: suppliers = [], isLoading } = useCategorySuppliers(category || '');
 
   const getCategoryTitle = (cat: string) => {
     const titles: { [key: string]: string } = {
@@ -19,9 +22,9 @@ const CategorySuppliers = () => {
       'bedroom': 'חדרי שינה',
       'garden': 'גינות',
       'living-room': 'סלון',
-      'mortgage': 'יועצי משכנתאות',
-      'moving': 'הובלות',
-      'loans': 'הלוואות'
+      'mortgage-advisors': 'יועצי משכנתאות',
+      'moving-services': 'הובלות',
+      'home-loans': 'הלוואות'
     };
     return titles[cat] || cat;
   };
@@ -48,9 +51,17 @@ const CategorySuppliers = () => {
 
       {/* Suppliers List */}
       <div className="flex-1 bg-gray-50 px-4 py-2">
-        {suppliers.length === 0 ? (
+        {isLoading ? (
           <div className="text-center py-8">
-            <p className="text-[#617385]">אין ספקים זמינים בקטגוריה זו</p>
+            <p className="text-[#617385]">טוען ספקים...</p>
+          </div>
+        ) : suppliers.length === 0 ? (
+          <div className="py-8">
+            <EmptyState
+              icon={Store}
+              title="אין ספקים זמינים"
+              description="לא נמצאו ספקים בקטגוריה זו כרגע"
+            />
           </div>
         ) : (
           <div className="space-y-4">
@@ -58,7 +69,7 @@ const CategorySuppliers = () => {
               <div 
                 key={supplier.id} 
                 className="bg-white rounded-lg shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => navigate(`/supplier/${supplier.id}`)}
+                onClick={() => navigate(supplier.slug ? `/s/${supplier.slug}` : `/supplier/${supplier.id}`)}
               >
                 {/* Supplier Image */}
                 <div className="relative h-48 overflow-hidden rounded-t-lg">
