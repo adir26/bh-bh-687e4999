@@ -32,6 +32,7 @@ import NotFound from "./pages/NotFound";
 import Registration from "./pages/Registration";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import SupplierProfilePreview from "./pages/SupplierProfilePreview";
 import Notifications from "./pages/Notifications";
@@ -255,6 +256,7 @@ const App = () => {
                 {/* Redirect /login to /auth for consistency */}
                 <Route path="/login" element={<Navigate to="/auth" replace />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/privacy-policy" element={<PublicRouteWrapper><PrivacyPolicy /></PublicRouteWrapper>} />
                 <Route path="/accessibility" element={<PublicRouteWrapper><Accessibility /></PublicRouteWrapper>} />
                 <Route path="/terms" element={<PublicRouteWrapper><Terms /></PublicRouteWrapper>} />

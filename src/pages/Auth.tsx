@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -315,7 +315,12 @@ const Auth: React.FC = () => {
                     })} required className="h-12 text-base" autoComplete="email" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="login-password">סיסמה</Label>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="login-password">סיסמה</Label>
+                        <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+                          שכחתי סיסמה
+                        </Link>
+                      </div>
                       <Input id="login-password" type="password" value={loginForm.password} onChange={e => setLoginForm({
                       ...loginForm,
                       password: e.target.value

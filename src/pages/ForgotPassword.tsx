@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -12,15 +14,39 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    
+    if (!email.trim()) {
+      toast.error('אנא הזן כתובת מייל');
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      toast.error('כתובת האימייל לא תקינה');
+      return;
+    }
     
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        console.error('[FORGOT_PASSWORD] Error:', error);
+        toast.error('שגיאה בשליחת המייל. אנא נסה שוב.');
+      } else {
+        console.log('[FORGOT_PASSWORD] Reset email sent successfully');
+        setIsSubmitted(true);
+      }
+    } catch (error: any) {
+      console.error('[FORGOT_PASSWORD] Unexpected error:', error);
+      toast.error('אירעה שגיאה. אנא נסה שוב.');
+    } finally {
       setIsLoading(false);
-      setIsSubmitted(true);
-    }, 1500);
+    }
   };
 
   if (isSubmitted) {
@@ -47,7 +73,10 @@ const ForgotPassword = () => {
                 <Button 
                   variant="blue" 
                   className="w-full"
-                  onClick={() => setIsSubmitted(false)}
+                  onClick={() => {
+                    setIsSubmitted(false);
+                    setEmail('');
+                  }}
                 >
                   שלח שוב
                 </Button>
