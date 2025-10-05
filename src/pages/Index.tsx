@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { isInGuestMode } from '@/hooks/useGuestMode';
@@ -14,6 +14,7 @@ import { CategorySection } from '@/components/CategorySection';
 import { SupplierSection } from '@/components/SupplierSection';
 import { BottomCTA } from '@/components/BottomCTA';
 import { OnboardingStatusBanner } from '@/components/OnboardingStatusBanner';
+import { SearchInput } from '@/components/ui/search-input';
 import { getSuppliersByCategory, Supplier } from '@/data/suppliers';
 import { showToast } from '@/utils/toast';
 
@@ -34,6 +35,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isGuest = isInGuestMode();
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Load suppliers from database
   const { data: mortgageAdvisorsData = [] } = useCategorySuppliers('mortgage-advisors');
@@ -410,6 +412,18 @@ const Index = () => {
     navigate('/onboarding/welcome');
   };
 
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
   return (
     <OnboardingGuard role="client">
       <div className="flex w-full min-h-screen flex-col items-start bg-background">
@@ -423,6 +437,20 @@ const Index = () => {
             {/* Hero Section */}
             <HeroSection href={ctaHref} onCTAClick={handleHeroCTA} showCTA={false} />
           
+          {/* Search Section */}
+          <div className="w-full px-0 py-4">
+            <SearchInput
+              type="text"
+              placeholder="חפש ספקים, שירותים ומוצרים..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              onClear={() => setSearchQuery('')}
+              className="text-right rounded-xl"
+              dir="rtl"
+            />
+          </div>
+
           <div className="w-full">
             <SectionTitle title="בחירה מהירה" />
             <QuickSelection 

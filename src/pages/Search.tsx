@@ -1,5 +1,6 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Filter, MapPin } from 'lucide-react';
 import { SearchInput } from '@/components/ui/search-input';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { RecentSearches } from '@/components/RecentSearches';
 import { useSearch } from '@/hooks/useSearch';
 
 const Search = () => {
+  const [searchParams] = useSearchParams();
   const {
     query,
     results,
@@ -23,6 +25,15 @@ const Search = () => {
     clearRecentSearches,
     hasResults
   } = useSearch();
+
+  // Initialize search from URL query parameter
+  useEffect(() => {
+    const urlQuery = searchParams.get('q');
+    if (urlQuery && urlQuery.trim()) {
+      updateQuery(urlQuery.trim());
+      addToRecentSearches(urlQuery.trim());
+    }
+  }, [searchParams]);
 
   const searchFilters = [
     { id: 'all', label: 'הכל' },
