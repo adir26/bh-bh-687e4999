@@ -7,9 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import OnboardingProgress from '@/components/OnboardingProgress';
 import { ChevronRight } from 'lucide-react';
 import supplierCompanyImage from '@/assets/supplier-company-info.jpg';
+import { useCategories } from '@/hooks/useCategories';
 
 export default function SupplierCompanyInfo() {
   const navigate = useNavigate();
+  const { data: categories, isLoading: categoriesLoading } = useCategories();
   const [formData, setFormData] = useState({
     companyName: '',
     category: '',
@@ -19,21 +21,6 @@ export default function SupplierCompanyInfo() {
     email: '',
     website: ''
   });
-
-  const categories = [
-    'קבלני שיפוצים',
-    'חשמלאים',
-    'אינסטלטורים',
-    'מתקיני מיזוג אוויר',
-    'נגרים',
-    'מעצבי פנים',
-    'אדריכלים',
-    'מתכנני מטבחים',
-    'חברות ניקיון',
-    'חברות הובלה',
-    'יועצי משכנתאות',
-    'אחר'
-  ];
 
   const handleNext = () => {
     // Save progress to localStorage
@@ -108,14 +95,18 @@ export default function SupplierCompanyInfo() {
 
               <div>
                 <Label htmlFor="category">תחום פעילות *</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(value) => setFormData({...formData, category: value})}
+                  disabled={categoriesLoading}
+                >
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="בחרו תחום פעילות" />
+                    <SelectValue placeholder={categoriesLoading ? "טוען קטגוריות..." : "בחרו תחום פעילות"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
+                    {categories?.map((category) => (
+                      <SelectItem key={category.id} value={category.id}>
+                        {category.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

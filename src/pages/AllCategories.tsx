@@ -1,6 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ChefHat, Droplets, Sofa, Snowflake, Hammer, Truck, Banknote, FileText, LucideIcon } from 'lucide-react';
+import { 
+  ArrowRight, ChefHat, Droplets, Sofa, Snowflake, Hammer, Truck, Banknote, FileText,
+  Ruler, HardHat, Home, Building2, Wrench, PenTool, ClipboardCheck,
+  Package, Shield, Scissors, Gem, Mountain, Calculator, Bath, 
+  Droplet, Flame, Factory, Building, FileSearch, MapPin, Settings,
+  DoorOpen, PaintBucket, TreePine, Boxes, Sparkles, Bird, Trash2,
+  Fish, Waves, Wifi, Monitor, Lock, Network, Radio, Sun, Scale,
+  LucideIcon 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCategories } from '@/hooks/useCategories';
@@ -9,6 +17,7 @@ import { Header } from '@/components/Header';
 import { BottomNavigation } from '@/components/BottomNavigation';
 
 const categoryIconMap: Record<string, LucideIcon> = {
+  // קטגוריות קיימות
   'kitchen': ChefHat,
   'bathroom': Droplets,
   'furniture': Sofa,
@@ -17,6 +26,69 @@ const categoryIconMap: Record<string, LucideIcon> = {
   'moving-services': Truck,
   'home-loans': Banknote,
   'mortgage-advisors': FileText,
+  
+  // קטגוריות חדשות
+  'architects': Ruler,
+  'construction-companies': HardHat,
+  'light-construction': Home,
+  'structural-contractors': Building2,
+  'renovation-contractors': Wrench,
+  'home-renovators': PenTool,
+  'construction-supervisors': ClipboardCheck,
+  'drywall-contractors': Package,
+  'sealing-contractors': Shield,
+  'aluminum-contractors': Scissors,
+  'marble-contractors': Gem,
+  'gravestone-contractors': Mountain,
+  'structural-engineers': Calculator,
+  'bathroom-installers': Bath,
+  'high-access-technicians': Mountain,
+  'underfloor-drying': Droplet,
+  'concrete-cutters': Hammer,
+  'door-coaters': PaintBucket,
+  'shower-installers': Droplets,
+  'heating-installers': Flame,
+  'fire-system-installers': Flame,
+  'building-rehabilitation': Factory,
+  'property-management': Building,
+  'inspection-companies': FileSearch,
+  'surveyors': MapPin,
+  'handymen': Settings,
+  'shutter-technicians': DoorOpen,
+  'kitchen-carpenters': ChefHat,
+  'pergola-carpenters': TreePine,
+  'metal-workers': Wrench,
+  'door-installers': DoorOpen,
+  'awning-installers': Home,
+  'aluminum-pergolas': TreePine,
+  'parquet-installers': Package,
+  'wallpaper-installers': PaintBucket,
+  'painters': PaintBucket,
+  'exterior-painters': PaintBucket,
+  'upholsterers': Sofa,
+  'sofa-cleaning': Sparkles,
+  'cleaning-polish': Sparkles,
+  'pest-bird-control': Bird,
+  'apartment-clearers': Trash2,
+  'aquarium-builders': Fish,
+  'pool-builders': Waves,
+  'pool-operators': Waves,
+  'gardeners': TreePine,
+  'tree-pruners': TreePine,
+  'roofers': Home,
+  'real-estate-lawyers': Scale,
+  'ac-technicians': Snowflake,
+  'refrigerator-technicians': Package,
+  'appliance-technicians': Settings,
+  'solar-water-technicians': Sun,
+  'tv-technicians': Monitor,
+  'gas-technicians': Flame,
+  'intercom-technicians': Radio,
+  'security-technicians': Lock,
+  'network-technicians': Network,
+  'computer-technicians': Monitor,
+  'electric-gate-technicians': DoorOpen,
+  'solar-system-technicians': Sun,
 };
 
 const AllCategories: React.FC = () => {
