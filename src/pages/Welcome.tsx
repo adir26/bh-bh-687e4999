@@ -77,9 +77,9 @@ const Welcome: React.FC = () => {
             <CardContent className="p-4">
               <Button 
                 onClick={handleSignup} 
-                variant="outline" 
+                variant="default" 
                 size="lg" 
-                className="w-full h-12 text-base font-medium border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground"
+                className="w-full h-12 text-base font-medium"
               >
                 <UserPlus className="ml-2 h-5 w-5" />
                 הרשמה חינם
