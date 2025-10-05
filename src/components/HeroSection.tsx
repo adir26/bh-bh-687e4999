@@ -8,9 +8,10 @@ import heroImage from '@/assets/home-hero.jpg';
 interface HeroSectionProps {
   href?: string;
   onCTAClick?: () => void;
+  showCTA?: boolean;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/welcome', onCTAClick }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/welcome', onCTAClick, showCTA = true }) => {
   const handleClick = () => {
     onCTAClick?.();
   };
@@ -34,21 +35,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ href = '/welcome', onC
           <p className="text-sm text-white/90 leading-relaxed">
             מהתכנון ועד המסירה - כל הספקים במקום אחד
           </p>
-          <Link 
-            to={href}
-            onClick={handleClick}
-            className="inline-block"
-          >
-            <Button 
-              variant="blue"
-              size="lg"
-              className="w-fit min-h-touch pointer-events-auto touch-manipulation inline-flex items-center gap-2"
-              style={{ touchAction: 'manipulation' }}
+          {showCTA && (
+            <Link 
+              to={href}
+              onClick={handleClick}
+              className="inline-block"
             >
-              התחילו עכשיו
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+              <Button 
+                variant="blue"
+                size="lg"
+                className="w-fit min-h-touch pointer-events-auto touch-manipulation inline-flex items-center gap-2"
+                style={{ touchAction: 'manipulation' }}
+              >
+                התחילו עכשיו
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </div>

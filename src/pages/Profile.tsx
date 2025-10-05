@@ -68,7 +68,7 @@ const Profile = () => {
   });
 
   // Fetch user orders with React Query
-  const { data: userOrders = [] } = useQuery({
+  const { data: userOrders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['user-orders', user?.id],
     enabled: !!user?.id,
     queryFn: async ({ signal }) => {
@@ -81,19 +81,15 @@ const Profile = () => {
             .order('created_at', { ascending: false }),
           { 
             signal,
-            errorMessage: 'שגיאה בטעינת ההזמנות'
+            errorMessage: 'שגיאה בטעינת ההזמנות',
+            timeoutMs: 10_000
           }
         );
         return data || [];
       } catch (error: any) {
-        // Handle missing table gracefully
-        if (error.message?.includes('relation') || 
-            error.message?.includes('does not exist') ||
-            error.message?.includes('permission')) {
-          console.log('Orders table not accessible, returning empty array');
-          return [];
-        }
-        throw error;
+        // Handle missing table or RLS issues gracefully
+        console.log('Orders query failed, returning empty array:', error.message);
+        return [];
       }
     },
     retry: 1,
@@ -231,15 +227,23 @@ const Profile = () => {
       <PageBoundary>
         <div className="min-h-screen bg-background" dir="rtl">
           <div className="max-w-md mx-auto bg-background">
-            {!user || !profile ? (
-              <div className="text-center space-y-4 py-16">
+            {!user ? (
+              <div className="text-center space-y-4 py-16 px-6">
                 <User className="h-12 w-12 text-muted-foreground mx-auto" />
                 <div>
                   <h3 className="font-semibold text-foreground">התחבר כדי לראות פרופיל</h3>
                   <p className="text-sm text-muted-foreground">
                     התחבר לחשבון שלך כדי לנהל את הפרופיל והעדפות
                   </p>
+                  <Button onClick={() => navigate('/auth')} className="mt-4">
+                    התחבר עכשיו
+                  </Button>
                 </div>
+              </div>
+            ) : !profile ? (
+              <div className="text-center space-y-4 py-16 px-6">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground">טוען פרופיל...</p>
               </div>
             ) : (
               <>
@@ -391,36 +395,61 @@ const Profile = () => {
             <div className="mt-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-foreground text-lg">סיכום הזמנות</h3>
-                <Button variant="ghost" size="sm" className="text-primary">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-primary"
+                  onClick={() => navigate('/orders')}
+                >
                   צפה בהיסטוריה המלאה
                   <ChevronRight className="w-4 h-4 mr-1" />
                 </Button>
               </div>
-              <div className="space-y-3">
-                {orderHistory.map((order) => (
-                  <Card key={order.id} className="border-0 shadow-sm rounded-xl">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
-                            <ShoppingCart className="w-5 h-5 text-green-600" />
+              
+              {ordersLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                </div>
+              ) : orderHistory.length === 0 ? (
+                <Card className="border-0 shadow-sm rounded-xl">
+                  <CardContent className="p-8 text-center">
+                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h4 className="font-medium text-foreground mb-2">אין הזמנות עדיין</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      התחל לחפש ספקים ולבצע הזמנות
+                    </p>
+                    <Button onClick={() => navigate('/')}>
+                      חפש ספקים
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-3">
+                  {orderHistory.map((order) => (
+                    <Card key={order.id} className="border-0 shadow-sm rounded-xl">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                              <ShoppingCart className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-sm text-foreground">{order.title}</h4>
+                              <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString('he-IL')}</p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-medium text-sm text-foreground">{order.title}</h4>
-                            <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString('he-IL')}</p>
+                          <div className="text-left">
+                            <p className="font-medium text-sm text-foreground">₪{Number(order.amount).toLocaleString()}</p>
+                            <Badge variant="secondary" className="bg-green-500/10 text-green-700 text-xs">
+                              {order.status === 'completed' ? 'הושלם' : 'בוטל'}
+                            </Badge>
                           </div>
                         </div>
-                        <div className="text-left">
-                          <p className="font-medium text-sm text-foreground">₪{Number(order.amount).toLocaleString()}</p>
-                          <Badge variant="secondary" className="bg-green-500/10 text-green-700 text-xs">
-                            {order.status === 'completed' ? 'הושלם' : 'בוטל'}
-                          </Badge>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Track My Orders */}

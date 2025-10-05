@@ -409,7 +409,7 @@ const Index = () => {
             <OnboardingStatusBanner />
             
             {/* Hero Section */}
-            <HeroSection href={ctaHref} onCTAClick={handleHeroCTA} />
+            <HeroSection href={ctaHref} onCTAClick={handleHeroCTA} showCTA={false} />
           
           <div className="w-full">
             <SectionTitle title="בחירה מהירה" />
@@ -560,6 +560,7 @@ const Index = () => {
             buttonText="בואו נתחיל"
             href={ctaHref}
             onButtonClick={handleBottomCTA}
+            show={false}
           />
         </div>
       </main>

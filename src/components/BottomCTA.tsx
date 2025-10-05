@@ -8,14 +8,18 @@ interface BottomCTAProps {
   buttonText: string;
   href?: string;
   onButtonClick?: () => void;
+  show?: boolean;
 }
 
 export const BottomCTA: React.FC<BottomCTAProps> = ({ 
   title, 
   buttonText,
   href = '/welcome',
-  onButtonClick 
+  onButtonClick,
+  show = true
 }) => {
+  if (!show) return null;
+  
   const handleClick = () => {
     onButtonClick?.();
   };
