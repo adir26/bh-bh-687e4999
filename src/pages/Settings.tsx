@@ -11,11 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { DeleteAccountModal } from "@/components/modals/DeleteAccountModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Settings = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isSupplier = location.pathname.startsWith('/supplier/');
+  const { signOut } = useAuth();
   
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -39,12 +41,8 @@ const Settings = () => {
     });
   };
 
-  const handleLogout = () => {
-    toast({
-      title: "התנתקת מהמערכת",
-      description: "התנתקת בהצלחה מהמערכת.",
-    });
-    navigate("/auth");
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
