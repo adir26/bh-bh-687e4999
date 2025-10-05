@@ -65,14 +65,21 @@ const Profile = () => {
 
   const form = useForm<UserProfile>({
     defaultValues: {
-      fullName: profile?.full_name || '',
-      email: profile?.email || ''
-    },
-    values: {
-      fullName: profile?.full_name || '',
-      email: profile?.email || ''
+      fullName: '',
+      email: ''
     }
   });
+
+  // Update form when profile loads
+  React.useEffect(() => {
+    if (profile) {
+      console.log('[Profile] Updating form with profile data:', profile.full_name, profile.email);
+      form.reset({
+        fullName: profile.full_name || '',
+        email: profile.email || ''
+      });
+    }
+  }, [profile, form]);
 
   // Fetch user orders with React Query - only when user and profile are ready
   const { data: userOrders = [], isLoading: ordersLoading } = useQuery({
@@ -255,6 +262,7 @@ const Profile = () => {
               <div className="text-center space-y-4 py-16 px-6">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="text-muted-foreground">טוען פרופיל...</p>
+                <p className="text-xs text-muted-foreground mt-2">אם הדף לא נטען תוך מספר שניות, נסה לרענן</p>
               </div>
             ) : (
               <>
@@ -311,8 +319,8 @@ const Profile = () => {
                           </Form>
                         ) : (
                           <div>
-                            <h1 className="text-xl font-bold">{form.getValues('fullName')}</h1>
-                            <p className="text-white/90 text-sm">{form.getValues('email')}</p>
+                            <h1 className="text-xl font-bold">{profile?.full_name || 'משתמש'}</h1>
+                            <p className="text-white/90 text-sm">{profile?.email || ''}</p>
                           </div>
                         )}
                       </div>
