@@ -121,6 +121,7 @@ import PublicSupplierProfile from "./pages/PublicSupplierProfile";
 import PublicProductView from "./pages/PublicProductView";
 import PublicHomepage from "./pages/PublicHomepage";
 import Welcome from "./pages/Welcome";
+import AllCategories from "./pages/AllCategories";
 import { SiteFooter } from "./components/SiteFooter";
 import { useGuestMode } from "./hooks/useGuestMode";
 import { isPublicRoute } from "./utils/publicRoutes";
@@ -477,6 +478,8 @@ const App = () => {
                   </ProtectedRoute>
                 } />
                 <Route path="/category/:category/suppliers" element={<PublicRouteWrapper><CategorySuppliers /></PublicRouteWrapper>} />
+                <Route path="/category/:category" element={<PublicRouteWrapper><CategorySuppliers /></PublicRouteWrapper>} />
+                <Route path="/categories" element={<PublicRouteWrapper><AllCategories /></PublicRouteWrapper>} />
                 <Route path="/support" element={<PublicRouteWrapper><Support /></PublicRouteWrapper>} />
                 <Route path="/support/chat/:id" element={<SupportChat />} />
                 <Route path="/complaint/:orderId" element={<ComplaintForm />} />

@@ -15,6 +15,7 @@ import { SupplierSection } from '@/components/SupplierSection';
 import { BottomCTA } from '@/components/BottomCTA';
 import { OnboardingStatusBanner } from '@/components/OnboardingStatusBanner';
 import { SearchInput } from '@/components/ui/search-input';
+import { PopularCategories } from '@/components/PopularCategories';
 import { getSuppliersByCategory, Supplier } from '@/data/suppliers';
 import { showToast } from '@/utils/toast';
 
@@ -454,9 +455,19 @@ const Index = () => {
           <div className="w-full">
             <SectionTitle title="בחירה מהירה" />
             <QuickSelection 
-              items={quickSelectionItems} 
+              items={quickSelectionItems}
               onItemClick={handleQuickSelectionClick}
             />
+          </div>
+
+          {/* Popular Categories Section */}
+          <div className="w-full">
+            <SectionTitleWithButton 
+              title="קטגוריות נפוצות"
+              buttonText="כל הקטגוריות"
+              onButtonClick={() => navigate('/categories')}
+            />
+            <PopularCategories />
           </div>
 
           <div className="w-full">
