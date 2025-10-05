@@ -34,6 +34,8 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
+  profileError: any;
+  refreshProfile: () => void;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error: any, data?: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any, data?: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
@@ -61,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { toast } = useToast();
 
   // Use useProfile hook instead of manual loading state
-  const { data: profile, isLoading: loading, refetch: refreshProfile } = useProfile(user?.id);
+  const { data: profile, isLoading: loading, error: profileError, refetch: refreshProfile } = useProfile(user?.id);
 
   // Set up auth state listener and get initial session
   useEffect(() => {
@@ -535,6 +537,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     session,
     profile: profile as Profile | null,
     loading,
+    profileError,
+    refreshProfile,
     signUp,
     signIn,
     signInWithGoogle,

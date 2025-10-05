@@ -53,7 +53,7 @@ interface OnboardingData {
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, loading, profileError, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   
@@ -242,7 +242,12 @@ const Profile = () => {
 
   return (
     <OnboardingGuard>
-      <PageBoundary>
+      <PageBoundary 
+        isLoading={loading}
+        isError={!!profileError}
+        error={profileError}
+        onRetry={refreshProfile}
+      >
         <div className="min-h-screen bg-background" dir="rtl">
           <div className="max-w-md mx-auto bg-background">
             {!user ? (
@@ -260,9 +265,16 @@ const Profile = () => {
               </div>
             ) : !profile ? (
               <div className="text-center space-y-4 py-16 px-6">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="text-muted-foreground">טוען פרופיל...</p>
-                <p className="text-xs text-muted-foreground mt-2">אם הדף לא נטען תוך מספר שניות, נסה לרענן</p>
+                <User className="h-12 w-12 text-muted-foreground mx-auto" />
+                <div>
+                  <h3 className="font-semibold text-foreground">בונה פרופיל...</h3>
+                  <p className="text-sm text-muted-foreground">
+                    שם: {user.user_metadata?.full_name || user.email}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    אם הטעינה נמשכת, נסה לרענן את הדף
+                  </p>
+                </div>
               </div>
             ) : (
               <>
