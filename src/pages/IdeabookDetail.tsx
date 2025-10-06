@@ -272,47 +272,6 @@ export default function IdeabookDetail() {
       }
     >
     <div className="min-h-screen bg-background pb-32">
-      fallback={
-        <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
-          <div className="container mx-auto">
-            <div className="h-8 bg-muted rounded mb-6" />
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="aspect-square bg-muted rounded-lg" />
-              ))}
-            </div>
-          </div>
-        </div>
-      }
-    >
-      {isLoading ? (
-        <div className="min-h-screen bg-background p-4 pb-32">
-          <div className="container mx-auto">
-            <div className="flex justify-between items-center mb-6">
-              <Skeleton className="h-8 w-48" />
-              <div className="flex gap-2">
-                <Skeleton className="h-8 w-24" />
-                <Skeleton className="h-8 w-24" />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-square" />
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : ideabookData === null ? (
-        <div className="min-h-screen bg-background p-4 pb-32 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-xl font-semibold mb-2">האידאבוק לא נמצא</h2>
-            <Link to="/ideabooks">
-              <Button>חזור לאידאბוקים</Button>
-            </Link>
-          </div>
-        </div>
-      ) : (
-    <div className="min-h-screen bg-background pb-32">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="container mx-auto px-4 py-4">
@@ -536,7 +495,6 @@ export default function IdeabookDetail() {
         )}
       </div>
     </div>
-      )}
     </PageBoundary>
   );
 }
