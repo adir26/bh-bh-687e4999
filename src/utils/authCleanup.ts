@@ -17,10 +17,24 @@ export const clearAuthStorage = (userId?: string) => {
   // Clear all guest and auth state
   store.clearAllAuth();
   
+  // Clear ALL Supabase auth keys from localStorage
+  const supabaseKeys = Object.keys(localStorage).filter(key => 
+    key.startsWith('sb-') || 
+    key.includes('auth-token') ||
+    key.includes('supabase')
+  );
+  supabaseKeys.forEach(key => localStorage.removeItem(key));
+  
   // Clear auth-related local storage (kept for backwards compatibility)
   localStorage.removeItem('signupData');
   
-  console.log('[AUTH_CLEANUP] Cleared all auth storage', { userId: userId || 'none' });
+  // Clear all sessionStorage
+  sessionStorage.clear();
+  
+  console.log('[AUTH_CLEANUP] Cleared all auth storage', { 
+    userId: userId || 'none',
+    clearedKeys: supabaseKeys.length 
+  });
 };
 
 export const clearUserSpecificFlags = (userId: string) => {

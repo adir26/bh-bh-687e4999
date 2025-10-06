@@ -60,6 +60,7 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -76,9 +77,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event: AuthChangeEvent, session: Session | null) => {
         if (!mounted) return;
         
+        // If we're logging out, ignore all auth changes except SIGNED_OUT
+        if (isLoggingOut && event !== 'SIGNED_OUT') {
+          console.log('[AUTH] Ignoring auth change during logout:', event);
+          return;
+        }
+        
         console.log('[AUTH] Auth state changed:', event, !!session);
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Reset logout flag when signed out
+        if (event === 'SIGNED_OUT') {
+          setIsLoggingOut(false);
+        }
       }
     );
 
@@ -97,6 +109,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Centralized post-auth redirect logic - Task 1
   useEffect(() => {
+    // Don't redirect if we're logging out
+    if (isLoggingOut) return;
+    
     if (!user || !profile || loading) return;
 
     // Use Zustand store instead of sessionStorage
@@ -198,7 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [user, profile, loading, location.pathname, navigate]);
+  }, [user, profile, loading, location.pathname, navigate, isLoggingOut]);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
@@ -399,47 +414,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       console.log('[AUTH] Starting sign out process');
+      setIsLoggingOut(true);
       const currentUserId = user?.id;
       
-      const { error } = await supabase.auth.signOut();
-      
-      // Clear ALL auth-related storage regardless of error
-      clearAuthStorage(currentUserId);
-      
-      // Clear state
+      // 1. Clear state FIRST to prevent race conditions
       setUser(null);
       setSession(null);
       
+      // 2. Clear ALL auth-related storage
+      clearAuthStorage(currentUserId);
+      
+      // 3. Call Supabase signOut (clears server-side session)
+      const { error } = await supabase.auth.signOut();
+      
       if (error) {
         console.error('[AUTH] Sign out error:', error);
-        toast({
-          title: "שגיאה בהתנתקות",
-          description: error.message,
-          variant: "destructive"
-        });
+        // Don't show error to user - we already cleared everything
       } else {
         console.log('[AUTH] Sign out successful');
-        toast({
-          title: "התנתקת בהצלחה",
-          description: "להתראות!"
-        });
       }
       
-      // Navigate to auth page
+      // 4. Show success toast
+      toast({
+        title: "התנתקת בהצלחה",
+        description: "להתראות!"
+      });
+      
+      // 5. Navigate to auth page
       navigate('/auth', { replace: true });
     } catch (error: any) {
       console.error('[AUTH] SignOut unexpected error:', error);
       
-      // Still clear storage even on error
-      clearAuthStorage(user?.id);
+      // Still clear everything even on error
       setUser(null);
       setSession(null);
-      
-      toast({
-        title: "שגיאה בהתנתקות",
-        description: "אירעה שגיאה. ננסה שוב.",
-        variant: "destructive"
-      });
+      clearAuthStorage(user?.id);
+      setIsLoggingOut(false);
       
       // Navigate anyway
       navigate('/auth', { replace: true });

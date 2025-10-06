@@ -18,9 +18,12 @@ export const Header: React.FC<HeaderProps> = ({
   const handleNotificationsClick = () => {
     navigate('/notifications');
   };
-  const handleAuthClick = () => {
+  const handleAuthClick = async () => {
     if (user) {
-      signOut();
+      await signOut();
+      // Fallback: clear everything again to be safe
+      localStorage.clear();
+      sessionStorage.clear();
     } else {
       navigate('/auth');
     }
