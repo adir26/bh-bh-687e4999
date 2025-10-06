@@ -3991,6 +3991,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       category_performance: {
@@ -4209,6 +4233,10 @@ export type Database = {
         Args: { p_reason?: string; p_ticket_id: string }
         Returns: undefined
       }
+      create_first_admin: {
+        Args: { _user_id: string }
+        Returns: undefined
+      }
       create_notification: {
         Args: {
           p_message: string
@@ -4293,6 +4321,10 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_primary_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       get_sla_metrics: {
         Args: { p_days?: number; p_supplier_id: string }
         Returns: Json
@@ -4320,6 +4352,13 @@ export type Database = {
       gtrgm_out: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
       import_budget_from_quote: {
         Args: {
@@ -4530,6 +4569,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "supplier" | "client"
       message_status: "sent" | "delivered" | "read"
       onboarding_status: "not_started" | "in_progress" | "completed"
       order_status:
@@ -4667,6 +4707,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "supplier", "client"],
       message_status: ["sent", "delivered", "read"],
       onboarding_status: ["not_started", "in_progress", "completed"],
       order_status: [

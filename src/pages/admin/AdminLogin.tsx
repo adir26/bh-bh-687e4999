@@ -67,10 +67,8 @@ export default function AdminLogin() {
         throw new Error("אין לכם הרשאות מנהל");
       }
 
-      // Store session securely
-      localStorage.setItem("adminAuthenticated", "true");
-      localStorage.setItem("adminUserId", data.user.id);
-
+      // SECURITY FIX: Admin auth is now handled by useSecureAdminAuth hook
+      // No need to store anything in localStorage
       return data;
     },
     onSuccess: () => {
