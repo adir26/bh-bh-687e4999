@@ -66,13 +66,17 @@ export interface CommunicationOptOut {
 export const communicationAutomationService = {
   // Automation Rules Management
   async getAutomations(supplierId?: string): Promise<CommunicationAutomation[]> {
-    let query = supabase.from('communication_automations').select('*');
+    let query = supabase
+      .from('communication_automations')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(0, 99); // Add pagination - max 100 automations
     
     if (supplierId) {
       query = query.eq('supplier_id', supplierId);
     }
     
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await query;
     
     if (error) throw error;
     return (data || []) as CommunicationAutomation[];
@@ -83,7 +87,8 @@ export const communicationAutomationService = {
       .from('communication_automations')
       .select('*')
       .is('supplier_id', null)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(0, 49); // Add pagination - max 50 templates
     
     if (error) throw error;
     return (data || []) as CommunicationAutomation[];

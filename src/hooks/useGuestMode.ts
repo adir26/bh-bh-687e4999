@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAuthStore } from '@/stores/authStore';
 
 export interface GuestModeState {
   isGuestMode: boolean;
@@ -16,34 +17,43 @@ export const useGuestMode = (): GuestModeState => {
   const location = useLocation();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [attemptedAction, setAttemptedAction] = useState<string | null>(null);
-  const [returnPath, setReturnPath] = useState<string | null>(null);
+  
+  // Use Zustand store instead of sessionStorage
+  const guestMode = useAuthStore((state) => state.guestMode);
+  const appMode = useAuthStore((state) => state.appMode);
+  const returnPath = useAuthStore((state) => state.returnPath);
+  const pendingAction = useAuthStore((state) => state.pendingAction);
+  const setGuestModeStore = useAuthStore((state) => state.setGuestMode);
+  const setAppModeStore = useAuthStore((state) => state.setAppMode);
+  const setReturnPathStore = useAuthStore((state) => state.setReturnPath);
+  const setPendingActionStore = useAuthStore((state) => state.setPendingAction);
   
   const urlParams = new URLSearchParams(location.search);
   const urlGuestMode = urlParams.get('guest') === '1';
-  const storedGuestMode = sessionStorage.getItem('guestMode') === 'true';
-  const isGuestMode = urlGuestMode || storedGuestMode;
-  const isAppMode = urlParams.get('app') === 'ios' || sessionStorage.getItem('appMode') === 'ios';
+  const isGuestMode = urlGuestMode || guestMode;
+  const isAppMode = urlParams.get('app') === 'ios' || appMode === 'ios';
   const actionParam = urlParams.get('action');
 
-  // Store guest mode state in sessionStorage for navigation persistence
+  // Store guest mode state in Zustand for navigation persistence
   useEffect(() => {
     if (isGuestMode) {
-      sessionStorage.setItem('guestMode', 'true');
+      setGuestModeStore(true);
       if (isAppMode) {
-        sessionStorage.setItem('appMode', 'ios');
+        setAppModeStore('ios');
       }
     }
-  }, [isGuestMode, isAppMode]);
+  }, [isGuestMode, isAppMode, setGuestModeStore, setAppModeStore]);
 
   // Handle deep-link actions for guests
   useEffect(() => {
     if (actionParam && isGuestMode) {
-      // Store the full path with action param for post-login execution
-      setReturnPath(location.pathname + location.search);
+      const fullPath = location.pathname + location.search;
+      setReturnPathStore(fullPath);
+      setPendingActionStore(actionParam);
       setAttemptedAction(actionParam);
       setShowLoginModal(true);
     }
-  }, [actionParam, isGuestMode, location.pathname, location.search]);
+  }, [actionParam, isGuestMode, location.pathname, location.search, setReturnPathStore, setPendingActionStore]);
 
   return {
     isGuestMode,
@@ -52,40 +62,35 @@ export const useGuestMode = (): GuestModeState => {
     setShowLoginModal,
     attemptedAction,
     setAttemptedAction,
-    returnPath,
-    setReturnPath
+    returnPath: returnPath || null,
+    setReturnPath: setReturnPathStore
   };
 };
 
-// Helper function to check if user is in guest mode from sessionStorage
+// Helper function to check if user is in guest mode
 export const isInGuestMode = (): boolean => {
-  return sessionStorage.getItem('guestMode') === 'true';
+  return useAuthStore.getState().guestMode;
 };
 
 // Helper function to clear guest mode
 export const clearGuestMode = (): void => {
-  sessionStorage.removeItem('guestMode');
-  sessionStorage.removeItem('appMode');
+  useAuthStore.getState().clearGuestState();
 };
 
 // Helper function to clear welcome screen flag and guest mode when user authenticates
 export const clearWelcomeState = (): void => {
-  sessionStorage.removeItem('hasSeenWelcome');
-  sessionStorage.removeItem('guestMode');
-  sessionStorage.removeItem('appMode');
-  sessionStorage.removeItem('guestBannerDismissed');
+  useAuthStore.getState().clearGuestState();
 };
 
 // Helper function to get guest mode URL params
 export const getGuestModeParams = (): string => {
-  const isGuest = sessionStorage.getItem('guestMode') === 'true';
-  const isApp = sessionStorage.getItem('appMode') === 'ios';
+  const { guestMode, appMode } = useAuthStore.getState();
   
-  if (!isGuest) return '';
+  if (!guestMode) return '';
   
   const params = new URLSearchParams();
   params.set('guest', '1');
-  if (isApp) {
+  if (appMode === 'ios') {
     params.set('app', 'ios');
   }
   

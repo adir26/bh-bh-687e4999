@@ -22,7 +22,8 @@ export const useHomepageSections = () => {
       const { data, error } = await supabase
         .from('homepage_sections')
         .select('*')
-        .order('priority', { ascending: true });
+        .order('priority', { ascending: true })
+        .range(0, 99); // Add pagination - max 100 sections
 
       if (error) throw error;
       return data as HomepageSection[];
@@ -126,13 +127,17 @@ export const useHomepageItems = (sectionId?: string) => {
   return useQuery({
     queryKey: ['homepage-items', sectionId],
     queryFn: async () => {
-      let query = supabase.from('homepage_items').select('*');
+      let query = supabase
+        .from('homepage_items')
+        .select('*')
+        .order('order_index', { ascending: true })
+        .range(0, 49); // Add pagination - max 50 items per section
       
       if (sectionId) {
         query = query.eq('section_id', sectionId);
       }
 
-      const { data, error } = await query.order('order_index', { ascending: true });
+      const { data, error } = await query;
 
       if (error) throw error;
       return data as HomepageItem[];

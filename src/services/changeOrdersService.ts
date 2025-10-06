@@ -51,7 +51,8 @@ export const changeOrdersService = {
       .from('change_orders')
       .select('*')
       .eq('order_id', orderId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(0, 49); // Add pagination - max 50 change orders per order
 
     if (error) throw error;
     return (data || []) as ChangeOrder[];

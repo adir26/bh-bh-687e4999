@@ -9,6 +9,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { withTimeout } from '@/lib/withTimeout';
 import { clearWelcomeState } from '@/hooks/useGuestMode';
 import { clearAuthStorage, clearUserSpecificFlags } from '@/utils/authCleanup';
+import { useAuthStore } from '@/stores/authStore';
 
 interface Profile {
   id: string;
@@ -98,10 +99,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!user || !profile || loading) return;
 
-    // Check if this was a guest-to-authenticated transition
-    const wasGuest = sessionStorage.getItem('guestMode') === 'true';
-    const returnPath = sessionStorage.getItem('returnPath');
-    const pendingAction = sessionStorage.getItem('pendingAction');
+    // Use Zustand store instead of sessionStorage
+    const { guestMode: wasGuest, returnPath, pendingAction, setLoginTracked, setRedirected, loginTracked, redirected } = useAuthStore.getState();
 
     // Track login time once per session
     const trackLoginTime = async () => {
@@ -119,9 +118,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    if (!sessionStorage.getItem(`login_tracked_${user.id}`)) {
+    if (!loginTracked[user.id]) {
       trackLoginTime();
-      sessionStorage.setItem(`login_tracked_${user.id}`, 'true');
+      setLoginTracked(user.id, true);
     }
 
     console.log('[AUTH] User and profile loaded:', {
@@ -155,14 +154,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // If there's a return path, go there without guest params
           if (returnPath && returnPath !== '/auth') {
             console.log('[AUTH] Returning to path after guest login:', returnPath);
-            sessionStorage.removeItem('returnPath');
-            sessionStorage.removeItem('pendingAction');
+            useAuthStore.getState().setReturnPath(null);
+            useAuthStore.getState().setPendingAction(null);
             navigate(returnPath, { replace: true });
             return;
           }
         } else {
           // For normal logins/signups, also clear welcome state to prevent showing welcome again
-          sessionStorage.removeItem('hasSeenWelcome');
+          useAuthStore.getState().setHasSeenWelcome(false);
         }
 
         // Get the destination based on current auth state using routeAfterLogin
@@ -178,9 +177,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         // Only navigate if we're not already at the correct destination
-        if (currentPath !== destination && !sessionStorage.getItem(`redirected_${user.id}`)) {
+        if (currentPath !== destination && !redirected[user.id]) {
           console.log('[AUTH] Redirecting from', currentPath, 'to', destination);
-          sessionStorage.setItem(`redirected_${user.id}`, 'true');
+          setRedirected(user.id, true);
           navigate(destination, { replace: true });
         }
       } catch (error) {

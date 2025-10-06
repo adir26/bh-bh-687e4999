@@ -3,27 +3,28 @@
  * Used during sign-out and error recovery to ensure no stale data remains
  */
 
+import { useAuthStore } from '@/stores/authStore';
+
 export const clearAuthStorage = (userId?: string) => {
-  // Clear user-specific session storage
+  // Use Zustand store instead of sessionStorage
+  const store = useAuthStore.getState();
+  
+  // Clear user-specific state
   if (userId) {
-    sessionStorage.removeItem(`redirected_${userId}`);
-    sessionStorage.removeItem(`login_tracked_${userId}`);
+    store.clearUserState(userId);
   }
   
-  // Clear general auth-related session storage
-  sessionStorage.removeItem('guestMode');
-  sessionStorage.removeItem('returnPath');
-  sessionStorage.removeItem('pendingAction');
-  sessionStorage.removeItem('hasSeenWelcome');
+  // Clear all guest and auth state
+  store.clearAllAuth();
   
-  // Clear auth-related local storage
+  // Clear auth-related local storage (kept for backwards compatibility)
   localStorage.removeItem('signupData');
   
   console.log('[AUTH_CLEANUP] Cleared all auth storage', { userId: userId || 'none' });
 };
 
 export const clearUserSpecificFlags = (userId: string) => {
-  sessionStorage.removeItem(`redirected_${userId}`);
-  sessionStorage.removeItem(`login_tracked_${userId}`);
+  const store = useAuthStore.getState();
+  store.clearUserState(userId);
   console.log('[AUTH_CLEANUP] Cleared user-specific flags', { userId });
 };
