@@ -15,26 +15,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
 
-function LeadManagementContent() {
+function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, setStatusFilter, searchTerm, setSearchTerm }: {
+  leads: Lead[];
+  viewMode: 'cards' | 'table';
+  setViewMode: (v: 'cards' | 'table') => void;
+  statusFilter: string;
+  setStatusFilter: (s: string) => void;
+  searchTerm: string;
+  setSearchTerm: (s: string) => void;
+}) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const { data: leads = [], isLoading, error } = useQuery({
-    queryKey: ['leads', user?.id, statusFilter, searchTerm],
-    enabled: !!user?.id,
-    queryFn: async ({ signal }) => {
-      const data = await leadsService.listLeads(user!.id, {
-        status: statusFilter === 'all' ? undefined : statusFilter as LeadStatus,
-        search: searchTerm || undefined
-      });
-      return data;
-    },
-    retry: 1,
-    staleTime: 30_000,
-  });
 
   const handleCall = (phone: string) => {
     if (!phone) {
@@ -162,17 +152,7 @@ function LeadManagementContent() {
         </div>
 
         {/* Leads Display */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : error ? (
-          <EmptyState
-            icon={AlertCircle}
-            title="שגיאה בטעינת הלידים"
-            description="אירעה שגיאה בטעינת הנתונים. אנא נסו שוב."
-          />
-        ) : leads.length === 0 ? (
+        {leads.length === 0 ? (
           <EmptyState
             icon={Users}
             title="אין לידים"
@@ -344,9 +324,49 @@ function LeadManagementContent() {
 }
 
 export default function LeadManagement() {
+  const { user } = useAuth();
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const { data: leads = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['leads', user?.id, statusFilter, searchTerm],
+    enabled: !!user?.id,
+    queryFn: async ({ signal }) => {
+      const data = await leadsService.listLeads(user!.id, {
+        status: statusFilter === 'all' ? undefined : statusFilter as LeadStatus,
+        search: searchTerm || undefined
+      });
+      return data;
+    },
+    retry: 1,
+    staleTime: 30_000,
+  });
+
   return (
-    <PageBoundary timeout={10000}>
-      <LeadManagementContent />
+    <PageBoundary 
+      isLoading={isLoading}
+      isError={!!error}
+      error={error}
+      onRetry={refetch}
+      isEmpty={leads.length === 0}
+      empty={
+        <EmptyState
+          icon={Users}
+          title="אין לידים"
+          description="לא נמצאו לידים במערכת."
+        />
+      }
+    >
+      <LeadManagementContent 
+        leads={leads}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
     </PageBoundary>
   );
 }

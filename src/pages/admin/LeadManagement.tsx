@@ -44,58 +44,9 @@ interface Lead {
   score: number;
 }
 
-function LeadManagementContent() {
+function LeadManagementContent({ leads }: { leads: Lead[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
-
-  const { data: leads = [], isLoading, error } = useQuery({
-    queryKey: ['admin-leads', selectedStatus, searchQuery],
-    queryFn: async ({ signal }) => {
-      let query = supabase
-        .from('leads')
-        .select(`
-          *,
-          profiles!leads_client_id_fkey (
-            full_name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (selectedStatus !== 'all') {
-        query = query.eq('status', selectedStatus);
-      }
-
-      if (searchQuery) {
-        query = query.or(`name.ilike.%${searchQuery}%,contact_email.ilike.%${searchQuery}%`);
-      }
-
-      const { data, error } = await query;
-      
-      if (error) throw error;
-
-      return data?.map(lead => ({
-        id: lead.id,
-        customerName: lead.name || (lead.profiles && lead.profiles[0]?.full_name) || 'לקוח ללא שם',
-        customerEmail: lead.contact_email || (lead.profiles && lead.profiles[0]?.email) || '',
-        customerPhone: lead.contact_phone || '',
-        customerAvatar: undefined,
-        status: lead.status,
-        priority: lead.priority || 'medium',
-        source: lead.source || 'website',
-        category: 'עיצוב פנים', // Default category for now
-        budget: '0-50,000 ₪', // Default budget for now
-        location: 'לא צוין',
-        createdAt: new Date(lead.created_at).toLocaleDateString('he-IL'),
-        lastContact: lead.last_contact_date ? new Date(lead.last_contact_date).toLocaleDateString('he-IL') : undefined,
-        assignedTo: undefined, // TODO: Add assigned user lookup
-        notes: lead.notes || '',
-        score: Math.floor(Math.random() * 40) + 60 // Random score for now
-      })) || [];
-    },
-    retry: 1,
-    staleTime: 30_000,
-  });
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -228,17 +179,7 @@ function LeadManagementContent() {
         </div>
 
         <TabsContent value="all" className="space-y-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : error ? (
-            <EmptyState
-              icon={AlertCircle}
-              title="שגיאה בטעינת הלידים"
-              description="אירעה שגיאה בטעינת הנתונים. אנא נסו שוב."
-            />
-          ) : filteredLeads.length === 0 ? (
+          {filteredLeads.length === 0 ? (
             <EmptyState
               icon={Users}
               title="אין לידים"
@@ -361,12 +302,7 @@ function LeadManagementContent() {
         </TabsContent>
 
         <TabsContent value="new" className="space-y-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <div className="grid gap-4">
+          <div className="grid gap-4">
               {filteredLeads
                 .filter(lead => lead.status === "new")
                 .map((lead) => (
@@ -430,16 +366,10 @@ function LeadManagementContent() {
                   </Card>
                 ))}
             </div>
-          )}
         </TabsContent>
 
         <TabsContent value="contacted" className="space-y-4">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <div className="grid gap-4">
+          <div className="grid gap-4">
               {filteredLeads
                 .filter(lead => lead.status === "contacted")
                 .map((lead) => (
@@ -497,9 +427,8 @@ function LeadManagementContent() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
-            </div>
-          )}
+              ))}
+          </div>
         </TabsContent>
 
         <TabsContent value="qualified" className="space-y-4">
@@ -642,9 +571,74 @@ function LeadManagementContent() {
 }
 
 export default function LeadManagement() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+
+  const { data: leads = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['admin-leads', selectedStatus, searchQuery],
+    queryFn: async ({ signal }) => {
+      let query = supabase
+        .from('leads')
+        .select(`
+          *,
+          profiles!leads_client_id_fkey (
+            full_name,
+            email
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (selectedStatus !== 'all') {
+        query = query.eq('status', selectedStatus);
+      }
+
+      if (searchQuery) {
+        query = query.or(`name.ilike.%${searchQuery}%,contact_email.ilike.%${searchQuery}%`);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) throw error;
+
+      return data?.map(lead => ({
+        id: lead.id,
+        customerName: lead.name || (lead.profiles && lead.profiles[0]?.full_name) || 'לקוח ללא שם',
+        customerEmail: lead.contact_email || (lead.profiles && lead.profiles[0]?.email) || '',
+        customerPhone: lead.contact_phone || '',
+        customerAvatar: undefined,
+        status: lead.status as Lead['status'],
+        priority: (lead.priority || 'medium') as Lead['priority'],
+        source: (lead.source || 'website') as Lead['source'],
+        category: 'עיצוב פנים',
+        budget: '0-50,000 ₪',
+        location: 'לא צוין',
+        createdAt: new Date(lead.created_at).toLocaleDateString('he-IL'),
+        lastContact: lead.last_contact_date ? new Date(lead.last_contact_date).toLocaleDateString('he-IL') : undefined,
+        assignedTo: undefined,
+        notes: lead.notes || '',
+        score: Math.floor(Math.random() * 40) + 60
+      })) || [];
+    },
+    retry: 1,
+    staleTime: 30_000,
+  });
+
   return (
-    <PageBoundary timeout={10000}>
-      <LeadManagementContent />
+    <PageBoundary 
+      isLoading={isLoading}
+      isError={!!error}
+      error={error}
+      onRetry={refetch}
+      isEmpty={leads.length === 0}
+      empty={
+        <EmptyState
+          icon={Users}
+          title="אין לידים"
+          description="לא נמצאו לידים במערכת."
+        />
+      }
+    >
+      <LeadManagementContent leads={leads} />
     </PageBoundary>
   );
 }

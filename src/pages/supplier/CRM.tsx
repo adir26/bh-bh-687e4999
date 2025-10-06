@@ -44,33 +44,23 @@ const statusBadgeVariant: Record<LeadStatus, 'default' | 'secondary' | 'outline'
   lost: 'outline',
 };
 
-function SupplierCRMContent() {
+function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFilter, setStatusFilter, sourceFilter, setSourceFilter, sort, setSort }: {
+  leads: Lead[];
+  view: 'kanban' | 'list';
+  setView: (v: 'kanban' | 'list') => void;
+  search: string;
+  setSearch: (s: string) => void;
+  statusFilter: LeadStatus | 'all';
+  setStatusFilter: (s: LeadStatus | 'all') => void;
+  sourceFilter: string | 'all';
+  setSourceFilter: (s: string) => void;
+  sort: 'newest' | 'oldest';
+  setSort: (s: 'newest' | 'oldest') => void;
+}) {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
-  const [view, setView] = useState<'kanban' | 'list'>('kanban');
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<LeadStatus | 'all'>('all');
-  const [sourceFilter, setSourceFilter] = useState<string | 'all'>('all');
-  const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
-
-  const { data: leads = [], isLoading, error } = useQuery({
-    queryKey: ['supplier-leads', user?.id, statusFilter, sourceFilter, search, sort],
-    enabled: !!user?.id,
-    queryFn: async ({ signal }) => {
-      const data = await leadsService.listLeads(user!.id, {
-        status: statusFilter === 'all' ? undefined : statusFilter,
-        source: sourceFilter === 'all' ? undefined : sourceFilter,
-        search,
-        sort,
-      });
-      return data;
-    },
-    retry: 1,
-    staleTime: 30_000,
-  });
 
   const leadsByStatus = useMemo(() => {
     const map: Record<LeadStatus, Lead[]> = { new: [], contacted: [], proposal_sent: [], won: [], lost: [] };
@@ -279,7 +269,7 @@ function SupplierCRMContent() {
       <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 items-center gap-2">
           <Input placeholder="Search by name, email, phone" value={search} onChange={(e) => setSearch(e.target.value)} />
-          <Button variant="ghost" onClick={() => setSort((s) => (s === 'newest' ? 'oldest' : 'newest'))}>
+          <Button variant="ghost" onClick={() => setSort(sort === 'newest' ? 'oldest' : 'newest')}>
             <ArrowUpDown className="mr-2 h-4 w-4" /> {sort === 'newest' ? 'Newest' : 'Oldest'}
           </Button>
         </div>
@@ -313,17 +303,7 @@ function SupplierCRMContent() {
 
       <Separator />
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      ) : error ? (
-        <EmptyState
-          icon={AlertCircle}
-          title="שגיאה בטעינת הלידים"
-          description="אירעה שגיאה בטעינת הנתונים. אנא נסו שוב."
-        />
-      ) : leads.length === 0 ? (
+      {leads.length === 0 ? (
         <EmptyState
           icon={Users}
           title="אין לידים"
@@ -339,9 +319,57 @@ function SupplierCRMContent() {
 }
 
 export default function SupplierCRM() {
+  const { user } = useAuth();
+  const [view, setView] = useState<'kanban' | 'list'>('kanban');
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<LeadStatus | 'all'>('all');
+  const [sourceFilter, setSourceFilter] = useState<string | 'all'>('all');
+  const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
+
+  const { data: leads = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['supplier-leads', user?.id, statusFilter, sourceFilter, search, sort],
+    enabled: !!user?.id,
+    queryFn: async ({ signal }) => {
+      const data = await leadsService.listLeads(user!.id, {
+        status: statusFilter === 'all' ? undefined : statusFilter,
+        source: sourceFilter === 'all' ? undefined : sourceFilter,
+        search,
+        sort,
+      });
+      return data;
+    },
+    retry: 1,
+    staleTime: 30_000,
+  });
+
   return (
-    <PageBoundary timeout={10000}>
-      <SupplierCRMContent />
+    <PageBoundary 
+      isLoading={isLoading}
+      isError={!!error}
+      error={error}
+      onRetry={refetch}
+      isEmpty={leads.length === 0}
+      empty={
+        <EmptyState
+          icon={Users}
+          title="אין לידים"
+          description="לא נמצאו לידים במערכת."
+        />
+      }
+    >
+      <SupplierCRMContent 
+        leads={leads}
+        view={view}
+        setView={setView}
+        search={search}
+        setSearch={setSearch}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        sourceFilter={sourceFilter}
+        setSourceFilter={setSourceFilter}
+        sort={sort}
+        setSort={setSort}
+      />
     </PageBoundary>
   );
 }

@@ -36,47 +36,13 @@ const orderStatuses = [
   { key: 'delivered', label: 'נמסר', icon: CheckCircle, color: 'bg-green-100 text-green-800' },
 ];
 
-function OrderManagementContent() {
+function OrderManagementContent({ orders, selectedOrderId, setSelectedOrderId, updateOrderStatus }: {
+  orders: Order[];
+  selectedOrderId: string | null;
+  setSelectedOrderId: (id: string | null) => void;
+  updateOrderStatus: (orderId: string, newStatus: OrderStatus) => void;
+}) {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-
-  const { data: orders = [], isLoading, error } = useQuery({
-    queryKey: ['supplier-orders', user?.id],
-    enabled: !!user?.id,
-    queryFn: async ({ signal }) => {
-      const { data: ordersData, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          profiles!orders_client_id_fkey (
-            full_name,
-            email
-          )
-        `)
-        .eq('supplier_id', user!.id);
-
-      if (error) throw error;
-
-      const formattedOrders = ordersData?.map(order => ({
-        id: order.id,
-        client_id: order.client_id,
-        clientName: order.profiles?.full_name || 'לקוח ללא שם',
-        clientEmail: order.profiles?.email || '',
-        title: order.title,
-        description: order.description,
-        amount: order.amount,
-        status: order.current_status || order.status || 'pending',
-        created_at: order.created_at,
-        due_date: order.due_date
-      })) || [];
-
-      return formattedOrders;
-    },
-    retry: 1,
-    staleTime: 30_000,
-  });
 
   const handleCall = (phone: string) => {
     if (!phone) {
@@ -93,30 +59,6 @@ function OrderManagementContent() {
 
   const getStatusInfo = (status: string) => {
     return orderStatuses.find(s => s.key === status) || orderStatuses[0];
-  };
-
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ orderId, newStatus }: { orderId: string; newStatus: OrderStatus }) => {
-      const { error } = await supabase
-        .from('orders')
-        .update({ current_status: newStatus })
-        .eq('id', orderId);
-      
-      if (error) throw error;
-      return { orderId, newStatus };
-    },
-    onSuccess: ({ newStatus }) => {
-      queryClient.invalidateQueries({ queryKey: ['supplier-orders'] });
-      const statusInfo = getStatusInfo(newStatus);
-      showToast.success(`ההזמנה עודכנה ל: ${statusInfo.label}`);
-    },
-    onError: (error: any) => {
-      showToast.error('שגיאה בעדכון ההזמנה');
-    }
-  });
-
-  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
-    updateStatusMutation.mutate({ orderId, newStatus });
   };
 
   const getStatusStepIndex = (status: string) => {
@@ -169,17 +111,7 @@ function OrderManagementContent() {
             <CardTitle>הזמנות</CardTitle>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : error ? (
-              <EmptyState
-                icon={AlertCircle}
-                title="שגיאה בטעינת ההזמנות"
-                description="אירעה שגיאה בטעינת הנתונים. אנא נסו שוב."
-              />
-            ) : orders.length === 0 ? (
+            {orders.length === 0 ? (
               <EmptyState
                 icon={Package}
                 title="אין הזמנות"
@@ -350,9 +282,91 @@ function OrderManagementContent() {
 }
 
 export default function OrderManagement() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  const { data: orders = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['supplier-orders', user?.id],
+    enabled: !!user?.id,
+    queryFn: async ({ signal }) => {
+      const { data: ordersData, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          profiles!orders_client_id_fkey (
+            full_name,
+            email
+          )
+        `)
+        .eq('supplier_id', user!.id);
+
+      if (error) throw error;
+
+      const formattedOrders = ordersData?.map(order => ({
+        id: order.id,
+        client_id: order.client_id,
+        clientName: order.profiles?.full_name || 'לקוח ללא שם',
+        clientEmail: order.profiles?.email || '',
+        title: order.title,
+        description: order.description,
+        amount: order.amount,
+        status: (order.current_status || order.status || 'received') as OrderStatus,
+        created_at: order.created_at,
+        due_date: order.due_date
+      })) || [];
+
+      return formattedOrders;
+    },
+    retry: 1,
+    staleTime: 30_000,
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ orderId, newStatus }: { orderId: string; newStatus: OrderStatus }) => {
+      const { error } = await supabase
+        .from('orders')
+        .update({ current_status: newStatus })
+        .eq('id', orderId);
+      
+      if (error) throw error;
+      return { orderId, newStatus };
+    },
+    onSuccess: ({ newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ['supplier-orders'] });
+      const statusInfo = orderStatuses.find(s => s.key === newStatus) || orderStatuses[0];
+      showToast.success(`ההזמנה עודכנה ל: ${statusInfo.label}`);
+    },
+    onError: (error: any) => {
+      showToast.error('שגיאה בעדכון ההזמנה');
+    }
+  });
+
+  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
+    updateStatusMutation.mutate({ orderId, newStatus });
+  };
+
   return (
-    <PageBoundary timeout={10000}>
-      <OrderManagementContent />
+    <PageBoundary 
+      isLoading={isLoading}
+      isError={!!error}
+      error={error}
+      onRetry={refetch}
+      isEmpty={orders.length === 0}
+      empty={
+        <EmptyState
+          icon={Package}
+          title="אין הזמנות"
+          description="אין הזמנות במערכת."
+        />
+      }
+    >
+      <OrderManagementContent 
+        orders={orders}
+        selectedOrderId={selectedOrderId}
+        setSelectedOrderId={setSelectedOrderId}
+        updateOrderStatus={updateOrderStatus}
+      />
     </PageBoundary>
   );
 }
