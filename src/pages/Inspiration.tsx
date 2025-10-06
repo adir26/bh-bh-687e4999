@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, Bookmark, Filter, Camera, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,11 +12,13 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { Photo } from '@/types/inspiration';
 import { getPublicImageUrl } from '@/utils/imageUrls';
-import { PhotoUploadModal } from '@/components/inspiration/PhotoUploadModal';
-import { SaveToIdeabookModal } from '@/components/inspiration/SaveToIdeabookModal';
 import { FavoritesService } from '@/services/favoritesService';
 import { supaSelect } from '@/lib/supaFetch';
 import { PageBoundary } from '@/components/system/PageBoundary';
+
+// Lazy load modals to avoid useAuth errors before AuthProvider is ready
+const PhotoUploadModal = lazy(() => import('@/components/inspiration/PhotoUploadModal').then(m => ({ default: m.PhotoUploadModal })));
+const SaveToIdeabookModal = lazy(() => import('@/components/inspiration/SaveToIdeabookModal').then(m => ({ default: m.SaveToIdeabookModal })));
 
 const rooms = ['מטבח', 'סלון', 'חדר שינה', 'חדר אמבטיה', 'חדר ילדים', 'משרד', 'גינה'];
 const styles = ['מודרני', 'קלאסי', 'כפרי', 'תעשייתי', 'סקנדינבי', 'מזרח תיכוני'];
@@ -107,6 +109,10 @@ export default function Inspiration() {
   });
 
   const toggleLike = (photoId: string) => {
+    if (!user) {
+      toast.error('נדרש להתחבר כדי לסמן תמונות');
+      return;
+    }
     toggleLikeMutation.mutate(photoId);
   };
 
@@ -118,47 +124,27 @@ export default function Inspiration() {
     setSaveToIdeabookPhoto({ id: photo.id, title: photo.title });
   };
 
+  const handleUploadClick = () => {
+    if (!user) {
+      toast.error('נדרש להתחבר כדי להעלות תמונות');
+      return;
+    }
+    setShowUploadModal(true);
+  };
+
   const handleUploadComplete = () => {
     // Invalidate and refetch photos after upload
     queryClient.invalidateQueries({ queryKey: ['inspiration-photos'] });
   };
 
-  if (status === 'pending') {
-    return (
-      <PageBoundary 
-        fallback={
-          <div className="min-h-screen bg-background p-4 pb-32">
-            <div className="container mx-auto">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {Array.from({ length: 8 }, (_, i) => (
-                  <div key={`skeleton-${i}`} className="aspect-square bg-muted animate-pulse rounded-lg" />
-                ))}
-              </div>
-            </div>
-          </div>
-        }
-      >
-        {/* Will never render since we're in pending state */}
-        <div />
-      </PageBoundary>
-    );
-  }
-
-  if (status === 'error') {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="text-destructive mb-4">שגיאה בטעינת התמונות</div>
-          <p className="text-muted-foreground mb-4">
-            {error?.message || 'אירעה שגיאה בלתי צפויה'}
-          </p>
-          <Button onClick={() => refetch()}>נסה שוב</Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
+    <PageBoundary 
+      isLoading={status === 'pending'}
+      isError={status === 'error'}
+      error={error}
+      onRetry={() => refetch()}
+      isEmpty={photos.length === 0}
+    >
     <div className="min-h-screen bg-background pb-32">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -183,7 +169,7 @@ export default function Inspiration() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
             />
-            <Button size="sm" onClick={() => setShowUploadModal(true)}>
+            <Button size="sm" onClick={handleUploadClick}>
               <Camera className="h-4 w-4 ml-2" />
               העלה
             </Button>
@@ -259,32 +245,34 @@ export default function Inspiration() {
                   </Link>
 
                   {/* Action Buttons */}
-                  <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Button
-                      size="sm"
-                      variant={photo.is_liked ? "default" : "secondary"}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        toggleLike(photo.id);
-                      }}
-                      className="h-8 w-8 p-0"
-                      disabled={toggleLikeMutation.isPending}
-                    >
-                      <Heart className={`h-4 w-4 ${photo.is_liked ? 'fill-current' : ''}`} />
-                    </Button>
-                    
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        saveToIdeabook(photo);
-                      }}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Bookmark className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {user && (
+                    <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <Button
+                        size="sm"
+                        variant={photo.is_liked ? "default" : "secondary"}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toggleLike(photo.id);
+                        }}
+                        className="h-8 w-8 p-0"
+                        disabled={toggleLikeMutation.isPending}
+                      >
+                        <Heart className={`h-4 w-4 ${photo.is_liked ? 'fill-current' : ''}`} />
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          saveToIdeabook(photo);
+                        }}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Bookmark className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
 
                   {/* Photo Info */}
                   <div className="p-3">
@@ -308,19 +296,28 @@ export default function Inspiration() {
         )}
       </div>
 
-      {/* Modals */}
-      <PhotoUploadModal
-        isOpen={showUploadModal}
-        onOpenChange={setShowUploadModal}
-        onUploadComplete={handleUploadComplete}
-      />
+      {/* Modals - Lazy loaded with Suspense */}
+      {user && (
+        <Suspense fallback={null}>
+          {showUploadModal && (
+            <PhotoUploadModal
+              isOpen={showUploadModal}
+              onOpenChange={setShowUploadModal}
+              onUploadComplete={handleUploadComplete}
+            />
+          )}
 
-      <SaveToIdeabookModal
-        isOpen={!!saveToIdeabookPhoto}
-        onOpenChange={(open) => !open && setSaveToIdeabookPhoto(null)}
-        photoId={saveToIdeabookPhoto?.id || ''}
-        photoTitle={saveToIdeabookPhoto?.title || ''}
-      />
+          {saveToIdeabookPhoto && (
+            <SaveToIdeabookModal
+              isOpen={!!saveToIdeabookPhoto}
+              onOpenChange={(open) => !open && setSaveToIdeabookPhoto(null)}
+              photoId={saveToIdeabookPhoto?.id || ''}
+              photoTitle={saveToIdeabookPhoto?.title || ''}
+            />
+          )}
+        </Suspense>
+      )}
     </div>
+    </PageBoundary>
   );
 }

@@ -32,7 +32,7 @@ export default function IdeabookDetail() {
   const [newCollaboratorEmail, setNewCollaboratorEmail] = useState('');
   const [newCollaboratorRole, setNewCollaboratorRole] = useState<'viewer' | 'editor'>('viewer');
 
-  const { data: ideabookData, isLoading } = useQuery({
+  const { data: ideabookData, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['ideabook', id, user?.id],
     enabled: !!id && !!user?.id,
     queryFn: async ({ signal }) => {
@@ -255,7 +255,23 @@ export default function IdeabookDetail() {
 
   return (
     <PageBoundary 
-      timeout={15000}
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      onRetry={() => refetch()}
+      isEmpty={!ideabookData}
+      empty={
+        <div className="min-h-screen bg-background p-4 pb-32 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">האידאבוק לא נמצא</h2>
+            <Link to="/ideabooks">
+              <Button>חזור לאידאבוקים</Button>
+            </Link>
+          </div>
+        </div>
+      }
+    >
+    <div className="min-h-screen bg-background pb-32">
       fallback={
         <div className="min-h-screen bg-background p-4 pb-32 animate-pulse">
           <div className="container mx-auto">

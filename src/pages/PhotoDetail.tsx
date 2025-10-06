@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Heart, Bookmark, Share2, ArrowRight, Tag, MessageCircle, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,10 +12,12 @@ import { useQueryInvalidation } from '@/hooks/useQueryInvalidation';
 import { toast } from 'sonner';
 import { Photo, ProductTag } from '@/types/inspiration';
 import { getPublicImageUrl } from '@/utils/imageUrls';
-import { SaveToIdeabookModal } from '@/components/inspiration/SaveToIdeabookModal';
 import { useQuery } from '@tanstack/react-query';
 import { supaSelect, supaSelectMaybe } from '@/lib/supaFetch';
 import { PageBoundary } from '@/components/system/PageBoundary';
+
+// Lazy load modal to avoid useAuth errors
+const SaveToIdeabookModal = lazy(() => import('@/components/inspiration/SaveToIdeabookModal').then(m => ({ default: m.SaveToIdeabookModal })));
 
 
 export default function PhotoDetail() {
@@ -26,7 +28,7 @@ export default function PhotoDetail() {
   const [showProductDetails, setShowProductDetails] = useState<string | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['photo', id, user?.id],
     enabled: !!id,
     queryFn: async ({ signal }) => {
@@ -156,26 +158,12 @@ export default function PhotoDetail() {
 
   return (
     <PageBoundary 
-      timeout={15000}
-      fallback={
-        <div className="min-h-screen bg-background p-4 pb-32">
-          <div className="container mx-auto max-w-4xl">
-            <Skeleton className="aspect-video rounded-lg mb-6" />
-            <Skeleton className="h-8 w-3/4 mb-4" />
-            <Skeleton className="h-4 w-2/3" />
-          </div>
-        </div>
-      }
-    >
-      {isLoading ? (
-        <div className="min-h-screen bg-background p-4 pb-32">
-          <div className="container mx-auto max-w-4xl">
-            <Skeleton className="aspect-video rounded-lg mb-6" />
-            <Skeleton className="h-8 w-3/4 mb-4" />
-            <Skeleton className="h-4 w-2/3" />
-          </div>
-        </div>
-      ) : data === null ? (
+      isLoading={isLoading}
+      isError={isError}
+      error={error}
+      onRetry={() => refetch()}
+      isEmpty={!photo}
+      empty={
         <div className="min-h-screen bg-background p-4 pb-32 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-2">התמונה לא נמצאה</h2>
@@ -184,7 +172,8 @@ export default function PhotoDetail() {
             </Link>
           </div>
         </div>
-      ) : (
+      }
+    >
     <div className="min-h-screen bg-background pb-32">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border p-4">
@@ -197,20 +186,24 @@ export default function PhotoDetail() {
           </Link>
           
           <div className="flex items-center gap-2">
-            <Button
-              variant={photo.is_liked ? "default" : "outline"}
-              size="sm"
-              onClick={toggleLike}
-              aria-label={photo.is_liked ? 'בטל לייק' : 'תן לייק לתמונה'}
-            >
-              <Heart className={`h-4 w-4 ml-2 ${photo.is_liked ? 'fill-current' : ''}`} />
-              {photo.is_liked ? 'אהבתי' : 'לייק'}
-            </Button>
-            
-            <Button variant="outline" size="sm" onClick={saveToIdeabook} aria-label="שמור תמונה לאידאבוק">
-              <Bookmark className="h-4 w-4 ml-2" />
-              שמור
-            </Button>
+            {user ? (
+              <>
+                <Button
+                  variant={photo.is_liked ? "default" : "outline"}
+                  size="sm"
+                  onClick={toggleLike}
+                  aria-label={photo.is_liked ? 'בטל לייק' : 'תן לייק לתמונה'}
+                >
+                  <Heart className={`h-4 w-4 ml-2 ${photo.is_liked ? 'fill-current' : ''}`} />
+                  {photo.is_liked ? 'אהבתי' : 'לייק'}
+                </Button>
+                
+                <Button variant="outline" size="sm" onClick={saveToIdeabook} aria-label="שמור תמונה לאידאבוק">
+                  <Bookmark className="h-4 w-4 ml-2" />
+                  שמור
+                </Button>
+              </>
+            ) : null}
             
             <Button variant="outline" size="sm" onClick={sharePhoto} aria-label="שתף תמונה">
               <Share2 className="h-4 w-4 ml-2" />
@@ -357,15 +350,18 @@ export default function PhotoDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* Save to Ideabook Modal */}
-      <SaveToIdeabookModal
-        isOpen={showSaveModal}
-        onOpenChange={setShowSaveModal}
-        photoId={photo?.id || ''}
-        photoTitle={photo?.title || ''}
-      />
-    </div>
+      {/* Save to Ideabook Modal - Lazy loaded */}
+      {user && showSaveModal && (
+        <Suspense fallback={null}>
+          <SaveToIdeabookModal
+            isOpen={showSaveModal}
+            onOpenChange={setShowSaveModal}
+            photoId={photo?.id || ''}
+            photoTitle={photo?.title || ''}
+          />
+        </Suspense>
       )}
+    </div>
     </PageBoundary>
   );
 }

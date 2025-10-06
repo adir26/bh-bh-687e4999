@@ -13,7 +13,7 @@ type NewPageBoundaryProps = {
   children: React.ReactNode;
 };
 
-// Legacy interface for timeout pattern
+// Legacy interface for timeout pattern (still supported for backward compatibility)
 type LegacyPageBoundaryProps = {
   children: React.ReactNode;
   fallback?: React.ReactNode;
@@ -67,14 +67,14 @@ export function PageBoundary(props: PageBoundaryProps) {
     return <>{children}</>;
   }
   
-  // Legacy timeout pattern
+  // Legacy timeout pattern - still supported
   const { children, fallback, timeout = 10000 } = props as LegacyPageBoundaryProps;
   const [showFallback, setShowFallback] = useState(true);
   const [escalate, setEscalate] = useState(false);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setShowFallback(false), 200); // avoid flicker
-    const t2 = setTimeout(() => setEscalate(true), timeout); // hard stop
+    const t1 = setTimeout(() => setShowFallback(false), 200);
+    const t2 = setTimeout(() => setEscalate(true), timeout);
     
     return () => {
       clearTimeout(t1);
@@ -89,7 +89,7 @@ export function PageBoundary(props: PageBoundaryProps) {
           <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
           <h3 className="text-xl font-bold mb-2">הטעינה נתקעה</h3>
           <p className="text-muted-foreground mb-4">
-            ניסינו לטעון נתונים מעל {timeout / 1000} שניות. נסו לרענן או ללחוץ "נסה שוב".
+            ניסינו לטעון נתונים מעל {timeout / 1000} שניות. נסו לרענן.
           </p>
           <Button onClick={() => location.reload()} className="gap-2">
             <RefreshCw className="h-4 w-4" />
