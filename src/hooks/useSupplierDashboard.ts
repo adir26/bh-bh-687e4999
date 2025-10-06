@@ -119,8 +119,16 @@ export const getDateRange = (range: DateRange, customFrom?: Date, customTo?: Dat
   }
 };
 
-// Dashboard metrics hook
-export const useDashboardMetrics = (
+// Unified dashboard data interface
+export interface UnifiedDashboardData {
+  metrics: DashboardMetrics;
+  recent_leads: RecentLead[];
+  recent_orders: RecentOrder[];
+  recent_reviews: RecentReview[];
+}
+
+// OPTIMIZED: Single unified dashboard hook - eliminates N+1 queries
+export const useUnifiedDashboardData = (
   supplierId: string,
   dateRange: DateRange,
   customFrom?: Date,
@@ -129,21 +137,41 @@ export const useDashboardMetrics = (
   const { from, to } = getDateRange(dateRange, customFrom, customTo);
   
   return useQuery({
-    queryKey: ['supplier-dashboard-metrics', supplierId, from.toISOString(), to.toISOString()],
-    queryFn: async (): Promise<DashboardMetrics> => {
-      const { data, error } = await supabase.rpc('supplier_dashboard_metrics', {
+    queryKey: ['supplier-unified-dashboard', supplierId, from.toISOString(), to.toISOString()],
+    queryFn: async (): Promise<UnifiedDashboardData> => {
+      const { data, error } = await supabase.rpc('get_supplier_dashboard_data', {
         _supplier_id: supplierId,
         _from: from.toISOString(),
-        _to: to.toISOString()
+        _to: to.toISOString(),
+        _recent_limit: 10
       });
       
       if (error) throw error;
-      return data as unknown as DashboardMetrics;
+      
+      // Parse the JSONB response
+      const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+      return parsed as UnifiedDashboardData;
     },
     enabled: !!supplierId,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnMount: false, // Don't refetch on component mount if data is fresh
   });
+};
+
+// Legacy hook for backwards compatibility - now uses unified data
+export const useDashboardMetrics = (
+  supplierId: string,
+  dateRange: DateRange,
+  customFrom?: Date,
+  customTo?: Date
+) => {
+  const unifiedQuery = useUnifiedDashboardData(supplierId, dateRange, customFrom, customTo);
+  
+  return {
+    ...unifiedQuery,
+    data: unifiedQuery.data?.metrics,
+  };
 };
 
 // Time series data hook
@@ -174,144 +202,106 @@ export const useTimeSeriesData = (
   });
 };
 
-// Recent leads hook
+// OPTIMIZED: Recent leads hook - now uses unified data
 export const useRecentLeads = (supplierId: string) => {
-  return useQuery({
-    queryKey: ['supplier-recent-leads', supplierId],
-    queryFn: async (): Promise<RecentLead[]> => {
-      const { data, error } = await supabase.rpc('supplier_recent_leads', {
-        _supplier_id: supplierId,
-        _limit: 10
-      });
-      
-      if (error) throw error;
-      return data as RecentLead[];
-    },
-    enabled: !!supplierId,
-    staleTime: 2 * 60 * 1000,
-  });
+  const { from, to } = getDateRange('30d');
+  const unifiedQuery = useUnifiedDashboardData(supplierId, '30d');
+  
+  return {
+    ...unifiedQuery,
+    data: unifiedQuery.data?.recent_leads || [],
+  };
 };
 
-// Recent orders hook
+// OPTIMIZED: Recent orders hook - now uses unified data
 export const useRecentOrders = (supplierId: string) => {
-  return useQuery({
-    queryKey: ['supplier-recent-orders', supplierId],
-    queryFn: async (): Promise<RecentOrder[]> => {
-      const { data, error } = await supabase.rpc('supplier_recent_orders', {
-        _supplier_id: supplierId,
-        _limit: 10
-      });
-      
-      if (error) throw error;
-      return data as RecentOrder[];
-    },
-    enabled: !!supplierId,
-    staleTime: 2 * 60 * 1000,
-  });
+  const unifiedQuery = useUnifiedDashboardData(supplierId, '30d');
+  
+  return {
+    ...unifiedQuery,
+    data: unifiedQuery.data?.recent_orders || [],
+  };
 };
 
-// Recent reviews hook
+// OPTIMIZED: Recent reviews hook - now uses unified data
 export const useRecentReviews = (supplierId: string) => {
-  return useQuery({
-    queryKey: ['supplier-recent-reviews', supplierId],
-    queryFn: async (): Promise<RecentReview[]> => {
-      const { data, error } = await supabase.rpc('supplier_recent_reviews', {
-        _supplier_id: supplierId,
-        _limit: 10
-      });
-      
-      if (error) throw error;
-      return data as RecentReview[];
-    },
-    enabled: !!supplierId,
-    staleTime: 10 * 60 * 1000, // Reviews change less frequently
-  });
+  const unifiedQuery = useUnifiedDashboardData(supplierId, '30d');
+  
+  return {
+    ...unifiedQuery,
+    data: unifiedQuery.data?.recent_reviews || [],
+  };
 };
 
-// Real-time subscription hook
+// OPTIMIZED: Real-time subscription hook with debouncing and consolidated channel
 export const useSupplierRealtime = (
   supplierId: string,
   onMetricsUpdate: () => void
 ) => {
   const subscribeToRealtime = useCallback(() => {
-    const channels = [
-      // Subscribe to leads changes
-      supabase
-        .channel('leads-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'leads',
-            filter: `supplier_id=eq.${supplierId}`
-          },
-          () => {
-            console.log('Leads updated, refreshing metrics');
-            onMetricsUpdate();
-          }
-        )
-        .subscribe(),
+    let debounceTimer: NodeJS.Timeout | null = null;
+    
+    // Debounced update function to prevent "thundering herd"
+    const debouncedUpdate = () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(() => {
+        console.log('Debounced update triggered, refreshing dashboard data');
+        onMetricsUpdate();
+      }, 1000); // 1 second debounce
+    };
 
-      // Subscribe to orders changes
-      supabase
-        .channel('orders-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders',
-            filter: `supplier_id=eq.${supplierId}`
-          },
-          () => {
-            console.log('Orders updated, refreshing metrics');
-            onMetricsUpdate();
-          }
-        )
-        .subscribe(),
-
-      // Subscribe to quotes changes
-      supabase
-        .channel('quotes-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'quotes',
-            filter: `supplier_id=eq.${supplierId}`
-          },
-          () => {
-            console.log('Quotes updated, refreshing metrics');
-            onMetricsUpdate();
-          }
-        )
-        .subscribe(),
-
-      // Subscribe to reviews changes
-      supabase
-        .channel('reviews-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'reviews',
-            filter: `reviewed_id=eq.${supplierId}`
-          },
-          () => {
-            console.log('Reviews updated, refreshing metrics');
-            onMetricsUpdate();
-          }
-        )
-        .subscribe()
-    ];
+    // OPTIMIZED: Single consolidated channel for all supplier data changes
+    const channel = supabase
+      .channel(`supplier-dashboard-${supplierId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads',
+          filter: `supplier_id=eq.${supplierId}`
+        },
+        debouncedUpdate
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `supplier_id=eq.${supplierId}`
+        },
+        debouncedUpdate
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'quotes',
+          filter: `supplier_id=eq.${supplierId}`
+        },
+        debouncedUpdate
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reviews',
+          filter: `reviewed_id=eq.${supplierId}`
+        },
+        debouncedUpdate
+      )
+      .subscribe();
 
     return () => {
-      channels.forEach(channel => {
-        supabase.removeChannel(channel);
-      });
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      supabase.removeChannel(channel);
     };
   }, [supplierId, onMetricsUpdate]);
 

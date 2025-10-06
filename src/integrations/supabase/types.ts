@@ -4150,6 +4150,15 @@ export type Database = {
         Args: { p_days?: number; p_supplier_id: string }
         Returns: Json
       }
+      get_supplier_dashboard_data: {
+        Args: {
+          _from: string
+          _recent_limit?: number
+          _supplier_id: string
+          _to: string
+        }
+        Returns: Json
+      }
       get_supplier_stats: {
         Args: { _supplier_id?: string }
         Returns: {
