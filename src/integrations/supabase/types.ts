@@ -468,13 +468,6 @@ export type Database = {
             foreignKeyName: "categories_parent_id_fkey"
             columns: ["parent_id"]
             isOneToOne: false
-            referencedRelation: "category_performance"
-            referencedColumns: ["category_id"]
-          },
-          {
-            foreignKeyName: "categories_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
             referencedRelation: "top_categories_30d"
             referencedColumns: ["category_id"]
           },
@@ -878,13 +871,6 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "fk_company_analytics_company"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "supplier_stats"
-            referencedColumns: ["company_id"]
-          },
         ]
       }
       company_categories: {
@@ -918,13 +904,6 @@ export type Database = {
             foreignKeyName: "company_categories_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
-            referencedRelation: "category_performance"
-            referencedColumns: ["category_id"]
-          },
-          {
-            foreignKeyName: "company_categories_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
             referencedRelation: "top_categories_30d"
             referencedColumns: ["category_id"]
           },
@@ -934,13 +913,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_categories_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "supplier_stats"
-            referencedColumns: ["company_id"]
           },
         ]
       }
@@ -1491,13 +1463,6 @@ export type Database = {
             foreignKeyName: "fk_leads_project"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "project_analytics"
-            referencedColumns: ["project_id"]
-          },
-          {
-            foreignKeyName: "fk_leads_project"
-            columns: ["project_id"]
-            isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
@@ -1577,13 +1542,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "project_analytics"
-            referencedColumns: ["project_id"]
           },
           {
             foreignKeyName: "messages_project_id_fkey"
@@ -2333,13 +2291,6 @@ export type Database = {
             foreignKeyName: "orders_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "project_analytics"
-            referencedColumns: ["project_id"]
-          },
-          {
-            foreignKeyName: "orders_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
@@ -2481,13 +2432,6 @@ export type Database = {
             foreignKeyName: "photo_products_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "popular_products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "photo_products_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -2587,13 +2531,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "photos_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "supplier_stats"
-            referencedColumns: ["company_id"]
-          },
-          {
             foreignKeyName: "photos_uploader_id_fkey"
             columns: ["uploader_id"]
             isOneToOne: false
@@ -2633,22 +2570,8 @@ export type Database = {
             foreignKeyName: "fk_product_categories_category"
             columns: ["category_id"]
             isOneToOne: false
-            referencedRelation: "category_performance"
-            referencedColumns: ["category_id"]
-          },
-          {
-            foreignKeyName: "fk_product_categories_category"
-            columns: ["category_id"]
-            isOneToOne: false
             referencedRelation: "top_categories_30d"
             referencedColumns: ["category_id"]
-          },
-          {
-            foreignKeyName: "fk_product_categories_product"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "popular_products"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "fk_product_categories_product"
@@ -2735,13 +2658,6 @@ export type Database = {
             foreignKeyName: "fk_products_category"
             columns: ["category_id"]
             isOneToOne: false
-            referencedRelation: "category_performance"
-            referencedColumns: ["category_id"]
-          },
-          {
-            foreignKeyName: "fk_products_category"
-            columns: ["category_id"]
-            isOneToOne: false
             referencedRelation: "top_categories_30d"
             referencedColumns: ["category_id"]
           },
@@ -2751,13 +2667,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_products_company"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "supplier_stats"
-            referencedColumns: ["company_id"]
           },
         ]
       }
@@ -2903,13 +2812,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "categories"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "projects_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "category_performance"
-            referencedColumns: ["category_id"]
           },
           {
             foreignKeyName: "projects_category_id_fkey"
@@ -3078,13 +2980,6 @@ export type Database = {
             foreignKeyName: "fk_quote_items_product"
             columns: ["product_id"]
             isOneToOne: false
-            referencedRelation: "popular_products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_quote_items_product"
-            columns: ["product_id"]
-            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -3165,13 +3060,6 @@ export type Database = {
           viewed_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fk_quotes_project"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "project_analytics"
-            referencedColumns: ["project_id"]
-          },
           {
             foreignKeyName: "fk_quotes_project"
             columns: ["project_id"]
@@ -3300,13 +3188,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "reviews_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "project_analytics"
-            referencedColumns: ["project_id"]
           },
           {
             foreignKeyName: "reviews_project_id_fkey"
@@ -3643,13 +3524,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "supplier_verifications_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: false
-            referencedRelation: "supplier_stats"
-            referencedColumns: ["company_id"]
-          },
-          {
             foreignKeyName: "supplier_verifications_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
@@ -3777,13 +3651,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_support_tickets_project"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "project_analytics"
-            referencedColumns: ["project_id"]
           },
           {
             foreignKeyName: "fk_support_tickets_project"
@@ -4017,20 +3884,6 @@ export type Database = {
       }
     }
     Views: {
-      category_performance: {
-        Row: {
-          avg_quote_value: number | null
-          category_id: string | null
-          category_name: string | null
-          created_at: string | null
-          last_updated: string | null
-          projects_in_category: number | null
-          published_products: number | null
-          search_frequency: number | null
-          total_products: number | null
-        }
-        Relationships: []
-      }
       homepage_public: {
         Row: {
           cta_label_he: string | null
@@ -4059,73 +3912,6 @@ export type Database = {
           revenue_ils: number | null
         }
         Relationships: []
-      }
-      popular_products: {
-        Row: {
-          favorites_count: number | null
-          id: string | null
-          name: string | null
-          success_rate: number | null
-          supplier_id: string | null
-        }
-        Relationships: []
-      }
-      project_analytics: {
-        Row: {
-          avg_quote_value: number | null
-          budget_max: number | null
-          budget_min: number | null
-          client_id: string | null
-          created_at: string | null
-          end_date: string | null
-          last_updated: string | null
-          project_id: string | null
-          start_date: string | null
-          status: Database["public"]["Enums"]["project_status"] | null
-          title: string | null
-          total_leads: number | null
-          total_orders: number | null
-          total_quotes: number | null
-          total_spent: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "projects_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      supplier_stats: {
-        Row: {
-          accepted_quotes: number | null
-          avg_rating: number | null
-          company_id: string | null
-          company_name: string | null
-          completed_orders: number | null
-          converted_leads: number | null
-          created_at: string | null
-          last_updated: string | null
-          product_count: number | null
-          published_products: number | null
-          review_count: number | null
-          supplier_id: string | null
-          total_leads: number | null
-          total_orders: number | null
-          total_quotes: number | null
-          total_revenue: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "companies_owner_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       top_categories_30d: {
         Row: {
@@ -4287,6 +4073,18 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_category_performance: {
+        Args: { _category_id?: string }
+        Returns: {
+          avg_rating: number
+          category_id: string
+          category_name: string
+          product_count: number
+          supplier_count: number
+          total_orders: number
+          total_revenue: number
+        }[]
+      }
       get_homepage_content: {
         Args: { _platform?: string }
         Returns: {
@@ -4321,37 +4119,52 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_popular_products: {
+        Args: { _limit?: number; _supplier_id?: string }
+        Returns: {
+          favorite_count: number
+          order_count: number
+          popularity_score: number
+          product_id: string
+          product_name: string
+          supplier_id: string
+          view_count: number
+        }[]
+      }
       get_primary_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_project_analytics: {
+        Args: { _client_id?: string }
+        Returns: {
+          active_projects: number
+          avg_project_value: number
+          client_id: string
+          completed_projects: number
+          total_projects: number
+          total_spent: number
+        }[]
       }
       get_sla_metrics: {
         Args: { p_days?: number; p_supplier_id: string }
         Returns: Json
       }
+      get_supplier_stats: {
+        Args: { _supplier_id?: string }
+        Returns: {
+          active_leads: number
+          avg_rating: number
+          conversion_rate: number
+          supplier_id: string
+          total_orders: number
+          total_revenue: number
+          total_reviews: number
+        }[]
+      }
       get_user_role: {
         Args: { user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
-      }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
       }
       has_role: {
         Args: {
@@ -4371,6 +4184,10 @@ export type Database = {
       }
       is_admin: {
         Args: { user_id: string }
+        Returns: boolean
+      }
+      is_ideabook_collaborator: {
+        Args: { _ideabook_id: string; _user_id: string }
         Returns: boolean
       }
       log_performance_metric: {
@@ -4465,21 +4282,9 @@ export type Database = {
         Args: { p_proposal_id: string }
         Returns: string
       }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
       set_notification_pref: {
         Args: { p_marketing: boolean; p_orders: boolean; p_system: boolean }
         Returns: undefined
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
       }
       sign_proposal: {
         Args: { p_action: string; p_actor_id?: string; p_token: string }
