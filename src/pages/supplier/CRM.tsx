@@ -304,11 +304,13 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
       <Separator />
 
       {leads.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="אין לידים"
-          description="לא נמצאו לידים התואמים לחיפוש שלכם."
-        />
+        <div className="py-12">
+          <EmptyState
+            icon={Users}
+            title="אין לידים עדיין"
+            description="ברגע שלקוחות יתעניינו בשירותים שלך, הלידים שלהם יופיעו כאן. בינתיים, תוכל לעבוד על שיפור הפרופיל שלך כדי למשוך יותר לקוחות."
+          />
+        </div>
       ) : view === 'kanban' ? (
         <Kanban />
       ) : (

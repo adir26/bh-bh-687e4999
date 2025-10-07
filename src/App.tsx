@@ -26,7 +26,7 @@ import NewSuppliers from "./pages/NewSuppliers";
 import HotNow from "./pages/HotNow";
 import LocalDeals from "./pages/LocalDeals";
 import PopularNow from "./pages/PopularNow";
-import SupplierProfile from "./pages/SupplierProfile";
+import PublicSupplierProfile from "./pages/PublicSupplierProfile";
 import CategorySuppliers from "./pages/CategorySuppliers";
 import NotFound from "./pages/NotFound";
 import Registration from "./pages/Registration";
@@ -119,7 +119,6 @@ import PhotoDetail from "./pages/PhotoDetail";
 import Ideabooks from "./pages/Ideabooks";
 import IdeabookDetail from "./pages/IdeabookDetail";
 import AdminInspiration from "./pages/admin/AdminInspiration";
-import PublicSupplierProfile from "./pages/PublicSupplierProfile";
 import PublicProductView from "./pages/PublicProductView";
 import PublicHomepage from "./pages/PublicHomepage";
 import Welcome from "./pages/Welcome";
@@ -477,7 +476,7 @@ const App = () => {
                 <Route path="/hot-now" element={<PublicRouteWrapper><HotNow /></PublicRouteWrapper>} />
                 <Route path="/local-deals" element={<PublicRouteWrapper><LocalDeals /></PublicRouteWrapper>} />
                 <Route path="/popular-now" element={<PublicRouteWrapper><PopularNow /></PublicRouteWrapper>} />
-                <Route path="/supplier/:id" element={<PublicRouteWrapper><SupplierProfile /></PublicRouteWrapper>} />
+                <Route path="/supplier/:id" element={<PublicRouteWrapper><PublicSupplierProfile /></PublicRouteWrapper>} />
                 <Route path="/supplier/:id/products" element={<PublicRouteWrapper><SupplierProductsView /></PublicRouteWrapper>} />
                 <Route path="/supplier/:id/reviews" element={<PublicRouteWrapper><SupplierReviews /></PublicRouteWrapper>} />
                 <Route path="/supplier/profile/preview" element={
