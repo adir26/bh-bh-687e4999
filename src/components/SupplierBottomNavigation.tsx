@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Users, Plus, Package, User, Upload, MessageCircle, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +13,7 @@ import {
 
 export const SupplierBottomNavigation: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false);
 
   const navItems = [
@@ -42,22 +43,22 @@ export const SupplierBottomNavigation: React.FC = () => {
     {
       icon: Briefcase,
       label: 'צור הצעת מחיר',
-      action: () => window.location.href = '/supplier/quotes'
+      path: '/supplier/quotes'
     },
     {
       icon: Upload,
       label: 'ספריית קבצים',
-      action: () => window.location.href = '/supplier/files'
+      path: '/supplier/files'
     },
     {
       icon: Package,
       label: 'ניהול הזמנות',
-      action: () => window.location.href = '/supplier/orders'
+      path: '/supplier/orders'
     },
     {
       icon: MessageCircle,
       label: 'התראות',
-      action: () => window.location.href = '/supplier/notifications'
+      path: '/supplier/notifications'
     }
   ];
 
@@ -65,8 +66,8 @@ export const SupplierBottomNavigation: React.FC = () => {
     return location.pathname === path || location.pathname.startsWith(path);
   };
 
-  const handleQuickAction = (action: () => void) => {
-    action();
+  const handleQuickAction = (path: string) => {
+    navigate(path);
     setIsQuickActionsOpen(false);
     // Haptic feedback
     if ('vibrate' in navigator) {
@@ -152,7 +153,7 @@ export const SupplierBottomNavigation: React.FC = () => {
                         key={index}
                         variant="outline"
                         className="h-14 justify-between text-right hover:bg-primary/5 transition-all duration-200 active:scale-98"
-                        onClick={() => handleQuickAction(action.action)}
+                        onClick={() => handleQuickAction(action.path)}
                       >
                         <span className="font-medium">{action.label}</span>
                         <Icon size={20} className="text-primary" />
