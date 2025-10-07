@@ -12,6 +12,7 @@ import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarS
 import { PageBoundary } from '@/components/system/PageBoundary';
 
 const quickActions = [
+  { title: 'עריכת פרופיל חברה', icon: Edit, path: '/supplier/profile' },
   { title: 'צור הצעת מחיר', icon: FileText, path: '/supplier/quotes' },
   { title: 'ניהול הזמנות', icon: Package2, path: '/supplier/orders' },
   { title: 'נהל לידים', icon: Users, path: '/supplier/leads' },
