@@ -215,6 +215,7 @@ class OnboardingService {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
+          role: 'supplier',
           onboarding_completed: true,
           onboarding_status: 'completed',
           onboarding_step: 0,
@@ -231,6 +232,22 @@ class OnboardingService {
         .eq('id', userId);
 
       if (profileError) throw profileError;
+
+      // Add supplier role to user_roles table for proper authorization
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: 'supplier'
+        })
+        .select()
+        .maybeSingle();
+
+      // Ignore duplicate key errors (role already exists)
+      if (roleError && roleError.code !== '23505') {
+        console.error('Error adding supplier role:', roleError);
+        // Don't throw - we can continue even if role insert fails
+      }
 
       // Save onboarding analytics for admin
       const completionDuration = Math.round((Date.now() - startTime) / 1000);

@@ -555,6 +555,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user || !profile) return;
 
     try {
+      // Preserve the existing role when completing onboarding
+      const currentRole = (profile as Profile)?.role;
+
       const { error }: any = await withTimeout(
         supabase
           .from('profiles')
@@ -578,12 +581,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Refresh profile data using React Query
       await refreshProfile();
-      console.log('[AUTH] Onboarding completed');
+      console.log('[AUTH] Onboarding completed for role:', currentRole);
 
       // Clear redirect flag to allow fresh centralized navigation
       sessionStorage.removeItem(`redirected_${user.id}`);
 
-      // Let centralized post-auth redirect handle navigation
+      // Navigate based on user role
+      const destination = currentRole === 'supplier' ? '/supplier/dashboard' : '/';
+      navigate(destination, { replace: true });
     } catch (error) {
       console.error('Error completing onboarding:', error);
     }

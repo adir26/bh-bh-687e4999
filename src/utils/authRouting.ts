@@ -72,7 +72,12 @@ export const routeAfterLogin = (profile: any): string => {
                         profile.onboarding_status === 'completed';
 
   if (onboardingDone) {
-    const homeRoute = profile.role === 'supplier' ? '/supplier/dashboard' : '/';
+    let homeRoute = '/';
+    if (profile.role === 'supplier') {
+      homeRoute = '/supplier/dashboard';
+    } else if (profile.role === 'admin') {
+      homeRoute = '/admin/dashboard';
+    }
     console.log('[AUTH ROUTING] Onboarding complete/skipped, routing to:', homeRoute);
     return homeRoute;
   }
