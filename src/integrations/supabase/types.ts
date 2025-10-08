@@ -737,12 +737,15 @@ export type Database = {
         Row: {
           address: string | null
           area: string | null
+          banner_url: string | null
+          business_hours: Json | null
           business_license: string | null
           city: string | null
           created_at: string
           description: string | null
           email: string | null
           featured: boolean | null
+          gallery: Json | null
           id: string
           is_public: boolean | null
           logo_url: string | null
@@ -751,8 +754,10 @@ export type Database = {
           phone: string | null
           rating: number | null
           review_count: number | null
+          services: Json | null
           slug: string
           status: string | null
+          tagline: string | null
           tax_id: string | null
           updated_at: string
           verification_notes: string | null
@@ -765,12 +770,15 @@ export type Database = {
         Insert: {
           address?: string | null
           area?: string | null
+          banner_url?: string | null
+          business_hours?: Json | null
           business_license?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
           featured?: boolean | null
+          gallery?: Json | null
           id?: string
           is_public?: boolean | null
           logo_url?: string | null
@@ -779,8 +787,10 @@ export type Database = {
           phone?: string | null
           rating?: number | null
           review_count?: number | null
+          services?: Json | null
           slug: string
           status?: string | null
+          tagline?: string | null
           tax_id?: string | null
           updated_at?: string
           verification_notes?: string | null
@@ -793,12 +803,15 @@ export type Database = {
         Update: {
           address?: string | null
           area?: string | null
+          banner_url?: string | null
+          business_hours?: Json | null
           business_license?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
           featured?: boolean | null
+          gallery?: Json | null
           id?: string
           is_public?: boolean | null
           logo_url?: string | null
@@ -807,8 +820,10 @@ export type Database = {
           phone?: string | null
           rating?: number | null
           review_count?: number | null
+          services?: Json | null
           slug?: string
           status?: string | null
+          tagline?: string | null
           tax_id?: string | null
           updated_at?: string
           verification_notes?: string | null

@@ -132,6 +132,17 @@ const PublicSupplierProfile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Banner */}
+      {supplier.banner_url && (
+        <div className="w-full h-48 md:h-64 overflow-hidden">
+          <img 
+            src={supplier.banner_url} 
+            alt={supplier.name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
       {/* Header Section */}
       <div className="bg-card border-b">
         <div className="container max-w-6xl mx-auto px-4 py-6">
@@ -166,8 +177,14 @@ const PublicSupplierProfile: React.FC = () => {
                       )}
                     </h1>
                     
+                    {supplier.tagline && (
+                      <p className="text-lg text-muted-foreground mt-1">
+                        {supplier.tagline}
+                      </p>
+                    )}
+
                     {supplier.description && (
-                      <p className="text-muted-foreground mt-1 max-w-2xl">
+                      <p className="text-muted-foreground mt-2 max-w-2xl">
                         {supplier.description}
                       </p>
                     )}
@@ -239,6 +256,42 @@ const PublicSupplierProfile: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Services Section */}
+      {supplier.services && supplier.services.length > 0 && (
+        <div className="bg-muted/30 border-y">
+          <div className="container max-w-6xl mx-auto px-4 py-6">
+            <h2 className="text-lg font-semibold mb-4">שירותים</h2>
+            <div className="flex flex-wrap gap-2">
+              {supplier.services.map((service, index) => (
+                <Badge key={index} variant="secondary" className="text-sm py-1 px-3">
+                  {service}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Gallery Section */}
+      {supplier.gallery && supplier.gallery.length > 0 && (
+        <div className="bg-background">
+          <div className="container max-w-6xl mx-auto px-4 py-8">
+            <h2 className="text-2xl font-bold mb-6">גלריה</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {supplier.gallery.map((imageUrl, index) => (
+                <div key={index} className="aspect-square rounded-lg overflow-hidden">
+                  <img 
+                    src={imageUrl} 
+                    alt={`Gallery ${index + 1}`}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Products Section */}
       <div className="container max-w-6xl mx-auto px-4 py-8">

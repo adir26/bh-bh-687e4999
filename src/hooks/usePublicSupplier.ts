@@ -5,7 +5,9 @@ export interface PublicSupplier {
   id: string;
   name: string;
   description?: string;
+  tagline?: string;
   logo_url?: string;
+  banner_url?: string;
   address?: string;
   city?: string;
   area?: string;
@@ -16,6 +18,8 @@ export interface PublicSupplier {
   review_count: number;
   verified: boolean;
   slug: string;
+  services?: string[];
+  gallery?: string[];
 }
 
 export interface PublicProduct {
@@ -41,7 +45,9 @@ export const usePublicSupplier = (slug: string) => {
           id,
           name,
           description,
+          tagline,
           logo_url,
+          banner_url,
           address,
           city,
           area,
@@ -51,7 +57,9 @@ export const usePublicSupplier = (slug: string) => {
           rating,
           review_count,
           verified,
-          slug
+          slug,
+          services,
+          gallery
         `)
         .eq('slug', slug)
         .eq('is_public', true)
@@ -65,7 +73,7 @@ export const usePublicSupplier = (slug: string) => {
         throw error;
       }
 
-      return data;
+      return data as PublicSupplier;
     },
     enabled: !!slug,
   });
