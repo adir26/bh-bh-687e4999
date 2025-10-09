@@ -77,20 +77,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event: AuthChangeEvent, session: Session | null) => {
         if (!mounted) return;
         
-        // If we're logging out, ignore all auth changes except SIGNED_OUT
-        if (isLoggingOut && event !== 'SIGNED_OUT') {
-          console.log('[AUTH] Ignoring auth change during logout:', event);
+        console.log('[AUTH] Auth state changed:', event, !!session);
+        
+        // If we're logging out but a new sign-in is detected, cancel the logout
+        if (isLoggingOut && event === 'SIGNED_IN') {
+          console.log('[AUTH] New sign-in detected during logout, canceling logout state');
+          setIsLoggingOut(false);
+        }
+        
+        // Handle SIGNED_OUT event
+        if (event === 'SIGNED_OUT') {
+          setIsLoggingOut(false);
+          setSession(null);
+          setUser(null);
           return;
         }
         
-        console.log('[AUTH] Auth state changed:', event, !!session);
+        // Update session and user for all other events
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Reset logout flag when signed out
-        if (event === 'SIGNED_OUT') {
-          setIsLoggingOut(false);
-        }
       }
     );
 
@@ -207,7 +212,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     // Small delay to ensure all auth state is settled
-    const timeoutId = setTimeout(handlePostAuthRedirect, 100);
+    const timeoutId = setTimeout(() => {
+      if (!isLoggingOut) {
+        handlePostAuthRedirect();
+      }
+    }, 100);
     
     // Cleanup timeout on unmount or dependency change
     return () => {
@@ -424,32 +433,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // 2. Clear ALL auth-related storage
       clearAuthStorage(currentUserId);
       
-      // 3. Call Supabase signOut (clears server-side session)
-      const { error } = await supabase.auth.signOut();
+      // 3. Call Supabase signOut with timeout protection
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 3000)
+      );
       
-      if (error) {
-        console.error('[AUTH] Sign out error:', error);
-        // Don't show error to user - we already cleared everything
-      } else {
+      try {
+        await Promise.race([
+          supabase.auth.signOut(),
+          timeoutPromise
+        ]);
         console.log('[AUTH] Sign out successful');
+      } catch (error) {
+        console.warn('[AUTH] Sign out timeout/error (non-critical):', error);
       }
       
-      // 4. Show success toast
+      // 4. Always reset logout flag
+      setIsLoggingOut(false);
+      
+      // 5. Show success toast
       toast({
         title: "התנתקת בהצלחה",
         description: "להתראות!"
       });
       
-      // 5. Navigate to auth page
+      // 6. Navigate to auth page
       navigate('/auth', { replace: true });
     } catch (error: any) {
       console.error('[AUTH] SignOut unexpected error:', error);
+      
+      // Always reset logout flag on error
+      setIsLoggingOut(false);
       
       // Still clear everything even on error
       setUser(null);
       setSession(null);
       clearAuthStorage(user?.id);
-      setIsLoggingOut(false);
       
       // Navigate anyway
       navigate('/auth', { replace: true });

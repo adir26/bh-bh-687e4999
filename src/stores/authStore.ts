@@ -97,7 +97,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'bonimpo-auth-storage',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         guestMode: state.guestMode,
         appMode: state.appMode,

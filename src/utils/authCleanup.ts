@@ -9,13 +9,13 @@ export const clearAuthStorage = (userId?: string) => {
   // Use Zustand store instead of sessionStorage
   const store = useAuthStore.getState();
   
-  // Clear user-specific state
-  if (userId) {
-    store.clearUserState(userId);
-  }
-  
-  // Clear all guest and auth state
-  store.clearAllAuth();
+  // Clear only guest-related state, preserve loginTracked and redirected
+  store.setGuestMode(false);
+  store.setAppMode(null);
+  store.setReturnPath(null);
+  store.setPendingAction(null);
+  store.setGuestBannerDismissed(false);
+  store.setHasSeenWelcome(false);
   
   // Clear ALL Supabase auth keys from localStorage
   const supabaseKeys = Object.keys(localStorage).filter(key => 
@@ -28,10 +28,11 @@ export const clearAuthStorage = (userId?: string) => {
   // Clear auth-related local storage (kept for backwards compatibility)
   localStorage.removeItem('signupData');
   
-  // Clear all sessionStorage
-  sessionStorage.clear();
+  // Selective sessionStorage clear (don't clear authStore data)
+  const sessionKeysToRemove = ['guestMode', 'appMode', 'returnPath', 'pendingAction'];
+  sessionKeysToRemove.forEach(key => sessionStorage.removeItem(key));
   
-  console.log('[AUTH_CLEANUP] Cleared all auth storage', { 
+  console.log('[AUTH_CLEANUP] Cleared auth storage (preserved tracking)', { 
     userId: userId || 'none',
     clearedKeys: supabaseKeys.length 
   });
