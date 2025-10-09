@@ -65,7 +65,10 @@ export default function CompanyProfile() {
       if (data) return data as CompanyData;
 
       // If no company found, try to create from onboarding data
-      console.warn('⚠️ No company found, attempting to create from profile data');
+      console.warn('⚠️ No company found for user:', user!.id);
+      
+      // Try localStorage first (most recent data)
+      const localStorageData = localStorage.getItem('supplierOnboarding');
       
       const { data: profile } = await supabase
         .from('profiles')
@@ -74,38 +77,79 @@ export default function CompanyProfile() {
         .single();
 
       const onboardingData = profile?.onboarding_data as any;
-      if (onboardingData?.company_info) {
-        const companyInfo = onboardingData.company_info;
-        const branding = onboardingData.branding || {};
-        
-        const { data: newCompany, error: createError } = await supabase
-          .from('companies')
-          .insert([{
-            owner_id: user!.id,
-            name: companyInfo.companyName || companyInfo.name || 'החברה שלי',
-            email: companyInfo.email || profile.email,
-            phone: companyInfo.phone || null,
-            city: companyInfo.operatingArea || companyInfo.city || null,
-            description: branding.description || null,
-            logo_url: branding.logo || null,
-            banner_url: branding.coverImage || null,
-            services: branding.services || [],
-            slug: null
-          }])
-          .select()
-          .single();
 
-        if (createError) {
-          console.error('Failed to create company from onboarding data:', createError);
-          throw createError;
-        }
-        
-        showToast.success('פרופיל החברה נוצר בהצלחה!');
-        return newCompany as CompanyData;
+      console.log('🔍 Fallback sources:', {
+        hasProfileData: !!onboardingData?.company_info,
+        hasLocalStorage: !!localStorageData,
+        profileData: onboardingData,
+        localData: localStorageData ? JSON.parse(localStorageData) : null
+      });
+
+      // Determine data source
+      let companyInfo;
+      let branding;
+      
+      if (localStorageData) {
+        const localData = JSON.parse(localStorageData);
+        companyInfo = localData.companyInfo;
+        branding = localData.branding || {};
+        console.log('📦 Using localStorage data:', companyInfo);
+      } else if (onboardingData?.company_info) {
+        companyInfo = onboardingData.company_info;
+        branding = onboardingData.branding || {};
+        console.log('📋 Using profile onboarding_data:', companyInfo);
+      } else {
+        console.error('❌ No data source available!');
+        return null;
       }
 
-      // No company and no onboarding data
-      return null;
+      const companyPayload = {
+        owner_id: user!.id,
+        name: companyInfo.companyName || companyInfo.name || 'החברה שלי',
+        email: companyInfo.email || profile?.email,
+        phone: companyInfo.phone || null,
+        city: companyInfo.operatingArea || companyInfo.city || null,
+        description: branding.description || null,
+        logo_url: branding.logo || null,
+        banner_url: branding.coverImage || null,
+        services: branding.services || [],
+        slug: null
+      };
+
+      const { data: newCompany, error: createError } = await supabase
+        .from('companies')
+        .insert([companyPayload])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('❌ Failed to create company:', {
+          code: createError.code,
+          message: createError.message,
+          details: createError.details,
+          userId: user!.id
+        });
+        
+        // Handle specific errors
+        if (createError.code === '42501') { // insufficient_privilege (RLS)
+          showToast.error('אין לך הרשאה ליצור חברה. פנה לתמיכה.');
+        } else if (createError.code === '23505') { // duplicate key
+          showToast.info('נראה שכבר יש לך חברה. מנסה לטעון אותה...');
+          // Retry with SELECT
+          const { data: existingCompany } = await supabase
+            .from('companies')
+            .select('*')
+            .eq('owner_id', user!.id)
+            .single();
+          
+          if (existingCompany) return existingCompany as CompanyData;
+        }
+        
+        throw createError;
+      }
+      
+      showToast.success('פרופיל החברה נוצר בהצלחה!');
+      return newCompany as CompanyData;
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -195,15 +239,32 @@ export default function CompanyProfile() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
-          <CardContent className="pt-6 text-center">
+          <CardContent className="pt-6 text-center space-y-4">
             <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">לא נמצאה חברה</h2>
             <p className="text-muted-foreground mb-4">
-              נראה שעדיין לא השלמת את תהליך ההרשמה כספק
+              נראה שעדיין לא השלמת את תהליך ההרשמה כספק או שהנתונים לא נשמרו כראוי
             </p>
-            <Button onClick={() => navigate('/onboarding/supplier-welcome')}>
-              השלם הרשמה
-            </Button>
+            
+            <div className="flex flex-col gap-3">
+              <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['company', user?.id] })}>
+                נסה לטעון שוב
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/onboarding/supplier-welcome')}>
+                השלם הרשמה מחדש
+              </Button>
+            </div>
+            
+            {error && (
+              <details className="mt-4 text-xs text-right">
+                <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                  פרטי שגיאה (למפתחים)
+                </summary>
+                <pre className="mt-2 p-3 bg-muted rounded text-xs overflow-auto text-left" dir="ltr">
+                  {JSON.stringify(error, null, 2)}
+                </pre>
+              </details>
+            )}
           </CardContent>
         </Card>
       </div>
