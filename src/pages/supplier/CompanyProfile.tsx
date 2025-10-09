@@ -54,6 +54,7 @@ export default function CompanyProfile() {
     queryKey: ['company', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
+      // Try to find existing company
       const { data, error } = await supabase
         .from('companies')
         .select('*')
@@ -61,7 +62,50 @@ export default function CompanyProfile() {
         .maybeSingle();
 
       if (error) throw error;
-      return data as CompanyData | null;
+      if (data) return data as CompanyData;
+
+      // If no company found, try to create from onboarding data
+      console.warn('⚠️ No company found, attempting to create from profile data');
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_data, email, full_name')
+        .eq('id', user!.id)
+        .single();
+
+      const onboardingData = profile?.onboarding_data as any;
+      if (onboardingData?.company_info) {
+        const companyInfo = onboardingData.company_info;
+        const branding = onboardingData.branding || {};
+        
+        const { data: newCompany, error: createError } = await supabase
+          .from('companies')
+          .insert([{
+            owner_id: user!.id,
+            name: companyInfo.companyName || companyInfo.name || 'החברה שלי',
+            email: companyInfo.email || profile.email,
+            phone: companyInfo.phone || null,
+            city: companyInfo.operatingArea || companyInfo.city || null,
+            description: branding.description || null,
+            logo_url: branding.logo || null,
+            banner_url: branding.coverImage || null,
+            services: branding.services || [],
+            slug: null
+          }])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Failed to create company from onboarding data:', createError);
+          throw createError;
+        }
+        
+        showToast.success('פרופיל החברה נוצר בהצלחה!');
+        return newCompany as CompanyData;
+      }
+
+      // No company and no onboarding data
+      return null;
     },
     staleTime: 5 * 60 * 1000,
   });

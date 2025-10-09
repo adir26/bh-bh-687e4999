@@ -41,9 +41,13 @@ export function useNotifications(filters?: { type?: string; unread?: boolean }) 
   const query = useQuery({
     queryKey: ['notifications', filters],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
       let supaQuery = supabase
         .from('notifications')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (filters?.type) {
@@ -116,9 +120,13 @@ export function useNotificationCount() {
   return useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+
       const { count } = await supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
         .is('read_at', null);
 
       return count || 0;

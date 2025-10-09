@@ -837,7 +837,7 @@ export type Database = {
           {
             foreignKeyName: "companies_owner_id_fkey"
             columns: ["owner_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -4055,10 +4055,6 @@ export type Database = {
       create_proposal_from_quote: {
         Args: { p_html_content?: string; p_quote_id: string }
         Returns: string
-      }
-      create_sample_notifications: {
-        Args: { target_user_id: string }
-        Returns: undefined
       }
       delete_user_account: {
         Args: { user_id: string }
