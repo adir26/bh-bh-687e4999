@@ -132,7 +132,7 @@ export default function CompanyProfile() {
         
         // Handle specific errors
         if (createError.code === '42501') { // insufficient_privilege (RLS)
-          showToast.error('אין לך הרשאה ליצור חברה. פנה לתמיכה.');
+          showToast.error('לא ניתן ליצור פרופיל חברה. יתכן שההרשמה כספק לא הושלמה. אנא פנה לתמיכה.');
         } else if (createError.code === '23505') { // duplicate key
           showToast.info('נראה שכבר יש לך חברה. מנסה לטעון אותה...');
           // Retry with SELECT
@@ -241,26 +241,35 @@ export default function CompanyProfile() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center space-y-4">
             <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">לא נמצאה חברה</h2>
+            <h2 className="text-xl font-semibold mb-2">פרופיל חברה לא נמצא</h2>
             <p className="text-muted-foreground mb-4">
-              נראה שעדיין לא השלמת את תהליך ההרשמה כספק או שהנתונים לא נשמרו כראוי
+              לא נמצא פרופיל חברה במערכת
             </p>
             
+            <div className="bg-muted/50 p-4 rounded-lg text-sm space-y-2 text-right">
+              <p className="font-medium">מה עכשיו?</p>
+              <ul className="list-disc list-inside space-y-1 text-muted-foreground mr-4">
+                <li>נסה לרענן את הדף</li>
+                <li>ודא שהשלמת את תהליך ההרשמה כספק</li>
+                <li>אם הבעיה נמשכת, פנה לתמיכה</li>
+              </ul>
+            </div>
+            
             <div className="flex flex-col gap-3">
-              <Button onClick={() => queryClient.invalidateQueries({ queryKey: ['company', user?.id] })}>
-                נסה לטעון שוב
+              <Button onClick={() => window.location.reload()} variant="outline">
+                רענן דף
               </Button>
-              <Button variant="outline" onClick={() => navigate('/onboarding/supplier-welcome')}>
-                השלם הרשמה מחדש
+              <Button onClick={() => navigate('/onboarding/supplier-welcome')}>
+                התחל הרשמת ספק
               </Button>
             </div>
             
             {error && (
-              <details className="mt-4 text-xs text-right">
-                <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                  פרטי שגיאה (למפתחים)
+              <details className="mt-4 text-xs text-right border border-destructive/20 rounded p-3">
+                <summary className="cursor-pointer text-destructive font-medium hover:opacity-80">
+                  פרטי שגיאה טכניים
                 </summary>
-                <pre className="mt-2 p-3 bg-muted rounded text-xs overflow-auto text-left" dir="ltr">
+                <pre className="mt-2 p-2 bg-muted rounded text-xs overflow-auto text-left" dir="ltr">
                   {JSON.stringify(error, null, 2)}
                 </pre>
               </details>
