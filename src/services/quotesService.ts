@@ -323,5 +323,50 @@ export const quotesService = {
       taxAmount,
       totalAmount
     };
+  },
+
+  async generateShareLink(quoteId: string): Promise<string> {
+    // Generate unique token
+    const token = crypto.randomUUID();
+    
+    const { error } = await supabase
+      .from('quote_share_links')
+      .insert({
+        quote_id: quoteId,
+        token
+      });
+    
+    if (error) throw error;
+    
+    // Return public URL
+    return `${window.location.origin}/quote/share/${token}`;
+  },
+
+  async getQuoteByToken(token: string): Promise<{ quote: Quote; items: QuoteItem[] } | null> {
+    // Get share link
+    const { data: shareLink, error: linkError } = await supabase
+      .from('quote_share_links')
+      .select('quote_id, expires_at')
+      .eq('token', token)
+      .maybeSingle();
+    
+    if (linkError || !shareLink) return null;
+    
+    // Check expiration
+    if (new Date(shareLink.expires_at) < new Date()) {
+      return null;
+    }
+    
+    // Update access count and timestamp (fire and forget)
+    supabase
+      .from('quote_share_links')
+      .update({ 
+        accessed_at: new Date().toISOString()
+      })
+      .eq('token', token)
+      .then(() => {});
+    
+    // Get quote
+    return await this.getQuoteById(shareLink.quote_id);
   }
 };

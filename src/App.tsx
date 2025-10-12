@@ -54,7 +54,9 @@ import SupplierDashboardNew from "./pages/supplier/Dashboard";
 import SupplierLeadManagement from "./pages/supplier/LeadManagement";
 import ProductCatalog from "./pages/supplier/ProductCatalog";
 import QuoteBuilder from "./pages/supplier/QuoteBuilder";
+import QuotesList from "./pages/supplier/QuotesList";
 import ProposalBuilder from "./pages/supplier/ProposalBuilder";
+import PublicQuoteView from "./pages/PublicQuoteView";
 import SupplierOrders from "./pages/supplier/Orders";
 import SupplierNotifications from "./pages/supplier/Notifications";
 import NotificationSettings from "./pages/supplier/NotificationSettings";
@@ -389,9 +391,15 @@ const App = () => {
                 } />
                 <Route path="/supplier/quotes" element={
                   <OnboardingGuard role="supplier">
+                    <QuotesList />
+                  </OnboardingGuard>
+                } />
+                <Route path="/supplier/quote-builder" element={
+                  <OnboardingGuard role="supplier">
                     <QuoteBuilder />
                   </OnboardingGuard>
                 } />
+                <Route path="/quote/share/:token" element={<PublicQuoteView />} />
                 <Route path="/supplier/proposals" element={
                   <OnboardingGuard role="supplier">
                     <ProposalBuilder />

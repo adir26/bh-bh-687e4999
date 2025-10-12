@@ -13,7 +13,7 @@ import { PageBoundary } from '@/components/system/PageBoundary';
 
 const quickActions = [
   { title: 'עריכת פרופיל חברה', icon: Edit, path: '/supplier/profile' },
-  { title: 'צור הצעת מחיר', icon: FileText, path: '/supplier/quotes' },
+  { title: 'הצעות מחיר', icon: FileText, path: '/supplier/quotes' },
   { title: 'ניהול הזמנות', icon: Package2, path: '/supplier/orders' },
   { title: 'נהל לידים', icon: Users, path: '/supplier/leads' },
   { title: 'סטטיסטיקות', icon: TrendingUp, path: '/supplier/analytics' },

@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Trash2, Download, Send, Save, Calculator, Users } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ArrowLeft, Plus, Trash2, Download, Send, Save, Calculator, Users, Share2 } from 'lucide-react';
 import { showToast } from '@/utils/toast';
 import { quotesService, Quote, QuoteItem, CreateQuoteItemPayload } from '@/services/quotesService';
 import { QuotePDF } from '@/components/quotes/QuotePDF';
@@ -52,9 +53,32 @@ export default function QuoteBuilder() {
   const [notes, setNotes] = useState('');
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(17);
+  const [shareLink, setShareLink] = useState<string | null>(null);
   
   // Auto-save
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Load supplier products
+  const { data: products = [], isLoading: productsLoading } = useQuery({
+    queryKey: ['supplier-products', profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('products')
+          .select('id, name, description, price, is_service')
+          .eq('supplier_id', profile!.id)
+          .eq('is_published', true)
+          .order('name'),
+        12000
+      );
+      
+      if (error) throw error;
+      return data || [];
+    },
+    retry: 1,
+    staleTime: 60_000,
+  });
 
   // Load clients for the dropdown
   const { data: clients = [], isLoading: clientsLoading } = useQuery({
@@ -313,7 +337,9 @@ export default function QuoteBuilder() {
 
   const handleDownloadPDF = async () => {
     if (!quote || !profile) {
-      showToast.error('נא לשמור את ההצעה תחילה');
+      showToast.info('💾 נא לשמור את ההצעה לפני הורדת PDF');
+      // Auto-trigger save
+      await handleSaveDraft();
       return;
     }
 
@@ -382,6 +408,25 @@ export default function QuoteBuilder() {
     }
   };
 
+  const handleGenerateShareLink = async () => {
+    if (!quote) {
+      showToast.error('נא לשמור את ההצעה תחילה');
+      return;
+    }
+    
+    try {
+      const link = await quotesService.generateShareLink(quote.id);
+      setShareLink(link);
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(link);
+      showToast.success('קישור לשיתוף הועתק ללוח!');
+    } catch (error) {
+      console.error('Failed to generate share link:', error);
+      showToast.error('שגיאה ביצירת קישור לשיתוף');
+    }
+  };
+
   // Cleanup auto-save timer
   React.useEffect(() => {
     return () => {
@@ -441,15 +486,28 @@ export default function QuoteBuilder() {
                 <Save className="w-4 h-4 ml-1" />
                 שמור כטיוטה
               </Button>
-              <Button 
-                variant="blue" 
-                size="sm" 
-                onClick={handleDownloadPDF}
-                disabled={!quote}
-              >
-                <Download className="w-4 h-4 ml-1" />
-                הורד PDF
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button 
+                        variant="blue" 
+                        size="sm" 
+                        onClick={handleDownloadPDF}
+                        disabled={!quote}
+                      >
+                        <Download className="w-4 h-4 ml-1" />
+                        הורד PDF
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {!quote && (
+                    <TooltipContent>
+                      <p>נא לשמור את ההצעה תחילה</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
@@ -564,10 +622,34 @@ export default function QuoteBuilder() {
                     <TableRow key={item.id}>
                       <TableCell>
                         <div className="space-y-2">
+                          {products.length > 0 && (
+                            <Select 
+                              value=""
+                              onValueChange={(productId) => {
+                                const product = products.find(p => p.id === productId);
+                                if (product) {
+                                  updateItem(item.id, 'name', product.name);
+                                  updateItem(item.id, 'description', product.description || '');
+                                  updateItem(item.id, 'unit_price', product.price);
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="בחר ממוצרים קיימים (אופציונלי)" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {products.map((product) => (
+                                  <SelectItem key={product.id} value={product.id}>
+                                    {product.name} - ₪{product.price.toLocaleString('he-IL')}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
                           <Input
                             value={item.name}
                             onChange={(e) => updateItem(item.id, 'name', e.target.value)}
-                            placeholder="שם הפריט"
+                            placeholder="שם הפריט (או הזן ידנית)"
                           />
                           <Input
                             value={item.description}
@@ -708,12 +790,34 @@ export default function QuoteBuilder() {
           <Button 
             variant="outline" 
             className="flex-1" 
-            onClick={handleDownloadPDF}
+            onClick={handleGenerateShareLink}
             disabled={!quote}
           >
-            <Download className="w-4 h-4 ml-1" />
-            הורד PDF
+            <Share2 className="w-4 h-4 ml-1" />
+            צור קישור לשיתוף
           </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={handleDownloadPDF}
+                    disabled={!quote}
+                  >
+                    <Download className="w-4 h-4 ml-1" />
+                    הורד PDF
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              {!quote && (
+                <TooltipContent>
+                  <p>נא לשמור את ההצעה תחילה</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           <Button 
             variant="outline" 
             className="flex-1" 
@@ -724,6 +828,19 @@ export default function QuoteBuilder() {
             שמור כטיוטה
           </Button>
         </div>
+
+        {/* Share Link Display */}
+        {shareLink && (
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="p-4">
+              <p className="text-sm text-blue-800 font-medium mb-2">קישור לשיתוף (תקף 30 יום):</p>
+              <code className="text-xs bg-white p-2 rounded block overflow-x-auto border border-blue-200">
+                {shareLink}
+              </code>
+              <p className="text-xs text-blue-600 mt-2">הקישור הועתק ללוח. שתף אותו עם הלקוח!</p>
+            </CardContent>
+          </Card>
+        )}
         </div>
       </div>
     </PageBoundary>
