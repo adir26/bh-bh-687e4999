@@ -121,51 +121,43 @@ const Auth: React.FC = () => {
       toast.error('כתובת האימייל לא תקינה');
       return;
     }
-    
+
     // Password validation using the new relaxed policy
     if (signupForm.password.length < 8) {
       toast.error('סיסמה חייבת 8+ תווים ולשלב אותיות + (מספרים או סימנים)');
       return;
     }
-    
     const hasLetter = /[A-Za-z]/.test(signupForm.password);
     const hasDigit = /\d/.test(signupForm.password);
     const hasSymbol = /[^A-Za-z0-9]/.test(signupForm.password);
     const classes = (hasLetter ? 1 : 0) + (hasDigit ? 1 : 0) + (hasSymbol ? 1 : 0);
-
     if (!hasLetter || classes < 2) {
       toast.error('סיסמה חייבת 8+ תווים ולשלב אותיות + (מספרים או סימנים)');
       return;
     }
-    
     if (!signupForm.fullName.trim() || signupForm.fullName.trim().length < 2) {
       toast.error('אנא הזן שם מלא תקין');
       return;
     }
-
     setIsLoading(true);
     let processingComplete = false;
-    
     try {
       console.log('[AUTH_PAGE] Starting signup for:', {
         email: signupForm.email,
         role: signupForm.role,
         fullName: signupForm.fullName
       });
-      
-      const { error, data } = await signUp(
-        signupForm.email, 
-        signupForm.password, 
-        {
-          full_name: signupForm.fullName,
-          role: signupForm.role
-        }
-      );
-      
+      const {
+        error,
+        data
+      } = await signUp(signupForm.email, signupForm.password, {
+        full_name: signupForm.fullName,
+        role: signupForm.role
+      });
       if (error) {
         console.error('[AUTH_PAGE] Signup error:', error);
         processingComplete = true;
-        
+
         // Provide clear, actionable error messages
         let errorMessage = error.message || 'שגיאה בהרשמה. אנא נסה שוב';
         if (error.message?.includes('שגיאה בשמירת נתונים')) {
@@ -173,12 +165,10 @@ const Auth: React.FC = () => {
         } else if (error.message?.includes('כבר רשום')) {
           errorMessage = 'המייל כבר רשום במערכת. נסה להתחבר או השתמש במייל אחר';
         }
-        
         toast.error(errorMessage);
         setIsLoading(false);
         return;
       }
-      
       if (data) {
         console.log('[AUTH_PAGE] Signup result:', {
           hasUser: !!data.user,
@@ -208,11 +198,7 @@ const Auth: React.FC = () => {
     } catch (error: any) {
       console.error('[AUTH_PAGE] Unexpected signup error:', error);
       processingComplete = true;
-      
-      const errorMessage = error.message?.includes('שגיאה בשמירת נתונים') 
-        ? 'אירעה שגיאה בשמירת הנתונים. אנא נסה שוב במספר שניות'
-        : 'שגיאה בהרשמה. אנא נסה שוב';
-        
+      const errorMessage = error.message?.includes('שגיאה בשמירת נתונים') ? 'אירעה שגיאה בשמירת הנתונים. אנא נסה שוב במספר שניות' : 'שגיאה בהרשמה. אנא נסה שוב';
       toast.error(errorMessage);
       setIsLoading(false);
     } finally {
@@ -271,15 +257,10 @@ const Auth: React.FC = () => {
               <p className="text-sm text-muted-foreground mb-3">
                 רוצים לעיין בלי להירשם?
               </p>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  sessionStorage.setItem('guestMode', 'true');
-                  navigate('/?guest=1');
-                }}
-                className="h-10 px-6"
-              >
+              <Button variant="outline" size="sm" onClick={() => {
+              sessionStorage.setItem('guestMode', 'true');
+              navigate('/?guest=1');
+            }} className="h-10 px-6">
                 המשיכו כאורח
               </Button>
               <p className="text-xs text-muted-foreground mt-2">
@@ -366,7 +347,7 @@ const Auth: React.FC = () => {
                     })} required className="h-12 text-base" autoComplete="new-password" minLength={8} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-role">סוג המשתמש</Label>
+                      <Label htmlFor="signup-role">k</Label>
                       <Select value={signupForm.role} onValueChange={(value: 'client' | 'supplier') => setSignupForm({
                       ...signupForm,
                       role: value
