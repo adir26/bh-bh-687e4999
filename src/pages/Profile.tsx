@@ -53,7 +53,7 @@ interface OnboardingData {
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, profile, loading, profileError, refreshProfile } = useAuth();
+  const { user, profile, loading, profileError, refreshProfile, signOut } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   
@@ -544,10 +544,7 @@ const Profile = () => {
               <Button 
                 variant="outline" 
                 className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-xl h-12"
-                onClick={() => {
-                  // Add logout logic here
-                  console.log('Logout clicked');
-                }}
+                onClick={signOut}
               >
                 <LogOut className="w-5 h-5 ml-2" />
                 התנתק
