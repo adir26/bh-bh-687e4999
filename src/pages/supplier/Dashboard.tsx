@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supplierService } from '@/services/supabaseService';
 import { toast } from 'sonner';
 import { showToast } from '@/utils/toast';
-import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye, FileText, Package2 } from 'lucide-react';
+import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye, FileText, Package2, Package, Briefcase, Settings } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 
 const quickActions = [
@@ -17,6 +17,9 @@ const quickActions = [
   { title: 'ניהול הזמנות', icon: Package2, path: '/supplier/orders' },
   { title: 'נהל לידים', icon: Users, path: '/supplier/leads' },
   { title: 'סטטיסטיקות', icon: TrendingUp, path: '/supplier/analytics' },
+  { title: 'קטלוג מוצרים', icon: Package, path: '/supplier/catalog' },
+  { title: 'CRM מתקדם', icon: Briefcase, path: '/supplier/crm' },
+  { title: 'הגדרות התראות', icon: Settings, path: '/supplier/notification-settings' },
 ];
 
 const needsAttention = [

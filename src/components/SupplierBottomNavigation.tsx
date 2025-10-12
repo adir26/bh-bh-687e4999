@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, Plus, Package, User, Upload, MessageCircle, Briefcase } from 'lucide-react';
+import { Home, Users, Plus, Package, User, Upload, MessageCircle, Briefcase, Palette, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Drawer,
@@ -59,6 +59,21 @@ export const SupplierBottomNavigation: React.FC = () => {
       icon: MessageCircle,
       label: 'התראות',
       path: '/supplier/notifications'
+    },
+    {
+      icon: Palette,
+      label: 'לוחות השראה',
+      path: '/supplier/moodboards'
+    },
+    {
+      icon: FileCheck,
+      label: 'בונה הצעות',
+      path: '/supplier/proposal-builder'
+    },
+    {
+      icon: Users,
+      label: 'CRM',
+      path: '/supplier/crm'
     }
   ];
 
