@@ -245,7 +245,11 @@ class OnboardingService {
         console.log('➕ [ONBOARDING] Creating new company');
         const { data, error } = await supabase
           .from('companies')
-          .insert(companyData)
+          .insert({
+            ...companyData,
+            status: 'approved',  // ✅ Auto-approve new companies
+            is_public: true      // ✅ Make publicly visible immediately
+          })
           .select()
           .single();
 
@@ -279,6 +283,27 @@ class OnboardingService {
         }
         company = data;
         console.log('✅ [ONBOARDING] Company created successfully:', company.id);
+        
+        // ✅ NEW: Link company to selected category from onboarding data
+        const selectedCategory = (data as any).companyInfo?.category;
+        if (selectedCategory) {
+          console.log('🏷️ [ONBOARDING] Linking company to category:', selectedCategory);
+          
+          const { error: categoryError } = await supabase
+            .from('company_categories')
+            .insert({
+              company_id: company.id,
+              category_id: selectedCategory
+            });
+          
+          if (categoryError) {
+            console.error('⚠️ [ONBOARDING] Failed to link category:', categoryError);
+            // Don't throw - category is not critical for onboarding
+            // User can add it later from profile
+          } else {
+            console.log('✅ [ONBOARDING] Category linked successfully');
+          }
+        }
       }
 
       // Create products if any

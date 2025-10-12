@@ -235,6 +235,12 @@ export default function CompanyProfile() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    if (!company?.id) {
+      showToast.error('לא ניתן לשמור - לא נמצא פרופיל חברה');
+      return;
+    }
+    
     const formData = new FormData(e.currentTarget);
     
     const updatedData: Partial<CompanyData> = {
@@ -247,6 +253,12 @@ export default function CompanyProfile() {
       city: formData.get('city') as string || null,
       address: formData.get('address') as string || null,
     };
+
+    // Validation
+    if (!updatedData.name || updatedData.name.trim().length === 0) {
+      showToast.error('שם החברה הוא שדה חובה');
+      return;
+    }
 
     updateMutation.mutate(updatedData);
   };
@@ -349,7 +361,11 @@ export default function CompanyProfile() {
               <Eye className="w-4 h-4" />
               תצוגה מקדימה
             </TabsTrigger>
-            <TabsTrigger value="edit" className="gap-2">
+            <TabsTrigger 
+              value="edit" 
+              className="gap-2"
+              disabled={updateMutation.isPending}
+            >
               <Edit className="w-4 h-4" />
               עריכה
             </TabsTrigger>
@@ -394,15 +410,36 @@ export default function CompanyProfile() {
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h1 className="text-2xl font-bold flex items-center gap-2">
-                          {company.name}
+                        <div className="flex items-center gap-3">
+                          <h1 className="text-2xl font-bold">{company.name}</h1>
+                          
                           {company.verified && (
                             <Badge variant="secondary" className="gap-1">
                               <CheckCircle className="w-3 h-3" />
                               מאומת
                             </Badge>
                           )}
-                        </h1>
+                          
+                          {/* Status badge */}
+                          <Badge 
+                            variant={(company as any).status === 'approved' ? 'default' : 'secondary'}
+                            className="gap-1"
+                          >
+                            {(company as any).status === 'approved' ? (
+                              <>
+                                <CheckCircle className="w-3 h-3" />
+                                מאושר
+                              </>
+                            ) : (company as any).status === 'pending' ? (
+                              <>
+                                <Clock className="w-3 h-3" />
+                                ממתין לאישור
+                              </>
+                            ) : (
+                              'טיוטה'
+                            )}
+                          </Badge>
+                        </div>
                         
                         {company.tagline && (
                           <p className="text-muted-foreground mt-1">{company.tagline}</p>
