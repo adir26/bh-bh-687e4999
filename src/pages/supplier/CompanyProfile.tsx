@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,6 +48,59 @@ export default function CompanyProfile() {
   const [activeTab, setActiveTab] = useState<'preview' | 'edit'>('preview');
   const [isEditing, setIsEditing] = useState(false);
   const [newService, setNewService] = useState('');
+
+  // ✅ CRITICAL: Validate and fix supplier role before loading company
+  useEffect(() => {
+    const checkAndFixRole = async () => {
+      if (!user?.id) return;
+      
+      console.log('🔍 [COMPANY_PROFILE] Checking supplier role...');
+      
+      try {
+        // Check if supplier role exists in user_roles
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'supplier')
+          .maybeSingle();
+        
+        if (roleError) {
+          console.error('❌ [COMPANY_PROFILE] Error checking role:', roleError);
+          return;
+        }
+        
+        if (!roleData) {
+          console.warn('⚠️ [COMPANY_PROFILE] Missing supplier role! Attempting to fix...');
+          
+          // Attempt to add the missing role
+          const { error: insertError } = await supabase
+            .from('user_roles')
+            .insert({ user_id: user.id, role: 'supplier' });
+          
+          if (insertError) {
+            if (insertError.code === '23505') {
+              console.log('ℹ️ [COMPANY_PROFILE] Role already exists (race condition)');
+            } else {
+              console.error('❌ [COMPANY_PROFILE] Failed to add role:', insertError);
+              showToast.error('לא ניתן לוודא הרשאות ספק. אנא פנה לתמיכה.');
+            }
+          } else {
+            console.log('✅ [COMPANY_PROFILE] Supplier role added successfully!');
+            showToast.success('הרשאות ספק אומתו בהצלחה');
+            // Refresh company data
+            queryClient.invalidateQueries({ queryKey: ['company', user.id] });
+          }
+        } else {
+          console.log('✅ [COMPANY_PROFILE] Supplier role validated');
+        }
+      } catch (err) {
+        console.error('❌ [COMPANY_PROFILE] Unexpected error in role check:', err);
+      }
+    };
+    
+    checkAndFixRole();
+  }, [user?.id, queryClient]);
 
   // Fetch company data
   const { data: company, isLoading, error } = useQuery({

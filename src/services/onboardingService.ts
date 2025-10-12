@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { showToast } from '@/utils/toast';
 
 export interface ClientOnboardingData {
   interests: string[];
@@ -337,8 +338,10 @@ class OnboardingService {
         onboarding_data_saved: !!data.companyInfo
       });
 
-      // Add supplier role to user_roles table for proper authorization
-      const { error: roleError } = await supabase
+      // ✅ CRITICAL: Add supplier role to user_roles table for proper authorization
+      console.log('🔐 [ONBOARDING] Adding supplier role to user_roles...');
+      
+      const { data: roleData, error: roleError } = await supabase
         .from('user_roles')
         .insert({
           user_id: userId,
@@ -347,10 +350,44 @@ class OnboardingService {
         .select()
         .maybeSingle();
 
-      // Ignore duplicate key errors (role already exists)
-      if (roleError && roleError.code !== '23505') {
-        console.error('Error adding supplier role:', roleError);
-        // Don't throw - we can continue even if role insert fails
+      if (roleError) {
+        // ✅ Duplicate key is OK - role already exists
+        if (roleError.code === '23505') {
+          console.log('ℹ️ [ONBOARDING] Supplier role already exists for user');
+        } else {
+          // ❌ CRITICAL ERROR: Failed to add supplier role
+          console.error('❌ [ONBOARDING] CRITICAL: Failed to add supplier role:', {
+            code: roleError.code,
+            message: roleError.message,
+            details: roleError.details,
+            hint: roleError.hint
+          });
+          
+          // Show error to user
+          showToast.error(
+            'לא הצלחנו להוסיף הרשאות ספק מלאות. אנא פנה לתמיכה כדי להשלים את ההרשמה.'
+          );
+          
+          // Log to audit_logs for tracking
+          await supabase.from('audit_logs').insert([{
+            table_name: 'user_roles_failed',
+            operation: 'INSERT',
+            user_id: userId,
+            record_id: userId,
+            old_values: null,
+            new_values: { 
+              error_code: roleError.code,
+              error_message: roleError.message,
+              intended_role: 'supplier',
+              timestamp: new Date().toISOString()
+            },
+            changed_fields: ['role_assignment_failed']
+          }]);
+          
+          // ⚠️ Don't throw - allow onboarding to continue but user is warned
+        }
+      } else {
+        console.log('✅ [ONBOARDING] Supplier role added successfully:', roleData);
       }
 
       // Save onboarding analytics for admin
