@@ -347,7 +347,7 @@ const Auth: React.FC = () => {
                     })} required className="h-12 text-base" autoComplete="new-password" minLength={8} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-role"></Label>
+                      <Label htmlFor="signup-role">k</Label>
                       <Select value={signupForm.role} onValueChange={(value: 'client' | 'supplier') => setSignupForm({
                       ...signupForm,
                       role: value
