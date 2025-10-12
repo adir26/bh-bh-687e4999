@@ -63,7 +63,7 @@ export const usePublicSupplier = (slug: string) => {
         `)
         .eq('slug', slug)
         .eq('is_public', true)
-        .eq('status', 'approved')
+        .in('status', ['approved', 'pending'])
         .single();
 
       if (error) {

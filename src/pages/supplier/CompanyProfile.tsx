@@ -461,12 +461,19 @@ export default function CompanyProfile() {
                         </div>
                       </div>
 
-                      <Link to={`/s/${company.slug}`} target="_blank">
-                        <Button variant="outline" size="sm" className="gap-2">
+                      {company.slug ? (
+                        <Link to={`/s/${company.slug}`} target="_blank">
+                          <Button variant="outline" size="sm" className="gap-2">
+                            <ExternalLink className="w-4 h-4" />
+                            צפה כציבורי
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button variant="outline" size="sm" className="gap-2" disabled title="הקישור הציבורי ייווצר לאחר השמירה">
                           <ExternalLink className="w-4 h-4" />
-                          צפה כציבורי
+                          אין קישור ציבורי
                         </Button>
-                      </Link>
+                      )}
                     </div>
 
                     {company.description && (
