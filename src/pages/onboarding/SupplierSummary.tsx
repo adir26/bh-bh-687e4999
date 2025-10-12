@@ -12,7 +12,7 @@ import supplierSuccessImage from '@/assets/supplier-success.jpg';
 interface OnboardingData {
   companyInfo: {
     companyName: string;
-    category: string;
+    category: string | { id: string; name: string };
     operatingArea: string;
     contactName: string;
     phone: string;
@@ -167,7 +167,7 @@ export default function SupplierSummary() {
                     </div>
                     <div className="space-y-2 text-sm">
                       <div><strong>שם החברה:</strong> {companyInfo.companyName}</div>
-                      <div><strong>תחום פעילות:</strong> {companyInfo.category}</div>
+                      <div><strong>תחום פעילות:</strong> {typeof companyInfo.category === 'object' ? companyInfo.category.name : companyInfo.category}</div>
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4 text-muted-foreground" />
                         {companyInfo.operatingArea}

@@ -14,7 +14,7 @@ export default function SupplierCompanyInfo() {
   const { data: categories, isLoading: categoriesLoading } = useCategories();
   const [formData, setFormData] = useState({
     companyName: '',
-    category: '',
+    category: { id: '', name: '' },
     operatingArea: '',
     contactName: '',
     phone: '',
@@ -36,7 +36,7 @@ export default function SupplierCompanyInfo() {
     navigate('/onboarding/supplier-welcome');
   };
 
-  const isFormValid = formData.companyName && formData.category && formData.operatingArea && 
+  const isFormValid = formData.companyName && formData.category.id && formData.operatingArea && 
                      formData.contactName && formData.phone && formData.email;
 
   return (
@@ -96,8 +96,17 @@ export default function SupplierCompanyInfo() {
               <div>
                 <Label htmlFor="category">תחום פעילות *</Label>
                 <Select 
-                  value={formData.category} 
-                  onValueChange={(value) => setFormData({...formData, category: value})}
+                  value={formData.category.id} 
+                  onValueChange={(value) => {
+                    const selectedCategory = categories?.find(cat => cat.id === value);
+                    setFormData({
+                      ...formData, 
+                      category: { 
+                        id: value, 
+                        name: selectedCategory?.name || '' 
+                      }
+                    });
+                  }}
                   disabled={categoriesLoading}
                 >
                   <SelectTrigger className="mt-1">

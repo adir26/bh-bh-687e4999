@@ -27,7 +27,7 @@ export interface ClientOnboardingData {
 export interface SupplierOnboardingData {
   companyInfo: {
     companyName: string;
-    category: string;
+    category: string | { id: string; name: string };
     operatingArea: string;
     contactName: string;
     phone: string;
@@ -170,6 +170,10 @@ class OnboardingService {
     try {
       const startTime = Date.now();
       
+      // Extract category info before any destructuring
+      const selectedCategory = data.companyInfo?.category;
+      const categoryId = typeof selectedCategory === 'object' ? selectedCategory.id : selectedCategory;
+      
       // Check if company already exists
       const { data: existingCompany } = await supabase
         .from('companies')
@@ -285,15 +289,14 @@ class OnboardingService {
         console.log('✅ [ONBOARDING] Company created successfully:', company.id);
         
         // ✅ NEW: Link company to selected category from onboarding data
-        const selectedCategory = (data as any).companyInfo?.category;
-        if (selectedCategory) {
-          console.log('🏷️ [ONBOARDING] Linking company to category:', selectedCategory);
+        if (categoryId) {
+          console.log('🏷️ [ONBOARDING] Linking company to category:', categoryId);
           
           const { error: categoryError } = await supabase
             .from('company_categories')
             .insert({
               company_id: company.id,
-              category_id: selectedCategory
+              category_id: categoryId
             });
           
           if (categoryError) {
