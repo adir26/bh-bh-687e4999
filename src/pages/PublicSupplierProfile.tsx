@@ -357,7 +357,15 @@ const PublicSupplierProfile: React.FC = () => {
                       className="group"
                     >
                       <Card className="mobile-card h-full transition-transform group-hover:scale-[1.02]">
-                        {product.images && product.images.length > 0 ? (
+                        {product.signedImages && product.signedImages.length > 0 ? (
+                          <div className="aspect-square overflow-hidden rounded-t-lg">
+                            <img
+                              src={product.signedImages[0]}
+                              alt={product.name}
+                              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                            />
+                          </div>
+                        ) : product.images && product.images.length > 0 ? (
                           <div className="aspect-square overflow-hidden rounded-t-lg">
                             <img
                               src={product.images[0]}

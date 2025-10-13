@@ -125,8 +125,33 @@ export const usePublicSupplierProducts = (supplierId: string, options?: {
 
       if (error) throw error;
 
+      // Generate signed URLs for product images
+      const productsWithSignedUrls = await Promise.all(
+        (data || []).map(async (product) => {
+          if (!product.images || product.images.length === 0) {
+            return { ...product, signedImages: [] };
+          }
+
+          const signedImages = await Promise.all(
+            product.images.map(async (imagePath: string) => {
+              try {
+                const { data: signedData } = await supabase.storage
+                  .from('product-images')
+                  .createSignedUrl(imagePath, 60 * 60 * 24); // 24 hours
+                
+                return signedData?.signedUrl || imagePath;
+              } catch {
+                return imagePath;
+              }
+            })
+          );
+
+          return { ...product, signedImages };
+        })
+      );
+
       return {
-        products: data || [],
+        products: productsWithSignedUrls || [],
         totalCount: count || 0,
         hasMore: (count || 0) > page * limit,
       };
