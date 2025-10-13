@@ -9,6 +9,25 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsService } from '@/services/leadsService';
 
+const getLeadErrorMessage = (error: Error): string => {
+  const message = error.message.toLowerCase();
+  
+  if (
+    message.includes('permission denied') || 
+    message.includes('42501') ||
+    message.includes('rls') ||
+    message.includes('policy')
+  ) {
+    return 'אין הרשאה להוסיף ליד. נא לוודא שהחשבון מוגדר כספק במערכת.';
+  }
+  
+  if (message.includes('not-null') || message.includes('null value')) {
+    return 'שדות חובה חסרים. נא למלא את כל השדות הנדרשים.';
+  }
+  
+  return error.message;
+};
+
 interface AddLeadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -38,10 +57,10 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
       onOpenChange(false);
       resetForm();
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
         title: 'שגיאה בהוספת ליד',
-        description: error.message,
+        description: getLeadErrorMessage(error),
         variant: 'destructive',
       });
     },

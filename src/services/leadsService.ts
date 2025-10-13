@@ -120,7 +120,7 @@ export const leadsService = {
       .from('leads')
       .insert({
         supplier_id: supplierId,
-        client_id: supplierId, // For now, set as supplier's own lead
+        client_id: null, // ✅ Allow null - no workaround needed
         name: data.name,
         contact_phone: data.contact_phone || null,
         contact_email: data.contact_email || null,

@@ -49,58 +49,27 @@ export default function CompanyProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [newService, setNewService] = useState('');
 
-  // ✅ CRITICAL: Validate and fix supplier role before loading company
-  useEffect(() => {
-    const checkAndFixRole = async () => {
-      if (!user?.id) return;
+  // Check user role (read-only check, no write attempts)
+  const { data: userRole } = useQuery({
+    queryKey: ['user-role', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
       
-      console.log('🔍 [COMPANY_PROFILE] Checking supplier role...');
+      const { data, error } = await supabase.rpc('get_user_role', { 
+        user_id: user.id 
+      });
       
-      try {
-        // Check if supplier role exists in user_roles
-        const { data: roleData, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .eq('role', 'supplier')
-          .maybeSingle();
-        
-        if (roleError) {
-          console.error('❌ [COMPANY_PROFILE] Error checking role:', roleError);
-          return;
-        }
-        
-        if (!roleData) {
-          console.warn('⚠️ [COMPANY_PROFILE] Missing supplier role! Attempting to fix...');
-          
-          // Attempt to add the missing role
-          const { error: insertError } = await supabase
-            .from('user_roles')
-            .insert({ user_id: user.id, role: 'supplier' });
-          
-          if (insertError) {
-            if (insertError.code === '23505') {
-              console.log('ℹ️ [COMPANY_PROFILE] Role already exists (race condition)');
-            } else {
-              console.error('❌ [COMPANY_PROFILE] Failed to add role:', insertError);
-              showToast.error('לא ניתן לוודא הרשאות ספק. אנא פנה לתמיכה.');
-            }
-          } else {
-            console.log('✅ [COMPANY_PROFILE] Supplier role added successfully!');
-            showToast.success('הרשאות ספק אומתו בהצלחה');
-            // Refresh company data
-            queryClient.invalidateQueries({ queryKey: ['company', user.id] });
-          }
-        } else {
-          console.log('✅ [COMPANY_PROFILE] Supplier role validated');
-        }
-      } catch (err) {
-        console.error('❌ [COMPANY_PROFILE] Unexpected error in role check:', err);
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return null;
       }
-    };
-    
-    checkAndFixRole();
-  }, [user?.id, queryClient]);
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
+  const isSupplier = userRole === 'supplier' || 
+                     (user as any)?.user_metadata?.role === 'supplier';
 
   // Fetch company data
   const { data: company, isLoading, error } = useQuery({
@@ -207,6 +176,24 @@ export default function CompanyProfile() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const getCompanyErrorMessage = (error: any): string => {
+    const message = error.message?.toLowerCase() || '';
+    
+    if (error.code === '42501' || message.includes('permission denied')) {
+      return 'אין הרשאה לעדכן פרטי החברה. נא לוודא שיש לך הרשאות ספק.';
+    }
+    
+    if (error.code === 'PGRST116' || message.includes('not found')) {
+      return 'החברה לא נמצאה. נא לרענן את הדף ולנסות שוב.';
+    }
+    
+    if (message.includes('unique') || message.includes('duplicate')) {
+      return 'שם החברה או slug כבר קיימים במערכת.';
+    }
+    
+    return error.message || 'שגיאה לא ידועה';
+  };
+
   // Update company mutation
   const updateMutation = useMutation({
     mutationFn: async (updatedData: Partial<CompanyData>) => {
@@ -224,22 +211,13 @@ export default function CompanyProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['company', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['companies'] });
       showToast.success('פרטי החברה עודכנו בהצלחה');
       setIsEditing(false);
     },
     onError: (error: any) => {
       console.error('Error updating company:', error);
-      
-      // Handle specific error codes
-      if (error.code === '42501') {
-        showToast.error('אין הרשאה לעדכן פרטי החברה. אנא פנה לתמיכה.');
-      } else if (error.code === 'PGRST116') {
-        showToast.error('החברה לא נמצאה. אנא רענן את הדף.');
-      } else {
-        showToast.error('שגיאה בעדכון פרטי החברה');
-      }
-      
-      // Reset to preview mode to avoid stuck state
+      showToast.error(getCompanyErrorMessage(error));
       setIsEditing(false);
       setActiveTab('preview');
     },
@@ -302,6 +280,39 @@ export default function CompanyProfile() {
       />
     ));
   };
+
+  // Show role error if user is not a supplier
+  if (!isSupplier && !isLoading) {
+    return (
+      <div className="min-h-screen bg-background" dir="rtl">
+        <SupplierHeader 
+          title="פרופיל החברה"
+          subtitle="ערוך ותצפה בפרופיל שלך"
+          showBackButton={true}
+          backUrl="/supplier/dashboard"
+        />
+        <div className="max-w-2xl mx-auto px-4 py-12">
+          <Card>
+            <CardContent className="pt-6 text-center space-y-4">
+              <Building2 className="w-16 h-16 text-muted-foreground mx-auto" />
+              <h2 className="text-2xl font-semibold">חסרה הרשאת ספק</h2>
+              <p className="text-muted-foreground">
+                החשבון שלך עדיין לא מוגדר כחשבון ספק במערכת.
+                על מנת לגשת לעמוד זה, יש צורך בהרשאת ספק.
+              </p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => navigate('/support')}
+              >
+                פנה לתמיכה לשדרוג החשבון
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

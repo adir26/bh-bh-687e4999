@@ -1391,7 +1391,7 @@ export type Database = {
       leads: {
         Row: {
           assigned_to: string | null
-          client_id: string
+          client_id: string | null
           contact_email: string | null
           contact_method: string | null
           contact_phone: string | null
@@ -1419,7 +1419,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
-          client_id: string
+          client_id?: string | null
           contact_email?: string | null
           contact_method?: string | null
           contact_phone?: string | null
@@ -1447,7 +1447,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
-          client_id?: string
+          client_id?: string | null
           contact_email?: string | null
           contact_method?: string | null
           contact_phone?: string | null
