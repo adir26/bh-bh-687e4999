@@ -501,193 +501,141 @@ export default function QuoteBuilder() {
                       </Button>
                     </span>
                   </TooltipTrigger>
-                  {!quote && (
-                    <TooltipContent>
-                      <p>נא לשמור את ההצעה תחילה</p>
-                    </TooltipContent>
-                  )}
+                  <TooltipContent>הורד PDF של הצעת המחיר</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+              <Button 
+                variant="secondary" 
+                size="sm" 
+                onClick={handleSendToCustomer}
+                disabled={!quote || quote.status !== 'draft'}
+              >
+                <Send className="w-4 h-4 ml-1" />
+                שלח ללקוח
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
-        {/* Quote Title Card */}
-        <Card>
+      <div className="max-w-4xl mx-auto p-4 pb-20">
+        {/* Quote Details */}
+        <Card className="mb-4">
           <CardHeader>
-            <CardTitle>פרטי הצעת המחיר</CardTitle>
+            <CardTitle>פרטי הצעת מחיר</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">כותרת הצעת המחיר</label>
+                <label className="text-sm font-medium mb-1 block">כותרת</label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="הזן כותרת להצעת המחיר"
+                  placeholder="הצעת מחיר לפרויקט..."
                 />
               </div>
-              <div className="text-left md:text-right">
-                <p className="text-sm text-muted-foreground">מספר הצעת מחיר:</p>
-                <p className="font-bold text-lg">
-                  {quote ? quote.id.slice(0, 8).toUpperCase() : 'חדש'}
-                </p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  תאריך: {quote ? new Date(quote.created_at).toLocaleDateString('he-IL') : new Date().toLocaleDateString('he-IL')}
-                </p>
-                {quote && (
-                  <p className="text-sm text-muted-foreground">
-                    סטטוס: {quote.status === 'draft' ? 'טיוטה' : quote.status === 'sent' ? 'נשלחה' : quote.status === 'accepted' ? 'אושרה' : 'נדחתה'}
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Client Info Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>פרטי הלקוח</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-muted-foreground">בחר לקוח קיים</label>
+                <label className="text-sm font-medium mb-1 block">לקוח</label>
                 <Select value={selectedClientId} onValueChange={handleClientSelect}>
                   <SelectTrigger>
-                    <SelectValue placeholder="בחר לקוח מהרשימה" />
+                    <SelectValue placeholder="בחר לקוח" />
                   </SelectTrigger>
                   <SelectContent>
                     {clients.map((client) => (
                       <SelectItem key={client.id} value={client.id}>
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          {client.full_name || client.email}
-                        </div>
+                        {client.full_name} ({client.email})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">שם הלקוח</label>
-                <Input
-                  value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
-                  placeholder="הזן שם לקוח"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">אימייל</label>
-                <Input
-                  type="email"
-                  value={clientEmail}
-                  onChange={(e) => setClientEmail(e.target.value)}
-                  placeholder="client@example.com"
-                />
-              </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">הערות ללקוח</label>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="הערות והבהרות ללקוח..."
+                rows={3}
+              />
             </div>
           </CardContent>
         </Card>
 
-        {/* Items Table Card */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>פירוט השירותים/מוצרים</CardTitle>
-            <Button onClick={addItem} size="sm">
-              <Plus className="w-4 h-4 ml-1" />
-              הוסף פריט
-            </Button>
+        {/* Items Table */}
+        <Card className="mb-4">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>פריטים</CardTitle>
+              <Button
+                size="sm"
+                onClick={addItem}
+                className="flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" />
+                הוסף פריט
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            <div className="border rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-right">תיאור</TableHead>
-                    <TableHead className="text-right w-24">כמות</TableHead>
-                    <TableHead className="text-right w-32">מחיר ליחידה</TableHead>
-                    <TableHead className="text-right w-32">סכום חלקי</TableHead>
-                    <TableHead className="text-right w-16">פעולות</TableHead>
+                    <TableHead className="w-[200px]">שם</TableHead>
+                    <TableHead>תיאור</TableHead>
+                    <TableHead className="w-[100px]">כמות</TableHead>
+                    <TableHead className="w-[120px]">מחיר ליחידה</TableHead>
+                    <TableHead className="w-[120px]">סה"כ</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item) => (
+                  {items.map((item, index) => (
                     <TableRow key={item.id}>
                       <TableCell>
-                        <div className="space-y-2">
-                          {products.length > 0 && (
-                            <Select 
-                              value=""
-                              onValueChange={(productId) => {
-                                const product = products.find(p => p.id === productId);
-                                if (product) {
-                                  updateItem(item.id, 'name', product.name);
-                                  updateItem(item.id, 'description', product.description || '');
-                                  updateItem(item.id, 'unit_price', product.price);
-                                }
-                              }}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="בחר ממוצרים קיימים (אופציונלי)" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {products.map((product) => (
-                                  <SelectItem key={product.id} value={product.id}>
-                                    {product.name} - ₪{product.price.toLocaleString('he-IL')}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          )}
-                          <Input
-                            value={item.name}
-                            onChange={(e) => updateItem(item.id, 'name', e.target.value)}
-                            placeholder="שם הפריט (או הזן ידנית)"
-                          />
-                          <Input
-                            value={item.description}
-                            onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                            placeholder="תיאור נוסף (אופציונלי)"
-                          />
-                        </div>
+                        <Input
+                          value={item.name}
+                          onChange={(e) => updateItem(item.id, 'name', e.target.value)}
+                          placeholder="שם הפריט"
+                        />
                       </TableCell>
                       <TableCell>
                         <Input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => updateItem(item.id, 'quantity', Number(e.target.value))}
-                          min="1"
+                          value={item.description}
+                          onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                          placeholder="תיאור"
                         />
                       </TableCell>
                       <TableCell>
                         <Input
                           type="number"
-                          value={item.unit_price}
-                          onChange={(e) => updateItem(item.id, 'unit_price', Number(e.target.value))}
+                          min="0"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
                           min="0"
                           step="0.01"
+                          value={item.unit_price}
+                          onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
                         />
                       </TableCell>
                       <TableCell className="font-medium">
-                        ₪{item.total.toLocaleString('he-IL')}
+                        ₪{item.total.toFixed(2)}
                       </TableCell>
                       <TableCell>
-                        {items.length > 1 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeItem(item.id)}
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </Button>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeItem(item.id)}
+                          disabled={items.length === 1}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -697,151 +645,85 @@ export default function QuoteBuilder() {
           </CardContent>
         </Card>
 
-        {/* Summary Card */}
+        {/* Price Summary */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calculator className="w-5 h-5" />
-              סיכום מחירים
-            </CardTitle>
+            <CardTitle>סיכום מחירים</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">הנחה (%)</label>
-                  <Input
-                    type="number"
-                    value={discount}
-                    onChange={(e) => setDiscount(Number(e.target.value))}
-                    min="0"
-                    max="100"
-                    step="0.1"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">מע"ם (%)</label>
-                  <Input
-                    type="number"
-                    value={taxRate}
-                    onChange={(e) => setTaxRate(Number(e.target.value))}
-                    min="0"
-                    step="0.1"
-                  />
-                </div>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-1 block">הנחה (%)</label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={discount}
+                  onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                />
               </div>
-              <div className="space-y-2 text-left">
-                <div className="flex justify-between">
-                  <span>סכום ביניים:</span>
-                  <span>₪{calculations.subtotal.toLocaleString('he-IL')}</span>
-                </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>הנחה ({discount}%):</span>
-                    <span>-₪{calculations.discountAmount.toLocaleString('he-IL')}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span>לפני מע"ם:</span>
-                  <span>₪{calculations.taxableAmount.toLocaleString('he-IL')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>מע"מ ({taxRate}%):</span>
-                  <span>₪{calculations.taxAmount.toLocaleString('he-IL')}</span>
-                </div>
-                <div className="flex justify-between font-bold text-lg border-t pt-2">
-                  <span>סה"כ:</span>
-                  <span>₪{calculations.totalAmount.toLocaleString('he-IL')}</span>
-                </div>
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-1 block">מע"מ (%)</label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={taxRate}
+                  onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2 pt-4 border-t">
+              <div className="flex justify-between text-sm">
+                <span>סכום חלקי:</span>
+                <span>₪{calculations.subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>הנחה ({discount}%):</span>
+                <span className="text-destructive">-₪{calculations.discountAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>לפני מע"מ:</span>
+                <span>₪{calculations.taxableAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>מע"מ ({taxRate}%):</span>
+                <span>₪{calculations.taxAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                <span>סה"כ לתשלום:</span>
+                <span>₪{calculations.totalAmount.toFixed(2)}</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Notes Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>הערות ותנאים</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Textarea
-              value={notes}
-              onChange={(e) => {
-                setNotes(e.target.value);
-                triggerAutoSave();
-              }}
-              placeholder="הוסף הערות, תנאי תשלום, זמני אספקה וכד'..."
-              rows={4}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button 
-            variant="blue" 
-            className="flex-1" 
-            onClick={handleSendToCustomer}
-            disabled={!quote || quote.status !== 'draft' || !selectedClientId}
-          >
-            <Send className="w-4 h-4 ml-1" />
-            שלח ללקוח
-          </Button>
-          <Button 
-            variant="outline" 
-            className="flex-1" 
-            onClick={handleGenerateShareLink}
-            disabled={!quote}
-          >
-            <Share2 className="w-4 h-4 ml-1" />
-            צור קישור לשיתוף
-          </Button>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="flex-1">
-                  <Button 
-                    variant="outline" 
-                    className="w-full" 
-                    onClick={handleDownloadPDF}
-                    disabled={!quote}
-                  >
-                    <Download className="w-4 h-4 ml-1" />
-                    הורד PDF
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              {!quote && (
-                <TooltipContent>
-                  <p>נא לשמור את ההצעה תחילה</p>
-                </TooltipContent>
+        {/* Share Link Section */}
+        {quote && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>שתף הצעת מחיר</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleGenerateShareLink}
+                  className="flex-1"
+                >
+                  <Share2 className="w-4 h-4 ml-1" />
+                  צור קישור לשיתוף
+                </Button>
+              </div>
+              {shareLink && (
+                <div className="mt-2 p-2 bg-muted rounded text-sm break-all">
+                  {shareLink}
+                </div>
               )}
-            </Tooltip>
-          </TooltipProvider>
-          <Button 
-            variant="outline" 
-            className="flex-1" 
-            onClick={handleSaveDraft}
-            disabled={saving}
-          >
-            <Save className="w-4 h-4 ml-1" />
-            שמור כטיוטה
-          </Button>
-        </div>
-
-        {/* Share Link Display */}
-        {shareLink && (
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <p className="text-sm text-blue-800 font-medium mb-2">קישור לשיתוף (תקף 30 יום):</p>
-              <code className="text-xs bg-white p-2 rounded block overflow-x-auto border border-blue-200">
-                {shareLink}
-              </code>
-              <p className="text-xs text-blue-600 mt-2">הקישור הועתק ללוח. שתף אותו עם הלקוח!</p>
             </CardContent>
           </Card>
         )}
-        </div>
+      </div>
       </div>
     </PageBoundary>
   );

@@ -76,7 +76,11 @@ export const quotesService = {
         title: payload.title,
         notes: payload.notes,
         subtotal: 0,
+        tax_rate: payload.tax_rate || 0,
+        tax_amount: 0,
         total_amount: 0,
+        currency: payload.currency || 'ILS',
+        status: 'draft'
       } as any)
       .select()
       .maybeSingle();
