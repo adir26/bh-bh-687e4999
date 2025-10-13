@@ -4422,6 +4422,10 @@ export type Database = {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: boolean
       }
+      track_profile_view: {
+        Args: { p_company_id: string }
+        Returns: undefined
+      }
       validate_admin_session: {
         Args: { _user_id: string }
         Returns: Json

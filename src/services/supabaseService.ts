@@ -425,7 +425,16 @@ export const adminService = {
     const suppliers = allUsers.filter(user => user.role === 'supplier').length;
     const clients = allUsers.filter(user => user.role === 'client').length;
     const newUsersThisMonth = users.length;
-    const activeToday = Math.floor(totalUsers * 0.23); // Mock active today percentage
+    
+    // Real active today count from audit_logs
+    const today = new Date().toISOString().split('T')[0];
+    const { count: activeTodayCount } = await supabase
+      .from('audit_logs')
+      .select('user_id', { count: 'exact', head: true })
+      .gte('created_at', today)
+      .not('user_id', 'is', null);
+    
+    const activeToday = activeTodayCount || 0;
     const totalOrders = orders.length;
     const totalRevenue = orders.reduce((sum, order) => sum + Number(order.amount), 0);
     const pendingOrders = orders.filter(order => order.status === 'pending').length;

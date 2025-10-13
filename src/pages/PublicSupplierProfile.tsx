@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePublicSupplier, usePublicSupplierProducts, useSupplierCategories } from '@/hooks/usePublicSupplier';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +39,22 @@ const PublicSupplierProfile: React.FC = () => {
       categoryId: selectedCategory || undefined,
     }
   );
+
+  // Track profile view when supplier data loads
+  useEffect(() => {
+    if (supplier?.id) {
+      // Track profile view - fire and forget
+      const trackView = async () => {
+        try {
+          await supabase.rpc('track_profile_view', { p_company_id: supplier.id });
+          console.log('[PROFILE_VIEW] Tracked view for company:', supplier.id);
+        } catch (err) {
+          console.warn('[PROFILE_VIEW] Failed to track view:', err);
+        }
+      };
+      trackView();
+    }
+  }, [supplier?.id]);
 
   const handleShare = async () => {
     const url = window.location.href;
