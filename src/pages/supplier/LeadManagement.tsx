@@ -7,13 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin, User, AlertCircle, Users } from 'lucide-react';
+import { ArrowLeft, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin, User, AlertCircle, Users, Plus } from 'lucide-react';
 import { SearchInput } from '@/components/ui/search-input';
 import { showToast } from '@/utils/toast';
 import { leadsService, Lead, LeadStatus } from '@/services/leadsService';
 import { useAuth } from '@/contexts/AuthContext';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
+import { AddLeadDialog } from '@/components/crm/AddLeadDialog';
 
 function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, setStatusFilter, searchTerm, setSearchTerm }: {
   leads: Lead[];
@@ -25,6 +26,7 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
   setSearchTerm: (s: string) => void;
 }) {
   const navigate = useNavigate();
+  const [addLeadDialogOpen, setAddLeadDialogOpen] = useState(false);
 
   const handleCall = (phone: string) => {
     if (!phone) {
@@ -78,6 +80,14 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
               <h1 className="text-2xl font-bold text-foreground">ניהול לידים</h1>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="blue"
+                size="sm"
+                onClick={() => setAddLeadDialogOpen(true)}
+              >
+                <Plus className="w-4 h-4 ml-1" />
+                הוסף ליד
+              </Button>
               <Button
                 variant={viewMode === 'cards' ? 'default' : 'outline'}
                 size="sm"
@@ -319,6 +329,8 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
           </Card>
         )}
       </div>
+      
+      <AddLeadDialog open={addLeadDialogOpen} onOpenChange={setAddLeadDialogOpen} />
     </div>
   );
 }

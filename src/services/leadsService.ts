@@ -104,6 +104,38 @@ export const leadsService = {
     if (leadErr) throw leadErr;
   },
 
+  async createLead(data: {
+    name: string;
+    contact_phone?: string;
+    contact_email?: string;
+    source?: string;
+    priority?: string;
+    notes?: string;
+  }) {
+    const { data: userData } = await supabase.auth.getUser();
+    const supplierId = userData.user?.id;
+    if (!supplierId) throw new Error('Not authenticated');
+
+    const { data: lead, error } = await supabase
+      .from('leads')
+      .insert({
+        supplier_id: supplierId,
+        client_id: supplierId, // For now, set as supplier's own lead
+        name: data.name,
+        contact_phone: data.contact_phone || null,
+        contact_email: data.contact_email || null,
+        source: data.source || 'manual',
+        priority: data.priority || 'medium',
+        notes: data.notes || null,
+        status: 'new',
+      } as any)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    return lead as unknown as Lead;
+  },
+
   async createQuoteFromLead(leadId: string) {
     const { data: userData } = await supabase.auth.getUser();
     const supplierId = userData.user?.id;

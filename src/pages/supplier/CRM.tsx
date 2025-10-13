@@ -17,12 +17,13 @@ import { SLABadge } from '@/components/crm/SLABadge';
 import { LeadAssignmentDropdown } from '@/components/crm/LeadAssignmentDropdown';
 import { SLAMetricsWidget } from '@/components/crm/SLAMetricsWidget';
 import { QuickActionsMenu } from '@/components/crm/QuickActionsMenu';
-import { Phone, Mail, StickyNote, MessageCircle, FileText, ArrowUpDown, AlertCircle, Users } from 'lucide-react';
+import { Phone, Mail, StickyNote, MessageCircle, FileText, ArrowUpDown, AlertCircle, Users, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
+import { AddLeadDialog } from '@/components/crm/AddLeadDialog';
 
 const STATUSES: LeadStatus[] = ['new', 'contacted', 'proposal_sent', 'won', 'lost'];
 
@@ -61,6 +62,7 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [addLeadDialogOpen, setAddLeadDialogOpen] = useState(false);
 
   const leadsByStatus = useMemo(() => {
     const map: Record<LeadStatus, Lead[]> = { new: [], contacted: [], proposal_sent: [], won: [], lost: [] };
@@ -262,9 +264,15 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
             <h1 className="text-2xl font-semibold">Leads CRM</h1>
             <p className="text-sm text-muted-foreground">Manage your pipeline: drag between stages, add notes, and create quotes.</p>
           </div>
+          <Button variant="blue" onClick={() => setAddLeadDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            הוסף ליד
+          </Button>
         </div>
         <SLAMetricsWidget supplierId={user?.id} />
       </header>
+
+      <AddLeadDialog open={addLeadDialogOpen} onOpenChange={setAddLeadDialogOpen} />
 
       <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 items-center gap-2">
