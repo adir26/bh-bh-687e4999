@@ -229,7 +229,19 @@ export default function CompanyProfile() {
     },
     onError: (error: any) => {
       console.error('Error updating company:', error);
-      showToast.error('שגיאה בעדכון פרטי החברה');
+      
+      // Handle specific error codes
+      if (error.code === '42501') {
+        showToast.error('אין הרשאה לעדכן פרטי החברה. אנא פנה לתמיכה.');
+      } else if (error.code === 'PGRST116') {
+        showToast.error('החברה לא נמצאה. אנא רענן את הדף.');
+      } else {
+        showToast.error('שגיאה בעדכון פרטי החברה');
+      }
+      
+      // Reset to preview mode to avoid stuck state
+      setIsEditing(false);
+      setActiveTab('preview');
     },
   });
 
@@ -237,9 +249,12 @@ export default function CompanyProfile() {
     e.preventDefault();
     
     if (!company?.id) {
+      console.error('[COMPANY_PROFILE] Cannot save - no company ID');
       showToast.error('לא ניתן לשמור - לא נמצא פרופיל חברה');
       return;
     }
+    
+    console.log('[COMPANY_PROFILE] Saving company:', company.id);
     
     const formData = new FormData(e.currentTarget);
     
@@ -260,6 +275,7 @@ export default function CompanyProfile() {
       return;
     }
 
+    console.log('[COMPANY_PROFILE] Update data:', updatedData);
     updateMutation.mutate(updatedData);
   };
 
