@@ -19,6 +19,34 @@ import { PageBoundary } from '@/components/system/PageBoundary';
 
 const currencySymbol = (c?: string) => (c === "ILS" || !c ? "₪" : c);
 
+const getErrorMessage = (error: Error): string => {
+  const message = error.message.toLowerCase();
+  
+  // RLS/Permission errors
+  if (
+    message.includes('permission denied') || 
+    message.includes('42501') ||
+    message.includes('new row violates row-level security') ||
+    message.includes('rls') ||
+    message.includes('policy')
+  ) {
+    return 'אין הרשאה לבצע פעולה זו. נא לוודא שהחשבון מוגדר כספק במערכת.';
+  }
+  
+  // Validation errors - keep as-is
+  if (message.includes('נדרש') || message.includes('חייב') || message.includes('required')) {
+    return error.message;
+  }
+  
+  // Network errors
+  if (message.includes('network') || message.includes('fetch')) {
+    return 'שגיאת תקשורת. נא לנסות שוב.';
+  }
+  
+  // Default
+  return error.message;
+};
+
 export default function LiveProductCatalogContent() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -140,8 +168,8 @@ export default function LiveProductCatalogContent() {
     },
     onError: (error: Error) => {
       toast({ 
-        title: "שגיאה", 
-        description: error.message, 
+        title: "שגיאה ביצירת מוצר", 
+        description: getErrorMessage(error), 
         variant: "destructive" 
       });
     }
@@ -168,7 +196,11 @@ export default function LiveProductCatalogContent() {
       toast({ title: "המוצר נמחק בהצלחה" });
     },
     onError: (error: Error) => {
-      toast({ title: "מחיקה נכשלה", description: error.message, variant: "destructive" });
+      toast({ 
+        title: "מחיקה נכשלה", 
+        description: getErrorMessage(error), 
+        variant: "destructive" 
+      });
     }
   });
 
@@ -183,7 +215,11 @@ export default function LiveProductCatalogContent() {
       toast({ title: checked ? "המוצר פורסם" : "הפרסום בוטל" });
     },
     onError: (error: Error) => {
-      toast({ title: "עדכון סטטוס נכשל", description: error.message, variant: "destructive" });
+      toast({ 
+        title: "עדכון סטטוס נכשל", 
+        description: getErrorMessage(error), 
+        variant: "destructive" 
+      });
     }
   });
 
