@@ -42,9 +42,10 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new': return 'bg-green-100 text-green-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'closed': return 'bg-gray-100 text-gray-800';
-      case 'not-relevant': return 'bg-red-100 text-red-800';
+      case 'contacted': return 'bg-blue-100 text-blue-800';
+      case 'proposal_sent': return 'bg-purple-100 text-purple-800';
+      case 'won': return 'bg-emerald-100 text-emerald-800';
+      case 'lost': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -52,11 +53,31 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
   const getStatusText = (status: string) => {
     switch (status) {
       case 'new': return 'חדש';
-      case 'in-progress': return 'בטיפול';
-      case 'closed': return 'סגור';
-      case 'not-relevant': return 'לא רלוונטי';
+      case 'contacted': return 'נוצר קשר';
+      case 'proposal_sent': return 'נשלחה הצעה';
+      case 'won': return 'נסגר בהצלחה';
+      case 'lost': return 'אבד';
       default: return status;
     }
+  };
+
+  const getSourceLabel = (sourceKey: string | null | undefined) => {
+    if (!sourceKey) return '-';
+    
+    const labels: Record<string, string> = {
+      'website': 'אתר',
+      'referral': 'המלצה',
+      'social_media': 'מדיה חברתית',
+      'advertising': 'פרסום',
+      'direct': 'ישיר',
+      'facebook_paid': 'פייסבוק ממומן',
+      'facebook_organic': 'פייסבוק אורגני',
+      'whatsapp': 'וואטסאפ',
+      'word_of_mouth': 'פה לאוזן',
+      'other': 'אחר'
+    };
+    
+    return labels[sourceKey] || sourceKey;
   };
 
   
@@ -126,40 +147,56 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
             <SelectContent>
               <SelectItem value="all">כל הסטטוסים</SelectItem>
               <SelectItem value="new">חדש</SelectItem>
-              <SelectItem value="in-progress">בטיפול</SelectItem>
-              <SelectItem value="closed">סגור</SelectItem>
-              <SelectItem value="not-relevant">לא רלוונטי</SelectItem>
+              <SelectItem value="contacted">נוצר קשר</SelectItem>
+              <SelectItem value="proposal_sent">נשלחה הצעה</SelectItem>
+              <SelectItem value="won">נסגר בהצלחה</SelectItem>
+              <SelectItem value="lost">אבד</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">5</div>
-              <div className="text-sm text-muted-foreground">לידים חדשים</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">3</div>
-              <div className="text-sm text-muted-foreground">בטיפול</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-gray-600">12</div>
-              <div className="text-sm text-muted-foreground">נסגרו</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">75%</div>
-              <div className="text-sm text-muted-foreground">שיעור המרה</div>
-            </CardContent>
-          </Card>
-        </div>
+        {(() => {
+          const stats = {
+            new: leads.filter(l => l.status === 'new').length,
+            inProgress: leads.filter(l => l.status === 'contacted' || l.status === 'proposal_sent').length,
+            closed: leads.filter(l => l.status === 'won').length,
+            total: leads.length
+          };
+
+          const conversionRate = stats.total > 0 
+            ? Math.round((stats.closed / stats.total) * 100) 
+            : 0;
+
+          return (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">{stats.new}</div>
+                  <div className="text-sm text-muted-foreground">לידים חדשים</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
+                  <div className="text-sm text-muted-foreground">בטיפול</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-gray-600">{stats.closed}</div>
+                  <div className="text-sm text-muted-foreground">נסגרו</div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <div className="text-2xl font-bold text-primary">{conversionRate}%</div>
+                  <div className="text-sm text-muted-foreground">שיעור המרה</div>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })()}
 
         {/* Leads Display */}
         {leads.length === 0 ? (
@@ -205,10 +242,10 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                   </div>
                 </CardHeader>
                  <CardContent className="space-y-4">
-                   {lead.source && (
+                   {lead.source_key && (
                      <div>
                        <h4 className="font-medium text-sm text-muted-foreground mb-1">מקור:</h4>
-                       <p className="font-medium">{lead.source}</p>
+                       <p className="font-medium">{getSourceLabel(lead.source_key)}</p>
                      </div>
                    )}
                    {lead.notes && (
@@ -296,7 +333,7 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                            )}
                          </td>
                          <td className="p-4 text-muted-foreground">
-                           {lead.source || '-'}
+                           {getSourceLabel(lead.source_key)}
                          </td>
                         <td className="p-4">
                           <div className="flex gap-1">
