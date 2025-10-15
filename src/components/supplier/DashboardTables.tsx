@@ -99,6 +99,7 @@ const getPriorityBadge = (priority: string) => {
     'low': { label: 'נמוך', color: 'bg-gray-100 text-gray-800' },
     'medium': { label: 'בינוני', color: 'bg-blue-100 text-blue-800' },
     'high': { label: 'גבוה', color: 'bg-orange-100 text-orange-800' },
+    'vip': { label: 'VIP', color: 'bg-red-100 text-red-800' },
     'urgent': { label: 'דחוף', color: 'bg-red-100 text-red-800' },
   };
 
@@ -110,6 +111,23 @@ const getPriorityBadge = (priority: string) => {
       {config.label}
     </Badge>
   );
+};
+
+const getSourceLabel = (sourceKey: string | null | undefined) => {
+  const sourceLabels: Record<string, string> = {
+    'website': 'אתר',
+    'referral': 'הפניה',
+    'social_media': 'רשתות חברתיות',
+    'advertising': 'פרסום',
+    'direct': 'ישיר',
+    'other': 'אחר',
+    'facebook_paid': 'פייסבוק ממומן',
+    'facebook_organic': 'פייסבוק אורגני',
+    'word_of_mouth': 'פה לאוזן',
+    'whatsapp': 'וואטסאפ',
+  };
+  
+  return sourceLabels[sourceKey || 'other'] || sourceKey || 'אתר';
 };
 
 export const DashboardTables: React.FC<DashboardTablesProps> = ({
@@ -166,7 +184,7 @@ export const DashboardTables: React.FC<DashboardTablesProps> = ({
                         {lead.name || lead.contact_email}
                       </h4>
                       <p className="text-sm text-muted-foreground">
-                        {lead.source || 'אתר'}
+                        {getSourceLabel(lead.source_key)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -185,7 +203,7 @@ export const DashboardTables: React.FC<DashboardTablesProps> = ({
                           <span className="truncate max-w-32">{lead.contact_email}</span>
                         </div>
                       )}
-                      {lead.priority && getPriorityBadge(lead.priority)}
+                      {lead.priority_key && getPriorityBadge(lead.priority_key)}
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />

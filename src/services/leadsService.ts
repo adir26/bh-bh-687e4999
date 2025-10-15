@@ -10,7 +10,7 @@ export interface Lead {
   name: string | null;
   contact_phone: string | null;
   contact_email: string | null;
-  source: string | null;
+  source_key: string | null;
   status: LeadStatus;
   priority_key: string | null;
   last_contact_date: string | null;
@@ -20,6 +20,9 @@ export interface Lead {
   first_response_at?: string | null;
   snoozed_until?: string | null;
   sla_risk?: boolean;
+  // Legacy fields for backward compatibility (read-only)
+  source?: string | null;
+  priority?: string | null;
 }
 
 export interface LeadFilters {
@@ -47,7 +50,7 @@ export const leadsService = {
     }
 
     if (filters.source) {
-      query = query.eq('source', filters.source);
+      query = query.eq('source_key', filters.source);
     }
 
     if (filters.startDate) {
@@ -108,7 +111,7 @@ export const leadsService = {
     name: string;
     contact_phone?: string;
     contact_email?: string;
-    source?: string;
+    source_key?: string;
     priority_key?: string;
     notes?: string;
   }) {
@@ -120,11 +123,11 @@ export const leadsService = {
       .from('leads')
       .insert({
         supplier_id: supplierId,
-        client_id: null, // ✅ Allow null - no workaround needed
+        client_id: null,
         name: data.name,
         contact_phone: data.contact_phone || null,
         contact_email: data.contact_email || null,
-        source: data.source || 'manual',
+        source_key: data.source_key || 'other',
         priority_key: data.priority_key || 'medium',
         notes: data.notes || null,
         status: 'new',

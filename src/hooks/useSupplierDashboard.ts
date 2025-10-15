@@ -33,12 +33,15 @@ export interface RecentLead {
   id: string;
   name: string;
   contact_email: string;
-  source: string;
+  source_key: string;
   status: string;
-  priority: string;
+  priority_key: string;
   created_at: string;
   last_contact_date: string | null;
   sla_risk: boolean;
+  // Legacy fields for backward compatibility
+  source?: string;
+  priority?: string;
 }
 
 export interface RecentOrder {

@@ -65,6 +65,23 @@ function priorityLabel(priority: string): string {
   }
 }
 
+function getSourceLabel(sourceKey: string | null | undefined): string {
+  const sourceLabels: Record<string, string> = {
+    'website': 'אתר',
+    'referral': 'הפניה',
+    'social_media': 'רשתות חברתיות',
+    'advertising': 'פרסום',
+    'direct': 'ישיר',
+    'other': 'אחר',
+    'facebook_paid': 'פייסבוק ממומן',
+    'facebook_organic': 'פייסבוק אורגני',
+    'word_of_mouth': 'פה לאוזן',
+    'whatsapp': 'וואטסאפ',
+  };
+  
+  return sourceLabels[sourceKey || 'other'] || sourceKey || 'אתר';
+}
+
 function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFilter, setStatusFilter, sourceFilter, setSourceFilter, sort, setSort }: {
   leads: Lead[];
   view: 'kanban' | 'list';
@@ -316,8 +333,10 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
             <SelectContent>
               <SelectItem value="all">All sources</SelectItem>
               <SelectItem value="website">Website</SelectItem>
+              <SelectItem value="facebook_paid">Facebook Paid</SelectItem>
+              <SelectItem value="whatsapp">WhatsApp</SelectItem>
+              <SelectItem value="word_of_mouth">Word of Mouth</SelectItem>
               <SelectItem value="referral">Referral</SelectItem>
-              <SelectItem value="manual">Manual</SelectItem>
             </SelectContent>
           </Select>
           <Tabs value={view} onValueChange={(v) => setView(v as any)}>
@@ -418,7 +437,9 @@ function LeadCard({
       <div className="flex items-start justify-between">
         <div>
           <div className="font-medium">{lead.name || '—'}</div>
-          <div className="mt-1 text-xs text-muted-foreground">{lead.source || '—'}</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {getSourceLabel(lead.source_key)}
+          </div>
           {lead.priority_key && (
             <Badge variant={priorityBadgeVariant(lead.priority_key)} className="mt-1">
               {priorityLabel(lead.priority_key)}
@@ -467,15 +488,27 @@ function AddNoteInline({ onSave }: { onSave: (note: string) => void }) {
   return (
     <div>
       {!open ? (
-        <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-          <StickyNote className="mr-2 h-4 w-4" /> Note
+        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+          <StickyNote className="mr-2 h-4 w-4" />
+          Add note
         </Button>
       ) : (
-        <div className="flex w-full max-w-sm items-center gap-2">
-          <Textarea value={value} onChange={(e) => setValue(e.target.value)} placeholder="Add a note..." />
+        <div className="space-y-2">
+          <Textarea 
+            placeholder="Type your note..." 
+            value={value} 
+            onChange={(e) => setValue(e.target.value)}
+            className="min-h-[60px]"
+          />
           <div className="flex gap-2">
-            <Button size="sm" onClick={() => { onSave(value); setValue(''); setOpen(false); }}>Save</Button>
-            <Button size="sm" variant="ghost" onClick={() => { setOpen(false); setValue(''); }}>Cancel</Button>
+            <Button size="sm" onClick={() => {
+              if (value.trim()) {
+                onSave(value);
+                setValue('');
+                setOpen(false);
+              }
+            }}>Save</Button>
+            <Button size="sm" variant="ghost" onClick={() => { setValue(''); setOpen(false); }}>Cancel</Button>
           </div>
         </div>
       )}

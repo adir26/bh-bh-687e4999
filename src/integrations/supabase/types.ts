@@ -1409,6 +1409,24 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_source_dim: {
+        Row: {
+          channel: string
+          key: string
+          label: string
+        }
+        Insert: {
+          channel?: string
+          key: string
+          label: string
+        }
+        Update: {
+          channel?: string
+          key?: string
+          label?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           assigned_to: string | null
@@ -1435,6 +1453,7 @@ export type Database = {
           sla_risk: boolean | null
           snoozed_until: string | null
           source: string | null
+          source_key: string
           status: string | null
           supplier_id: string | null
           updated_at: string
@@ -1464,6 +1483,7 @@ export type Database = {
           sla_risk?: boolean | null
           snoozed_until?: string | null
           source?: string | null
+          source_key?: string
           status?: string | null
           supplier_id?: string | null
           updated_at?: string
@@ -1493,6 +1513,7 @@ export type Database = {
           sla_risk?: boolean | null
           snoozed_until?: string | null
           source?: string | null
+          source_key?: string
           status?: string | null
           supplier_id?: string | null
           updated_at?: string
@@ -1510,6 +1531,20 @@ export type Database = {
             columns: ["priority_key"]
             isOneToOne: false
             referencedRelation: "lead_priority_dim"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "leads_priority_key_fkey"
+            columns: ["priority_key"]
+            isOneToOne: false
+            referencedRelation: "lead_priority_dim"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "leads_source_key_fkey"
+            columns: ["source_key"]
+            isOneToOne: false
+            referencedRelation: "lead_source_dim"
             referencedColumns: ["key"]
           },
         ]

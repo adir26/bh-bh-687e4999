@@ -56,7 +56,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
     name: '',
     contact_phone: '',
     contact_email: '',
-    source: 'other',
+    source_key: 'other',
     priority_key: 'medium',
     notes: '',
   });
@@ -87,7 +87,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
       name: '',
       contact_phone: '',
       contact_email: '',
-      source: 'other',
+      source_key: 'other',
       priority_key: 'medium',
       notes: '',
     });
@@ -155,12 +155,12 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="source">מקור הגעה</Label>
+              <Label htmlFor="source_key">מקור הגעה</Label>
               <Select
-                value={formData.source}
-                onValueChange={(value) => setFormData({ ...formData, source: value })}
+                value={formData.source_key}
+                onValueChange={(value) => setFormData({ ...formData, source_key: value })}
               >
-                <SelectTrigger id="source">
+                <SelectTrigger id="source_key">
                   <SelectValue placeholder="בחר מקור" />
                 </SelectTrigger>
                 <SelectContent>
