@@ -15,6 +15,8 @@ import { quotesService, Quote, QuoteItem, CreateQuoteItemPayload } from '@/servi
 import { QuotePDF } from '@/components/quotes/QuotePDF';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
 import { withTimeout } from '@/lib/withTimeout';
@@ -44,8 +46,18 @@ export default function QuoteBuilder() {
   // Form state
   const [title, setTitle] = useState('הצעת מחיר חדשה');
   const [selectedClientId, setSelectedClientId] = useState('');
+  const [selectedClientValue, setSelectedClientValue] = useState(''); // For display in Select
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
+  
+  // Add new client modal state
+  const [isAddingClient, setIsAddingClient] = useState(false);
+  const [newClientData, setNewClientData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    notes: ''
+  });
   
   const [items, setItems] = useState<LocalQuoteItem[]>([
     { id: crypto.randomUUID(), name: '', description: '', quantity: 1, unit_price: 0, total: 0, sort_order: 0 }
@@ -80,11 +92,13 @@ export default function QuoteBuilder() {
     staleTime: 60_000,
   });
 
-  // Load clients for the dropdown
+  // Load clients - combine profiles AND leads for the dropdown
   const { data: clients = [], isLoading: clientsLoading } = useQuery({
-    queryKey: ['clients'],
-    queryFn: async ({ signal }) => {
-      const { data, error } = await withTimeout(
+    queryKey: ['clients-for-quote', profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      // Get actual clients from profiles
+      const { data: profileClients, error: profileError } = await withTimeout(
         supabase
           .from('profiles')
           .select('id, full_name, email')
@@ -92,8 +106,45 @@ export default function QuoteBuilder() {
         12000
       );
       
-      if (error) throw new Error('שגיאה בטעינת רשימת הלקוחות');
-      return data || [];
+      if (profileError) throw new Error('שגיאה בטעינת רשימת הלקוחות');
+      
+      // Get leads that belong to this supplier (potential clients)
+      const { data: leadClients, error: leadError } = await withTimeout(
+        supabase
+          .from('leads')
+          .select('id, name, contact_email, client_id')
+          .eq('supplier_id', profile!.id)
+          .not('name', 'is', null)
+          .not('contact_email', 'is', null)
+          .order('created_at', { ascending: false }),
+        12000
+      );
+      
+      if (leadError) throw new Error('שגיאה בטעינת לידים');
+      
+      // Combine both lists, avoiding duplicates
+      const combined: Array<{ id: string; full_name: string; email: string; isLead?: boolean }> = [
+        ...(profileClients || []).map(c => ({ 
+          id: c.id, 
+          full_name: c.full_name || '', 
+          email: c.email || '' 
+        }))
+      ];
+      
+      // Add leads that don't have a client_id (i.e., not yet converted to client)
+      (leadClients || []).forEach(lead => {
+        if (!lead.client_id) {
+          // Use lead:id as the identifier, mark it as a lead
+          combined.push({
+            id: `lead:${lead.id}`,  // Prefix to distinguish
+            full_name: lead.name || '',
+            email: lead.contact_email || '',
+            isLead: true
+          });
+        }
+      });
+      
+      return combined;
     },
     retry: 1,
     staleTime: 60_000,
@@ -161,6 +212,7 @@ export default function QuoteBuilder() {
       setQuote(quote);
       setTitle(quote.title);
       setSelectedClientId(quote.client_id || '');
+      setSelectedClientValue(quote.client_id || '');
       setNotes(quote.notes || '');
       setTaxRate(quote.tax_rate);
       
@@ -252,6 +304,17 @@ export default function QuoteBuilder() {
   const handleSaveDraft = async () => {
     if (!profile?.id || saving) return;
     
+    // Validation
+    if (!title.trim()) {
+      showToast.error('נא להזין כותרת להצעת המחיר');
+      return;
+    }
+    
+    if (!clientName.trim() && !selectedClientValue) {
+      showToast.error('נא לבחור לקוח או למלא פרטי לקוח');
+      return;
+    }
+    
     setSaving(true);
     try {
       let currentQuote = quote;
@@ -326,25 +389,36 @@ export default function QuoteBuilder() {
         }
       }
       
-      showToast.success('הצעת המחיר נשמרה');
-    } catch (error) {
+      showToast.success(`הצעת המחיר "${title}" נשמרה בהצלחה`);
+      return currentQuote; // Return the quote for PDF generation
+    } catch (error: any) {
       console.error('Failed to save quote:', error);
-      showToast.error('שגיאה בשמירת הצעת המחיר');
+      showToast.error(error.message || 'שגיאה בשמירת הצעת המחיר');
+      throw error;
     } finally {
       setSaving(false);
     }
   };
 
   const handleDownloadPDF = async () => {
-    if (!quote || !profile) {
-      showToast.info('💾 נא לשמור את ההצעה לפני הורדת PDF');
-      // Auto-trigger save
-      await handleSaveDraft();
-      return;
-    }
-
     try {
-      const quoteData = await quotesService.getQuoteById(quote.id);
+      // If no quote exists, save first
+      let currentQuote = quote;
+      if (!currentQuote) {
+        showToast.info('שומר את ההצעה לפני יצירת PDF...');
+        currentQuote = await handleSaveDraft();
+        if (!currentQuote) return;
+      }
+
+      if (!profile) return;
+      
+      // Verify we have client info
+      if (!clientName.trim() || !clientEmail.trim()) {
+        showToast.error('נא למלא פרטי לקוח לפני יצירת PDF');
+        return;
+      }
+
+      const quoteData = await quotesService.getQuoteById(currentQuote.id);
       if (!quoteData) return;
 
       const supplierInfo = {
@@ -372,7 +446,7 @@ export default function QuoteBuilder() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `quote-${quote.id.slice(0, 8)}.pdf`;
+      link.download = `quote-${currentQuote.id.slice(0, 8)}.pdf`;
       link.click();
       
       URL.revokeObjectURL(url);
@@ -390,7 +464,7 @@ export default function QuoteBuilder() {
     }
     
     if (!selectedClientId) {
-      showToast.error('נא לבחור לקוח');
+      showToast.error('נא לבחור לקוח עם פרופיל (לא ליד) לשליחת הצעת מחיר');
       return;
     }
     
@@ -436,13 +510,77 @@ export default function QuoteBuilder() {
     };
   }, []);
 
-  // Handle client selection
-  const handleClientSelect = (clientId: string) => {
-    setSelectedClientId(clientId);
-    const client = clients.find(c => c.id === clientId);
-    if (client) {
-      setClientName(client.full_name || '');
-      setClientEmail(client.email || '');
+  // Handle client selection - support both profiles and leads
+  const handleClientSelect = (value: string) => {
+    setSelectedClientValue(value);
+    
+    // Check if this is a lead (prefixed with "lead:")
+    if (value.startsWith('lead:')) {
+      setSelectedClientId(''); // No actual client_id yet
+      const client = clients.find(c => c.id === value);
+      if (client) {
+        setClientName(client.full_name || '');
+        setClientEmail(client.email || '');
+      }
+    } else {
+      // Regular client from profiles
+      setSelectedClientId(value);
+      const client = clients.find(c => c.id === value);
+      if (client) {
+        setClientName(client.full_name || '');
+        setClientEmail(client.email || '');
+      }
+    }
+  };
+
+  // Handle creating a new client (as a lead)
+  const handleCreateNewClient = async () => {
+    if (!newClientData.name.trim() || !newClientData.email.trim()) {
+      showToast.error('נא למלא שם ואימייל');
+      return;
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newClientData.email)) {
+      showToast.error('נא להזין כתובת אימייל תקינה');
+      return;
+    }
+    
+    try {
+      // Create lead in database
+      const { data: newLead, error } = await supabase
+        .from('leads')
+        .insert({
+          supplier_id: profile!.id,
+          name: newClientData.name,
+          contact_email: newClientData.email,
+          contact_phone: newClientData.phone || null,
+          source_key: 'website',
+          priority_key: 'medium',
+          notes: newClientData.notes || null,
+          status: 'new'
+        } as any)
+        .select()
+        .maybeSingle();
+      
+      if (error) throw error;
+      
+      if (newLead) {
+        // Set client details in the form
+        setSelectedClientValue(`lead:${newLead.id}`);
+        setSelectedClientId(''); // No profile ID yet
+        setClientName(newLead.name);
+        setClientEmail(newLead.contact_email);
+        
+        setIsAddingClient(false);
+        setNewClientData({ name: '', email: '', phone: '', notes: '' });
+        
+        showToast.success('לקוח חדש נוסף בהצלחה');
+      }
+    } catch (error) {
+      console.error('Failed to create client:', error);
+      showToast.error('שגיאה ביצירת לקוח חדש');
     }
   };
 
@@ -536,18 +674,38 @@ export default function QuoteBuilder() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">לקוח</label>
-                <Select value={selectedClientId} onValueChange={handleClientSelect}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="בחר לקוח" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        {client.full_name} ({client.email})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <Select value={selectedClientValue} onValueChange={handleClientSelect}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={
+                        clientsLoading 
+                          ? "טוען לקוחות..." 
+                          : clients.length === 0 
+                            ? "אין לקוחות - הוסף לקוח חדש"
+                            : "בחר לקוח מהרשימה"
+                      } />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background z-50">
+                      {clients.map((client: any) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.full_name} ({client.email})
+                          {client.isLead && <span className="text-xs text-muted-foreground mr-2">[ליד]</span>}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setIsAddingClient(true)}
+                    className="whitespace-nowrap flex items-center gap-1"
+                  >
+                    <Users className="w-4 h-4" />
+                    לקוח חדש
+                  </Button>
+                </div>
               </div>
             </div>
             <div>
@@ -723,6 +881,64 @@ export default function QuoteBuilder() {
             </CardContent>
           </Card>
         )}
+        
+        {/* Add New Client Dialog */}
+        <Dialog open={isAddingClient} onOpenChange={setIsAddingClient}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>הוסף לקוח חדש</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="client-name">שם מלא *</Label>
+                <Input
+                  id="client-name"
+                  value={newClientData.name}
+                  onChange={(e) => setNewClientData({ ...newClientData, name: e.target.value })}
+                  placeholder="שם הלקוח"
+                />
+              </div>
+              <div>
+                <Label htmlFor="client-email">אימייל *</Label>
+                <Input
+                  id="client-email"
+                  type="email"
+                  value={newClientData.email}
+                  onChange={(e) => setNewClientData({ ...newClientData, email: e.target.value })}
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="client-phone">טלפון</Label>
+                <Input
+                  id="client-phone"
+                  type="tel"
+                  value={newClientData.phone}
+                  onChange={(e) => setNewClientData({ ...newClientData, phone: e.target.value })}
+                  placeholder="050-1234567"
+                />
+              </div>
+              <div>
+                <Label htmlFor="client-notes">הערות</Label>
+                <Textarea
+                  id="client-notes"
+                  value={newClientData.notes}
+                  onChange={(e) => setNewClientData({ ...newClientData, notes: e.target.value })}
+                  placeholder="הערות על הלקוח..."
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddingClient(false)}>
+                ביטול
+              </Button>
+              <Button onClick={handleCreateNewClient}>
+                הוסף לקוח
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
       </div>
     </PageBoundary>
