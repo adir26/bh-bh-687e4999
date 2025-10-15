@@ -213,7 +213,12 @@ export default function QuoteBuilder() {
       setSelectedClientId(quote.client_id || '');
       setSelectedClientValue(quote.client_id || '');
       setNotes(quote.notes || '');
-      setTaxRate(quote.tax_rate);
+      // Calculate tax_rate from tax_amount and subtotal
+      if (quote.subtotal > 0 && quote.tax_amount) {
+        setTaxRate((quote.tax_amount / quote.subtotal) * 100);
+      } else {
+        setTaxRate(17); // Default VAT rate in Israel
+      }
       
       // Convert quote items to local format
       const localItems = quoteItems.map(item => ({
@@ -323,8 +328,7 @@ export default function QuoteBuilder() {
         currentQuote = await quotesService.createQuote({
           title,
           client_id: selectedClientId || undefined,
-          notes,
-          tax_rate: taxRate
+          notes
         });
         setQuote(currentQuote);
         
@@ -341,7 +345,6 @@ export default function QuoteBuilder() {
         client_id: selectedClientId || undefined,
         notes,
         subtotal: calculations.subtotal,
-        tax_rate: taxRate,
         tax_amount: calculations.taxAmount,
         total_amount: calculations.totalAmount
       });
@@ -411,9 +414,9 @@ export default function QuoteBuilder() {
 
       if (!profile) return;
       
-      // Verify we have client info
-      if (!clientName.trim() || !clientEmail.trim()) {
-        showToast.error('נא למלא פרטי לקוח לפני יצירת PDF');
+      // Verify we have client name
+      if (!clientName.trim()) {
+        showToast.error('נא למלא שם לקוח לפני יצירת PDF');
         return;
       }
 
@@ -427,7 +430,7 @@ export default function QuoteBuilder() {
 
       const clientInfo = {
         name: clientName,
-        email: clientEmail
+        email: clientEmail || 'לא צוין'
       };
 
       const doc = (

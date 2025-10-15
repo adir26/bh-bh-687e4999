@@ -12,7 +12,6 @@ export interface Quote {
   tax_rate: number;
   tax_amount: number;
   total_amount: number;
-  currency: string;
   status: 'draft' | 'sent' | 'accepted' | 'rejected';
   created_at: string;
   updated_at: string;
@@ -33,8 +32,6 @@ export interface CreateQuotePayload {
   title: string;
   client_id?: string;
   notes?: string;
-  tax_rate?: number;
-  currency?: string;
 }
 
 export interface UpdateQuotePayload {
@@ -76,10 +73,8 @@ export const quotesService = {
         title: payload.title,
         notes: payload.notes,
         subtotal: 0,
-        tax_rate: payload.tax_rate || 0,
         tax_amount: 0,
         total_amount: 0,
-        currency: payload.currency || 'ILS',
         status: 'draft'
       } as any)
       .select()
