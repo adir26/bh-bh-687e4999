@@ -1388,6 +1388,27 @@ export type Database = {
           },
         ]
       }
+      lead_priority_dim: {
+        Row: {
+          active: boolean
+          key: string
+          label: string
+          rank: number
+        }
+        Insert: {
+          active?: boolean
+          key: string
+          label: string
+          rank: number
+        }
+        Update: {
+          active?: boolean
+          key?: string
+          label?: string
+          rank?: number
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           assigned_to: string | null
@@ -1408,6 +1429,7 @@ export type Database = {
           next_follow_up_date: string | null
           notes: string | null
           priority: string | null
+          priority_key: string
           probability: number | null
           project_id: string | null
           sla_risk: boolean | null
@@ -1436,6 +1458,7 @@ export type Database = {
           next_follow_up_date?: string | null
           notes?: string | null
           priority?: string | null
+          priority_key?: string
           probability?: number | null
           project_id?: string | null
           sla_risk?: boolean | null
@@ -1464,6 +1487,7 @@ export type Database = {
           next_follow_up_date?: string | null
           notes?: string | null
           priority?: string | null
+          priority_key?: string
           probability?: number | null
           project_id?: string | null
           sla_risk?: boolean | null
@@ -1480,6 +1504,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_priority_fk"
+            columns: ["priority_key"]
+            isOneToOne: false
+            referencedRelation: "lead_priority_dim"
+            referencedColumns: ["key"]
           },
         ]
       }

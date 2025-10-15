@@ -57,7 +57,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
     contact_phone: '',
     contact_email: '',
     source: 'other',
-    priority: 'medium',
+    priority_key: 'medium',
     notes: '',
   });
 
@@ -88,7 +88,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
       contact_phone: '',
       contact_email: '',
       source: 'other',
-      priority: 'medium',
+      priority_key: 'medium',
       notes: '',
     });
   };
@@ -176,8 +176,8 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
             <div className="space-y-2">
               <Label htmlFor="priority">עדיפות</Label>
               <Select
-                value={formData.priority}
-                onValueChange={(value) => setFormData({ ...formData, priority: value })}
+                value={formData.priority_key}
+                onValueChange={(value) => setFormData({ ...formData, priority_key: value })}
               >
                 <SelectTrigger id="priority">
                   <SelectValue placeholder="בחר עדיפות" />

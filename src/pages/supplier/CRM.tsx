@@ -419,9 +419,9 @@ function LeadCard({
         <div>
           <div className="font-medium">{lead.name || '—'}</div>
           <div className="mt-1 text-xs text-muted-foreground">{lead.source || '—'}</div>
-          {lead.priority && (
-            <Badge variant={priorityBadgeVariant(lead.priority)} className="mt-1">
-              {priorityLabel(lead.priority)}
+          {lead.priority_key && (
+            <Badge variant={priorityBadgeVariant(lead.priority_key)} className="mt-1">
+              {priorityLabel(lead.priority_key)}
             </Badge>
           )}
         </div>

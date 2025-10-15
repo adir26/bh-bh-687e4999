@@ -12,7 +12,7 @@ export interface Lead {
   contact_email: string | null;
   source: string | null;
   status: LeadStatus;
-  priority: string | null;
+  priority_key: string | null;
   last_contact_date: string | null;
   notes: string | null;
   created_at: string;
@@ -109,7 +109,7 @@ export const leadsService = {
     contact_phone?: string;
     contact_email?: string;
     source?: string;
-    priority?: string;
+    priority_key?: string;
     notes?: string;
   }) {
     const { data: userData } = await supabase.auth.getUser();
@@ -125,7 +125,7 @@ export const leadsService = {
         contact_phone: data.contact_phone || null,
         contact_email: data.contact_email || null,
         source: data.source || 'manual',
-        priority: data.priority || 'medium',
+        priority_key: data.priority_key || 'medium',
         notes: data.notes || null,
         status: 'new',
       } as any)
