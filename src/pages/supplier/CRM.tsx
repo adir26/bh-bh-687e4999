@@ -45,6 +45,26 @@ const statusBadgeVariant: Record<LeadStatus, 'default' | 'secondary' | 'outline'
   lost: 'outline',
 };
 
+function priorityBadgeVariant(priority: string): 'default' | 'secondary' | 'outline' | 'destructive' {
+  switch (priority) {
+    case 'vip': return 'destructive';
+    case 'high': return 'destructive';
+    case 'medium': return 'secondary';
+    case 'low': return 'outline';
+    default: return 'outline';
+  }
+}
+
+function priorityLabel(priority: string): string {
+  switch (priority) {
+    case 'vip': return 'VIP';
+    case 'high': return 'חשוב';
+    case 'medium': return 'בינוני';
+    case 'low': return 'רגיל';
+    default: return priority;
+  }
+}
+
 function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFilter, setStatusFilter, sourceFilter, setSourceFilter, sort, setSort }: {
   leads: Lead[];
   view: 'kanban' | 'list';
@@ -399,6 +419,11 @@ function LeadCard({
         <div>
           <div className="font-medium">{lead.name || '—'}</div>
           <div className="mt-1 text-xs text-muted-foreground">{lead.source || '—'}</div>
+          {lead.priority && (
+            <Badge variant={priorityBadgeVariant(lead.priority)} className="mt-1">
+              {priorityLabel(lead.priority)}
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <SLABadge lead={lead} />

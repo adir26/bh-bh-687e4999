@@ -9,6 +9,22 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { leadsService } from '@/services/leadsService';
 
+const LEAD_SOURCES = [
+  { value: 'facebook_paid', label: 'פייסבוק ממומן' },
+  { value: 'facebook_organic', label: 'פייסבוק אורגני' },
+  { value: 'word_of_mouth', label: 'פה לאוזן' },
+  { value: 'referral', label: 'המלצה' },
+  { value: 'whatsapp', label: 'וואטסאפ' },
+  { value: 'other', label: 'אחר' },
+] as const;
+
+const LEAD_PRIORITIES = [
+  { value: 'vip', label: 'VIP' },
+  { value: 'high', label: 'חשוב' },
+  { value: 'medium', label: 'בינוני' },
+  { value: 'low', label: 'רגיל' },
+] as const;
+
 const getLeadErrorMessage = (error: Error): string => {
   const message = error.message.toLowerCase();
   
@@ -40,7 +56,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
     name: '',
     contact_phone: '',
     contact_email: '',
-    source: 'manual',
+    source: 'other',
     priority: 'medium',
     notes: '',
   });
@@ -71,7 +87,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
       name: '',
       contact_phone: '',
       contact_email: '',
-      source: 'manual',
+      source: 'other',
       priority: 'medium',
       notes: '',
     });
@@ -148,11 +164,11 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
                   <SelectValue placeholder="בחר מקור" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="manual">ידני</SelectItem>
-                  <SelectItem value="website">אתר</SelectItem>
-                  <SelectItem value="referral">המלצה</SelectItem>
-                  <SelectItem value="phone">טלפון</SelectItem>
-                  <SelectItem value="email">אימייל</SelectItem>
+                  {LEAD_SOURCES.map((source) => (
+                    <SelectItem key={source.value} value={source.value}>
+                      {source.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -167,9 +183,11 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
                   <SelectValue placeholder="בחר עדיפות" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="low">נמוכה</SelectItem>
-                  <SelectItem value="medium">בינונית</SelectItem>
-                  <SelectItem value="high">גבוהה</SelectItem>
+                  {LEAD_PRIORITIES.map((priority) => (
+                    <SelectItem key={priority.value} value={priority.value}>
+                      {priority.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
