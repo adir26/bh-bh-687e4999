@@ -68,7 +68,7 @@ export const SupplierBottomNavigation: React.FC = () => {
     {
       icon: FileCheck,
       label: 'בונה הצעות',
-      path: '/supplier/proposal-builder'
+      path: '/supplier/proposals'
     },
     {
       icon: Users,
