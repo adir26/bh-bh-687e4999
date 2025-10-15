@@ -33,6 +33,11 @@ const getErrorMessage = (error: Error): string => {
     return 'אין הרשאה לבצע פעולה זו. נא לוודא שהחשבון מוגדר כספק במערכת.';
   }
   
+  // Storage-specific errors
+  if (message.includes('storage') || message.includes('bucket')) {
+    return 'שגיאה בהעלאת תמונות. נא לנסות שוב או לפנות לתמיכה.';
+  }
+  
   // Validation errors - keep as-is
   if (message.includes('נדרש') || message.includes('חייב') || message.includes('required')) {
     return error.message;
