@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, Upload, X, Grid, List, Filter } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useAuth } from "@/contexts/AuthContext";
 import { productsService, DBProduct, validateImageFiles, IMAGE_MAX_SIZE, PRODUCTS_PER_PAGE } from "@/services/productsService";
 import { useToast } from "@/hooks/use-toast";
@@ -313,17 +314,6 @@ export default function LiveProductCatalogContent() {
       isError={isError}
       error={error}
       onRetry={() => refetch()}
-      isEmpty={!productData?.items.length}
-      empty={
-        <Card className="mobile-card">
-          <CardContent className="text-center py-12">
-            <p className="text-muted-foreground mb-4">אין מוצרים עדיין</p>
-            <Button variant="blue" onClick={openNew}>
-              <Plus className="w-4 h-4 ml-1" /> הוסף מוצר ראשון
-            </Button>
-          </CardContent>
-        </Card>
-      }
     >
       <div className="min-h-screen bg-background" dir="rtl">
         {/* Header */}
@@ -410,6 +400,16 @@ export default function LiveProductCatalogContent() {
               </SelectContent>
             </Select>
           </div>
+
+          {/* Empty State */}
+          {filtered.length === 0 && (
+            <EmptyState
+              title="אין מוצרים להצגה"
+              description="התחילו להוסיף מוצרים ושירותים לקטלוג שלכם."
+              action={{ label: 'הוסף מוצר ראשון', onClick: openNew }}
+              className="mb-4"
+            />
+          )}
 
           {/* Products Display */}
           {viewMode === 'grid' ? (
