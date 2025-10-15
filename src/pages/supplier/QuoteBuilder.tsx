@@ -115,7 +115,6 @@ export default function QuoteBuilder() {
           .select('id, name, contact_email, client_id')
           .eq('supplier_id', profile!.id)
           .not('name', 'is', null)
-          .not('contact_email', 'is', null)
           .order('created_at', { ascending: false }),
         12000
       );
@@ -535,16 +534,19 @@ export default function QuoteBuilder() {
 
   // Handle creating a new client (as a lead)
   const handleCreateNewClient = async () => {
-    if (!newClientData.name.trim() || !newClientData.email.trim()) {
-      showToast.error('נא למלא שם ואימייל');
+    // שם הוא חובה
+    if (!newClientData.name.trim()) {
+      showToast.error('נא למלא שם לקוח');
       return;
     }
     
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newClientData.email)) {
-      showToast.error('נא להזין כתובת אימייל תקינה');
-      return;
+    // אימייל אופציונלי, אבל אם מולא צריך להיות תקין
+    if (newClientData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(newClientData.email)) {
+        showToast.error('נא להזין כתובת אימייל תקינה');
+        return;
+      }
     }
     
     try {
@@ -554,7 +556,7 @@ export default function QuoteBuilder() {
         .insert({
           supplier_id: profile!.id,
           name: newClientData.name,
-          contact_email: newClientData.email,
+          contact_email: newClientData.email.trim() || null,
           contact_phone: newClientData.phone || null,
           source_key: 'website',
           priority_key: 'medium',
@@ -571,7 +573,7 @@ export default function QuoteBuilder() {
         setSelectedClientValue(`lead:${newLead.id}`);
         setSelectedClientId(''); // No profile ID yet
         setClientName(newLead.name);
-        setClientEmail(newLead.contact_email);
+        setClientEmail(newLead.contact_email || '');
         
         setIsAddingClient(false);
         setNewClientData({ name: '', email: '', phone: '', notes: '' });
@@ -688,7 +690,7 @@ export default function QuoteBuilder() {
                     <SelectContent className="bg-background z-50">
                       {clients.map((client: any) => (
                         <SelectItem key={client.id} value={client.id}>
-                          {client.full_name} ({client.email})
+                          {client.full_name} {client.email ? `(${client.email})` : '(ללא אימייל)'}
                           {client.isLead && <span className="text-xs text-muted-foreground mr-2">[ליד]</span>}
                         </SelectItem>
                       ))}
@@ -899,7 +901,7 @@ export default function QuoteBuilder() {
                 />
               </div>
               <div>
-                <Label htmlFor="client-email">אימייל *</Label>
+                <Label htmlFor="client-email">אימייל (אופציונלי)</Label>
                 <Input
                   id="client-email"
                   type="email"
