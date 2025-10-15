@@ -3031,6 +3031,7 @@ export type Database = {
           product_id: string | null
           quantity: number
           quote_id: string
+          sort_order: number
           subtotal: number
           unit_price: number
         }
@@ -3042,6 +3043,7 @@ export type Database = {
           product_id?: string | null
           quantity?: number
           quote_id: string
+          sort_order?: number
           subtotal: number
           unit_price: number
         }
@@ -3053,6 +3055,7 @@ export type Database = {
           product_id?: string | null
           quantity?: number
           quote_id?: string
+          sort_order?: number
           subtotal?: number
           unit_price?: number
         }
