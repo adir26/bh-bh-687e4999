@@ -314,11 +314,6 @@ export default function QuoteBuilder() {
       return;
     }
     
-    if (!clientName.trim() && !selectedClientValue) {
-      showToast.error('נא לבחור לקוח או למלא פרטי לקוח');
-      return;
-    }
-    
     setSaving(true);
     try {
       let currentQuote = quote;
@@ -637,7 +632,6 @@ export default function QuoteBuilder() {
                         variant="blue" 
                         size="sm" 
                         onClick={handleDownloadPDF}
-                        disabled={!quote}
                       >
                         <Download className="w-4 h-4 ml-1" />
                         הורד PDF

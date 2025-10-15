@@ -3113,7 +3113,7 @@ export type Database = {
       }
       quotes: {
         Row: {
-          client_id: string
+          client_id: string | null
           created_at: string
           description: string | null
           discount_amount: number | null
@@ -3135,7 +3135,7 @@ export type Database = {
           viewed_at: string | null
         }
         Insert: {
-          client_id: string
+          client_id?: string | null
           created_at?: string
           description?: string | null
           discount_amount?: number | null
@@ -3157,7 +3157,7 @@ export type Database = {
           viewed_at?: string | null
         }
         Update: {
-          client_id?: string
+          client_id?: string | null
           created_at?: string
           description?: string | null
           discount_amount?: number | null

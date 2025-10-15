@@ -100,7 +100,7 @@ export default function QuoteView() {
       const calculations = quotesService.calculateTotals(
         items.map(item => ({ total: item.subtotal })),
         0, // No discount shown in this view
-        quote.tax_rate
+        quote.subtotal > 0 ? (quote.tax_amount / quote.subtotal) * 100 : 17
       );
 
       const clientInfo = {
@@ -168,7 +168,7 @@ export default function QuoteView() {
             const calculations = quotesService.calculateTotals(
               items.map(item => ({ total: item.subtotal })),
               0,
-              quote.tax_rate
+              quote.subtotal > 0 ? (quote.tax_amount / quote.subtotal) * 100 : 17
             );
 
             const isClient = user?.id === quote.client_id;
@@ -283,7 +283,7 @@ export default function QuoteView() {
                           <span>₪{calculations.subtotal.toLocaleString('he-IL')}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>מע"מ ({quote.tax_rate}%):</span>
+                          <span>מע"מ ({quote.subtotal > 0 ? ((quote.tax_amount / quote.subtotal) * 100).toFixed(0) : '17'}%):</span>
                           <span>₪{calculations.taxAmount.toLocaleString('he-IL')}</span>
                         </div>
                         <div className="flex justify-between font-bold text-lg border-t pt-2">

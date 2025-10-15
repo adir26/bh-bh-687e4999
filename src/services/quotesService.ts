@@ -9,7 +9,6 @@ export interface Quote {
   title: string;
   notes?: string;
   subtotal: number;
-  tax_rate: number;
   tax_amount: number;
   total_amount: number;
   status: 'draft' | 'sent' | 'accepted' | 'rejected';
@@ -39,7 +38,6 @@ export interface UpdateQuotePayload {
   client_id?: string;
   notes?: string;
   subtotal?: number;
-  tax_rate?: number;
   tax_amount?: number;
   total_amount?: number;
   status?: Quote['status'];

@@ -41,7 +41,7 @@ export default function PublicQuoteView() {
       const calculations = quotesService.calculateTotals(
         quoteData.items.map(item => ({ total: item.subtotal })),
         0,
-        quoteData.quote.tax_rate
+        quoteData.quote.subtotal > 0 ? (quoteData.quote.tax_amount / quoteData.quote.subtotal) * 100 : 17
       );
 
       const doc = (
@@ -166,7 +166,7 @@ export default function PublicQuoteView() {
                       <span>₪{quoteData.quote.subtotal.toLocaleString('he-IL')}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span>מע"מ ({quoteData.quote.tax_rate}%):</span>
+                      <span>מע"מ ({quoteData.quote.subtotal > 0 ? ((quoteData.quote.tax_amount / quoteData.quote.subtotal) * 100).toFixed(0) : '17'}%):</span>
                       <span>₪{quoteData.quote.tax_amount.toLocaleString('he-IL')}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg border-t pt-2">

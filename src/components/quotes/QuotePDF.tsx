@@ -236,7 +236,7 @@ export const QuotePDF: React.FC<QuotePDFProps> = ({
             </View>
           )}
           <View style={styles.summaryRow}>
-            <Text>מע"מ ({quote.tax_rate}%):</Text>
+            <Text>מע"מ ({quote.subtotal > 0 ? ((quote.tax_amount / quote.subtotal) * 100).toFixed(0) : '17'}%):</Text>
             <Text>₪{calculations.taxAmount.toLocaleString('he-IL')}</Text>
           </View>
           <View style={styles.summaryTotal}>
