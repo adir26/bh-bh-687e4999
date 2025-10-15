@@ -166,7 +166,11 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
           <EmptyState
             icon={Users}
             title="אין לידים"
-            description="לא נמצאו לידים התואמים לחיפוש שלכם."
+            description="לא נמצאו לידים. הוסף ליד חדש כדי להתחיל."
+            action={{
+              label: 'הוסף ליד חדש',
+              onClick: () => setAddLeadDialogOpen(true)
+            }}
           />
         ) : viewMode === 'cards' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -361,14 +365,6 @@ export default function LeadManagement() {
       isError={!!error}
       error={error}
       onRetry={refetch}
-      isEmpty={leads.length === 0}
-      empty={
-        <EmptyState
-          icon={Users}
-          title="אין לידים"
-          description="לא נמצאו לידים במערכת."
-        />
-      }
     >
       <LeadManagementContent 
         leads={leads}

@@ -316,7 +316,11 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
           <EmptyState
             icon={Users}
             title="אין לידים עדיין"
-            description="ברגע שלקוחות יתעניינו בשירותים שלך, הלידים שלהם יופיעו כאן. בינתיים, תוכל לעבוד על שיפור הפרופיל שלך כדי למשוך יותר לקוחות."
+            description="ברגע שלקוחות יתעניינו בשירותים שלך, הלידים יופיעו כאן. בינתיים אפשר להוסיף ליד ידנית."
+            action={{
+              label: 'הוסף ליד חדש',
+              onClick: () => setAddLeadDialogOpen(true)
+            }}
           />
         </div>
       ) : view === 'kanban' ? (
@@ -358,14 +362,6 @@ export default function SupplierCRM() {
       isError={!!error}
       error={error}
       onRetry={refetch}
-      isEmpty={leads.length === 0}
-      empty={
-        <EmptyState
-          icon={Users}
-          title="אין לידים"
-          description="לא נמצאו לידים במערכת."
-        />
-      }
     >
       <SupplierCRMContent 
         leads={leads}
