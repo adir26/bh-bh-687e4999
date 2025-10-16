@@ -10,11 +10,10 @@ import { Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { showToast } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
-import { createPdfBlob } from '@/utils/pdf';
 
 export default function PublicQuoteView() {
   const { token } = useParams<{ token: string }>();
-
+  
   const { data: quoteData, isLoading, error } = useQuery({
     queryKey: ['public-quote', token],
     queryFn: async () => {
@@ -30,22 +29,15 @@ export default function PublicQuoteView() {
     try {
       const { data, error } = await supabase.functions.invoke('generate-quote-pdf', {
         body: { token },
-        // חשוב: מבקשים בינארי ומגדירים כותרות מפורשות
-        responseType: 'arraybuffer' as any,
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/pdf',
-        },
+        responseType: 'arraybuffer'
       } as any);
 
       if (error) throw error;
-      if (!data || (data as ArrayBuffer).byteLength === 0) {
-        throw new Error('שרת לא החזיר PDF תקין');
+      if (!data) {
+        throw new Error('קובץ PDF לא הוחזר מהשרת');
       }
 
-      // שימוש ביוצר ה-Blob הייעודי (אם בודק חתימת %PDF- זה בונוס בתוך util הזה)
-      const blob = createPdfBlob(data as ArrayBuffer);
-
+      const blob = new Blob([data as ArrayBuffer], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -56,12 +48,9 @@ export default function PublicQuoteView() {
       URL.revokeObjectURL(url);
 
       showToast.success('PDF הורד בהצלחה');
-    } catch (err: any) {
-      console.error('Error generating PDF:', err);
-      const message =
-        err?.message ??
-        (typeof err === 'string' ? err : 'שגיאה ביצירת PDF');
-      showToast.error(message);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      showToast.error('שגיאה ביצירת PDF');
     }
   };
 
@@ -92,9 +81,9 @@ export default function PublicQuoteView() {
       draft: { variant: 'secondary', label: 'טיוטה' },
       sent: { variant: 'default', label: 'נשלחה' },
       accepted: { variant: 'default', label: 'אושרה' },
-      rejected: { variant: 'destructive', label: 'נדחתה' },
+      rejected: { variant: 'destructive', label: 'נדחתה' }
     };
-
+    
     const config = variants[status] || variants.draft;
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
@@ -161,13 +150,7 @@ export default function PublicQuoteView() {
                       <span>₪{quoteData.quote.subtotal.toLocaleString('he-IL')}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span>
-                        מע"מ (
-                        {quoteData.quote.subtotal > 0
-                          ? ((quoteData.quote.tax_amount / quoteData.quote.subtotal) * 100).toFixed(0)
-                          : '17'}
-                        %):
-                      </span>
+                      <span>מע"מ ({quoteData.quote.subtotal > 0 ? ((quoteData.quote.tax_amount / quoteData.quote.subtotal) * 100).toFixed(0) : '17'}%):</span>
                       <span>₪{quoteData.quote.tax_amount.toLocaleString('he-IL')}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg border-t pt-2">
