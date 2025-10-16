@@ -9,8 +9,6 @@ import { Badge } from '@/components/ui/badge';
 import { Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { showToast } from '@/utils/toast';
-import { supabase } from '@/integrations/supabase/client';
-import { createPdfBlob } from '@/utils/pdf';
 
 export default function PublicQuoteView() {
   const { token } = useParams<{ token: string }>();
@@ -74,23 +72,48 @@ export default function PublicQuoteView() {
     if (!token) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', {
-        body: { token, template: quoteData?.quote.template || 'premium' },
-        // חשוב: מבקשים בינארי ומגדירים כותרות מפורשות
-        responseType: 'arraybuffer' as any,
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/pdf',
-        },
-      } as any);
+      // Use direct fetch for binary PDF download with proper headers
+      const supabaseUrl = 'https://yislkmhnitznvbxfpcxd.supabase.co';
+      const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlpc2xrbWhuaXR6bnZieGZwY3hkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3MTc0ODEsImV4cCI6MjA2OTI5MzQ4MX0.yt9-ethxGb1ztiLT7mXYZyVqGu0P1a37BG6Ju2NnUHk';
+      
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/generate-quote-pdf`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/pdf',
+            'apikey': anonKey,
+          },
+          body: JSON.stringify({
+            token,
+            template: quoteData?.quote.template || 'premium'
+          }),
+        }
+      );
 
-      if (error) throw error;
-      if (!data || (data as ArrayBuffer).byteLength === 0) {
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'שגיאה ביצירת PDF');
+      }
+
+      const blob = await response.blob();
+      
+      if (!blob || blob.size === 0) {
         throw new Error('שרת לא החזיר PDF תקין');
       }
 
-      // שימוש ביוצר ה-Blob הייעודי (אם בודק חתימת %PDF- זה בונוס בתוך util הזה)
-      const blob = createPdfBlob(data as ArrayBuffer);
+      // Validate PDF signature
+      const arrayBuffer = await blob.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const isPdf = uint8Array[0] === 0x25 && 
+                    uint8Array[1] === 0x50 && 
+                    uint8Array[2] === 0x44 && 
+                    uint8Array[3] === 0x46; // %PDF
+      
+      if (!isPdf) {
+        throw new Error('התגובה אינה PDF תקין');
+      }
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
