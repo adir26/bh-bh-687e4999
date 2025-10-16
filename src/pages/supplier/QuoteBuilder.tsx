@@ -72,6 +72,7 @@ export default function QuoteBuilder() {
   ]);
 
   const [notes, setNotes] = useState('');
+  const [termsConditions, setTermsConditions] = useState('');
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(17);
   const [shareLink, setShareLink] = useState<string | null>(null);
@@ -217,6 +218,7 @@ export default function QuoteBuilder() {
       setSelectedClientId(quote.client_id || '');
       setSelectedClientValue(quote.client_id || '');
       setNotes(quote.notes || '');
+      setTermsConditions(quote.terms_conditions || '');
       setSelectedTemplate(quote.template || 'premium');
       // Calculate tax_rate from tax_amount and subtotal
       if (quote.subtotal > 0 && quote.tax_amount) {
@@ -345,6 +347,7 @@ export default function QuoteBuilder() {
         title,
         client_id: selectedClientId && isValidUUID(selectedClientId) ? selectedClientId : undefined,
         notes,
+        terms_conditions: termsConditions,
         subtotal: calculations.subtotal,
         tax_amount: calculations.taxAmount,
         total_amount: calculations.totalAmount,
@@ -650,6 +653,32 @@ export default function QuoteBuilder() {
         </div>
 
         <div className="max-w-4xl mx-auto p-4 pb-20">
+          {/* Template Selection - Always Visible */}
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Palette className="w-5 h-5" />
+                תבנית עיצוב
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">תבנית נוכחית: <span className="font-semibold">{selectedTemplate}</span></p>
+                  <p className="text-xs text-muted-foreground mt-1">עיצוב זה יחול על ה-PDF שיופק</p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowTemplateDialog(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Palette className="w-4 h-4" />
+                  בחר תבנית
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Quote Details */}
           <Card className="mb-4">
             <CardHeader>
@@ -705,6 +734,15 @@ export default function QuoteBuilder() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="הערות והבהרות ללקוח..."
                   rows={3}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1 block">תנאי ההצעה</label>
+                <Textarea
+                  value={termsConditions}
+                  onChange={(e) => setTermsConditions(e.target.value)}
+                  placeholder={"תנאי תשלום: 30 יום מיום שליחת הצעה\nאחריות: 12 חודשים\nתוקף ההצעה: 30 יום"}
+                  rows={4}
                 />
               </div>
             </CardContent>

@@ -8,6 +8,7 @@ export interface Quote {
   order_id?: string;
   title: string;
   notes?: string;
+  terms_conditions?: string;
   subtotal: number;
   tax_amount: number;
   total_amount: number;
@@ -32,12 +33,14 @@ export interface CreateQuotePayload {
   title: string;
   client_id?: string;
   notes?: string;
+  terms_conditions?: string;
 }
 
 export interface UpdateQuotePayload {
   title?: string;
   client_id?: string;
   notes?: string;
+  terms_conditions?: string;
   subtotal?: number;
   tax_amount?: number;
   total_amount?: number;
@@ -71,6 +74,7 @@ export const quotesService = {
         client_id: payload.client_id,
         title: payload.title,
         notes: payload.notes,
+        terms_conditions: payload.terms_conditions,
         subtotal: 0,
         tax_amount: 0,
         total_amount: 0,
@@ -408,7 +412,11 @@ export const quotesService = {
         throw new Error('לא ניתן להמיר הצעת מחיר ללא לקוח');
       }
 
-      // Create order
+      // Create order with notes and terms_conditions combined
+      const orderNotes = [quote.notes, quote.terms_conditions]
+        .filter(Boolean)
+        .join('\n\n--- תנאי ההצעה ---\n');
+
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -416,7 +424,7 @@ export const quotesService = {
           title: quote.title,
           amount: quote.total_amount,
           status: 'pending',
-          notes: quote.notes
+          notes: orderNotes || undefined
         } as any)
         .select()
         .maybeSingle();

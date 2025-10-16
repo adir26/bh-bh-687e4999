@@ -464,6 +464,34 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // Terms & Conditions
+    if (quote.terms_conditions) {
+      y -= 15;
+      if (y > 50) {
+        page.drawText('Terms & Conditions:', {
+          x: 50,
+          y,
+          size: 11,
+          font: boldFont,
+          color: rgb(0, 0, 0),
+        });
+        y -= 15;
+        
+        const termsLines = quote.terms_conditions.split('\n');
+        for (const line of termsLines.slice(0, 5)) {
+          if (y < 50) break;
+          page.drawText(line.substring(0, 70), {
+            x: 50,
+            y,
+            size: 8,
+            font,
+            color: rgb(0.4, 0.4, 0.4),
+          });
+          y -= 12;
+        }
+      }
+    }
+
     // Status and validity
     y -= 20;
     if (y > 50) {

@@ -180,8 +180,16 @@ export default function PublicQuoteView() {
                 {/* Notes */}
                 {quoteData.quote.notes && (
                   <div className="bg-muted p-4 rounded-lg">
-                    <h3 className="font-semibold mb-2">הערות ותנאים:</h3>
+                    <h3 className="font-semibold mb-2">הערות:</h3>
                     <p className="text-sm whitespace-pre-wrap">{quoteData.quote.notes}</p>
+                  </div>
+                )}
+
+                {/* Terms & Conditions */}
+                {quoteData.quote.terms_conditions && (
+                  <div className="bg-muted/50 p-4 rounded-lg border border-border">
+                    <h3 className="font-semibold mb-2">תנאי ההצעה:</h3>
+                    <p className="text-sm whitespace-pre-wrap text-muted-foreground">{quoteData.quote.terms_conditions}</p>
                   </div>
                 )}
 
