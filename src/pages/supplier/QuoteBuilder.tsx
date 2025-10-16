@@ -486,12 +486,28 @@ export default function QuoteBuilder() {
   };
 
   const handleGenerateShareLink = async () => {
-    if (!quote) {
-      showToast.error('נא לשמור את ההצעה תחילה');
-      return;
-    }
     try {
-      const link = await quotesService.generateShareLink(quote.id);
+      // Save quote first to ensure all data (including template) is persisted
+      let currentQuote = quote;
+      if (!currentQuote) {
+        showToast.info('שומר את ההצעה תחילה...');
+        currentQuote = await handleSaveDraft();
+        if (!currentQuote) return;
+      } else {
+        // Update existing quote to ensure template and all fields are saved
+        await quotesService.updateQuote(currentQuote.id, {
+          title,
+          client_id: selectedClientId && isValidUUID(selectedClientId) ? selectedClientId : undefined,
+          notes,
+          terms_conditions: termsConditions,
+          subtotal: calculations.subtotal,
+          tax_amount: calculations.taxAmount,
+          total_amount: calculations.totalAmount,
+          template: selectedTemplate,
+        });
+      }
+
+      const link = await quotesService.generateShareLink(currentQuote.id);
       setShareLink(link);
 
       // Copy to clipboard
@@ -941,15 +957,24 @@ export default function QuoteBuilder() {
                 <DialogTitle>בחר תבנית עיצוב</DialogTitle>
               </DialogHeader>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
-                {(['premium', 'corporate', 'modern', 'minimal', 'classic'] as const).map((template) => (
+                  {(['premium', 'corporate', 'modern', 'minimal', 'classic'] as const).map((template) => (
                   <TemplatePreview
                     key={template}
                     template={template}
                     isSelected={selectedTemplate === template}
-                    onClick={() => {
+                    onClick={async () => {
                       setSelectedTemplate(template);
                       setShowTemplateDialog(false);
                       showToast.success(`תבנית ${template} נבחרה`);
+                      
+                      // Save template immediately to DB if quote exists
+                      if (quote) {
+                        try {
+                          await quotesService.updateQuote(quote.id, { template });
+                        } catch (error) {
+                          console.error('Failed to save template:', error);
+                        }
+                      }
                       triggerAutoSave();
                     }}
                   />

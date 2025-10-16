@@ -34,6 +34,7 @@ export interface CreateQuotePayload {
   client_id?: string;
   notes?: string;
   terms_conditions?: string;
+  template?: string;
 }
 
 export interface UpdateQuotePayload {
@@ -45,6 +46,7 @@ export interface UpdateQuotePayload {
   tax_amount?: number;
   total_amount?: number;
   status?: Quote['status'];
+  template?: string;
 }
 
 export interface CreateQuoteItemPayload {
@@ -345,7 +347,9 @@ export const quotesService = {
 
       if (error) throw error;
 
-      return `${window.location.origin}/quote/share/${token}`;
+      // Use public base URL from env, fallback to current origin
+      const baseUrl = (import.meta.env.VITE_PUBLIC_BASE_URL || window.location.origin).replace(/\/$/, '');
+      return `${baseUrl}/quote/share/${token}`;
     } catch (error: any) {
       showToast.error(error.message);
       throw error;

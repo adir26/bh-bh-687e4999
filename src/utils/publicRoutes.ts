@@ -45,7 +45,7 @@ export const isPublicRoute = (pathname: string): boolean => {
     /^\/s\/[^/]+\/p\/[^/]+$/,               // /s/:slug/p/:productId
     /^\/category\/[^/]+\/suppliers$/,        // /category/:category/suppliers
     /^\/inspiration\/photo\/[^/]+$/,         // /inspiration/photo/:id
-    /^\/quote\/share\/[^/]+$/,               // /quote/share/:token public quote view
+    /^\/quote\/share\/[^/]+\/?$/,            // /quote/share/:token public quote view (supports trailing slash)
   ];
   
   return dynamicPatterns.some(pattern => pattern.test(pathname));
