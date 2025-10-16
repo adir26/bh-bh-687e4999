@@ -19,7 +19,6 @@ import { PageBoundary } from '@/components/system/PageBoundary';
 import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
 import { withTimeout } from '@/lib/withTimeout';
 import { isValidUUID } from '@/utils/validation';
-
 interface LocalQuoteItem {
   id: string;
   name: string;
@@ -29,26 +28,25 @@ interface LocalQuoteItem {
   total: number;
   sort_order: number;
 }
-
 export default function QuoteBuilder() {
   usePageLoadTimer('QuoteBuilder');
-  
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const {
+    profile
+  } = useAuth();
   const [searchParams] = useSearchParams();
   const leadId = searchParams.get('leadId');
   const quoteId = searchParams.get('quoteId');
-  
   const [quote, setQuote] = useState<Quote | null>(null);
   const [saving, setSaving] = useState(false);
-  
+
   // Form state
   const [title, setTitle] = useState('הצעת מחיר חדשה');
   const [selectedClientId, setSelectedClientId] = useState('');
   const [selectedClientValue, setSelectedClientValue] = useState(''); // For display in Select
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
-  
+
   // Add new client modal state
   const [isAddingClient, setIsAddingClient] = useState(false);
   const [newClientData, setNewClientData] = useState({
@@ -57,156 +55,170 @@ export default function QuoteBuilder() {
     phone: '',
     notes: ''
   });
-  
-  const [items, setItems] = useState<LocalQuoteItem[]>([
-    { id: crypto.randomUUID(), name: '', description: '', quantity: 1, unit_price: 0, total: 0, sort_order: 0 }
-  ]);
+  const [items, setItems] = useState<LocalQuoteItem[]>([{
+    id: crypto.randomUUID(),
+    name: '',
+    description: '',
+    quantity: 1,
+    unit_price: 0,
+    total: 0,
+    sort_order: 0
+  }]);
   const [notes, setNotes] = useState('');
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(17);
   const [shareLink, setShareLink] = useState<string | null>(null);
-  
+
   // Auto-save
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Load supplier products
-  const { data: products = [], isLoading: productsLoading } = useQuery({
+  const {
+    data: products = [],
+    isLoading: productsLoading
+  } = useQuery({
     queryKey: ['supplier-products', profile?.id],
     enabled: !!profile?.id,
     queryFn: async () => {
-      const { data, error } = await withTimeout(
-        supabase
-          .from('products')
-          .select('id, name, description, price, is_service')
-          .eq('supplier_id', profile!.id)
-          .eq('is_published', true)
-          .order('name'),
-        12000
-      );
-      
+      const {
+        data,
+        error
+      } = await withTimeout(supabase.from('products').select('id, name, description, price, is_service').eq('supplier_id', profile!.id).eq('is_published', true).order('name'), 12000);
       if (error) throw error;
       return data || [];
     },
     retry: 1,
-    staleTime: 60_000,
+    staleTime: 60_000
   });
 
   // Load clients - combine profiles AND leads for the dropdown
-  const { data: clients = [], isLoading: clientsLoading } = useQuery({
+  const {
+    data: clients = [],
+    isLoading: clientsLoading
+  } = useQuery({
     queryKey: ['clients-for-quote', profile?.id],
     enabled: !!profile?.id,
     queryFn: async () => {
       // Get actual clients from profiles
-      const { data: profileClients, error: profileError } = await withTimeout(
-        supabase
-          .from('profiles')
-          .select('id, full_name, email')
-          .eq('role', 'client'),
-        12000
-      );
-      
+      const {
+        data: profileClients,
+        error: profileError
+      } = await withTimeout(supabase.from('profiles').select('id, full_name, email').eq('role', 'client'), 12000);
       if (profileError) throw new Error('שגיאה בטעינת רשימת הלקוחות');
-      
+
       // Get leads that belong to this supplier (potential clients)
-      const { data: leadClients, error: leadError } = await withTimeout(
-        supabase
-          .from('leads')
-          .select('id, name, contact_email, client_id')
-          .eq('supplier_id', profile!.id)
-          .not('name', 'is', null)
-          .order('created_at', { ascending: false }),
-        12000
-      );
-      
+      const {
+        data: leadClients,
+        error: leadError
+      } = await withTimeout(supabase.from('leads').select('id, name, contact_email, client_id').eq('supplier_id', profile!.id).not('name', 'is', null).order('created_at', {
+        ascending: false
+      }), 12000);
       if (leadError) throw new Error('שגיאה בטעינת לידים');
-      
+
       // Combine both lists, avoiding duplicates
-      const combined: Array<{ id: string; full_name: string; email: string; isLead?: boolean }> = [
-        ...(profileClients || []).map(c => ({ 
-          id: c.id, 
-          full_name: c.full_name || '', 
-          email: c.email || '' 
-        }))
-      ];
-      
+      const combined: Array<{
+        id: string;
+        full_name: string;
+        email: string;
+        isLead?: boolean;
+      }> = [...(profileClients || []).map(c => ({
+        id: c.id,
+        full_name: c.full_name || '',
+        email: c.email || ''
+      }))];
+
       // Add leads that don't have a client_id (i.e., not yet converted to client)
       (leadClients || []).forEach(lead => {
         if (!lead.client_id) {
           // Use lead:id as the identifier, mark it as a lead
           combined.push({
-            id: `lead:${lead.id}`,  // Prefix to distinguish
+            id: `lead:${lead.id}`,
+            // Prefix to distinguish
             full_name: lead.name || '',
             email: lead.contact_email || '',
             isLead: true
           });
         }
       });
-      
       return combined;
     },
     retry: 1,
-    staleTime: 60_000,
+    staleTime: 60_000
   });
 
   // Load quote data (if editing existing quote)
-  const { data: quoteData, isLoading: quoteLoading, error: quoteError } = useQuery({
+  const {
+    data: quoteData,
+    isLoading: quoteLoading,
+    error: quoteError
+  } = useQuery({
     queryKey: ['quote', quoteId],
     enabled: !!quoteId,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({
+      signal
+    }) => {
       const result = await withTimeout(quotesService.getQuoteById(quoteId!), 12000);
       if (!result) throw new Error('הצעת המחיר לא נמצאה');
       return result;
     },
     retry: 1,
-    staleTime: 60_000,
+    staleTime: 60_000
   });
 
   // Load lead data (if creating from lead)
-  const { data: leadData, isLoading: leadLoading } = useQuery({
+  const {
+    data: leadData,
+    isLoading: leadLoading
+  } = useQuery({
     queryKey: ['lead', leadId],
     enabled: !!leadId,
-    queryFn: async ({ signal }) => {
-      const { data, error } = await withTimeout(
-        supabase
-          .from('leads')
-          .select('*')
-          .eq('id', leadId!)
-          .maybeSingle(),
-        12000
-      );
-      
+    queryFn: async ({
+      signal
+    }) => {
+      const {
+        data,
+        error
+      } = await withTimeout(supabase.from('leads').select('*').eq('id', leadId!).maybeSingle(), 12000);
       if (error) throw new Error('שגיאה בטעינת פרטי הליד');
-      return data as unknown as { name: string; contact_email: string; contact_phone: string; client_id: string; notes: string } | null;
+      return data as unknown as {
+        name: string;
+        contact_email: string;
+        contact_phone: string;
+        client_id: string;
+        notes: string;
+      } | null;
     },
     retry: 1,
-    staleTime: 60_000,
+    staleTime: 60_000
   });
 
   // Load client info for existing quote
-  const { data: clientInfo } = useQuery({
+  const {
+    data: clientInfo
+  } = useQuery({
     queryKey: ['client-info', quoteData?.quote.client_id],
     enabled: !!quoteData?.quote.client_id,
-    queryFn: async ({ signal }) => {
-      const { data, error } = await withTimeout(
-        supabase
-          .from('profiles')
-          .select('full_name, email')
-          .eq('id', quoteData!.quote.client_id!)
-          .maybeSingle(),
-        12000
-      );
-      
+    queryFn: async ({
+      signal
+    }) => {
+      const {
+        data,
+        error
+      } = await withTimeout(supabase.from('profiles').select('full_name, email').eq('id', quoteData!.quote.client_id!).maybeSingle(), 12000);
       if (error) throw new Error('שגיאה בטעינת פרטי הלקוח');
       return data;
     },
     retry: 1,
-    staleTime: 60_000,
+    staleTime: 60_000
   });
 
   // Initialize form data when quote/lead data loads
   React.useEffect(() => {
     if (quoteData) {
-      const { quote, items: quoteItems } = quoteData;
+      const {
+        quote,
+        items: quoteItems
+      } = quoteData;
       setQuote(quote);
       setTitle(quote.title);
       setSelectedClientId(quote.client_id || '');
@@ -214,11 +226,11 @@ export default function QuoteBuilder() {
       setNotes(quote.notes || '');
       // Calculate tax_rate from tax_amount and subtotal
       if (quote.subtotal > 0 && quote.tax_amount) {
-        setTaxRate((quote.tax_amount / quote.subtotal) * 100);
+        setTaxRate(quote.tax_amount / quote.subtotal * 100);
       } else {
         setTaxRate(17); // Default VAT rate in Israel
       }
-      
+
       // Convert quote items to local format
       const localItems = quoteItems.map(item => ({
         id: item.id,
@@ -229,20 +241,17 @@ export default function QuoteBuilder() {
         total: item.subtotal,
         sort_order: item.sort_order
       }));
-      
       if (localItems.length > 0) {
         setItems(localItems);
       }
     }
   }, [quoteData]);
-
   React.useEffect(() => {
     if (clientInfo) {
       setClientName(clientInfo.full_name || '');
       setClientEmail(clientInfo.email || '');
     }
   }, [clientInfo]);
-
   React.useEffect(() => {
     if (leadData) {
       setTitle(`הצעת מחיר עבור ${leadData.name || 'ליד'}`);
@@ -254,7 +263,6 @@ export default function QuoteBuilder() {
       setNotes(leadData.notes || '');
     }
   }, [leadData]);
-
   const addItem = () => {
     const newItem: LocalQuoteItem = {
       id: crypto.randomUUID(),
@@ -268,18 +276,19 @@ export default function QuoteBuilder() {
     setItems([...items, newItem]);
     triggerAutoSave();
   };
-
   const removeItem = (id: string) => {
     if (items.length > 1) {
       setItems(items.filter(item => item.id !== id));
       triggerAutoSave();
     }
   };
-
   const updateItem = (id: string, field: keyof LocalQuoteItem, value: string | number) => {
     setItems(items.map(item => {
       if (item.id === id) {
-        const updatedItem = { ...item, [field]: value };
+        const updatedItem = {
+          ...item,
+          [field]: value
+        };
         if (field === 'quantity' || field === 'unit_price') {
           updatedItem.total = updatedItem.quantity * updatedItem.unit_price;
         }
@@ -289,12 +298,7 @@ export default function QuoteBuilder() {
     }));
     triggerAutoSave();
   };
-
-  const calculations = quotesService.calculateTotals(
-    items,
-    discount,
-    taxRate
-  );
+  const calculations = quotesService.calculateTotals(items, discount, taxRate);
 
   // Auto-save functionality
   const triggerAutoSave = useCallback(() => {
@@ -303,25 +307,22 @@ export default function QuoteBuilder() {
     }
     autoSaveTimer.current = setTimeout(handleSaveDraft, 3000);
   }, []);
-
   const handleSaveDraft = async () => {
     if (!profile?.id || saving) return;
-    
+
     // Validation
     if (!title.trim()) {
       showToast.error('נא להזין כותרת להצעת המחיר');
       return;
     }
-    
     if (items.length === 0) {
       showToast.error('יש להוסיף לפחות פריט אחד');
       return;
     }
-    
     setSaving(true);
     try {
       let currentQuote = quote;
-      
+
       // Create quote if it doesn't exist
       if (!currentQuote) {
         currentQuote = await quotesService.createQuote({
@@ -331,14 +332,16 @@ export default function QuoteBuilder() {
           notes
         });
         setQuote(currentQuote);
-        
+
         // Update URL to include quote ID
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.set('quoteId', currentQuote.id);
         if (leadId) newSearchParams.delete('leadId'); // Remove leadId after creation
-        navigate(`?${newSearchParams.toString()}`, { replace: true });
+        navigate(`?${newSearchParams.toString()}`, {
+          replace: true
+        });
       }
-      
+
       // Update quote details
       await quotesService.updateQuote(currentQuote.id, {
         title,
@@ -351,19 +354,22 @@ export default function QuoteBuilder() {
       });
 
       // Sync items with database
-      const { items: currentItems } = await quotesService.getQuoteById(currentQuote.id) || { items: [] };
-      
+      const {
+        items: currentItems
+      } = (await quotesService.getQuoteById(currentQuote.id)) || {
+        items: []
+      };
+
       // Remove items that no longer exist
       for (const dbItem of currentItems) {
         if (!items.find(item => item.id === dbItem.id)) {
           await quotesService.removeItem(dbItem.id);
         }
       }
-      
+
       // Update or create items
       for (const item of items) {
         const dbItem = currentItems.find(db => db.id === item.id);
-        
         if (dbItem) {
           // Update existing item
           await quotesService.updateItem(item.id, {
@@ -382,16 +388,14 @@ export default function QuoteBuilder() {
             unit_price: item.unit_price,
             sort_order: item.sort_order
           });
-          
+
           // Update local item with DB id
-          setItems(prevItems => 
-            prevItems.map(prevItem => 
-              prevItem.id === item.id ? { ...prevItem, id: newItem.id } : prevItem
-            )
-          );
+          setItems(prevItems => prevItems.map(prevItem => prevItem.id === item.id ? {
+            ...prevItem,
+            id: newItem.id
+          } : prevItem));
         }
       }
-      
       showToast.success(`הצעת המחיר "${title}" נשמרה בהצלחה`);
       return currentQuote; // Return the quote for PDF generation
     } catch (error: any) {
@@ -402,7 +406,6 @@ export default function QuoteBuilder() {
       setSaving(false);
     }
   };
-
   const handleDownloadPDF = async () => {
     try {
       // If no quote exists, save first
@@ -412,27 +415,20 @@ export default function QuoteBuilder() {
         currentQuote = await handleSaveDraft();
         if (!currentQuote) return;
       }
-
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData.session?.access_token;
-
-      const invokeOptions: any = {
-        body: { quoteId: currentQuote.id },
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('generate-quote-pdf', {
+        body: {
+          quoteId: currentQuote.id
+        },
+        // @ts-ignore - responseType is valid but not in types
         responseType: 'arraybuffer'
-      };
-
-      if (accessToken) {
-        invokeOptions.headers = { Authorization: `Bearer ${accessToken}` };
-      }
-
-      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', invokeOptions);
-
+      });
       if (error) throw error;
-      if (!data) {
-        throw new Error('קובץ PDF לא הוחזר מהשרת');
-      }
-
-      const blob = new Blob([data as ArrayBuffer], { type: 'application/pdf' });
+      const blob = new Blob([data], {
+        type: 'application/pdf'
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -441,14 +437,12 @@ export default function QuoteBuilder() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      
       showToast.success('PDF הורד בהצלחה');
     } catch (error) {
       console.error('Error generating PDF:', error);
       showToast.error('שגיאה ביצירת PDF');
     }
   };
-
   const handleSendToCustomer = async () => {
     if (items.length === 0) {
       showToast.error('יש להוסיף לפחות פריט אחד');
@@ -460,14 +454,12 @@ export default function QuoteBuilder() {
       showToast.error('נא לבחור לקוח עם פרופיל (לא ליד) לשליחת הצעת מחיר');
       return;
     }
-
     try {
       const savedQuote = await handleSaveDraft();
       if (!savedQuote) {
         showToast.error('שגיאה בשמירת הצעת המחיר');
         return;
       }
-
       await quotesService.sendQuote(savedQuote.id, selectedClientId);
       showToast.success('הצעת המחיר נשלחה בהצלחה');
       navigate('/supplier/quotes');
@@ -476,17 +468,15 @@ export default function QuoteBuilder() {
       showToast.error(error.message || 'שגיאה בשליחת הצעת המחיר');
     }
   };
-
   const handleGenerateShareLink = async () => {
     if (!quote) {
       showToast.error('נא לשמור את ההצעה תחילה');
       return;
     }
-    
     try {
       const link = await quotesService.generateShareLink(quote.id);
       setShareLink(link);
-      
+
       // Copy to clipboard
       await navigator.clipboard.writeText(link);
       showToast.success('קישור לשיתוף הועתק ללוח!');
@@ -508,7 +498,7 @@ export default function QuoteBuilder() {
   // Handle client selection - support both profiles and leads
   const handleClientSelect = (value: string) => {
     setSelectedClientValue(value);
-    
+
     // Check if this is a lead (prefixed with "lead:")
     if (value.startsWith('lead:')) {
       setSelectedClientId(''); // No actual client_id yet
@@ -535,7 +525,7 @@ export default function QuoteBuilder() {
       showToast.error('נא למלא שם לקוח');
       return;
     }
-    
+
     // אימייל אופציונלי, אבל אם מולא צריך להיות תקין
     if (newClientData.email.trim()) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -544,36 +534,35 @@ export default function QuoteBuilder() {
         return;
       }
     }
-    
     try {
       // Create lead in database
-      const { data: newLead, error } = await supabase
-        .from('leads')
-        .insert({
-          supplier_id: profile!.id,
-          name: newClientData.name,
-          contact_email: newClientData.email.trim() || null,
-          contact_phone: newClientData.phone || null,
-          source_key: 'website',
-          priority_key: 'medium',
-          notes: newClientData.notes || null,
-          status: 'new'
-        } as any)
-        .select()
-        .maybeSingle();
-      
+      const {
+        data: newLead,
+        error
+      } = await supabase.from('leads').insert({
+        supplier_id: profile!.id,
+        name: newClientData.name,
+        contact_email: newClientData.email.trim() || null,
+        contact_phone: newClientData.phone || null,
+        source_key: 'website',
+        priority_key: 'medium',
+        notes: newClientData.notes || null,
+        status: 'new'
+      } as any).select().maybeSingle();
       if (error) throw error;
-      
       if (newLead) {
         // Set client details in the form
         setSelectedClientValue(`lead:${newLead.id}`);
         setSelectedClientId(''); // No profile ID yet
         setClientName(newLead.name);
         setClientEmail(newLead.contact_email || '');
-        
         setIsAddingClient(false);
-        setNewClientData({ name: '', email: '', phone: '', notes: '' });
-        
+        setNewClientData({
+          name: '',
+          email: '',
+          phone: '',
+          notes: ''
+        });
         showToast.success('לקוח חדש נוסף בהצלחה');
       }
     } catch (error) {
@@ -581,29 +570,16 @@ export default function QuoteBuilder() {
       showToast.error('שגיאה ביצירת לקוח חדש');
     }
   };
-
   const isLoading = clientsLoading || quoteLoading || leadLoading;
   const isError = quoteError;
-
-  return (
-    <PageBoundary 
-      isLoading={isLoading}
-      isError={!!isError}
-      error={isError}
-      onRetry={() => window.location.reload()}
-    >
+  return <PageBoundary isLoading={isLoading} isError={!!isError} error={isError} onRetry={() => window.location.reload()}>
       <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
       <div className="bg-white border-b border-border sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/supplier/dashboard')}
-                className="flex items-center gap-2"
-              >
+              <Button variant="ghost" size="sm" onClick={() => navigate('/supplier/dashboard')} className="flex items-center gap-2">
                 <ArrowLeft className="w-4 h-4" />
                 חזור לדשבורד
               </Button>
@@ -613,12 +589,7 @@ export default function QuoteBuilder() {
               </h1>
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSaveDraft}
-                disabled={saving}
-              >
+              <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
                 <Save className="w-4 h-4 ml-1" />
                 שמור כטיוטה
               </Button>
@@ -626,11 +597,7 @@ export default function QuoteBuilder() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span>
-                      <Button 
-                        variant="blue" 
-                        size="sm" 
-                        onClick={handleDownloadPDF}
-                      >
+                      <Button variant="blue" size="sm" onClick={handleDownloadPDF}>
                         <Download className="w-4 h-4 ml-1" />
                         הורד PDF
                       </Button>
@@ -639,15 +606,7 @@ export default function QuoteBuilder() {
                   <TooltipContent>הורד PDF של הצעת המחיר</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                onClick={handleSendToCustomer}
-                disabled={!quote || quote.status !== 'draft'}
-              >
-                <Send className="w-4 h-4 ml-1" />
-                שלח ללקוח
-              </Button>
+              
             </div>
           </div>
         </div>
@@ -663,42 +622,24 @@ export default function QuoteBuilder() {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium mb-1 block">כותרת</label>
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="הצעת מחיר לפרויקט..."
-                />
+                <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="הצעת מחיר לפרויקט..." />
               </div>
               <div>
                 <label className="text-sm font-medium mb-1 block">לקוח</label>
                 <div className="flex items-center gap-2">
                   <Select value={selectedClientValue} onValueChange={handleClientSelect}>
                     <SelectTrigger>
-                      <SelectValue placeholder={
-                        clientsLoading 
-                          ? "טוען לקוחות..." 
-                          : clients.length === 0 
-                            ? "אין לקוחות - הוסף לקוח חדש"
-                            : "בחר לקוח מהרשימה"
-                      } />
+                      <SelectValue placeholder={clientsLoading ? "טוען לקוחות..." : clients.length === 0 ? "אין לקוחות - הוסף לקוח חדש" : "בחר לקוח מהרשימה"} />
                     </SelectTrigger>
                     <SelectContent className="bg-background z-50">
-                      {clients.map((client: any) => (
-                        <SelectItem key={client.id} value={client.id}>
+                      {clients.map((client: any) => <SelectItem key={client.id} value={client.id}>
                           {client.full_name} {client.email ? `(${client.email})` : '(ללא אימייל)'}
                           {client.isLead && <span className="text-xs text-muted-foreground mr-2">[ליד]</span>}
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                   
-                  <Button 
-                    type="button"
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setIsAddingClient(true)}
-                    className="whitespace-nowrap flex items-center gap-1"
-                  >
+                  <Button type="button" variant="outline" size="sm" onClick={() => setIsAddingClient(true)} className="whitespace-nowrap flex items-center gap-1">
                     <Users className="w-4 h-4" />
                     לקוח חדש
                   </Button>
@@ -707,12 +648,7 @@ export default function QuoteBuilder() {
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block">הערות ללקוח</label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="הערות והבהרות ללקוח..."
-                rows={3}
-              />
+              <Textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="הערות והבהרות ללקוח..." rows={3} />
             </div>
           </CardContent>
         </Card>
@@ -722,11 +658,7 @@ export default function QuoteBuilder() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>פריטים</CardTitle>
-              <Button
-                size="sm"
-                onClick={addItem}
-                className="flex items-center gap-1"
-              >
+              <Button size="sm" onClick={addItem} className="flex items-center gap-1">
                 <Plus className="w-4 h-4" />
                 הוסף פריט
               </Button>
@@ -746,54 +678,28 @@ export default function QuoteBuilder() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items.map((item, index) => (
-                    <TableRow key={item.id}>
+                  {items.map((item, index) => <TableRow key={item.id}>
                       <TableCell>
-                        <Input
-                          value={item.name}
-                          onChange={(e) => updateItem(item.id, 'name', e.target.value)}
-                          placeholder="שם הפריט"
-                        />
+                        <Input value={item.name} onChange={e => updateItem(item.id, 'name', e.target.value)} placeholder="שם הפריט" />
                       </TableCell>
                       <TableCell>
-                        <Input
-                          value={item.description}
-                          onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                          placeholder="תיאור"
-                        />
+                        <Input value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} placeholder="תיאור" />
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="number"
-                          min="0"
-                          value={item.quantity}
-                          onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                        />
+                        <Input type="number" min="0" value={item.quantity} onChange={e => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} />
                       </TableCell>
                       <TableCell>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={item.unit_price}
-                          onChange={(e) => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)}
-                        />
+                        <Input type="number" min="0" step="0.01" value={item.unit_price} onChange={e => updateItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)} />
                       </TableCell>
                       <TableCell className="font-medium">
                         ₪{item.total.toFixed(2)}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeItem(item.id)}
-                          disabled={items.length === 1}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => removeItem(item.id)} disabled={items.length === 1}>
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </TableCell>
-                    </TableRow>
-                  ))}
+                    </TableRow>)}
                 </TableBody>
               </Table>
             </div>
@@ -809,23 +715,11 @@ export default function QuoteBuilder() {
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <label className="text-sm font-medium mb-1 block">הנחה (%)</label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={discount}
-                  onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-                />
+                <Input type="number" min="0" max="100" value={discount} onChange={e => setDiscount(parseFloat(e.target.value) || 0)} />
               </div>
               <div className="flex-1">
                 <label className="text-sm font-medium mb-1 block">מע"מ (%)</label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={taxRate}
-                  onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
-                />
+                <Input type="number" min="0" max="100" value={taxRate} onChange={e => setTaxRate(parseFloat(e.target.value) || 0)} />
               </div>
             </div>
             <div className="space-y-2 pt-4 border-t">
@@ -854,30 +748,22 @@ export default function QuoteBuilder() {
         </Card>
 
         {/* Share Link Section */}
-        {quote && (
-          <Card className="mt-4">
+        {quote && <Card className="mt-4">
             <CardHeader>
               <CardTitle>שתף הצעת מחיר</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handleGenerateShareLink}
-                  className="flex-1"
-                >
+                <Button variant="outline" onClick={handleGenerateShareLink} className="flex-1">
                   <Share2 className="w-4 h-4 ml-1" />
                   צור קישור לשיתוף
                 </Button>
               </div>
-              {shareLink && (
-                <div className="mt-2 p-2 bg-muted rounded text-sm break-all">
+              {shareLink && <div className="mt-2 p-2 bg-muted rounded text-sm break-all">
                   {shareLink}
-                </div>
-              )}
+                </div>}
             </CardContent>
-          </Card>
-        )}
+          </Card>}
         
         {/* Add New Client Dialog */}
         <Dialog open={isAddingClient} onOpenChange={setIsAddingClient}>
@@ -888,42 +774,31 @@ export default function QuoteBuilder() {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="client-name">שם מלא *</Label>
-                <Input
-                  id="client-name"
-                  value={newClientData.name}
-                  onChange={(e) => setNewClientData({ ...newClientData, name: e.target.value })}
-                  placeholder="שם הלקוח"
-                />
+                <Input id="client-name" value={newClientData.name} onChange={e => setNewClientData({
+                  ...newClientData,
+                  name: e.target.value
+                })} placeholder="שם הלקוח" />
               </div>
               <div>
                 <Label htmlFor="client-email">אימייל (אופציונלי)</Label>
-                <Input
-                  id="client-email"
-                  type="email"
-                  value={newClientData.email}
-                  onChange={(e) => setNewClientData({ ...newClientData, email: e.target.value })}
-                  placeholder="email@example.com"
-                />
+                <Input id="client-email" type="email" value={newClientData.email} onChange={e => setNewClientData({
+                  ...newClientData,
+                  email: e.target.value
+                })} placeholder="email@example.com" />
               </div>
               <div>
                 <Label htmlFor="client-phone">טלפון</Label>
-                <Input
-                  id="client-phone"
-                  type="tel"
-                  value={newClientData.phone}
-                  onChange={(e) => setNewClientData({ ...newClientData, phone: e.target.value })}
-                  placeholder="050-1234567"
-                />
+                <Input id="client-phone" type="tel" value={newClientData.phone} onChange={e => setNewClientData({
+                  ...newClientData,
+                  phone: e.target.value
+                })} placeholder="050-1234567" />
               </div>
               <div>
                 <Label htmlFor="client-notes">הערות</Label>
-                <Textarea
-                  id="client-notes"
-                  value={newClientData.notes}
-                  onChange={(e) => setNewClientData({ ...newClientData, notes: e.target.value })}
-                  placeholder="הערות על הלקוח..."
-                  rows={3}
-                />
+                <Textarea id="client-notes" value={newClientData.notes} onChange={e => setNewClientData({
+                  ...newClientData,
+                  notes: e.target.value
+                })} placeholder="הערות על הלקוח..." rows={3} />
               </div>
             </div>
             <DialogFooter>
@@ -938,6 +813,5 @@ export default function QuoteBuilder() {
         </Dialog>
       </div>
       </div>
-    </PageBoundary>
-  );
+    </PageBoundary>;
 }
