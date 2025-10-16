@@ -21,6 +21,7 @@ export const useSecureAdminAuth = () => {
     sessionExpiry: null,
     sessionToken: ''
   });
+  const [isValidating, setIsValidating] = useState(true);
 
   // Validate admin session on mount and auth changes
   useEffect(() => {
@@ -28,6 +29,7 @@ export const useSecureAdminAuth = () => {
   }, [user, profile]);
 
   const validateAdminAccess = async () => {
+    setIsValidating(true);
     try {
       // First check if user is authenticated and has admin role in profile
       if (!user || !profile || profile.role !== 'admin') {
@@ -73,6 +75,8 @@ export const useSecureAdminAuth = () => {
       console.error('Admin validation error:', error);
       clearAdminSession();
       return false;
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -133,8 +137,16 @@ export const useSecureAdminAuth = () => {
     clearAdminSession();
   };
 
+  useEffect(() => {
+    // Ensure validation state resets if user logs out completely
+    if (!user) {
+      setIsValidating(false);
+    }
+  }, [user]);
+
   return {
     isAdminAuthenticated: adminSession.isAuthenticated && adminSession.isValidated,
+    isValidating,
     sessionExpiry: adminSession.sessionExpiry,
     extendSession,
     logout,

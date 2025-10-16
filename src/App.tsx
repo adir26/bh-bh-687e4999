@@ -103,6 +103,7 @@ import AutomationCenter from "./pages/admin/AutomationCenter";
 import PermissionsManagement from "./pages/admin/PermissionsManagement";
 import { HomepageContentManagement } from "./pages/admin/HomepageContentManagement";
 import { HomepagePreview } from "./pages/admin/HomepagePreview";
+import AdminAccessDenied from "./pages/admin/AdminAccessDenied";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -546,6 +547,7 @@ const App = () => {
                 
                 {/* Admin routes */}
                 <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
+                <Route path="/admin/forbidden" element={<AdminLayout><AdminAccessDenied /></AdminLayout>} />
                 <Route path="/admin/dashboard" element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <AdminLayout><AdminDashboard /></AdminLayout>
