@@ -1,6 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { showToast } from '@/utils/toast';
 
+const PUBLIC_BASE_URL = "https://57d67ee3-eaea-43b2-9008-fdf2d0a75dc7.lovableproject.com";
+
 export interface Quote {
   id: string;
   supplier_id: string;
@@ -220,7 +222,10 @@ export const quotesService = {
 
     if (quoteError) throw quoteError;
 
-    // Create notification for client
+    // Generate public share link
+    const shareUrl = await this.generateShareLink(quoteId);
+
+    // Create notification for client with public share link
     const { error: notificationError } = await supabase
       .from('notifications')
       .insert({
@@ -229,8 +234,8 @@ export const quotesService = {
         content: `הצעת מחיר חדשה ממתינה לאישורך`,
         message: `הצעת מחיר חדשה ממתינה לאישורך`,
         type: 'quote_received',
-        action_url: `/quotes/${quoteId}`,
-        metadata: { quote_id: quoteId }
+        action_url: shareUrl,
+        metadata: { quote_id: quoteId, share_url: shareUrl }
       });
 
     if (notificationError) {
@@ -345,27 +350,9 @@ export const quotesService = {
 
       if (error) throw error;
 
-      // Use public base URL for stable links that work from any environment
-      const envUrl = import.meta.env.VITE_PUBLIC_BASE_URL;
-      const fallbackOrigin = typeof window !== 'undefined' ? window.location.origin : '';
-
-      let baseOrigin = fallbackOrigin;
-
-      if (envUrl) {
-        try {
-          // new URL preserves only the origin (scheme + host) and ignores any path fragments
-          baseOrigin = new URL(envUrl).origin;
-        } catch (error) {
-          console.warn('Invalid VITE_PUBLIC_BASE_URL provided, falling back to window.origin', error);
-        }
-      }
-
-      if (!baseOrigin) {
-        throw new Error('לא ניתן לקבוע כתובת בסיס ליצירת קישור שיתוף');
-      }
-
-      const shareUrl = new URL(`/quote/share/${token}`, baseOrigin);
-      // Force guest mode so the recipient never sees an auth wall even if new routes are added later
+      // Use fixed public base URL to ensure links are always public
+      const shareUrl = new URL(`/quote/share/${token}`, PUBLIC_BASE_URL);
+      // Force guest mode so the recipient never sees an auth wall
       if (!shareUrl.searchParams.has('guest')) {
         shareUrl.searchParams.set('guest', '1');
       }
