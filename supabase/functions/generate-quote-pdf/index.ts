@@ -10,7 +10,6 @@ const corsHeaders = {
 interface GeneratePDFRequest {
   quoteId?: string;
   token?: string;
-  template?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -20,17 +19,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { quoteId, token, template = 'premium' }: GeneratePDFRequest = await req.json();
+    const { quoteId, token }: GeneratePDFRequest = await req.json();
     
     if (!quoteId && !token) {
       throw new Error('Missing required field: quoteId or token');
     }
 
-    console.log('[generate-quote-pdf] Processing request:', { 
-      quoteId: quoteId?.substring(0, 8), 
-      token: token?.substring(0, 8),
-      template 
-    });
+    console.log('[generate-quote-pdf] Processing request:', { quoteId: quoteId?.substring(0, 8), token: token?.substring(0, 8) });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -172,18 +167,7 @@ const handler = async (req: Request): Promise<Response> => {
         .eq('id', shareLink.id);
     }
 
-    console.log('[generate-quote-pdf] Generating PDF for quote:', quote.id, 'with template:', template);
-
-    // Template color schemes
-    const templates: Record<string, { primary: [number, number, number]; secondary: [number, number, number] }> = {
-      premium: { primary: [0.58, 0.27, 0.69], secondary: [0.95, 0.47, 0.67] }, // Purple-Pink
-      corporate: { primary: [0.3, 0.4, 0.5], secondary: [0.2, 0.3, 0.45] }, // Gray-Blue
-      modern: { primary: [0.08, 0.5, 0.75], secondary: [0, 0.7, 0.85] }, // Blue-Cyan
-      minimal: { primary: [0, 0, 0], secondary: [0.3, 0.3, 0.3] }, // Black-Gray
-      classic: { primary: [0.75, 0.5, 0], secondary: [0.85, 0.6, 0.2] } // Amber-Orange
-    };
-
-    const colors = templates[template] || templates.premium;
+    console.log('[generate-quote-pdf] Generating PDF for quote:', quote.id);
 
     // Create PDF
     const pdfDoc = await PDFDocument.create();
@@ -194,13 +178,13 @@ const handler = async (req: Request): Promise<Response> => {
     const { width, height } = page.getSize();
     let y = height - 50;
 
-    // Title with template color
+    // Title
     page.drawText('Quote / Hatzaat Machir', {
       x: 50,
       y,
       size: 20,
       font: boldFont,
-      color: rgb(colors.primary[0], colors.primary[1], colors.primary[2]),
+      color: rgb(0, 0, 0),
     });
     y -= 30;
 
@@ -461,34 +445,6 @@ const handler = async (req: Request): Promise<Response> => {
           color: rgb(0.3, 0.3, 0.3),
         });
         y -= 12;
-      }
-    }
-
-    // Terms & Conditions
-    if (quote.terms_conditions) {
-      y -= 15;
-      if (y > 50) {
-        page.drawText('Terms & Conditions:', {
-          x: 50,
-          y,
-          size: 11,
-          font: boldFont,
-          color: rgb(0, 0, 0),
-        });
-        y -= 15;
-        
-        const termsLines = quote.terms_conditions.split('\n');
-        for (const line of termsLines.slice(0, 5)) {
-          if (y < 50) break;
-          page.drawText(line.substring(0, 70), {
-            x: 50,
-            y,
-            size: 8,
-            font,
-            color: rgb(0.4, 0.4, 0.4),
-          });
-          y -= 12;
-        }
       }
     }
 

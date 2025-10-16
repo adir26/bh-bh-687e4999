@@ -71,13 +71,3 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
-
-## Public Quote Sharing
-
-This project includes public quote sharing functionality. To ensure share links work correctly:
-
-1. Set `VITE_PUBLIC_BASE_URL` in your `.env` file to your production domain (e.g., `https://app.bonimpo.com`)
-2. Share links will always use this public URL, regardless of where they're generated (web, mobile, etc.)
-3. Templates are automatically applied to both the public view and PDF generation
-
-**Important**: If `VITE_PUBLIC_BASE_URL` is not set, the system will fall back to using `window.location.origin` which may not work correctly in mobile environments.

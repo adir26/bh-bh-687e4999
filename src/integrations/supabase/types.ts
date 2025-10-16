@@ -3122,7 +3122,6 @@ export type Database = {
           discount_amount: number | null
           id: string
           notes: string | null
-          order_id: string | null
           project_id: string | null
           quote_number: string
           responded_at: string | null
@@ -3131,7 +3130,6 @@ export type Database = {
           subtotal: number
           supplier_id: string
           tax_amount: number | null
-          template: string | null
           terms_conditions: string | null
           title: string
           total_amount: number
@@ -3146,7 +3144,6 @@ export type Database = {
           discount_amount?: number | null
           id?: string
           notes?: string | null
-          order_id?: string | null
           project_id?: string | null
           quote_number: string
           responded_at?: string | null
@@ -3155,7 +3152,6 @@ export type Database = {
           subtotal?: number
           supplier_id: string
           tax_amount?: number | null
-          template?: string | null
           terms_conditions?: string | null
           title: string
           total_amount?: number
@@ -3170,7 +3166,6 @@ export type Database = {
           discount_amount?: number | null
           id?: string
           notes?: string | null
-          order_id?: string | null
           project_id?: string | null
           quote_number?: string
           responded_at?: string | null
@@ -3179,7 +3174,6 @@ export type Database = {
           subtotal?: number
           supplier_id?: string
           tax_amount?: number | null
-          template?: string | null
           terms_conditions?: string | null
           title?: string
           total_amount?: number
@@ -3193,13 +3187,6 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quotes_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]

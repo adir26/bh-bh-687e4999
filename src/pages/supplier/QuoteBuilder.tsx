@@ -8,20 +8,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowLeft, Plus, Trash2, Download, Save, Users, Share2, PackageCheck, Palette } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Download, Save, Users, Share2 } from 'lucide-react';
 import { showToast } from '@/utils/toast';
 import { quotesService, Quote } from '@/services/quotesService';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
 import { withTimeout } from '@/lib/withTimeout';
 import { isValidUUID } from '@/utils/validation';
 import { createPdfBlob } from '@/utils/pdf';
-import { TemplatePreview } from '@/components/proposal/TemplatePreview';
 
 interface LocalQuoteItem {
   id: string;
@@ -72,13 +70,9 @@ export default function QuoteBuilder() {
   ]);
 
   const [notes, setNotes] = useState('');
-  const [termsConditions, setTermsConditions] = useState('');
   const [discount, setDiscount] = useState(0);
   const [taxRate, setTaxRate] = useState(17);
   const [shareLink, setShareLink] = useState<string | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('premium');
-  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Auto-save
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
@@ -218,8 +212,6 @@ export default function QuoteBuilder() {
       setSelectedClientId(quote.client_id || '');
       setSelectedClientValue(quote.client_id || '');
       setNotes(quote.notes || '');
-      setTermsConditions(quote.terms_conditions || '');
-      setSelectedTemplate(quote.template || 'premium');
       // Calculate tax_rate from tax_amount and subtotal
       if (quote.subtotal > 0 && quote.tax_amount) {
         setTaxRate((quote.tax_amount / quote.subtotal) * 100);
@@ -347,12 +339,10 @@ export default function QuoteBuilder() {
         title,
         client_id: selectedClientId && isValidUUID(selectedClientId) ? selectedClientId : undefined,
         notes,
-        terms_conditions: termsConditions,
         subtotal: calculations.subtotal,
         tax_amount: calculations.taxAmount,
         total_amount: calculations.totalAmount,
-        template: selectedTemplate,
-      } as any);
+      });
 
       // Sync items with database
       const { items: currentItems } = (await quotesService.getQuoteById(currentQuote.id)) || { items: [] };
@@ -418,7 +408,7 @@ export default function QuoteBuilder() {
       const accessToken = sessionData.session?.access_token;
 
       const invokeOptions: any = {
-        body: { quoteId: currentQuote.id, template: selectedTemplate },
+        body: { quoteId: currentQuote.id },
         // @ts-ignore: responseType נתמך על-ידי supabase-js לקריאות Functions
         responseType: 'arraybuffer',
         headers: {
@@ -486,28 +476,12 @@ export default function QuoteBuilder() {
   };
 
   const handleGenerateShareLink = async () => {
+    if (!quote) {
+      showToast.error('נא לשמור את ההצעה תחילה');
+      return;
+    }
     try {
-      // Save quote first to ensure all data (including template) is persisted
-      let currentQuote = quote;
-      if (!currentQuote) {
-        showToast.info('שומר את ההצעה תחילה...');
-        currentQuote = await handleSaveDraft();
-        if (!currentQuote) return;
-      } else {
-        // Update existing quote to ensure template and all fields are saved
-        await quotesService.updateQuote(currentQuote.id, {
-          title,
-          client_id: selectedClientId && isValidUUID(selectedClientId) ? selectedClientId : undefined,
-          notes,
-          terms_conditions: termsConditions,
-          subtotal: calculations.subtotal,
-          tax_amount: calculations.taxAmount,
-          total_amount: calculations.totalAmount,
-          template: selectedTemplate,
-        });
-      }
-
-      const link = await quotesService.generateShareLink(currentQuote.id);
+      const link = await quotesService.generateShareLink(quote.id);
       setShareLink(link);
 
       // Copy to clipboard
@@ -516,26 +490,6 @@ export default function QuoteBuilder() {
     } catch (error) {
       console.error('Failed to generate share link:', error);
       showToast.error('שגיאה ביצירת קישור לשיתוף');
-    }
-  };
-
-  const handleDeleteQuote = async () => {
-    if (!quote) return;
-    try {
-      await quotesService.deleteQuote(quote.id);
-      navigate('/supplier/quotes');
-    } catch (error) {
-      console.error('Failed to delete quote:', error);
-    }
-  };
-
-  const handleConvertToOrder = async () => {
-    if (!quote) return;
-    try {
-      const order = await quotesService.convertToOrder(quote.id);
-      navigate(`/supplier/orders/${order.id}`);
-    } catch (error) {
-      console.error('Failed to convert quote to order:', error);
     }
   };
 
@@ -669,32 +623,6 @@ export default function QuoteBuilder() {
         </div>
 
         <div className="max-w-4xl mx-auto p-4 pb-20">
-          {/* Template Selection - Always Visible */}
-          <Card className="mb-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="w-5 h-5" />
-                תבנית עיצוב
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">תבנית נוכחית: <span className="font-semibold">{selectedTemplate}</span></p>
-                  <p className="text-xs text-muted-foreground mt-1">עיצוב זה יחול על ה-PDF שיופק</p>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowTemplateDialog(true)}
-                  className="flex items-center gap-2"
-                >
-                  <Palette className="w-4 h-4" />
-                  בחר תבנית
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Quote Details */}
           <Card className="mb-4">
             <CardHeader>
@@ -750,15 +678,6 @@ export default function QuoteBuilder() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="הערות והבהרות ללקוח..."
                   rows={3}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">תנאי ההצעה</label>
-                <Textarea
-                  value={termsConditions}
-                  onChange={(e) => setTermsConditions(e.target.value)}
-                  placeholder={"תנאי תשלום: 30 יום מיום שליחת הצעה\nאחריות: 12 חודשים\nתוקף ההצעה: 30 יום"}
-                  rows={4}
                 />
               </div>
             </CardContent>
@@ -898,108 +817,19 @@ export default function QuoteBuilder() {
           {quote && (
             <Card className="mt-4">
               <CardHeader>
-                <CardTitle>פעולות נוספות</CardTitle>
+                <CardTitle>שתף הצעת מחיר</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Template Selection */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium">תבנית עיצוב</label>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowTemplateDialog(true)}
-                      className="flex items-center gap-1"
-                    >
-                      <Palette className="w-4 h-4" />
-                      בחר תבנית
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">תבנית נוכחית: {selectedTemplate}</p>
-                </div>
-
-                {/* Share Link */}
-                <div>
-                  <Button variant="outline" onClick={handleGenerateShareLink} className="w-full">
+              <CardContent>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleGenerateShareLink} className="flex-1">
                     <Share2 className="w-4 h-4 ml-1" />
                     צור קישור לשיתוף
                   </Button>
-                  {shareLink && <div className="mt-2 p-2 bg-muted rounded text-sm break-all">{shareLink}</div>}
                 </div>
-
-                {/* Convert to Order */}
-                {quote.status === 'accepted' && !quote.order_id && (
-                  <Button onClick={handleConvertToOrder} variant="default" className="w-full">
-                    <PackageCheck className="w-4 h-4 ml-1" />
-                    המר להזמנה
-                  </Button>
-                )}
-
-                {/* Delete Quote */}
-                {['draft', 'rejected'].includes(quote.status) && (
-                  <Button
-                    onClick={() => setShowDeleteDialog(true)}
-                    variant="destructive"
-                    className="w-full"
-                  >
-                    <Trash2 className="w-4 h-4 ml-1" />
-                    מחק הצעת מחיר
-                  </Button>
-                )}
+                {shareLink && <div className="mt-2 p-2 bg-muted rounded text-sm break-all">{shareLink}</div>}
               </CardContent>
             </Card>
           )}
-
-          {/* Template Selection Dialog */}
-          <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>בחר תבנית עיצוב</DialogTitle>
-              </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
-                  {(['premium', 'corporate', 'modern', 'minimal', 'classic'] as const).map((template) => (
-                  <TemplatePreview
-                    key={template}
-                    template={template}
-                    isSelected={selectedTemplate === template}
-                    onClick={async () => {
-                      setSelectedTemplate(template);
-                      setShowTemplateDialog(false);
-                      showToast.success(`תבנית ${template} נבחרה`);
-                      
-                      // Save template immediately to DB if quote exists
-                      if (quote) {
-                        try {
-                          await quotesService.updateQuote(quote.id, { template });
-                        } catch (error) {
-                          console.error('Failed to save template:', error);
-                        }
-                      }
-                      triggerAutoSave();
-                    }}
-                  />
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Delete Confirmation Dialog */}
-          <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>האם אתה בטוח?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  פעולה זו תמחק את הצעת המחיר לצמיתות. לא ניתן לבטל פעולה זו.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>ביטול</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteQuote} className="bg-destructive text-destructive-foreground">
-                  מחק
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
 
           {/* Add New Client Dialog */}
           <Dialog open={isAddingClient} onOpenChange={setIsAddingClient}>

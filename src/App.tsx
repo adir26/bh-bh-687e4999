@@ -399,11 +399,7 @@ const App = () => {
                     <QuoteBuilder />
                   </OnboardingGuard>
                 } />
-                <Route path="/quote/share/:token" element={
-                  <PublicRouteWrapper>
-                    <PublicQuoteView />
-                  </PublicRouteWrapper>
-                } />
+                <Route path="/quote/share/:token" element={<PublicQuoteView />} />
                 <Route path="/supplier/proposals" element={
                   <OnboardingGuard role="supplier">
                     <ProposalBuilder />
