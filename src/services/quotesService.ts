@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { showToast } from '@/utils/toast';
 
-const PUBLIC_BASE_URL = "https://57d67ee3-eaea-43b2-9008-fdf2d0a75dc7.lovableproject.com";
+const PUBLIC_BASE_URL = "https://bh-bonimpo.com";
 
 export interface Quote {
   id: string;
