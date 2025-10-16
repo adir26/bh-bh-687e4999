@@ -26,10 +26,13 @@ These routes are accessible to guest users (unauthenticated visitors) and wrappe
 
 ### ✅ Supplier & Product Pages
 - `/supplier/:id` - Individual supplier profile
-- `/supplier/:id/products` - Supplier's product catalog  
+- `/supplier/:id/products` - Supplier's product catalog
 - `/supplier/:id/reviews` - Supplier reviews
 - `/s/:slug` - Public supplier profile (SEO-friendly URLs)
 - `/s/:slug/p/:productId` - Public product detail page
+
+### ✅ Shared Supplier Documents
+- `/quote/share/:token` - Public view of a shared supplier quote (tokenized access)
 
 ### ✅ Inspiration & Content
 - `/inspiration` - Photo gallery and inspiration content

@@ -19,6 +19,7 @@ import { PageBoundary } from '@/components/system/PageBoundary';
 import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
 import { withTimeout } from '@/lib/withTimeout';
 import { isValidUUID } from '@/utils/validation';
+import { createPdfBlob } from '@/utils/pdf';
 
 interface LocalQuoteItem {
   id: string;
@@ -413,15 +414,29 @@ export default function QuoteBuilder() {
         if (!currentQuote) return;
       }
 
-      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      const invokeOptions: any = {
         body: { quoteId: currentQuote.id },
-        // @ts-ignore - responseType is valid but not in types
-        responseType: 'arraybuffer'
-      });
+        responseType: 'arraybuffer',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/pdf',
+        },
+      };
+
+      if (accessToken) {
+        invokeOptions.headers = {
+          ...invokeOptions.headers,
+          Authorization: `Bearer ${accessToken}`,
+        };
+      }
+
+      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', invokeOptions);
 
       if (error) throw error;
-
-      const blob = new Blob([data], { type: 'application/pdf' });
+      const blob = createPdfBlob(data);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -432,9 +447,10 @@ export default function QuoteBuilder() {
       URL.revokeObjectURL(url);
       
       showToast.success('PDF הורד בהצלחה');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating PDF:', error);
-      showToast.error('שגיאה ביצירת PDF');
+      const message = error?.message || 'שגיאה ביצירת PDF';
+      showToast.error(message);
     }
   };
 

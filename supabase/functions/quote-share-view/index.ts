@@ -10,6 +10,112 @@ interface ShareViewRequest {
   token: string;
 }
 
+interface QuoteAppearance {
+  theme: string;
+  primaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  textColor: string;
+  fontFamily: string;
+  bannerImage: string | null;
+  showBanner: boolean;
+}
+
+const HEX_COLOR_REGEX = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
+
+const normalizeColor = (value: unknown, fallback: string): string => {
+  if (typeof value === 'string' && HEX_COLOR_REGEX.test(value.trim())) {
+    return value.trim();
+  }
+  return fallback;
+};
+
+const parseAppearanceSource = (value: unknown): Record<string, any> | null => {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object') {
+        return parsed as Record<string, any>;
+      }
+    } catch (error) {
+      console.warn('[quote-share-view] Failed to parse appearance JSON', error);
+      return null;
+    }
+  }
+
+  if (typeof value === 'object') {
+    return value as Record<string, any>;
+  }
+
+  return null;
+};
+
+const buildAppearance = (quote: any, company: any | null): QuoteAppearance => {
+  const rawAppearance =
+    parseAppearanceSource(quote?.appearance) ||
+    parseAppearanceSource(quote?.design_settings) ||
+    parseAppearanceSource(quote?.design) ||
+    parseAppearanceSource(quote?.branding?.quote) ||
+    parseAppearanceSource(quote?.public_settings?.quote_appearance) ||
+    null;
+
+  const theme =
+    rawAppearance?.theme ||
+    rawAppearance?.selectedTheme ||
+    quote?.quote_theme ||
+    quote?.theme ||
+    'classic';
+
+  const colors = rawAppearance?.colors || {};
+
+  const primaryColor = normalizeColor(
+    rawAppearance?.primaryColor || colors.primary || quote?.primary_color,
+    '#2563EB'
+  );
+
+  const accentColor = normalizeColor(
+    rawAppearance?.accentColor || colors.accent || rawAppearance?.secondaryColor,
+    '#F97316'
+  );
+
+  const backgroundColor = normalizeColor(
+    rawAppearance?.backgroundColor || colors.background,
+    '#F8FAFC'
+  );
+
+  const textColor = normalizeColor(
+    rawAppearance?.textColor || colors.text,
+    '#0F172A'
+  );
+
+  const fontFamily =
+    rawAppearance?.fontFamily || rawAppearance?.font || "'Heebo', 'Assistant', sans-serif";
+
+  const bannerImage =
+    rawAppearance?.bannerImage ||
+    rawAppearance?.banner ||
+    quote?.banner_url ||
+    company?.banner_url ||
+    null;
+
+  const showBanner =
+    typeof rawAppearance?.showBanner === 'boolean'
+      ? rawAppearance.showBanner
+      : true;
+
+  return {
+    theme,
+    primaryColor,
+    accentColor,
+    backgroundColor,
+    textColor,
+    fontFamily,
+    bannerImage,
+    showBanner,
+  };
+};
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -80,6 +186,22 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('שגיאה בטעינת פריטי הצעת המחיר');
     }
 
+    // Fetch supplier profile for branding details
+    const { data: supplierProfile } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, avatar_url')
+      .eq('id', quote.supplier_id)
+      .maybeSingle();
+
+    // Fetch company details for extended branding
+    const { data: company } = await supabase
+      .from('companies')
+      .select('id, name, logo_url, banner_url, tagline, description, phone, email, website, city, area, services')
+      .eq('owner_id', quote.supplier_id)
+      .maybeSingle();
+
+    const appearance = buildAppearance(quote, company);
+
     // Update accessed_at
     await supabase
       .from('quote_share_links')
@@ -91,7 +213,32 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(JSON.stringify({
       success: true,
       quote,
-      items: items || []
+      items: items || [],
+      supplier: supplierProfile
+        ? {
+            id: supplierProfile.id,
+            name: supplierProfile.full_name,
+            email: supplierProfile.email,
+            avatar_url: supplierProfile.avatar_url,
+          }
+        : null,
+      company: company
+        ? {
+            id: company.id,
+            name: company.name,
+            logo_url: company.logo_url,
+            banner_url: company.banner_url,
+            tagline: company.tagline,
+            description: company.description,
+            phone: company.phone,
+            email: company.email,
+            website: company.website,
+            city: company.city,
+            area: company.area,
+            services: company.services,
+          }
+        : null,
+      appearance,
     }), {
       status: 200,
       headers: {

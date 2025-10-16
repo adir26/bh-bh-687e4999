@@ -14,6 +14,10 @@ export interface Quote {
   status: 'draft' | 'sent' | 'accepted' | 'rejected';
   created_at: string;
   updated_at: string;
+  appearance?: Record<string, any> | null;
+  design_settings?: Record<string, any> | null;
+  theme?: string | null;
+  branding?: Record<string, any> | null;
 }
 
 export interface QuoteItem {
@@ -25,6 +29,43 @@ export interface QuoteItem {
   unit_price: number;
   subtotal: number;
   sort_order: number;
+}
+
+export interface QuoteAppearanceTheme {
+  theme: string;
+  primaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  textColor: string;
+  fontFamily?: string;
+  bannerImage?: string | null;
+  showBanner?: boolean;
+}
+
+export interface QuoteShareViewData {
+  quote: Quote;
+  items: QuoteItem[];
+  supplier?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    avatar_url?: string | null;
+  } | null;
+  company?: {
+    id: string;
+    name: string;
+    logo_url?: string | null;
+    banner_url?: string | null;
+    tagline?: string | null;
+    description?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    website?: string | null;
+    city?: string | null;
+    area?: string | null;
+    services?: any;
+  } | null;
+  appearance?: QuoteAppearanceTheme | null;
 }
 
 export interface CreateQuotePayload {
@@ -347,7 +388,7 @@ export const quotesService = {
     }
   },
 
-  async getQuoteByToken(token: string): Promise<{ quote: Quote; items: QuoteItem[] } | null> {
+  async getQuoteByToken(token: string): Promise<QuoteShareViewData | null> {
     try {
       // Call the edge function to get quote data
       const { data, error } = await supabase.functions.invoke('quote-share-view', {
@@ -355,14 +396,25 @@ export const quotesService = {
       });
 
       if (error) throw error;
-      if (!data || !data.success) {
-        showToast.error(data?.error || 'קישור לא נמצא או פג תוקף');
+      if (!data || !(data as any).success) {
+        showToast.error((data as any)?.error || 'קישור לא נמצא או פג תוקף');
         return null;
       }
 
+      const payload = data as {
+        quote: Quote;
+        items: QuoteItem[];
+        supplier?: QuoteShareViewData['supplier'];
+        company?: QuoteShareViewData['company'];
+        appearance?: QuoteAppearanceTheme | null;
+      };
+
       return {
-        quote: data.quote,
-        items: data.items || []
+        quote: payload.quote,
+        items: (payload.items || []) as QuoteItem[],
+        supplier: payload.supplier ?? null,
+        company: payload.company ?? null,
+        appearance: payload.appearance ?? null,
       };
     } catch (error: any) {
       showToast.error(error.message);
