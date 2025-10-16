@@ -12,6 +12,7 @@ export interface Quote {
   tax_amount: number;
   total_amount: number;
   status: 'draft' | 'sent' | 'accepted' | 'rejected';
+  template?: string;
   created_at: string;
   updated_at: string;
 }
@@ -366,6 +367,70 @@ export const quotesService = {
       };
     } catch (error: any) {
       showToast.error(error.message);
+      throw error;
+    }
+  },
+
+  async deleteQuote(quoteId: string): Promise<void> {
+    try {
+      // Delete quote items first (cascade should handle this, but being explicit)
+      const { error: itemsError } = await supabase
+        .from('quote_items')
+        .delete()
+        .eq('quote_id', quoteId);
+
+      if (itemsError) throw itemsError;
+
+      // Delete the quote
+      const { error: quoteError } = await supabase
+        .from('quotes')
+        .delete()
+        .eq('id', quoteId);
+
+      if (quoteError) throw quoteError;
+
+      showToast.success('הצעת המחיר נמחקה בהצלחה');
+    } catch (error: any) {
+      showToast.error(error.message || 'שגיאה במחיקת הצעת המחיר');
+      throw error;
+    }
+  },
+
+  async convertToOrder(quoteId: string): Promise<any> {
+    try {
+      // Get quote and items
+      const quoteData = await this.getQuoteById(quoteId);
+      if (!quoteData) throw new Error('הצעת המחיר לא נמצאה');
+
+      const { quote, items } = quoteData;
+
+      if (!quote.client_id) {
+        throw new Error('לא ניתן להמיר הצעת מחיר ללא לקוח');
+      }
+
+      // Create order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          client_id: quote.client_id,
+          title: quote.title,
+          amount: quote.total_amount,
+          status: 'pending',
+          notes: quote.notes
+        } as any)
+        .select()
+        .maybeSingle();
+
+      if (orderError) throw orderError;
+      if (!order) throw new Error('שגיאה ביצירת ההזמנה');
+
+      // Update quote with order_id
+      await this.updateQuote(quoteId, { order_id: order.id } as any);
+
+      showToast.success('ההצעה הומרה להזמנה בהצלחה!');
+      return order;
+    } catch (error: any) {
+      showToast.error(error.message || 'שגיאה בהמרת הצעת המחיר להזמנה');
       throw error;
     }
   }

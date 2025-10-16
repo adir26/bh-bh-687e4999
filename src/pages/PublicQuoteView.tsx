@@ -29,7 +29,7 @@ export default function PublicQuoteView() {
 
     try {
       const { data, error } = await supabase.functions.invoke('generate-quote-pdf', {
-        body: { token },
+        body: { token, template: quoteData?.quote.template || 'premium' },
         // חשוב: מבקשים בינארי ומגדירים כותרות מפורשות
         responseType: 'arraybuffer' as any,
         headers: {
