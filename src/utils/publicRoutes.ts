@@ -39,12 +39,13 @@ export const isPublicRoute = (pathname: string): boolean => {
   // Handle dynamic routes with patterns
   const dynamicPatterns = [
     /^\/supplier\/[^/]+$/,                    // /supplier/:id
-    /^\/supplier\/[^/]+\/products$/,         // /supplier/:id/products  
+    /^\/supplier\/[^/]+\/products$/,         // /supplier/:id/products
     /^\/supplier\/[^/]+\/reviews$/,          // /supplier/:id/reviews
     /^\/s\/[^/]+$/,                          // /s/:slug (public supplier profiles)
     /^\/s\/[^/]+\/p\/[^/]+$/,               // /s/:slug/p/:productId
     /^\/category\/[^/]+\/suppliers$/,        // /category/:category/suppliers
     /^\/inspiration\/photo\/[^/]+$/,         // /inspiration/photo/:id
+    /^\/quote\/share\/[^/]+$/,               // /quote/share/:token public quote view
   ];
   
   return dynamicPatterns.some(pattern => pattern.test(pathname));

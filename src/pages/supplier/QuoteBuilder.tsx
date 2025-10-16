@@ -413,13 +413,35 @@ export default function QuoteBuilder() {
         if (!currentQuote) return;
       }
 
-      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      const invokeOptions: any = {
         body: { quoteId: currentQuote.id },
-        // @ts-ignore - responseType is valid but not in types
-        responseType: 'arraybuffer'
-      });
+        responseType: 'arraybuffer',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/pdf',
+        },
+      };
+
+      if (accessToken) {
+        invokeOptions.headers = {
+          ...invokeOptions.headers,
+          Authorization: `Bearer ${accessToken}`,
+        };
+      }
+
+      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', invokeOptions);
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('קובץ PDF לא הוחזר מהשרת');
+      }
+
+      if (!(data instanceof ArrayBuffer)) {
+        throw new Error('תגובת השרת אינה בפורמט PDF תקין');
+      }
 
       const blob = new Blob([data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
@@ -432,9 +454,10 @@ export default function QuoteBuilder() {
       URL.revokeObjectURL(url);
       
       showToast.success('PDF הורד בהצלחה');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating PDF:', error);
-      showToast.error('שגיאה ביצירת PDF');
+      const message = error?.message || 'שגיאה ביצירת PDF';
+      showToast.error(message);
     }
   };
 
