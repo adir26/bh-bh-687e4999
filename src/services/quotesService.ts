@@ -346,8 +346,31 @@ export const quotesService = {
       if (error) throw error;
 
       // Use public base URL for stable links that work from any environment
-      const baseUrl = (import.meta.env.VITE_PUBLIC_BASE_URL || window.location.origin).replace(/\/$/, '');
-      return `${baseUrl}/quote/share/${token}`;
+      const envUrl = import.meta.env.VITE_PUBLIC_BASE_URL;
+      const fallbackOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+
+      let baseOrigin = fallbackOrigin;
+
+      if (envUrl) {
+        try {
+          // new URL preserves only the origin (scheme + host) and ignores any path fragments
+          baseOrigin = new URL(envUrl).origin;
+        } catch (error) {
+          console.warn('Invalid VITE_PUBLIC_BASE_URL provided, falling back to window.origin', error);
+        }
+      }
+
+      if (!baseOrigin) {
+        throw new Error('לא ניתן לקבוע כתובת בסיס ליצירת קישור שיתוף');
+      }
+
+      const shareUrl = new URL(`/quote/share/${token}`, baseOrigin);
+      // Force guest mode so the recipient never sees an auth wall even if new routes are added later
+      if (!shareUrl.searchParams.has('guest')) {
+        shareUrl.searchParams.set('guest', '1');
+      }
+
+      return shareUrl.toString();
     } catch (error: any) {
       showToast.error(error.message);
       throw error;
