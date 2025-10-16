@@ -24,6 +24,52 @@ export default function PublicQuoteView() {
     retry: false,
   });
 
+  // Template styles
+  const templateStyles: Record<string, any> = {
+    premium: {
+      gradient: 'from-purple-600 to-pink-600',
+      accent: 'bg-purple-600 hover:bg-purple-700',
+      accentText: 'text-purple-600',
+      border: 'border-purple-200',
+      bg: 'bg-purple-50/50',
+      headerBg: 'bg-gradient-to-r from-purple-600 to-pink-600'
+    },
+    corporate: {
+      gradient: 'from-gray-700 to-blue-600',
+      accent: 'bg-blue-600 hover:bg-blue-700',
+      accentText: 'text-blue-600',
+      border: 'border-blue-200',
+      bg: 'bg-blue-50/50',
+      headerBg: 'bg-gradient-to-r from-gray-700 to-blue-600'
+    },
+    modern: {
+      gradient: 'from-blue-500 to-cyan-500',
+      accent: 'bg-cyan-600 hover:bg-cyan-700',
+      accentText: 'text-cyan-600',
+      border: 'border-cyan-200',
+      bg: 'bg-cyan-50/50',
+      headerBg: 'bg-gradient-to-r from-blue-500 to-cyan-500'
+    },
+    minimal: {
+      gradient: 'from-gray-800 to-gray-600',
+      accent: 'bg-gray-800 hover:bg-gray-900',
+      accentText: 'text-gray-800',
+      border: 'border-gray-300',
+      bg: 'bg-gray-100/50',
+      headerBg: 'bg-gradient-to-r from-gray-800 to-gray-600'
+    },
+    classic: {
+      gradient: 'from-amber-600 to-orange-600',
+      accent: 'bg-amber-600 hover:bg-amber-700',
+      accentText: 'text-amber-600',
+      border: 'border-amber-200',
+      bg: 'bg-amber-50/50',
+      headerBg: 'bg-gradient-to-r from-amber-600 to-orange-600'
+    }
+  };
+
+  const currentStyle = templateStyles[quoteData?.quote.template || 'premium'];
+
   const handleDownloadPDF = async () => {
     if (!token) return;
 
@@ -102,27 +148,32 @@ export default function PublicQuoteView() {
   return (
     <PageBoundary isLoading={isLoading} isError={!!error || !quoteData}>
       <div className="min-h-screen bg-background p-4 md:p-6" dir="rtl">
-        <Card className="max-w-5xl mx-auto">
+        <Card className="max-w-5xl mx-auto shadow-lg">
           {quoteData && (
             <>
-              <CardHeader className="border-b">
+              <CardHeader className={`${currentStyle.headerBg} text-white border-b-0`}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-2xl mb-2">{quoteData.quote.title}</CardTitle>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <CardTitle className="text-2xl mb-2 text-white">{quoteData.quote.title}</CardTitle>
+                    <div className="flex items-center gap-4 text-sm text-white/90">
                       <span>מספר: {quoteData.quote.id.slice(0, 8).toUpperCase()}</span>
                       <span>תאריך: {new Date(quoteData.quote.created_at).toLocaleDateString('he-IL')}</span>
                     </div>
                   </div>
-                  {getStatusBadge(quoteData.quote.status)}
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30 hover:bg-white/30">
+                    {quoteData.quote.status === 'sent' && 'נשלחה'}
+                    {quoteData.quote.status === 'accepted' && 'אושרה'}
+                    {quoteData.quote.status === 'rejected' && 'נדחתה'}
+                    {quoteData.quote.status === 'draft' && 'טיוטה'}
+                  </Badge>
                 </div>
               </CardHeader>
 
               <CardContent className="p-6 space-y-6">
                 {/* Items Table */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">פירוט השירותים/מוצרים</h3>
-                  <div className="rounded-md border">
+                  <h3 className={`text-lg font-semibold mb-3 ${currentStyle.accentText}`}>פירוט השירותים/מוצרים</h3>
+                  <div className={`rounded-md border ${currentStyle.border}`}>
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -179,29 +230,29 @@ export default function PublicQuoteView() {
 
                 {/* Notes */}
                 {quoteData.quote.notes && (
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h3 className="font-semibold mb-2">הערות:</h3>
+                  <div className={`${currentStyle.bg} p-4 rounded-lg border ${currentStyle.border}`}>
+                    <h3 className={`font-semibold mb-2 ${currentStyle.accentText}`}>הערות:</h3>
                     <p className="text-sm whitespace-pre-wrap">{quoteData.quote.notes}</p>
                   </div>
                 )}
 
                 {/* Terms & Conditions */}
                 {quoteData.quote.terms_conditions && (
-                  <div className="bg-muted/50 p-4 rounded-lg border border-border">
-                    <h3 className="font-semibold mb-2">תנאי ההצעה:</h3>
+                  <div className={`${currentStyle.bg} p-4 rounded-lg border ${currentStyle.border}`}>
+                    <h3 className={`font-semibold mb-2 ${currentStyle.accentText}`}>תנאי ההצעה:</h3>
                     <p className="text-sm whitespace-pre-wrap text-muted-foreground">{quoteData.quote.terms_conditions}</p>
                   </div>
                 )}
 
                 {/* Actions */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
-                  <Button onClick={handleDownloadPDF} variant="outline" className="flex-1">
+                <div className={`flex flex-col sm:flex-row gap-3 pt-4 border-t ${currentStyle.border}`}>
+                  <Button onClick={handleDownloadPDF} variant="outline" className={`flex-1 ${currentStyle.border}`}>
                     <Download className="w-4 h-4 ml-1" />
                     הורד PDF
                   </Button>
                   {quoteData.quote.status === 'sent' && (
                     <>
-                      <Button onClick={handleAccept} variant="default" className="flex-1">
+                      <Button onClick={handleAccept} className={`flex-1 ${currentStyle.accent} text-white`}>
                         <CheckCircle className="w-4 h-4 ml-1" />
                         אשר הצעה
                       </Button>
