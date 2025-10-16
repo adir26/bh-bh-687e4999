@@ -56,10 +56,10 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Fetch quote
+    // Fetch quote - only expose necessary fields for public viewing
     const { data: quote, error: quoteError } = await supabase
       .from('quotes')
-      .select('*')
+      .select('id, title, notes, terms_conditions, subtotal, tax_amount, total_amount, status, template, created_at')
       .eq('id', shareLink.quote_id)
       .single();
 
@@ -68,10 +68,10 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('הצעת מחיר לא נמצאה');
     }
 
-    // Fetch quote items
+    // Fetch quote items - only expose necessary fields for public viewing
     const { data: items, error: itemsError } = await supabase
       .from('quote_items')
-      .select('*')
+      .select('id, name, description, quantity, unit_price, subtotal, sort_order')
       .eq('quote_id', quote.id)
       .order('sort_order', { ascending: true });
 

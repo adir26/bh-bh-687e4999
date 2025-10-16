@@ -345,7 +345,9 @@ export const quotesService = {
 
       if (error) throw error;
 
-      return `${window.location.origin}/quote/share/${token}`;
+      // Use public base URL for stable links that work from any environment
+      const baseUrl = (import.meta.env.VITE_PUBLIC_BASE_URL || window.location.origin).replace(/\/$/, '');
+      return `${baseUrl}/quote/share/${token}`;
     } catch (error: any) {
       showToast.error(error.message);
       throw error;
