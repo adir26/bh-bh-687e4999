@@ -11,7 +11,10 @@ const decodeBase64ToArrayBuffer = (base64: string): ArrayBuffer => {
 };
 
 const viewToArrayBuffer = (view: ArrayBufferView): ArrayBuffer => {
-  return view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength);
+  const uint8 = new Uint8Array(view.byteLength);
+  const srcView = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+  uint8.set(srcView);
+  return uint8.buffer;
 };
 
 export const createPdfBlob = (data: unknown): Blob => {

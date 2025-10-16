@@ -125,7 +125,7 @@ export default function LiveProductCatalogContent() {
         throw new Error("המחיר חייב להיות מספר חיובי");
       }
 
-      // Validate images
+      // Validate images first
       if (form.files.length > 0) {
         const imageErrors = validateImageFiles(form.files);
         if (imageErrors.length > 0) {
@@ -134,37 +134,60 @@ export default function LiveProductCatalogContent() {
       }
 
       let product: DBProduct;
-      if (!editing) {
-        const created = await productsService.create(supplierId, {
-          name: form.name.trim(),
-          description: form.description?.trim() || undefined,
-          price: form.price,
-          currency: form.currency || "ILS",
-        });
-        product = created;
-      } else {
-        product = await productsService.update(editing.id, {
-          name: form.name.trim(),
-          description: form.description?.trim() || undefined,
-          price: form.price,
-          currency: form.currency || "ILS",
-        });
-      }
+      let uploadedPaths: string[] = [];
 
-      // Upload new images if provided
-      if (form.files.length > 0) {
-        const existingPaths = form.existingImages;
-        const newPaths: string[] = [...existingPaths];
-        
-        for (const file of form.files) {
-          const { path } = await productsService.uploadImage(file, supplierId, product.id);
-          newPaths.push(path);
+      try {
+        // Step 1: Create/Update product
+        if (!editing) {
+          const created = await productsService.create(supplierId, {
+            name: form.name.trim(),
+            description: form.description?.trim() || undefined,
+            price: form.price,
+            currency: form.currency || "ILS",
+          });
+          product = created;
+        } else {
+          product = await productsService.update(editing.id, {
+            name: form.name.trim(),
+            description: form.description?.trim() || undefined,
+            price: form.price,
+            currency: form.currency || "ILS",
+          });
         }
-        
-        await productsService.update(product.id, { images: newPaths as any });
-      }
 
-      return product;
+        // Step 2: Upload new images (if any)
+        if (form.files.length > 0) {
+          const existingPaths = form.existingImages;
+          
+          for (const file of form.files) {
+            try {
+              const { path } = await productsService.uploadImage(file, supplierId, product.id);
+              uploadedPaths.push(path);
+            } catch (uploadError) {
+              // Cleanup: delete already uploaded images if one fails
+              for (const uploadedPath of uploadedPaths) {
+                try {
+                  await productsService.deleteImage(uploadedPath, supplierId, product.id);
+                } catch (cleanupError) {
+                  console.warn('Failed to cleanup uploaded image:', uploadedPath);
+                }
+              }
+              throw uploadError;
+            }
+          }
+          
+          // Step 3: Update product with all image paths
+          const allPaths = [...existingPaths, ...uploadedPaths];
+          await productsService.update(product.id, { images: allPaths as any });
+        }
+
+        return product;
+      } catch (error) {
+        if (!editing && product!) {
+          console.warn('Product created but image upload failed:', product.id);
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplier-products'] });
