@@ -272,20 +272,31 @@ export default function PublicQuoteView() {
     }
   };
 
-  const content = !quoteData ? null : (
-    <div
-      className="min-h-screen p-4 md:p-6"
-      dir="rtl"
-      style={{
-        backgroundColor: appearance.backgroundColor,
-        fontFamily: appearance.fontFamily,
-        transition: 'background-color 0.3s ease',
-      }}
-    >
+  let content: React.ReactNode = null;
+
+  if (!quoteData) {
+    content = null;
+  } else {
+    const items = Array.isArray(quoteData.items) ? quoteData.items : [];
+    const hasItems = items.length > 0;
+    const displayTaxRate = quoteData.quote.subtotal > 0
+      ? ((quoteData.quote.tax_amount / quoteData.quote.subtotal) * 100).toFixed(0)
+      : String(quoteData.quote.tax_rate ?? 17);
+
+    content = (
       <div
-        className="max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-xl border backdrop-blur"
-        style={{ borderColor: borderColor, backgroundColor: '#FFFFFFF7' }}
+        className="min-h-screen p-4 md:p-6"
+        dir="rtl"
+        style={{
+          backgroundColor: appearance.backgroundColor,
+          fontFamily: appearance.fontFamily,
+          transition: 'background-color 0.3s ease',
+        }}
       >
+        <div
+          className="max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-xl border backdrop-blur"
+          style={{ borderColor, backgroundColor: '#FFFFFFF7' }}
+        >
           <div className="relative">
             {heroBanner ? (
               <div className="h-48 w-full overflow-hidden">
@@ -338,7 +349,10 @@ export default function PublicQuoteView() {
                   </span>
                   <div className="text-white/90 text-sm text-shadow-sm">
                     <p>מספר הצעה: {quoteData.quote.id.slice(0, 8).toUpperCase()}</p>
-                    <p>תאריך: {formatDate(quoteData.quote.created_at)}</p>
+                    <p>נוצרה בתאריך: {formatDate(quoteData.quote.created_at)}</p>
+                    {quoteData.quote.expiry_date && (
+                      <p>בתוקף עד: {formatDate(quoteData.quote.expiry_date)}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -348,7 +362,7 @@ export default function PublicQuoteView() {
           <div className="px-6 sm:px-10 pb-10 space-y-8">
             <div className="space-y-3">
               <h2 className="text-3xl font-bold" style={{ color: appearance.textColor }}>
-                {quoteData.quote.title}
+                {quoteData.quote.title || 'הצעת מחיר מותאמת אישית'}
               </h2>
               {quoteData.company?.description && (
                 <p className="text-sm leading-relaxed" style={{ color: hexToRgba(appearance.textColor, 0.75) }}>
@@ -357,99 +371,172 @@ export default function PublicQuoteView() {
               )}
             </div>
 
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold" style={{ color: appearance.textColor }}>
-                פירוט השירותים/מוצרים
-              </h3>
-              <div className="rounded-2xl border" style={{ borderColor: borderColor }}>
-                <Table>
-                  <TableHeader>
-                    <TableRow style={{ backgroundColor: hexToRgba(appearance.primaryColor, 0.08, 'rgba(37, 99, 235, 0.08)') }}>
-                      <TableHead className="text-right" style={{ color: appearance.textColor }}>תיאור</TableHead>
-                      <TableHead className="text-right w-24" style={{ color: appearance.textColor }}>כמות</TableHead>
-                      <TableHead className="text-right w-32" style={{ color: appearance.textColor }}>מחיר ליחידה</TableHead>
-                      <TableHead className="text-right w-32" style={{ color: appearance.textColor }}>סכום חלקי</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {quoteData.items.map((item) => (
-                      <TableRow key={item.id} className="hover:bg-transparent">
-                        <TableCell>
-                          <div style={{ color: appearance.textColor }}>
-                            <div className="font-medium">{item.name}</div>
-                            {item.description && (
-                              <div className="text-sm" style={{ color: hexToRgba(appearance.textColor, 0.75) }}>
-                                {item.description}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell style={{ color: appearance.textColor }}>{item.quantity}</TableCell>
-                        <TableCell style={{ color: appearance.textColor }}>
-                          {formatCurrency(item.unit_price)}
-                        </TableCell>
-                        <TableCell className="font-medium" style={{ color: appearance.textColor }}>
-                          {formatCurrency(item.subtotal)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+            <div className="grid gap-6 sm:grid-cols-[1.75fr,1fr]">
+              <div className="rounded-2xl bg-white/95 p-6 shadow-sm border" style={{ borderColor }}>
+                <h3 className="text-lg font-semibold mb-4" style={{ color: appearance.textColor }}>
+                  פרטי הלקוח
+                </h3>
+                <div className="space-y-3 text-sm text-muted-foreground">
+                  <p>
+                    <span className="font-medium text-foreground">שם:</span>{' '}
+                    {quoteData.client?.name || 'לקוח יקר'}
+                  </p>
+                  {quoteData.client?.email && (
+                    <p>
+                      <span className="font-medium text-foreground">אימייל:</span>{' '}
+                      {quoteData.client.email}
+                    </p>
+                  )}
+                  {quoteData.client?.phone && (
+                    <p>
+                      <span className="font-medium text-foreground">טלפון:</span>{' '}
+                      {quoteData.client.phone}
+                    </p>
+                  )}
+                  {quoteData.client?.address && (
+                    <p>
+                      <span className="font-medium text-foreground">כתובת:</span>{' '}
+                      {quoteData.client.address}
+                    </p>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className="flex justify-end">
               <div
-                className="w-full max-w-md rounded-2xl p-5"
+                className="rounded-2xl p-6 shadow-sm"
                 style={{
-                  backgroundColor: hexToRgba(appearance.primaryColor, 0.07, 'rgba(37, 99, 235, 0.07)'),
-                  border: `1px solid ${hexToRgba(appearance.primaryColor, 0.12, 'rgba(37, 99, 235, 0.12)')}`,
+                  background: hexToRgba(appearance.primaryColor, 0.08, 'rgba(37, 99, 235, 0.08)'),
+                  borderColor,
                 }}
               >
-                <div className="flex justify-between text-sm" style={{ color: hexToRgba(appearance.textColor, 0.85) }}>
-                  <span>סכום ביניים</span>
-                  <span>{formatCurrency(quoteData.quote.subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-sm" style={{ color: hexToRgba(appearance.textColor, 0.85) }}>
-                  <span>
-                    מע"מ (
-                    {quoteData.quote.subtotal > 0
-                      ? ((quoteData.quote.tax_amount / quoteData.quote.subtotal) * 100).toFixed(0)
-                      : '17'}%
-                    )
-                  </span>
-                  <span>{formatCurrency(quoteData.quote.tax_amount)}</span>
-                </div>
-                <div className="flex justify-between items-center border-t mt-3 pt-4" style={{ borderColor: hexToRgba(appearance.primaryColor, 0.2, 'rgba(37, 99, 235, 0.2)') }}>
-                  <span className="text-lg font-semibold" style={{ color: appearance.textColor }}>
-                    סה"כ לתשלום
-                  </span>
-                  <span className="text-2xl font-bold" style={{ color: appearance.primaryColor }}>
-                    {formatCurrency(quoteData.quote.total_amount)}
-                  </span>
+                <h3 className="text-lg font-semibold mb-4" style={{ color: appearance.primaryColor }}>
+                  סיכום הצעה
+                </h3>
+                <div className="space-y-3 text-sm text-foreground/80">
+                  <p className="flex items-center justify-between">
+                    <span>סכום ביניים</span>
+                    <span>{formatCurrency(quoteData.quote.subtotal || 0)}</span>
+                  </p>
+                  {quoteData.quote.discount > 0 && (
+                    <p className="flex items-center justify-between text-destructive">
+                      <span>הנחה</span>
+                      <span>-{formatCurrency(quoteData.quote.discount)}</span>
+                    </p>
+                  )}
+                  <p className="flex items-center justify-between">
+                    <span>מע"מ ({displayTaxRate}%)</span>
+                    <span>{formatCurrency(quoteData.quote.tax_amount || 0)}</span>
+                  </p>
+                  <div className="flex items-center justify-between border-t pt-3" style={{ borderColor }}>
+                    <span className="text-base font-semibold">סה"כ לתשלום</span>
+                    <span className="text-xl font-bold" style={{ color: appearance.primaryColor }}>
+                      {formatCurrency(quoteData.quote.total_amount || quoteData.quote.total || 0)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
             {quoteData.quote.notes && (
-              <div
-                className="rounded-2xl p-5"
-                style={{ backgroundColor: mutedBackground, color: appearance.textColor }}
-              >
-                <h3 className="font-semibold mb-2">הערות ותנאים</h3>
-                <p className="text-sm whitespace-pre-wrap" style={{ color: hexToRgba(appearance.textColor, 0.85) }}>
+              <div className="rounded-2xl bg-white/95 p-6 shadow-sm border" style={{ borderColor }}>
+                <h3 className="text-lg font-semibold mb-4" style={{ color: appearance.textColor }}>
+                  הערות הספק
+                </h3>
+                <p className="text-sm leading-6 whitespace-pre-line text-muted-foreground">
                   {quoteData.quote.notes}
                 </p>
               </div>
             )}
 
-            {Array.isArray(quoteData.company?.services) && quoteData.company?.services?.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="font-semibold" style={{ color: appearance.textColor }}>
+            {hasItems ? (
+              <div className="rounded-2xl bg-white/95 p-6 shadow-sm border" style={{ borderColor }}>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold" style={{ color: appearance.textColor }}>
+                      פרטי הצעת המחיר
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      פירוט המוצרים והשירותים הכלולים בהצעה
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleDownloadPDF}
+                    variant="outline"
+                    className="font-semibold"
+                    style={{
+                      borderColor: appearance.primaryColor,
+                      color: appearance.primaryColor,
+                    }}
+                  >
+                    <Download className="w-4 h-4 ml-1" />
+                    הורד PDF
+                  </Button>
+                </div>
+
+                <div className="rounded-xl border overflow-hidden" style={{ borderColor }}>
+                  <Table>
+                    <TableHeader style={{ backgroundColor: mutedBackground }}>
+                      <TableRow>
+                        <TableHead className="text-right" style={{ color: appearance.textColor }}>
+                          תיאור
+                        </TableHead>
+                        <TableHead className="text-right" style={{ color: appearance.textColor }}>
+                          כמות
+                        </TableHead>
+                        <TableHead className="text-right" style={{ color: appearance.textColor }}>
+                          מחיר יחידה
+                        </TableHead>
+                        <TableHead className="text-right" style={{ color: appearance.textColor }}>
+                          סה"כ
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {items.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="text-right">
+                            <p className="font-medium" style={{ color: appearance.textColor }}>
+                              {item.name}
+                            </p>
+                            {item.description && (
+                              <p className="text-sm text-muted-foreground whitespace-pre-line">
+                                {item.description}
+                              </p>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right" style={{ color: appearance.textColor }}>
+                            {item.quantity}
+                          </TableCell>
+                          <TableCell className="text-right" style={{ color: appearance.textColor }}>
+                            {formatCurrency(item.unit_price)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold" style={{ color: appearance.textColor }}>
+                            {formatCurrency(item.total_price || item.subtotal)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-white/95 p-6 shadow-sm border text-center" style={{ borderColor }}>
+                <h3 className="text-lg font-semibold" style={{ color: appearance.textColor }}>
+                  ההצעה אינה כוללת פירוט פריטים
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  הספק בחר להציג רק את הסכום הכולל של ההצעה ללא פירוט נוסף.
+                </p>
+              </div>
+            )}
+
+            {Array.isArray(quoteData.company?.services) && quoteData.company.services.length > 0 && (
+              <div className="rounded-2xl bg-white/95 p-6 shadow-sm border" style={{ borderColor }}>
+                <h3 className="text-lg font-semibold mb-3" style={{ color: appearance.textColor }}>
                   שירותים נוספים
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {(quoteData.company?.services as string[]).map((service) => (
+                  {(quoteData.company.services as string[]).map((service) => (
                     <span
                       key={service}
                       className="rounded-full px-3 py-1 text-xs font-medium"
@@ -465,7 +552,10 @@ export default function PublicQuoteView() {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t" style={{ borderColor: hexToRgba(appearance.primaryColor, 0.12, 'rgba(37, 99, 235, 0.12)') }}>
+            <div
+              className="flex flex-col sm:flex-row gap-3 pt-4 border-t"
+              style={{ borderColor: hexToRgba(appearance.primaryColor, 0.12, 'rgba(37, 99, 235, 0.12)') }}
+            >
               <Button
                 onClick={handleDownloadPDF}
                 variant="outline"
@@ -534,8 +624,9 @@ export default function PublicQuoteView() {
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
 
   return (
     <PageBoundary isLoading={isLoading} isError={!!error || !quoteData} error={error}>
