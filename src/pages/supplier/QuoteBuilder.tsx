@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { pdf } from '@react-pdf/renderer';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,7 +11,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { ArrowLeft, Plus, Trash2, Download, Send, Save, Calculator, Users, Share2 } from 'lucide-react';
 import { showToast } from '@/utils/toast';
 import { quotesService, Quote, QuoteItem, CreateQuoteItemPayload } from '@/services/quotesService';
-import { QuotePDF } from '@/components/quotes/QuotePDF';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -20,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
 import { withTimeout } from '@/lib/withTimeout';
+import { isValidUUID } from '@/utils/validation';
 
 interface LocalQuoteItem {
   id: string;
@@ -314,6 +313,11 @@ export default function QuoteBuilder() {
       return;
     }
     
+    if (items.length === 0) {
+      showToast.error('יש להוסיף לפחות פריט אחד');
+      return;
+    }
+    
     setSaving(true);
     try {
       let currentQuote = quote;
@@ -322,7 +326,8 @@ export default function QuoteBuilder() {
       if (!currentQuote) {
         currentQuote = await quotesService.createQuote({
           title,
-          client_id: selectedClientId || undefined,
+          // Only set client_id if it's a valid UUID (not a lead ID)
+          client_id: selectedClientId && isValidUUID(selectedClientId) ? selectedClientId : undefined,
           notes
         });
         setQuote(currentQuote);
@@ -337,7 +342,8 @@ export default function QuoteBuilder() {
       // Update quote details
       await quotesService.updateQuote(currentQuote.id, {
         title,
-        client_id: selectedClientId || undefined,
+        // Only set client_id if it's a valid UUID (not a lead ID)
+        client_id: selectedClientId && isValidUUID(selectedClientId) ? selectedClientId : undefined,
         notes,
         subtotal: calculations.subtotal,
         tax_amount: calculations.taxAmount,
@@ -407,75 +413,56 @@ export default function QuoteBuilder() {
         if (!currentQuote) return;
       }
 
-      if (!profile) return;
-      
-      // Verify we have client name
-      if (!clientName.trim()) {
-        showToast.error('נא למלא שם לקוח לפני יצירת PDF');
-        return;
-      }
+      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', {
+        body: { quoteId: currentQuote.id },
+        // @ts-ignore - responseType is valid but not in types
+        responseType: 'arraybuffer'
+      });
 
-      const quoteData = await quotesService.getQuoteById(currentQuote.id);
-      if (!quoteData) return;
+      if (error) throw error;
 
-      const supplierInfo = {
-        name: profile.full_name || 'ספק',
-        email: profile.email
-      };
-
-      const clientInfo = {
-        name: clientName,
-        email: clientEmail || 'לא צוין'
-      };
-
-      const doc = (
-        <QuotePDF
-          quote={quoteData.quote}
-          items={quoteData.items}
-          supplierInfo={supplierInfo}
-          clientInfo={clientInfo}
-          calculations={calculations}
-          discountPercent={discount}
-        />
-      );
-
-      const blob = await pdf(doc).toBlob();
+      const blob = new Blob([data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `quote-${currentQuote.id.slice(0, 8)}.pdf`;
+      document.body.appendChild(link);
       link.click();
-      
+      document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      showToast.success('קובץ PDF הורד בהצלחה');
+      
+      showToast.success('PDF הורד בהצלחה');
     } catch (error) {
-      console.error('Failed to generate PDF:', error);
-      showToast.error('שגיאה ביצירת קובץ PDF');
+      console.error('Error generating PDF:', error);
+      showToast.error('שגיאה ביצירת PDF');
     }
   };
 
   const handleSendToCustomer = async () => {
-    if (!quote) {
-      showToast.error('נא לשמור את ההצעה תחילה');
+    if (items.length === 0) {
+      showToast.error('יש להוסיף לפחות פריט אחד');
       return;
     }
-    
-    if (!selectedClientId) {
+
+    // Must have a valid client UUID (not a lead) to send
+    if (!selectedClientId || !isValidUUID(selectedClientId)) {
       showToast.error('נא לבחור לקוח עם פרופיל (לא ליד) לשליחת הצעת מחיר');
-      return;
-    }
-    
-    if (items.some(item => !item.name || item.quantity <= 0 || item.unit_price <= 0)) {
-      showToast.error('נא למלא את כל פרטי הפריטים');
       return;
     }
 
     try {
-      await quotesService.sendQuote(quote.id, selectedClientId);
-      setQuote(prev => prev ? { ...prev, status: 'sent' } : null);
-    } catch (error) {
-      console.error('Failed to send quote:', error);
-      showToast.error('שגיאה בשליחת הצעת המחיר');
+      const savedQuote = await handleSaveDraft();
+      if (!savedQuote) {
+        showToast.error('שגיאה בשמירת הצעת המחיר');
+        return;
+      }
+
+      await quotesService.sendQuote(savedQuote.id, selectedClientId);
+      showToast.success('הצעת המחיר נשלחה בהצלחה');
+      navigate('/supplier/quotes');
+    } catch (error: any) {
+      console.error('Error sending quote:', error);
+      showToast.error(error.message || 'שגיאה בשליחת הצעת המחיר');
     }
   };
 

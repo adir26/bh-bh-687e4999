@@ -2,15 +2,14 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { quotesService } from '@/services/quotesService';
-import { QuotePDF } from '@/components/quotes/QuotePDF';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
-import { pdf } from '@react-pdf/renderer';
 import { showToast } from '@/utils/toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function PublicQuoteView() {
   const { token } = useParams<{ token: string }>();
@@ -25,48 +24,31 @@ export default function PublicQuoteView() {
   });
 
   const handleDownloadPDF = async () => {
-    if (!quoteData) return;
-    
+    if (!token) return;
+
     try {
-      const supplierInfo = {
-        name: 'ספק',
-        email: ''
-      };
+      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', {
+        body: { token },
+        // @ts-ignore - responseType is valid but not in types
+        responseType: 'arraybuffer'
+      });
 
-      const clientInfo = {
-        name: 'לקוח',
-        email: ''
-      };
+      if (error) throw error;
 
-      const calculations = quotesService.calculateTotals(
-        quoteData.items.map(item => ({ total: item.subtotal })),
-        0,
-        quoteData.quote.subtotal > 0 ? (quoteData.quote.tax_amount / quoteData.quote.subtotal) * 100 : 17
-      );
-
-      const doc = (
-        <QuotePDF
-          quote={quoteData.quote}
-          items={quoteData.items}
-          supplierInfo={supplierInfo}
-          clientInfo={clientInfo}
-          calculations={calculations}
-          discountPercent={0}
-        />
-      );
-
-      const blob = await pdf(doc).toBlob();
+      const blob = new Blob([data], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `quote-${quoteData.quote.id.slice(0, 8)}.pdf`;
+      link.download = `quote-${quoteData?.quote.id?.slice(0, 8) || token}.pdf`;
+      document.body.appendChild(link);
       link.click();
-      
+      document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      showToast.success('קובץ PDF הורד בהצלחה');
+
+      showToast.success('PDF הורד בהצלחה');
     } catch (error) {
-      console.error('Failed to generate PDF:', error);
-      showToast.error('שגיאה ביצירת קובץ PDF');
+      console.error('Error generating PDF:', error);
+      showToast.error('שגיאה ביצירת PDF');
     }
   };
 

@@ -323,47 +323,50 @@ export const quotesService = {
   },
 
   async generateShareLink(quoteId: string): Promise<string> {
-    // Generate unique token
-    const token = crypto.randomUUID();
-    
-    const { error } = await supabase
-      .from('quote_share_links')
-      .insert({
-        quote_id: quoteId,
-        token
-      });
-    
-    if (error) throw error;
-    
-    // Return public URL
-    return `${window.location.origin}/quote/share/${token}`;
+    try {
+      const token = Math.random().toString(36).substring(2, 15) + 
+                   Math.random().toString(36).substring(2, 15);
+      
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
+
+      const { error } = await supabase
+        .from('quote_share_links')
+        .insert({
+          quote_id: quoteId,
+          token,
+          expires_at: expiresAt.toISOString()
+        });
+
+      if (error) throw error;
+
+      return `${window.location.origin}/quote/share/${token}`;
+    } catch (error: any) {
+      showToast.error(error.message);
+      throw error;
+    }
   },
 
   async getQuoteByToken(token: string): Promise<{ quote: Quote; items: QuoteItem[] } | null> {
-    // Get share link
-    const { data: shareLink, error: linkError } = await supabase
-      .from('quote_share_links')
-      .select('quote_id, expires_at')
-      .eq('token', token)
-      .maybeSingle();
-    
-    if (linkError || !shareLink) return null;
-    
-    // Check expiration
-    if (new Date(shareLink.expires_at) < new Date()) {
-      return null;
+    try {
+      // Call the edge function to get quote data
+      const { data, error } = await supabase.functions.invoke('quote-share-view', {
+        body: { token }
+      });
+
+      if (error) throw error;
+      if (!data || !data.success) {
+        showToast.error(data?.error || 'קישור לא נמצא או פג תוקף');
+        return null;
+      }
+
+      return {
+        quote: data.quote,
+        items: data.items || []
+      };
+    } catch (error: any) {
+      showToast.error(error.message);
+      throw error;
     }
-    
-    // Update access count and timestamp (fire and forget)
-    supabase
-      .from('quote_share_links')
-      .update({ 
-        accessed_at: new Date().toISOString()
-      })
-      .eq('token', token)
-      .then(() => {});
-    
-    // Get quote
-    return await this.getQuoteById(shareLink.quote_id);
   }
 };
