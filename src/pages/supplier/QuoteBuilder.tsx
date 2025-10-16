@@ -19,6 +19,7 @@ import { PageBoundary } from '@/components/system/PageBoundary';
 import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
 import { withTimeout } from '@/lib/withTimeout';
 import { isValidUUID } from '@/utils/validation';
+import { createPdfBlob } from '@/utils/pdf';
 
 interface LocalQuoteItem {
   id: string;
@@ -435,15 +436,7 @@ export default function QuoteBuilder() {
       const { data, error } = await supabase.functions.invoke('generate-quote-pdf', invokeOptions);
 
       if (error) throw error;
-      if (!data) {
-        throw new Error('קובץ PDF לא הוחזר מהשרת');
-      }
-
-      if (!(data instanceof ArrayBuffer)) {
-        throw new Error('תגובת השרת אינה בפורמט PDF תקין');
-      }
-
-      const blob = new Blob([data], { type: 'application/pdf' });
+      const blob = createPdfBlob(data);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

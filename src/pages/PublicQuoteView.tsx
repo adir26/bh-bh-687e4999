@@ -10,6 +10,7 @@ import { Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { showToast } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
+import { createPdfBlob } from '@/utils/pdf';
 
 export default function PublicQuoteView() {
   const { token } = useParams<{ token: string }>();
@@ -37,15 +38,7 @@ export default function PublicQuoteView() {
       } as any);
 
       if (error) throw error;
-      if (!data) {
-        throw new Error('קובץ PDF לא הוחזר מהשרת');
-      }
-
-      if (!(data instanceof ArrayBuffer)) {
-        throw new Error('תגובת השרת אינה בפורמט PDF תקין');
-      }
-
-      const blob = new Blob([data], { type: 'application/pdf' });
+      const blob = createPdfBlob(data);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
