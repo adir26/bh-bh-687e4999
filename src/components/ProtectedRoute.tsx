@@ -10,14 +10,18 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
-  allowedRoles, 
-  redirectTo = '/auth' 
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  allowedRoles,
+  redirectTo
 }) => {
   const { user, profile, loading } = useAuth();
   const { isGuestMode } = useGuestMode();
   const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  const unauthenticatedRedirect = isAdminRoute ? '/admin/login' : '/auth';
+  const unauthorizedRedirect = redirectTo ?? (isAdminRoute ? '/admin/forbidden' : '/auth');
 
   // Show loading while auth state is being determined
   if (loading) {
@@ -38,12 +42,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirect to login if not authenticated
   if (!user) {
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to={unauthenticatedRedirect} state={{ from: location }} replace />;
   }
 
   // Redirect if user doesn't have required role
   if (!profile || !allowedRoles.includes(profile.role)) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={unauthorizedRedirect} state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

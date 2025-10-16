@@ -4,7 +4,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { AdminBottomNavigation } from "./AdminBottomNavigation";
-import { supabase } from "@/integrations/supabase/client";
 import { useSecureAdminAuth } from "@/hooks/useSecureAdminAuth";
 import { SecureStorage } from "@/utils/secureStorage";
 
@@ -15,12 +14,13 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdminAuthenticated, validateAdminAccess } = useSecureAdminAuth();
+  const { isAdminAuthenticated, isValidating, validateAdminAccess } = useSecureAdminAuth();
+  const isAuthExempt = location.pathname === "/admin/login" || location.pathname === "/admin/forbidden";
 
   useEffect(() => {
+    if (isAuthExempt) return;
+
     const checkAdminAuth = async () => {
-      if (location.pathname === "/admin/login") return;
-      
       // Use secure admin authentication
       const isValid = await validateAdminAccess();
       if (!isValid) {
@@ -34,15 +34,33 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     };
 
     checkAdminAuth();
-  }, [navigate, location.pathname, validateAdminAccess]);
+  }, [navigate, location.pathname, validateAdminAccess, isAuthExempt]);
 
-  const isLoginPage = location.pathname === "/admin/login";
-
-  if (isLoginPage) {
-    return <div className="admin-rtl">{children}</div>;
+  if (isAuthExempt) {
+    return (
+      <div className="admin-rtl min-h-screen bg-background">
+        <div className="flex min-h-screen items-center justify-center p-6">
+          <div className="w-full max-w-xl">{children}</div>
+        </div>
+      </div>
+    );
   }
 
   // Block access if admin authentication is not validated
+  if (isValidating) {
+    return (
+      <div className="admin-rtl min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto"></div>
+          <div className="space-y-1">
+            <p className="text-lg font-semibold">מאמת הרשאות ניהול...</p>
+            <p className="text-sm text-muted-foreground">אנא המתן בזמן שאנו מוודאים שהגישה שלך מאושרת</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAdminAuthenticated) {
     return null; // Let the useEffect handle navigation
   }
