@@ -34,6 +34,7 @@ This audit represents the first comprehensive assessment of the supplier module.
 - **Before**: No baseline (first audit)
 - **After**: WORKS_E2E - Quote creation with line items, client management, and PDF generation
 - **Changes**: Full quoting system with proposal workflow integration
+- **QA Re-run**: Verified supplier quote workflow including public share links and PDF downloads for both authenticated suppliers and public recipients.
 
 ### ✅ Proposal Builder
 - **Before**: No baseline (first audit)
