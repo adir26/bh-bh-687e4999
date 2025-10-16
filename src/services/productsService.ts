@@ -78,24 +78,17 @@ export const productsService = {
     if (error) throw error;
     const items = (data || []) as DBProduct[];
 
-    // Create signed URLs for images
-    const withSigned = await Promise.all(
-      items.map(async (p) => {
-        const images = p.images || [];
-        const signed: string[] = [];
-        for (const path of images) {
-          try {
-            const { data: signedData } = await supabase.storage
-              .from("product-images")
-              .createSignedUrl(path, 60 * 60 * 24); // 24 hours
-            if (signedData?.signedUrl) signed.push(signedData.signedUrl);
-          } catch (e) {
-            console.warn('Failed to create signed URL for:', path);
-          }
-        }
-        return { ...p, imagesSigned: signed } as DBProduct & { imagesSigned: string[] };
-      })
-    );
+    // Get public URLs for images (bucket is public)
+    const withSigned = items.map((p) => {
+      const images = p.images || [];
+      const publicUrls: string[] = images.map(path => {
+        const { data } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(path);
+        return data.publicUrl;
+      });
+      return { ...p, imagesSigned: publicUrls } as DBProduct & { imagesSigned: string[] };
+    });
 
     return {
       items: withSigned,
@@ -120,24 +113,17 @@ export const productsService = {
     if (error) throw error;
     const items = (data || []) as DBProduct[];
 
-    // Create signed URLs for images
-    const withSigned = await Promise.all(
-      items.map(async (p) => {
-        const images = p.images || [];
-        const signed: string[] = [];
-        for (const path of images) {
-          try {
-            const { data: signedData } = await supabase.storage
-              .from("product-images")
-              .createSignedUrl(path, 60 * 60 * 24);
-            if (signedData?.signedUrl) signed.push(signedData.signedUrl);
-          } catch (e) {
-            console.warn('Failed to create signed URL for:', path);
-          }
-        }
-        return { ...p, imagesSigned: signed } as DBProduct & { imagesSigned: string[] };
-      })
-    );
+    // Get public URLs for images (bucket is public)
+    const withSigned = items.map((p) => {
+      const images = p.images || [];
+      const publicUrls: string[] = images.map(path => {
+        const { data } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(path);
+        return data.publicUrl;
+      });
+      return { ...p, imagesSigned: publicUrls } as DBProduct & { imagesSigned: string[] };
+    });
 
     return {
       items: withSigned,
@@ -215,8 +201,8 @@ export const productsService = {
       file_type: file.type 
     });
 
-    const { data: signed } = await supabase.storage.from("product-images").createSignedUrl(path, 60 * 60 * 24);
-    return { path, signedUrl: signed?.signedUrl };
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    return { path, signedUrl: data.publicUrl };
   },
 
   async deleteImage(imagePath: string, supplierId: string, productId: string) {
