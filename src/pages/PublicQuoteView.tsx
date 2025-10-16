@@ -29,13 +29,15 @@ export default function PublicQuoteView() {
     try {
       const { data, error } = await supabase.functions.invoke('generate-quote-pdf', {
         body: { token },
-        // @ts-ignore - responseType is valid but not in types
         responseType: 'arraybuffer'
-      });
+      } as any);
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('קובץ PDF לא הוחזר מהשרת');
+      }
 
-      const blob = new Blob([data], { type: 'application/pdf' });
+      const blob = new Blob([data as ArrayBuffer], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

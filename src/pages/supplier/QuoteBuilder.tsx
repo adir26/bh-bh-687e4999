@@ -413,15 +413,26 @@ export default function QuoteBuilder() {
         if (!currentQuote) return;
       }
 
-      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      const invokeOptions: any = {
         body: { quoteId: currentQuote.id },
-        // @ts-ignore - responseType is valid but not in types
         responseType: 'arraybuffer'
-      });
+      };
+
+      if (accessToken) {
+        invokeOptions.headers = { Authorization: `Bearer ${accessToken}` };
+      }
+
+      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', invokeOptions);
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('קובץ PDF לא הוחזר מהשרת');
+      }
 
-      const blob = new Blob([data], { type: 'application/pdf' });
+      const blob = new Blob([data as ArrayBuffer], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
