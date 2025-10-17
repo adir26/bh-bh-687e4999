@@ -66,7 +66,7 @@ export default function QuotesList() {
       return <Badge variant="default" className="bg-gray-100 text-gray-700">📤 נשלחה</Badge>;
     }
     
-    if (quote.status === 'approved') {
+    if (quote.status === 'accepted') {
       return (
         <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
           ✅ אושרה{quote.responded_at ? ` ב-${new Date(quote.responded_at).toLocaleDateString('he-IL', { 

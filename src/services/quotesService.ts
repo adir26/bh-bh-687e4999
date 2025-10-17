@@ -16,6 +16,8 @@ export interface Quote {
   total_amount: number;
   status: 'draft' | 'sent' | 'accepted' | 'rejected';
   template?: string;
+  viewed_at?: string;
+  responded_at?: string;
   created_at: string;
   updated_at: string;
 }
