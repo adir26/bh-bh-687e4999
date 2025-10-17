@@ -485,6 +485,34 @@ export default function QuoteBuilder() {
     }
   };
 
+  const handleMarkAsSent = async () => {
+    if (items.length === 0) {
+      showToast.error('יש להוסיף לפחות פריט אחד');
+      return;
+    }
+    if (!selectedClientId || !isValidUUID(selectedClientId)) {
+      showToast.error('נא לבחור לקוח עם פרופיל (לא ליד) לפני שליחה');
+      return;
+    }
+    try {
+      let currentQuote = quote;
+      if (!currentQuote) {
+        showToast.info('שומר את ההצעה לפני שליחה...');
+        currentQuote = await handleSaveDraft();
+        if (!currentQuote) return;
+      }
+      const updated = await quotesService.updateQuote(currentQuote.id, {
+        status: 'sent' as any,
+        sent_at: new Date().toISOString() as any,
+      } as any);
+      setQuote(updated);
+      showToast.success('הצעת המחיר סומנה כ"נשלחה". כעת הלקוח יוכל לאשר או לדחות.');
+    } catch (error: any) {
+      console.error('Failed to mark quote as sent:', error);
+      showToast.error(error?.message || 'שגיאה בעדכון סטטוס להצעת מחיר');
+    }
+  };
+
   const handleGenerateShareLink = async () => {
     try {
       // If no quote exists, save first
@@ -903,6 +931,15 @@ export default function QuoteBuilder() {
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">תבנית נוכחית: {selectedTemplate}</p>
+              </div>
+
+              {/* Mark as Sent (save before sending) */}
+              <div>
+                <Button onClick={handleMarkAsSent} className="w-full">
+                  <Save className="w-4 h-4 ml-1" />
+                  שמירה לפני שליחה
+                </Button>
+                <p className="text-xs text-muted-foreground mt-1">כדי לאפשר ללקוח לאשר/לדחות, יש לשמור ולסמן כ“נשלח”.</p>
               </div>
 
               {/* Share Link */}
