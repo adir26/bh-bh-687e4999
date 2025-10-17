@@ -37,6 +37,16 @@ export default function QuotesList() {
     return quote.status === activeTab;
   });
 
+  const handlePreviewClick = async (quoteId: string) => {
+    try {
+      const shareLink = await quotesService.generateShareLink(quoteId);
+      window.open(shareLink, '_blank');
+    } catch (error) {
+      console.error('Failed to generate preview link:', error);
+      navigate(`/quote/share/${quoteId}`);
+    }
+  };
+
   const getStatusBadge = (status: Quote['status']) => {
     const variants = {
       draft: 'secondary',
@@ -133,8 +143,8 @@ export default function QuotesList() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    onClick={() => navigate(`/quote/${quote.id}`)}
-                                    title="צפה"
+                                    onClick={() => handlePreviewClick(quote.id)}
+                                    title="תצוגה מקדימה"
                                   >
                                     <Eye className="w-4 h-4" />
                                   </Button>
