@@ -490,8 +490,9 @@ export default function QuoteBuilder() {
       showToast.error('יש להוסיף לפחות פריט אחד');
       return;
     }
-    if (!selectedClientId || !isValidUUID(selectedClientId)) {
-      showToast.error('נא לבחור לקוח עם פרופיל (לא ליד) לפני שליחה');
+    // Check if client/lead is selected
+    if (!selectedClientValue) {
+      showToast.error('נא לבחור לקוח או ליד לפני שליחה');
       return;
     }
     try {
@@ -506,7 +507,10 @@ export default function QuoteBuilder() {
         sent_at: new Date().toISOString() as any,
       } as any);
       setQuote(updated);
-      showToast.success('הצעת המחיר סומנה כ"נשלחה". כעת הלקוח יוכל לאשר או לדחות.');
+      const isLead = selectedClientValue.startsWith('lead:');
+      showToast.success(
+        `הצעת המחיר סומנה כ"נשלחה"${isLead ? ' לליד' : ' ללקוח'}. כעת ${isLead ? 'הליד' : 'הלקוח'} יוכל לאשר או לדחות.`
+      );
     } catch (error: any) {
       console.error('Failed to mark quote as sent:', error);
       showToast.error(error?.message || 'שגיאה בעדכון סטטוס להצעת מחיר');
