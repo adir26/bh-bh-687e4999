@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { quotesService } from '@/services/quotesService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,13 @@ import { PageBoundary } from '@/components/system/PageBoundary';
 import { showToast } from '@/utils/toast';
 import { supabase } from '@/integrations/supabase/client';
 import { createPdfBlob } from '@/utils/pdf';
+import { QuoteApprovalModal, type ApprovalFormData } from '@/components/quotes/QuoteApprovalModal';
 
 export default function PublicQuoteView() {
   const { token } = useParams<{ token: string }>();
+  const queryClient = useQueryClient();
+  const [approvalModalOpen, setApprovalModalOpen] = useState(false);
+  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
 
   const { data: quoteData, isLoading, error } = useQuery({
     queryKey: ['public-quote', token],
@@ -111,25 +115,34 @@ export default function PublicQuoteView() {
     }
   };
 
-  const handleAccept = async () => {
-    if (!quoteData) return;
+  const handleApprovalSubmit = async (formData: ApprovalFormData) => {
+    if (!quoteData || !token) return;
+    
     try {
-      await quotesService.acceptQuote(quoteData.quote.id);
-      showToast.success('הצעת המחיר אושרה בהצלחה!');
-    } catch (error) {
-      console.error('Failed to accept quote:', error);
-      showToast.error('שגיאה באישור הצעת המחיר');
-    }
-  };
+      const { data, error } = await supabase.functions.invoke('submit-quote-approval', {
+        body: {
+          token,
+          clientName: formData.clientName,
+          clientIdNumber: formData.clientIdNumber,
+          clientPhone: formData.clientPhone,
+          clientEmail: formData.clientEmail,
+          signatureDataUrl: formData.signatureDataUrl,
+          status: approvalAction,
+          rejectionReason: formData.rejectionReason,
+          consentAccepted: formData.consentAccepted
+        }
+      });
 
-  const handleReject = async () => {
-    if (!quoteData) return;
-    try {
-      await quotesService.rejectQuote(quoteData.quote.id);
-      showToast.info('הצעת המחיר נדחתה');
-    } catch (error) {
-      console.error('Failed to reject quote:', error);
-      showToast.error('שגיאה בדחיית הצעת המחיר');
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || 'שגיאה לא ידועה');
+
+      showToast.success(data.message);
+      setApprovalModalOpen(false);
+      
+      queryClient.invalidateQueries({ queryKey: ['public-quote', token] });
+    } catch (error: any) {
+      console.error('Error submitting approval:', error);
+      showToast.error(error.message || 'שגיאה בשליחת האישור');
     }
   };
 
@@ -252,11 +265,24 @@ export default function PublicQuoteView() {
                   </Button>
                   {quoteData.quote.status === 'sent' && (
                     <>
-                      <Button onClick={handleAccept} className={`flex-1 ${currentStyle.accent} text-white`}>
+                      <Button 
+                        onClick={() => {
+                          setApprovalAction('approve');
+                          setApprovalModalOpen(true);
+                        }}
+                        className={`flex-1 ${currentStyle.accent} text-white`}
+                      >
                         <CheckCircle className="w-4 h-4 ml-1" />
                         אשר הצעה
                       </Button>
-                      <Button onClick={handleReject} variant="destructive" className="flex-1">
+                      <Button 
+                        onClick={() => {
+                          setApprovalAction('reject');
+                          setApprovalModalOpen(true);
+                        }}
+                        variant="destructive" 
+                        className="flex-1"
+                      >
                         <XCircle className="w-4 h-4 ml-1" />
                         דחה הצעה
                       </Button>
@@ -279,6 +305,13 @@ export default function PublicQuoteView() {
             </>
           )}
         </Card>
+
+        <QuoteApprovalModal
+          open={approvalModalOpen}
+          onClose={() => setApprovalModalOpen(false)}
+          onSubmit={handleApprovalSubmit}
+          action={approvalAction}
+        />
       </div>
     </PageBoundary>
   );

@@ -3022,6 +3022,74 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_approvals: {
+        Row: {
+          approval_date: string
+          client_email: string
+          client_id_number: string
+          client_name: string
+          client_phone: string
+          consent_text: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          quote_id: string
+          rejection_reason: string | null
+          share_token: string
+          signature_hash: string | null
+          signature_storage_path: string | null
+          status: string
+          supplier_id: string
+          user_agent: string
+        }
+        Insert: {
+          approval_date?: string
+          client_email: string
+          client_id_number: string
+          client_name: string
+          client_phone: string
+          consent_text: string
+          created_at?: string
+          id?: string
+          ip_address: unknown
+          quote_id: string
+          rejection_reason?: string | null
+          share_token: string
+          signature_hash?: string | null
+          signature_storage_path?: string | null
+          status: string
+          supplier_id: string
+          user_agent: string
+        }
+        Update: {
+          approval_date?: string
+          client_email?: string
+          client_id_number?: string
+          client_name?: string
+          client_phone?: string
+          consent_text?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          quote_id?: string
+          rejection_reason?: string | null
+          share_token?: string
+          signature_hash?: string | null
+          signature_storage_path?: string | null
+          status?: string
+          supplier_id?: string
+          user_agent?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_approvals_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_items: {
         Row: {
           created_at: string

@@ -47,26 +47,48 @@ export default function QuotesList() {
     }
   };
 
-  const getStatusBadge = (status: Quote['status']) => {
-    const variants = {
-      draft: 'secondary',
-      sent: 'default',
-      accepted: 'default',
-      rejected: 'destructive'
-    } as const;
+  const getStatusBadge = (quote: Quote) => {
+    if (quote.status === 'draft') {
+      return <Badge variant="secondary">🕒 טיוטה</Badge>;
+    }
     
-    const labels = {
-      draft: 'טיוטה',
-      sent: 'נשלחה',
-      accepted: 'אושרה',
-      rejected: 'נדחתה'
-    };
+    if (quote.status === 'sent') {
+      if (quote.viewed_at && !quote.responded_at) {
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            👀 נצפתה ב-{new Date(quote.viewed_at).toLocaleDateString('he-IL', { 
+              day: 'numeric', 
+              month: 'short' 
+            })}
+          </Badge>
+        );
+      }
+      return <Badge variant="default" className="bg-gray-100 text-gray-700">📤 נשלחה</Badge>;
+    }
     
-    return (
-      <Badge variant={variants[status]}>
-        {labels[status]}
-      </Badge>
-    );
+    if (quote.status === 'approved') {
+      return (
+        <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+          ✅ אושרה{quote.responded_at ? ` ב-${new Date(quote.responded_at).toLocaleDateString('he-IL', { 
+            day: 'numeric', 
+            month: 'short' 
+          })}` : ''}
+        </Badge>
+      );
+    }
+    
+    if (quote.status === 'rejected') {
+      return (
+        <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">
+          🔴 נדחתה{quote.responded_at ? ` ב-${new Date(quote.responded_at).toLocaleDateString('he-IL', { 
+            day: 'numeric', 
+            month: 'short' 
+          })}` : ''}
+        </Badge>
+      );
+    }
+    
+    return <Badge>{quote.status}</Badge>;
   };
 
   return (
@@ -126,7 +148,7 @@ export default function QuotesList() {
                               </TableCell>
                               <TableCell className="font-medium">{quote.title}</TableCell>
                               <TableCell>₪{quote.total_amount.toLocaleString('he-IL')}</TableCell>
-                              <TableCell>{getStatusBadge(quote.status)}</TableCell>
+                              <TableCell>{getStatusBadge(quote)}</TableCell>
                               <TableCell>{new Date(quote.created_at).toLocaleDateString('he-IL')}</TableCell>
                               <TableCell>
                                 <div className="flex gap-2">
