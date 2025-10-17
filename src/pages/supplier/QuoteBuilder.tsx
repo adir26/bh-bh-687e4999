@@ -486,12 +486,16 @@ export default function QuoteBuilder() {
   };
 
   const handleGenerateShareLink = async () => {
-    if (!quote) {
-      showToast.error('נא לשמור את ההצעה תחילה');
-      return;
-    }
     try {
-      const link = await quotesService.generateShareLink(quote.id);
+      // If no quote exists, save first
+      let currentQuote = quote;
+      if (!currentQuote) {
+        showToast.info('שומר את ההצעה לפני יצירת קישור...');
+        currentQuote = await handleSaveDraft();
+        if (!currentQuote) return;
+      }
+
+      const link = await quotesService.generateShareLink(currentQuote.id);
       setShareLink(link);
 
       // Copy to clipboard
@@ -878,61 +882,59 @@ export default function QuoteBuilder() {
             </CardContent>
           </Card>
 
-          {/* Share Link Section */}
-          {quote && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle>פעולות נוספות</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Template Selection */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium">תבנית עיצוב</label>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowTemplateDialog(true)}
-                      className="flex items-center gap-1"
-                    >
-                      <Palette className="w-4 h-4" />
-                      בחר תבנית
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">תבנית נוכחית: {selectedTemplate}</p>
-                </div>
-
-                {/* Share Link */}
-                <div>
-                  <Button variant="outline" onClick={handleGenerateShareLink} className="w-full">
-                    <Share2 className="w-4 h-4 ml-1" />
-                    צור קישור לשיתוף
-                  </Button>
-                  {shareLink && <div className="mt-2 p-2 bg-muted rounded text-sm break-all">{shareLink}</div>}
-                </div>
-
-                {/* Convert to Order */}
-                {quote.status === 'accepted' && !quote.order_id && (
-                  <Button onClick={handleConvertToOrder} variant="default" className="w-full">
-                    <PackageCheck className="w-4 h-4 ml-1" />
-                    המר להזמנה
-                  </Button>
-                )}
-
-                {/* Delete Quote */}
-                {['draft', 'rejected'].includes(quote.status) && (
+          {/* Actions Section */}
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>פעולות נוספות</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Template Selection */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium">תבנית עיצוב</label>
                   <Button
-                    onClick={() => setShowDeleteDialog(true)}
-                    variant="destructive"
-                    className="w-full"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowTemplateDialog(true)}
+                    className="flex items-center gap-1"
                   >
-                    <Trash2 className="w-4 h-4 ml-1" />
-                    מחק הצעת מחיר
+                    <Palette className="w-4 h-4" />
+                    בחר תבנית
                   </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                </div>
+                <p className="text-xs text-muted-foreground">תבנית נוכחית: {selectedTemplate}</p>
+              </div>
+
+              {/* Share Link */}
+              <div>
+                <Button variant="outline" onClick={handleGenerateShareLink} className="w-full">
+                  <Share2 className="w-4 h-4 ml-1" />
+                  צור קישור לשיתוף
+                </Button>
+                {shareLink && <div className="mt-2 p-2 bg-muted rounded text-sm break-all">{shareLink}</div>}
+              </div>
+
+              {/* Convert to Order - only if quote exists and is accepted */}
+              {quote?.status === 'accepted' && !quote.order_id && (
+                <Button onClick={handleConvertToOrder} variant="default" className="w-full">
+                  <PackageCheck className="w-4 h-4 ml-1" />
+                  המר להזמנה
+                </Button>
+              )}
+
+              {/* Delete Quote - only if quote exists and in draft/rejected status */}
+              {quote && ['draft', 'rejected'].includes(quote.status) && (
+                <Button
+                  onClick={() => setShowDeleteDialog(true)}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  <Trash2 className="w-4 h-4 ml-1" />
+                  מחק הצעת מחיר
+                </Button>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Template Selection Dialog */}
           <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
