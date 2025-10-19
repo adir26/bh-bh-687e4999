@@ -172,31 +172,46 @@ const handler = async (req: Request): Promise<Response> => {
     
     if (status === 'approved' && signatureDataUrl) {
       console.log('[submit-quote-approval] Processing signature upload');
-      
+
       const base64Data = signatureDataUrl.split(',')[1];
       const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-      
+
       const hashBuffer = await crypto.subtle.digest('SHA-256', binaryData);
       signatureHash = Array.from(new Uint8Array(hashBuffer))
         .map(b => b.toString(16).padStart(2, '0'))
         .join('');
-      
+
       const approvalId = crypto.randomUUID();
       const fileName = `${approvalId}/signature.png`;
-      
+
       // Create Blob for upload
       const signatureBlob = new Blob([binaryData], { type: 'image/png' });
-      
-      const { error: uploadError } = await supabase.storage
-        .from('quote-signatures')
-        .upload(fileName, signatureBlob, {
-          contentType: 'image/png',
-          upsert: false
+
+      try {
+        const { error: uploadError } = await supabase.storage
+          .from('quote-signatures')
+          .upload(fileName, signatureBlob, {
+            contentType: 'image/png',
+            upsert: false
+          });
+
+        if (uploadError) {
+          throw uploadError;
+        }
+      } catch (uploadError) {
+        console.error('[submit-quote-approval] Signature upload failed', {
+          quoteId: quote.id,
+          supplierId: quote.supplier_id,
+          fileName,
+          error: uploadError
         });
 
-      if (uploadError) {
-        console.error('[submit-quote-approval] Signature upload failed:', uploadError);
-        throw new Error('שגיאה בשמירת החתימה');
+        return new Response(JSON.stringify({
+          error: 'לא הצלחנו לשמור את החתימה. אנא נסו שוב או פנו לצוות התמיכה שלנו.'
+        }), {
+          status: 502,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
       }
 
       console.log('[submit-quote-approval] Signature uploaded successfully:', fileName);
