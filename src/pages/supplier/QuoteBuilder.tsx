@@ -2,18 +2,19 @@ import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowLeft, Plus, Trash2, Download, Save, Users, Share2, PackageCheck, Palette } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Download, Save, Users, Share2, PackageCheck, Palette, CheckCircle, Send, XCircle, FileText, Copy, FileCheck } from 'lucide-react';
 import { showToast } from '@/utils/toast';
 import { quotesService, Quote } from '@/services/quotesService';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
 import { PageBoundary } from '@/components/system/PageBoundary';
@@ -690,10 +691,48 @@ export default function QuoteBuilder() {
                   <ArrowLeft className="w-4 h-4" />
                   חזור לדשבורד
                 </Button>
-                <h1 className="text-2xl font-bold text-foreground">
-                  {quote ? 'עריכת הצעת מחיר' : 'הצעת מחיר חדשה'}
-                  {saving && <span className="text-sm text-muted-foreground mr-2">(שומר...)</span>}
-                </h1>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {quote ? 'עריכת הצעת מחיר' : 'הצעת מחיר חדשה'}
+                    {saving && <span className="text-sm text-muted-foreground mr-2">(שומר...)</span>}
+                  </h1>
+                  {quote?.status && (
+                    <Badge 
+                      variant={
+                        quote.status === 'draft' ? 'secondary' :
+                        quote.status === 'sent' ? 'default' :
+                        quote.status === 'accepted' ? 'green' :
+                        'destructive'
+                      }
+                      className="text-sm"
+                    >
+                      {quote.status === 'draft' && (
+                        <>
+                          <FileText className="w-3 h-3 ml-1" />
+                          טיוטה
+                        </>
+                      )}
+                      {quote.status === 'sent' && (
+                        <>
+                          <Send className="w-3 h-3 ml-1" />
+                          נשלחה
+                        </>
+                      )}
+                      {quote.status === 'accepted' && (
+                        <>
+                          <CheckCircle className="w-3 h-3 ml-1" />
+                          אושרה
+                        </>
+                      )}
+                      {quote.status === 'rejected' && (
+                        <>
+                          <XCircle className="w-3 h-3 ml-1" />
+                          נדחתה
+                        </>
+                      )}
+                    </Badge>
+                  )}
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
@@ -947,61 +986,94 @@ export default function QuoteBuilder() {
           {/* Actions Section */}
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>פעולות נוספות</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Send className="w-5 h-5" />
+                פעולות
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Template Selection */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-sm font-medium">תבנית עיצוב</label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowTemplateDialog(true)}
-                    className="flex items-center gap-1"
-                  >
-                    <Palette className="w-4 h-4" />
-                    בחר תבנית
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">תבנית נוכחית: {selectedTemplate}</p>
-              </div>
+            <CardContent className="space-y-3">
+              {/* שמור כטיוטה - תמיד זמין */}
+              <Button
+                onClick={handleSaveDraft}
+                disabled={saving || !title.trim() || items.length === 0}
+                className="w-full"
+                variant="outline"
+              >
+                <Save className="w-4 h-4 ml-1" />
+                שמור כטיוטה
+              </Button>
 
-              {/* Mark as Sent (save before sending) */}
-              <div>
-                <Button onClick={handleMarkAsSent} className="w-full">
-                  <Save className="w-4 h-4 ml-1" />
-                  שמירה לפני שליחה
+              {/* סמן כנשלח - רק אם עדיין לא נשלח */}
+              {(!quote?.status || quote.status === 'draft') && (
+                <Button
+                  onClick={handleMarkAsSent}
+                  disabled={saving || !title.trim() || items.length === 0 || !selectedClientValue}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  <CheckCircle className="w-4 h-4 ml-1" />
+                  סמן כ"מוכן לשליחה"
                 </Button>
-                <p className="text-xs text-muted-foreground mt-1">כדי לאפשר ללקוח לאשר/לדחות, יש לשמור ולסמן כ“נשלח”.</p>
-              </div>
+              )}
 
-              {/* Share Link */}
-              <div>
-                <Button variant="outline" onClick={handleGenerateShareLink} className="w-full">
+              {/* צור קישור - רק אם נשלח */}
+              {quote?.status === 'sent' && (
+                <Button
+                  onClick={handleGenerateShareLink}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
                   <Share2 className="w-4 h-4 ml-1" />
                   צור קישור לשיתוף
                 </Button>
-                {shareLink && <div className="mt-2 p-2 bg-muted rounded text-sm break-all">{shareLink}</div>}
-              </div>
+              )}
 
-              {/* Convert to Order - only if quote exists and is accepted */}
+              {/* קישור קיים - עם העתקה */}
+              {shareLink && (
+                <div className="p-3 bg-muted rounded-lg space-y-2">
+                  <p className="text-sm font-medium">קישור לשיתוף:</p>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={shareLink} 
+                      readOnly 
+                      className="text-xs flex-1" 
+                      dir="ltr"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        navigator.clipboard.writeText(shareLink);
+                        showToast.success('הקישור הועתק ללוח');
+                      }}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    שלח קישור זה ללקוח כדי שיוכל לאשר או לדחות את ההצעה
+                  </p>
+                </div>
+              )}
+
+              {/* המר להזמנה - רק כשאושרה */}
               {quote?.status === 'accepted' && !quote.order_id && (
-                <Button onClick={handleConvertToOrder} variant="default" className="w-full">
-                  <PackageCheck className="w-4 h-4 ml-1" />
+                <Button
+                  onClick={handleConvertToOrder}
+                  className="w-full bg-purple-600 hover:bg-purple-700"
+                >
+                  <FileCheck className="w-4 h-4 ml-1" />
                   המר להזמנה
                 </Button>
               )}
 
-              {/* Delete Quote - only if quote exists and in draft/rejected status */}
-              {quote && ['draft', 'rejected'].includes(quote.status) && (
+              {/* מחק - תמיד (אם יש quote) */}
+              {quote && (
                 <Button
                   onClick={() => setShowDeleteDialog(true)}
                   variant="destructive"
                   className="w-full"
                 >
                   <Trash2 className="w-4 h-4 ml-1" />
-                  מחק הצעת מחיר
+                  מחק הצעה
                 </Button>
               )}
             </CardContent>
@@ -1054,9 +1126,9 @@ export default function QuoteBuilder() {
             <DialogContent className="sm:max-w-md" dir="rtl">
               <DialogHeader>
                 <DialogTitle>הוספת לקוח חדש</DialogTitle>
-                <p className="text-sm text-muted-foreground mt-1">
+                <DialogDescription>
                   פרטי הלקוח יישמרו כליד חדש במערכת
-                </p>
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div>
@@ -1103,7 +1175,10 @@ export default function QuoteBuilder() {
                 <Button variant="outline" onClick={() => setIsAddingClient(false)}>
                   ביטול
                 </Button>
-                <Button onClick={handleCreateNewClient}>הוסף לקוח</Button>
+                <Button onClick={handleCreateNewClient}>
+                  <Users className="w-4 h-4 ml-1" />
+                  הוסף לקוח
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
