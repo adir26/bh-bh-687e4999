@@ -127,7 +127,7 @@ export default function PublicQuoteView() {
           clientPhone: formData.clientPhone,
           clientEmail: formData.clientEmail,
           signatureDataUrl: formData.signatureDataUrl,
-          status: approvalAction,
+          status: approvalAction === 'approve' ? 'approved' : 'rejected',
           rejectionReason: formData.rejectionReason,
           consentAccepted: formData.consentAccepted
         }
