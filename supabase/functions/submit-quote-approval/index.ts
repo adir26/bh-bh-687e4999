@@ -4,7 +4,31 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+// Normalize IP address to valid INET format
+function normalizeIp(ip: string): string {
+  if (!ip || ip === 'unknown') {
+    return '0.0.0.0';
+  }
+  
+  // Basic IPv4 validation
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (ipv4Regex.test(ip)) {
+    const parts = ip.split('.').map(Number);
+    if (parts.every(part => part >= 0 && part <= 255)) {
+      return ip;
+    }
+  }
+  
+  // Basic IPv6 validation (simplified)
+  if (ip.includes(':')) {
+    return ip; // Let PostgreSQL validate it
+  }
+  
+  return '0.0.0.0';
+}
 
 interface ApprovalRequest {
   token: string;
@@ -46,10 +70,13 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 
-               req.headers.get('cf-connecting-ip') || 
-               'unknown';
+    const rawIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 
+                  req.headers.get('cf-connecting-ip') || 
+                  'unknown';
+    const ip = normalizeIp(rawIp);
     const userAgent = req.headers.get('user-agent') || 'unknown';
+    
+    console.log('[submit-quote-approval] Request received:', { ip: rawIp, normalizedIp: ip });
     
     const body: ApprovalRequest = await req.json();
     const { token, clientName, clientIdNumber, clientPhone, clientEmail, 
@@ -91,6 +118,8 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    console.log('[submit-quote-approval] Validating token:', token);
+
     // Verify token and get quote
     const { data: shareLink, error: tokenError } = await supabase
       .from('quote_share_links')
@@ -119,11 +148,14 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (quoteError || !quote) {
+      console.error('[submit-quote-approval] Quote not found:', quoteError);
       return new Response(JSON.stringify({ error: 'הצעת מחיר לא נמצאה' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
     }
+
+    console.log('[submit-quote-approval] Quote validated:', { quoteId: quote.id, status: quote.status });
 
     if (quote.status !== 'sent') {
       return new Response(JSON.stringify({ 
@@ -139,6 +171,8 @@ const handler = async (req: Request): Promise<Response> => {
     let signatureHash = null;
     
     if (status === 'approved' && signatureDataUrl) {
+      console.log('[submit-quote-approval] Processing signature upload');
+      
       const base64Data = signatureDataUrl.split(',')[1];
       const binaryData = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
       
@@ -150,18 +184,22 @@ const handler = async (req: Request): Promise<Response> => {
       const approvalId = crypto.randomUUID();
       const fileName = `${approvalId}/signature.png`;
       
+      // Create Blob for upload
+      const signatureBlob = new Blob([binaryData], { type: 'image/png' });
+      
       const { error: uploadError } = await supabase.storage
         .from('quote-signatures')
-        .upload(fileName, binaryData, {
+        .upload(fileName, signatureBlob, {
           contentType: 'image/png',
           upsert: false
         });
 
       if (uploadError) {
-        console.error('Failed to upload signature:', uploadError);
+        console.error('[submit-quote-approval] Signature upload failed:', uploadError);
         throw new Error('שגיאה בשמירת החתימה');
       }
 
+      console.log('[submit-quote-approval] Signature uploaded successfully:', fileName);
       signaturePath = fileName;
     }
 
@@ -169,6 +207,13 @@ const handler = async (req: Request): Promise<Response> => {
     const consentText = status === 'approved' 
       ? `אני מאשר/ת את הצעת המחיר ומסכים/ה לתנאי השירות. חתימה דיגיטלית בוצעה בתאריך ${new Date().toLocaleString('he-IL')}`
       : `אני מבקש/ת לדחות את הצעת המחיר. ${rejectionReason || ''}`;
+
+    console.log('[submit-quote-approval] Creating approval record:', { 
+      quoteId: quote.id, 
+      status, 
+      hasSignature: !!signaturePath,
+      ip 
+    });
 
     const { data: approval, error: insertError } = await supabase
       .from('quote_approvals')
@@ -193,6 +238,7 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (insertError) {
+      console.error('[submit-quote-approval] Insert error:', insertError);
       if (insertError.code === '23505') {
         return new Response(JSON.stringify({ 
           error: 'כבר שלחת אישור להצעה זו' 
@@ -204,7 +250,11 @@ const handler = async (req: Request): Promise<Response> => {
       throw insertError;
     }
 
-    console.log(`Quote approval recorded: ${approval.id} (${status})`);
+    console.log('[submit-quote-approval] Quote approval recorded successfully:', { 
+      approvalId: approval.id, 
+      status,
+      quoteId: quote.id 
+    });
 
     return new Response(JSON.stringify({
       success: true,
