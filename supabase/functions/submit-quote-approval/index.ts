@@ -180,6 +180,7 @@ const handler = async (req: Request): Promise<Response> => {
         client_id_number: clientIdNumber,
         client_phone: clientPhone,
         client_email: clientEmail,
+        approval_date: new Date().toISOString(),
         status,
         rejection_reason: rejectionReason,
         signature_storage_path: signaturePath,
