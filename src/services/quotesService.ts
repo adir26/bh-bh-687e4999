@@ -340,21 +340,7 @@ export const quotesService = {
 
   async generateShareLink(quoteId: string): Promise<string> {
     try {
-      // Update quote status to 'sent' when generating share link
-      const { error: updateError } = await supabase
-        .from('quotes')
-        .update({ 
-          status: 'sent' as const, 
-          sent_at: new Date().toISOString() 
-        })
-        .eq('id', quoteId)
-        .eq('status', 'draft'); // Only update if currently draft
-
-      if (updateError) {
-        console.error('Failed to update quote status:', updateError);
-        // Continue anyway - link is still valid
-      }
-
+      // Don't change status here - let the user do it explicitly via "Mark as Sent" button
       const token = Math.random().toString(36).substring(2, 15) + 
                    Math.random().toString(36).substring(2, 15);
       

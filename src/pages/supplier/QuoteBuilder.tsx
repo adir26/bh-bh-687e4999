@@ -500,30 +500,46 @@ export default function QuoteBuilder() {
   };
 
   const handleMarkAsSent = async () => {
+    // Comprehensive validation
+    if (!title.trim()) {
+      showToast.error('נא להזין כותרת להצעת המחיר');
+      return;
+    }
     if (items.length === 0) {
       showToast.error('יש להוסיף לפחות פריט אחד');
       return;
     }
-    // Check if client/lead is selected
     if (!selectedClientValue) {
       showToast.error('נא לבחור לקוח או ליד לפני שליחה');
       return;
     }
+    
+    // Check that all items have valid content
+    const hasValidItems = items.every(item => item.name.trim() && item.quantity > 0 && item.unit_price >= 0);
+    if (!hasValidItems) {
+      showToast.error('נא למלא את כל פרטי הפריטים (שם, כמות, מחיר)');
+      return;
+    }
+
     try {
+      // Save first if needed
       let currentQuote = quote;
       if (!currentQuote) {
-        showToast.info('שומר את ההצעה לפני שליחה...');
+        showToast.info('שומר את ההצעה...');
         currentQuote = await handleSaveDraft();
         if (!currentQuote) return;
       }
+      
+      // Update status to sent
       const updated = await quotesService.updateQuote(currentQuote.id, {
         status: 'sent' as any,
         sent_at: new Date().toISOString() as any,
       } as any);
+      
       setQuote(updated);
       const isLead = selectedClientValue.startsWith('lead:');
       showToast.success(
-        `הצעת המחיר סומנה כ"נשלחה"${isLead ? ' לליד' : ' ללקוח'}. כעת ${isLead ? 'הליד' : 'הלקוח'} יוכל לאשר או לדחות.`
+        `✅ הצעת המחיר מוכנה לשליחה! ${isLead ? 'הליד' : 'הלקוח'} יוכל לאשר/לדחות דרך הקישור.`
       );
     } catch (error: any) {
       console.error('Failed to mark quote as sent:', error);
@@ -646,7 +662,7 @@ export default function QuoteBuilder() {
         setClientEmail(newLead.contact_email || '');
         setIsAddingClient(false);
         setNewClientData({ name: '', email: '', phone: '', notes: '' });
-        showToast.success('לקוח جديد נוסף בהצלחה');
+        showToast.success('לקוח חדש נוסף בהצלחה');
       }
     } catch (error) {
       console.error('Failed to create client:', error);
@@ -1035,11 +1051,14 @@ export default function QuoteBuilder() {
 
           {/* Add New Client Dialog */}
           <Dialog open={isAddingClient} onOpenChange={setIsAddingClient}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="sm:max-w-md" dir="rtl">
               <DialogHeader>
-                <DialogTitle>הוסף לקוח חדש</DialogTitle>
+                <DialogTitle>הוספת לקוח חדש</DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  פרטי הלקוח יישמרו כליד חדש במערכת
+                </p>
               </DialogHeader>
-              <div className="space-y-4">
+              <div className="space-y-4 py-4">
                 <div>
                   <Label htmlFor="client-name">שם מלא *</Label>
                   <Input
@@ -1050,13 +1069,13 @@ export default function QuoteBuilder() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="client-email">אימייל (אופציונלי)</Label>
+                  <Label htmlFor="client-email">אימייל</Label>
                   <Input
                     id="client-email"
                     type="email"
                     value={newClientData.email}
                     onChange={(e) => setNewClientData({ ...newClientData, email: e.target.value })}
-                    placeholder="email@example.com"
+                    placeholder="example@email.com"
                   />
                 </div>
                 <div>
@@ -1075,7 +1094,7 @@ export default function QuoteBuilder() {
                     id="client-notes"
                     value={newClientData.notes}
                     onChange={(e) => setNewClientData({ ...newClientData, notes: e.target.value })}
-                    placeholder="הערות על הלקוח..."
+                    placeholder="הערות נוספות..."
                     rows={3}
                   />
                 </div>
