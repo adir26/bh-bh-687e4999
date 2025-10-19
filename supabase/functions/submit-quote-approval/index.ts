@@ -82,26 +82,39 @@ const handler = async (req: Request): Promise<Response> => {
     const { token, clientName, clientIdNumber, clientPhone, clientEmail, 
             signatureDataUrl, status, rejectionReason, consentAccepted } = body;
 
-    // Validation
-    if (!token || !clientName || !clientIdNumber || !clientPhone || !clientEmail || !status) {
-      return new Response(JSON.stringify({ error: 'חסרים שדות חובה' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
-    }
+    // Check if this is a quick reject (skip validations)
+    const isQuickReject = clientName === 'Anonymous Rejection' && status === 'rejected';
 
-    if (!consentAccepted) {
-      return new Response(JSON.stringify({ error: 'יש לאשר את תנאי השימוש' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
-    }
+    // Validation (skip for quick reject)
+    if (!isQuickReject) {
+      if (!token || !clientName || !clientIdNumber || !clientPhone || !clientEmail || !status) {
+        return new Response(JSON.stringify({ error: 'חסרים שדות חובה' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
 
-    if (status === 'approved' && !signatureDataUrl) {
-      return new Response(JSON.stringify({ error: 'חתימה נדרשת לאישור' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
-      });
+      if (!consentAccepted) {
+        return new Response(JSON.stringify({ error: 'יש לאשר את תנאי השימוש' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+
+      if (status === 'approved' && !signatureDataUrl) {
+        return new Response(JSON.stringify({ error: 'חתימה נדרשת לאישור' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
+    } else {
+      // For quick reject, ensure basic token validation only
+      if (!token || !status) {
+        return new Response(JSON.stringify({ error: 'חסרים שדות חובה' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        });
+      }
     }
 
     // Rate limiting

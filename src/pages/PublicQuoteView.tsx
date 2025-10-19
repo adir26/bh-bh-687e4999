@@ -146,6 +146,38 @@ export default function PublicQuoteView() {
     }
   };
 
+  const handleQuickReject = async () => {
+    if (!quoteData || !token) return;
+    
+    const confirmed = window.confirm('האם אתה בטוח שברצונך לדחות הצעה זו?');
+    if (!confirmed) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('submit-quote-approval', {
+        body: {
+          token,
+          clientName: 'Anonymous Rejection',
+          clientIdNumber: '000000000',
+          clientPhone: '',
+          clientEmail: 'anonymous@system.local',
+          signatureDataUrl: '',
+          status: 'rejected',
+          rejectionReason: 'דחייה מהירה על ידי הלקוח',
+          consentAccepted: true
+        }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || 'שגיאה לא ידועה');
+
+      showToast.success('הצעת המחיר נדחתה');
+      queryClient.invalidateQueries({ queryKey: ['public-quote', token] });
+    } catch (error: any) {
+      console.error('Error rejecting quote:', error);
+      showToast.error(error.message || 'שגיאה בדחיית ההצעה');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
       draft: { variant: 'secondary', label: 'טיוטה' },
@@ -276,10 +308,7 @@ export default function PublicQuoteView() {
                         אשר הצעה
                       </Button>
                       <Button 
-                        onClick={() => {
-                          setApprovalAction('reject');
-                          setApprovalModalOpen(true);
-                        }}
+                        onClick={handleQuickReject}
                         variant="destructive" 
                         className="flex-1"
                       >
