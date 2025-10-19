@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AddLeadDialog } from '@/components/crm/AddLeadDialog';
+import { LeadDetailDialog } from '@/components/crm/LeadDetailDialog';
 
 function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, setStatusFilter, searchTerm, setSearchTerm }: {
   leads: Lead[];
@@ -27,6 +28,7 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
 }) {
   const navigate = useNavigate();
   const [addLeadDialogOpen, setAddLeadDialogOpen] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   const handleCall = (phone: string) => {
     if (!phone) {
@@ -42,10 +44,12 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new': return 'bg-green-100 text-green-800';
-      case 'contacted': return 'bg-blue-100 text-blue-800';
-      case 'proposal_sent': return 'bg-purple-100 text-purple-800';
-      case 'won': return 'bg-emerald-100 text-emerald-800';
-      case 'lost': return 'bg-red-100 text-red-800';
+      case 'no_answer': return 'bg-yellow-100 text-yellow-800';
+      case 'followup': return 'bg-blue-100 text-blue-800';
+      case 'no_answer_x5': return 'bg-orange-100 text-orange-800';
+      case 'not_relevant': return 'bg-gray-100 text-gray-800';
+      case 'error': return 'bg-red-100 text-red-800';
+      case 'denies_contact': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -53,10 +57,12 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
   const getStatusText = (status: string) => {
     switch (status) {
       case 'new': return 'חדש';
-      case 'contacted': return 'נוצר קשר';
-      case 'proposal_sent': return 'נשלחה הצעה';
-      case 'won': return 'נסגר בהצלחה';
-      case 'lost': return 'אבד';
+      case 'no_answer': return 'אין מענה';
+      case 'followup': return 'פולואפ';
+      case 'no_answer_x5': return 'אין מענה x5';
+      case 'not_relevant': return 'לא רלוונטי';
+      case 'error': return 'טעות';
+      case 'denies_contact': return 'מכחיש פנייה';
       default: return status;
     }
   };
@@ -147,10 +153,12 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
             <SelectContent>
               <SelectItem value="all">כל הסטטוסים</SelectItem>
               <SelectItem value="new">חדש</SelectItem>
-              <SelectItem value="contacted">נוצר קשר</SelectItem>
-              <SelectItem value="proposal_sent">נשלחה הצעה</SelectItem>
-              <SelectItem value="won">נסגר בהצלחה</SelectItem>
-              <SelectItem value="lost">אבד</SelectItem>
+              <SelectItem value="no_answer">אין מענה</SelectItem>
+              <SelectItem value="followup">פולואפ</SelectItem>
+              <SelectItem value="no_answer_x5">אין מענה x5</SelectItem>
+              <SelectItem value="not_relevant">לא רלוונטי</SelectItem>
+              <SelectItem value="error">טעות</SelectItem>
+              <SelectItem value="denies_contact">מכחיש פנייה</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -159,8 +167,8 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
         {(() => {
           const stats = {
             new: leads.filter(l => l.status === 'new').length,
-            inProgress: leads.filter(l => l.status === 'contacted' || l.status === 'proposal_sent').length,
-            closed: leads.filter(l => l.status === 'won').length,
+            inProgress: leads.filter(l => l.status === 'no_answer' || l.status === 'followup').length,
+            closed: leads.filter(l => l.status === 'not_relevant' || l.status === 'error' || l.status === 'denies_contact').length,
             total: leads.length
           };
 
@@ -212,7 +220,11 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
         ) : viewMode === 'cards' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {leads.map((lead) => (
-              <Card key={lead.id} className="hover:shadow-md transition-shadow">
+              <Card 
+                key={lead.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedLeadId(lead.id)}
+              >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                      <div className="space-y-1">
@@ -310,7 +322,11 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                   </thead>
                    <tbody>
                      {leads.map((lead) => (
-                       <tr key={lead.id} className="border-b hover:bg-muted/50">
+                       <tr 
+                         key={lead.id} 
+                         className="border-b hover:bg-muted/50 cursor-pointer"
+                         onClick={() => setSelectedLeadId(lead.id)}
+                       >
                          <td className="p-4 font-medium">{lead.name || 'לקוח ללא שם'}</td>
                          <td className="p-4 text-muted-foreground">
                            {new Date(lead.created_at).toLocaleDateString('he-IL')}
@@ -372,6 +388,11 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
       </div>
       
       <AddLeadDialog open={addLeadDialogOpen} onOpenChange={setAddLeadDialogOpen} />
+      <LeadDetailDialog 
+        leadId={selectedLeadId} 
+        open={!!selectedLeadId} 
+        onOpenChange={(open) => !open && setSelectedLeadId(null)} 
+      />
     </div>
   );
 }

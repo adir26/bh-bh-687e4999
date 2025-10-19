@@ -24,25 +24,30 @@ import { useNavigate } from 'react-router-dom';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AddLeadDialog } from '@/components/crm/AddLeadDialog';
+import { LeadDetailDialog } from '@/components/crm/LeadDetailDialog';
 
-const STATUSES: LeadStatus[] = ['new', 'contacted', 'proposal_sent', 'won', 'lost'];
+const STATUSES: LeadStatus[] = ['new', 'no_answer', 'followup', 'no_answer_x5', 'not_relevant', 'error', 'denies_contact'];
 
 function statusLabel(s: LeadStatus) {
   switch (s) {
-    case 'new': return 'New';
-    case 'contacted': return 'Contacted';
-    case 'proposal_sent': return 'Proposal Sent';
-    case 'won': return 'Won';
-    case 'lost': return 'Lost';
+    case 'new': return 'חדש';
+    case 'no_answer': return 'אין מענה';
+    case 'followup': return 'פולואפ';
+    case 'no_answer_x5': return 'אין מענה x5';
+    case 'not_relevant': return 'לא רלוונטי';
+    case 'error': return 'טעות';
+    case 'denies_contact': return 'מכחיש פנייה';
   }
 }
 
-const statusBadgeVariant: Record<LeadStatus, 'default' | 'secondary' | 'outline'> = {
+const statusBadgeVariant: Record<LeadStatus, 'default' | 'secondary' | 'outline' | 'destructive'> = {
   new: 'default',
-  contacted: 'secondary',
-  proposal_sent: 'outline',
-  won: 'default',
-  lost: 'outline',
+  no_answer: 'secondary',
+  followup: 'outline',
+  no_answer_x5: 'destructive',
+  not_relevant: 'outline',
+  error: 'destructive',
+  denies_contact: 'destructive',
 };
 
 function priorityBadgeVariant(priority: string): 'default' | 'secondary' | 'outline' | 'destructive' {
@@ -100,9 +105,18 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [addLeadDialogOpen, setAddLeadDialogOpen] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
 
   const leadsByStatus = useMemo(() => {
-    const map: Record<LeadStatus, Lead[]> = { new: [], contacted: [], proposal_sent: [], won: [], lost: [] };
+    const map: Record<LeadStatus, Lead[]> = { 
+      new: [], 
+      no_answer: [], 
+      followup: [], 
+      no_answer_x5: [], 
+      not_relevant: [], 
+      error: [], 
+      denies_contact: [] 
+    };
     for (const l of leads) {
       if (STATUSES.includes(l.status)) {
         map[l.status].push(l);
@@ -211,20 +225,20 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                 <SortableContext items={(leadsByStatus[status] || []).map((l) => l.id)} strategy={verticalListSortingStrategy}>
-                   <div className="space-y-3">
-                     {(leadsByStatus[status] || []).map((lead) => (
-                       <LeadCard 
-                         key={lead.id} 
-                         lead={lead} 
-                         onAddNote={addNote} 
-                         onCreateQuote={createQuote}
-                         onSnooze={snoozeLead}
-                         onAssign={assignLead}
-                       />
-                     ))}
-                   </div>
-                 </SortableContext>
+                  <SortableContext items={(leadsByStatus[status] || []).map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-3">
+                      {(leadsByStatus[status] || []).map((lead) => (
+                        <div 
+                          key={lead.id} 
+                          onClick={() => setSelectedLeadId(lead.id)}
+                          className="cursor-pointer p-3 bg-card rounded-lg border hover:border-primary transition-colors"
+                        >
+                          <div className="font-medium">{lead.name}</div>
+                          <div className="text-sm text-muted-foreground">{lead.contact_phone}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </SortableContext>
               </CardContent>
             </Card>
           </div>
@@ -252,7 +266,11 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
             </thead>
             <tbody>
               {leads.map((l) => (
-                <tr key={l.id} className="border-b">
+                <tr 
+                  key={l.id} 
+                  className="border-b cursor-pointer hover:bg-muted/50"
+                  onClick={() => setSelectedLeadId(l.id)}
+                >
                    <td className="p-3">{l.name || '—'}</td>
                    <td className="p-3">
                      {l.contact_phone ? (
@@ -298,8 +316,8 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
       <header className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Leads CRM</h1>
-            <p className="text-sm text-muted-foreground">Manage your pipeline: drag between stages, add notes, and create quotes.</p>
+            <h1 className="text-2xl font-semibold">ניהול לידים - CRM</h1>
+            <p className="text-sm text-muted-foreground">נהל את הלידים שלך: גרור בין שלבים, לחץ לפרטים מלאים</p>
           </div>
           <Button variant="blue" onClick={() => setAddLeadDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -310,6 +328,11 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
       </header>
 
       <AddLeadDialog open={addLeadDialogOpen} onOpenChange={setAddLeadDialogOpen} />
+      <LeadDetailDialog 
+        leadId={selectedLeadId} 
+        open={!!selectedLeadId} 
+        onOpenChange={(open) => !open && setSelectedLeadId(null)} 
+      />
 
       <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 items-center gap-2">

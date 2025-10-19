@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type LeadStatus = 'new' | 'contacted' | 'proposal_sent' | 'won' | 'lost';
+export type LeadStatus = 'new' | 'no_answer' | 'followup' | 'no_answer_x5' | 'not_relevant' | 'error' | 'denies_contact';
 
 export interface Lead {
   id: string;
@@ -179,5 +179,79 @@ export const leadsService = {
 
     if (quoteErr) throw quoteErr;
     return quote;
+  },
+
+  async getLeadById(id: string) {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw error;
+    return data as unknown as Lead | null;
+  },
+
+  async updateLead(id: string, updates: Partial<Lead>) {
+    const { data, error } = await supabase
+      .from('leads')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return data as unknown as Lead | null;
+  },
+
+  async getLeadActivities(leadId: string) {
+    const { data, error } = await supabase
+      .from('lead_activities')
+      .select('*')
+      .eq('lead_id', leadId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async addLeadActivity(leadId: string, activityType: string, activityData: {
+    title: string;
+    description?: string;
+    scheduledFor?: string;
+  }) {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('lead_activities')
+      .insert({
+        lead_id: leadId,
+        user_id: userId,
+        activity_type: activityType,
+        title: activityData.title,
+        description: activityData.description || null,
+        scheduled_for: activityData.scheduledFor || null,
+      })
+      .select()
+      .maybeSingle();
+    
+    if (error) throw error;
+    
+    // Update last_contact_date on the lead
+    await supabase
+      .from('leads')
+      .update({ last_contact_date: new Date().toISOString() })
+      .eq('id', leadId);
+    
+    return data;
+  },
+
+  async getLeadHistory(leadId: string) {
+    const { data, error } = await supabase
+      .from('lead_history')
+      .select('*')
+      .eq('lead_id', leadId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
   },
 };
