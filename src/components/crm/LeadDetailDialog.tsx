@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,6 +24,13 @@ interface LeadDetailDialogProps {
 export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialogProps) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('details');
+
+  // Reset to details tab when dialog opens
+  useEffect(() => {
+    if (open) {
+      setActiveTab('details');
+    }
+  }, [open, leadId]);
 
   // Lead data
   const { data: lead, isLoading } = useQuery({
@@ -52,7 +59,7 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
       leadsService.updateLead(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lead', leadId] });
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
       showToast.success('פרטי הליד עודכנו בהצלחה');
     },
     onError: () => {
@@ -67,6 +74,7 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lead-activities', leadId] });
       queryClient.invalidateQueries({ queryKey: ['lead', leadId] });
+      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
       showToast.success('הפעילות נוספה בהצלחה');
     },
     onError: () => {
@@ -133,6 +141,7 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
               statusLabels={statusLabels}
               sourceLabels={sourceLabels}
               priorityLabels={priorityLabels}
+              open={open}
             />
           </TabsContent>
 
@@ -190,13 +199,15 @@ function LeadDetailsForm({
   onUpdate, 
   statusLabels, 
   sourceLabels, 
-  priorityLabels 
+  priorityLabels,
+  open
 }: { 
   lead: Lead | undefined; 
   onUpdate: (data: Partial<Lead>) => void;
   statusLabels: Record<LeadStatus, string>;
   sourceLabels: Record<string, string>;
   priorityLabels: Record<string, string>;
+  open: boolean;
 }) {
   const [formData, setFormData] = useState({
     name: lead?.name || '',
@@ -207,6 +218,20 @@ function LeadDetailsForm({
     priority_key: lead?.priority_key || 'medium',
     notes: lead?.notes || '',
   });
+
+  // Update form data when lead changes or dialog opens
+  useEffect(() => {
+    if (!lead) return;
+    setFormData({
+      name: lead.name || '',
+      contact_phone: lead.contact_phone || '',
+      contact_email: lead.contact_email || '',
+      status: lead.status || 'new',
+      source_key: lead.source_key || 'other',
+      priority_key: lead.priority_key || 'medium',
+      notes: lead.notes || '',
+    });
+  }, [lead?.id, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
