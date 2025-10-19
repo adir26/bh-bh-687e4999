@@ -215,8 +215,16 @@ export default function QuoteBuilder() {
       const { quote, items: quoteItems } = quoteData;
       setQuote(quote);
       setTitle(quote.title);
-      setSelectedClientId(quote.client_id || '');
-      setSelectedClientValue(quote.client_id || '');
+      
+      // Handle both client_id and lead_id
+      if (quote.lead_id) {
+        setSelectedClientValue(`lead:${quote.lead_id}`);
+        setSelectedClientId('');
+      } else {
+        setSelectedClientId(quote.client_id || '');
+        setSelectedClientValue(quote.client_id || '');
+      }
+      
       setNotes(quote.notes || '');
       setTermsConditions(quote.terms_conditions || '');
       setSelectedTemplate(quote.template || 'premium');
@@ -325,12 +333,17 @@ export default function QuoteBuilder() {
     try {
       let currentQuote = quote;
 
+      // Parse lead_id if selected value is a lead
+      const isLead = selectedClientValue.startsWith('lead:');
+      const leadIdValue = isLead ? selectedClientValue.slice(5) : undefined;
+      const clientIdValue = !isLead && selectedClientId && isValidUUID(selectedClientId) ? selectedClientId : undefined;
+
       // Create quote if it doesn't exist
       if (!currentQuote) {
         currentQuote = await quotesService.createQuote({
           title,
-          // Only set client_id if it's a valid UUID (not a lead ID)
-          client_id: selectedClientId && isValidUUID(selectedClientId) ? selectedClientId : undefined,
+          client_id: clientIdValue,
+          lead_id: leadIdValue,
           notes,
         });
         setQuote(currentQuote);
@@ -345,7 +358,8 @@ export default function QuoteBuilder() {
       // Update quote details
       await quotesService.updateQuote(currentQuote.id, {
         title,
-        client_id: selectedClientId && isValidUUID(selectedClientId) ? selectedClientId : undefined,
+        client_id: clientIdValue,
+        lead_id: leadIdValue,
         notes,
         terms_conditions: termsConditions,
         subtotal: calculations.subtotal,

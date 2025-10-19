@@ -3189,6 +3189,7 @@ export type Database = {
           description: string | null
           discount_amount: number | null
           id: string
+          lead_id: string | null
           notes: string | null
           order_id: string | null
           project_id: string | null
@@ -3213,6 +3214,7 @@ export type Database = {
           description?: string | null
           discount_amount?: number | null
           id?: string
+          lead_id?: string | null
           notes?: string | null
           order_id?: string | null
           project_id?: string | null
@@ -3237,6 +3239,7 @@ export type Database = {
           description?: string | null
           discount_amount?: number | null
           id?: string
+          lead_id?: string | null
           notes?: string | null
           order_id?: string | null
           project_id?: string | null
@@ -3261,6 +3264,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
           {

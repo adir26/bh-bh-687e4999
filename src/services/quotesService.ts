@@ -7,6 +7,7 @@ export interface Quote {
   id: string;
   supplier_id: string;
   client_id?: string;
+  lead_id?: string;
   order_id?: string;
   title: string;
   notes?: string;
@@ -36,6 +37,7 @@ export interface QuoteItem {
 export interface CreateQuotePayload {
   title: string;
   client_id?: string;
+  lead_id?: string;
   notes?: string;
   terms_conditions?: string;
 }
@@ -43,6 +45,7 @@ export interface CreateQuotePayload {
 export interface UpdateQuotePayload {
   title?: string;
   client_id?: string;
+  lead_id?: string;
   notes?: string;
   terms_conditions?: string;
   subtotal?: number;
@@ -76,6 +79,7 @@ export const quotesService = {
       .insert({
         supplier_id: userId,
         client_id: payload.client_id,
+        lead_id: payload.lead_id,
         title: payload.title,
         notes: payload.notes,
         terms_conditions: payload.terms_conditions,
