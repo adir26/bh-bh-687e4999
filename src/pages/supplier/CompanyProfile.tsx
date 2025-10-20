@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,13 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { showToast } from '@/utils/toast';
 import { 
   Star, MapPin, Phone, Mail, Globe, Share2, MessageCircle,
-  CheckCircle, Edit, Save, Building2, ExternalLink
+  CheckCircle, Edit, Save, Building2, ExternalLink, ArrowRight, Package
 } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EditableField } from '@/components/supplier/EditableField';
 import { EditableImage } from '@/components/supplier/EditableImage';
 import { EditableList } from '@/components/supplier/EditableList';
 import { EditableGallery } from '@/components/supplier/EditableGallery';
+import { usePublicSupplierProducts } from '@/hooks/usePublicSupplier';
 
 interface CompanyData {
   id: string;
@@ -464,18 +465,115 @@ export default function CompanyProfile() {
       />
 
       {/* Products Section */}
-      <div className="container max-w-6xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
+      <ProductsSection company={company} navigate={navigate} />
+    </div>
+  );
+}
+
+// Products Section Component
+function ProductsSection({ company, navigate }: { company: CompanyData; navigate: any }) {
+  const { data: productsData, isLoading } = usePublicSupplierProducts(company.id, { limit: 8 });
+
+  return (
+    <div className="container max-w-6xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold">קטלוג מוצרים</h2>
-          <Button onClick={() => navigate('/supplier/products')} className="gap-2">
-            נהל מוצרים
-            <ExternalLink className="w-4 h-4" />
-          </Button>
+          {productsData && productsData.totalCount > 0 && (
+            <Badge variant="secondary" className="text-sm">
+              {productsData.totalCount} מוצרים
+            </Badge>
+          )}
         </div>
-        <p className="text-muted-foreground">
-          המוצרים שלך מנוהלים בנפרד בקטלוג המוצרים
-        </p>
+        <Button onClick={() => navigate('/supplier/catalog')} className="gap-2">
+          נהל מוצרים
+          <ExternalLink className="w-4 h-4" />
+        </Button>
       </div>
+
+      {isLoading ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <div className="aspect-square bg-muted rounded-t-lg"></div>
+              <CardContent className="p-3">
+                <div className="h-4 bg-muted rounded w-full mb-2"></div>
+                <div className="h-3 bg-muted rounded w-20"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : productsData?.products && productsData.products.length > 0 ? (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {productsData.products.map((product) => (
+              <Link
+                key={product.id}
+                to={`/supplier/catalog`}
+                className="group"
+              >
+                <Card className="mobile-card h-full transition-transform group-hover:scale-[1.02]">
+                  {product.primaryImage ? (
+                    <div className="aspect-square overflow-hidden rounded-t-lg">
+                      <img
+                        src={product.primaryImage}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    </div>
+                  ) : product.images && product.images.length > 0 ? (
+                    <div className="aspect-square overflow-hidden rounded-t-lg">
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-square bg-muted rounded-t-lg flex items-center justify-center">
+                      <Package className="w-12 h-12 text-muted-foreground" />
+                    </div>
+                  )}
+                  
+                  <CardContent className="p-3">
+                    <h3 className="font-medium text-sm mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                      {product.name}
+                    </h3>
+                    
+                    {product.price && (
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-primary">
+                          ₪{product.price.toLocaleString()}
+                        </span>
+                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+
+          {productsData.totalCount > 8 && (
+            <div className="text-center mt-6">
+              <Button onClick={() => navigate('/supplier/catalog')} variant="outline">
+                צפה בכל המוצרים ({productsData.totalCount})
+              </Button>
+            </div>
+          )}
+        </>
+      ) : (
+        <Card className="p-12 text-center">
+          <Package className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-xl font-semibold mb-2">אין מוצרים עדיין</h3>
+          <p className="text-muted-foreground mb-6">
+            התחל להוסיף מוצרים לקטלוג שלך כדי שלקוחות יוכלו לראות אותם
+          </p>
+          <Button onClick={() => navigate('/supplier/catalog')}>
+            הוסף מוצר ראשון
+          </Button>
+        </Card>
+      )}
     </div>
   );
 }
