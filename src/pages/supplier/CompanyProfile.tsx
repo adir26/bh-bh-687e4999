@@ -285,7 +285,7 @@ export default function CompanyProfile() {
                     
                     {/* Tagline */}
                     <EditableField
-                      value={company.tagline}
+                      value={company.tagline || ''}
                       isEditMode={isEditMode}
                       onSave={async (tagline) => {
                         await updateMutation.mutateAsync({ tagline });
@@ -293,16 +293,20 @@ export default function CompanyProfile() {
                       type="text"
                       placeholder="הוסף סלוגן..."
                     >
-                      {company.tagline && (
+                      {company.tagline ? (
                         <p className="text-lg text-muted-foreground mt-1">
                           {company.tagline}
+                        </p>
+                      ) : (
+                        <p className="text-lg text-muted-foreground/50 italic mt-1">
+                          הוסף סלוגן...
                         </p>
                       )}
                     </EditableField>
 
                     {/* Description */}
                     <EditableField
-                      value={company.description}
+                      value={company.description || ''}
                       isEditMode={isEditMode}
                       onSave={async (description) => {
                         await updateMutation.mutateAsync({ description });
@@ -310,9 +314,13 @@ export default function CompanyProfile() {
                       type="textarea"
                       placeholder="הוסף תיאור..."
                     >
-                      {company.description && (
+                      {company.description ? (
                         <p className="text-muted-foreground mt-2 max-w-2xl">
                           {company.description}
+                        </p>
+                      ) : (
+                        <p className="text-muted-foreground/50 italic mt-2 max-w-2xl">
+                          הוסף תיאור...
                         </p>
                       )}
                     </EditableField>
@@ -360,7 +368,7 @@ export default function CompanyProfile() {
           <div className="mt-6 pt-6 border-t">
             <div className="flex flex-wrap gap-6 text-sm">
               <EditableField
-                value={company.phone}
+                value={company.phone || ''}
                 isEditMode={isEditMode}
                 onSave={async (phone) => {
                   await updateMutation.mutateAsync({ phone });
@@ -368,16 +376,21 @@ export default function CompanyProfile() {
                 type="tel"
                 placeholder="הוסף טלפון..."
               >
-                {company.phone && (
+                {company.phone ? (
                   <a href={`tel:${company.phone}`} className="flex items-center gap-2 text-primary hover:underline">
                     <Phone className="w-4 h-4" />
                     {company.phone}
                   </a>
+                ) : (
+                  <span className="flex items-center gap-2 text-muted-foreground/50">
+                    <Phone className="w-4 h-4" />
+                    הוסף טלפון...
+                  </span>
                 )}
               </EditableField>
 
               <EditableField
-                value={company.email}
+                value={company.email || ''}
                 isEditMode={isEditMode}
                 onSave={async (email) => {
                   await updateMutation.mutateAsync({ email });
@@ -385,16 +398,21 @@ export default function CompanyProfile() {
                 type="email"
                 placeholder="הוסף אימייל..."
               >
-                {company.email && (
+                {company.email ? (
                   <a href={`mailto:${company.email}`} className="flex items-center gap-2 text-primary hover:underline">
                     <Mail className="w-4 h-4" />
                     {company.email}
                   </a>
+                ) : (
+                  <span className="flex items-center gap-2 text-muted-foreground/50">
+                    <Mail className="w-4 h-4" />
+                    הוסף אימייל...
+                  </span>
                 )}
               </EditableField>
 
               <EditableField
-                value={company.website}
+                value={company.website || ''}
                 isEditMode={isEditMode}
                 onSave={async (website) => {
                   await updateMutation.mutateAsync({ website });
@@ -402,7 +420,7 @@ export default function CompanyProfile() {
                 type="url"
                 placeholder="הוסף אתר..."
               >
-                {company.website && (
+                {company.website ? (
                   <a 
                     href={company.website} 
                     target="_blank" 
@@ -412,6 +430,11 @@ export default function CompanyProfile() {
                     <Globe className="w-4 h-4" />
                     אתר האינטרנט
                   </a>
+                ) : (
+                  <span className="flex items-center gap-2 text-muted-foreground/50">
+                    <Globe className="w-4 h-4" />
+                    הוסף אתר...
+                  </span>
                 )}
               </EditableField>
             </div>

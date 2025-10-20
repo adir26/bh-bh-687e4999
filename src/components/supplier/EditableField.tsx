@@ -140,5 +140,8 @@ export const EditableField: React.FC<EditableFieldProps> = ({
   }
 
   // Normal view mode
+  if (!children) {
+    return null;
+  }
   return <>{children}</>;
 };
