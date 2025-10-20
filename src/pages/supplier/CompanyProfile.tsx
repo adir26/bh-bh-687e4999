@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { showToast } from '@/utils/toast';
 import { 
   Star, MapPin, Phone, Mail, Globe, Share2, MessageCircle,
-  CheckCircle, Edit, Building2, ExternalLink, ArrowRight, Package
+  CheckCircle, Edit, Save, Building2, ExternalLink, ArrowRight, Package
 } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EditableField } from '@/components/supplier/EditableField';
@@ -46,7 +46,7 @@ export default function CompanyProfile() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Check user role
   const { data: userRole } = useQuery({
@@ -202,12 +202,31 @@ export default function CompanyProfile() {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      {/* Info Banner */}
-      <div className="sticky top-0 z-50 bg-primary/5 backdrop-blur border-b">
+      {/* Sticky Edit Toggle Button */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
         <div className="container max-w-6xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Edit className="w-4 h-4" />
-            <span>לחץ על השדות או תמר עליהם כדי לערוך את הפרופיל שלך</span>
+          <div className="flex items-center justify-between">
+            <Button
+              variant={isEditMode ? 'default' : 'outline'}
+              onClick={() => setIsEditMode(!isEditMode)}
+              className="gap-2"
+            >
+              {isEditMode ? (
+                <>
+                  <Save className="w-4 h-4" />
+                  סיים עריכה
+                </>
+              ) : (
+                <>
+                  <Edit className="w-4 h-4" />
+                  ערוך פרופיל
+                </>
+              )}
+            </Button>
+
+            <div className="text-sm text-muted-foreground">
+              {isEditMode ? 'לחץ על אלמנט כדי לערוך' : 'כך הפרופיל נראה ללקוחות'}
+            </div>
           </div>
         </div>
       </div>
@@ -215,6 +234,7 @@ export default function CompanyProfile() {
       {/* Banner */}
       <EditableImage
         currentUrl={company.banner_url}
+        isEditMode={isEditMode}
         onUpload={async (url) => {
           await updateMutation.mutateAsync({ banner_url: url });
         }}
@@ -232,6 +252,7 @@ export default function CompanyProfile() {
               {/* Logo */}
               <EditableImage
                 currentUrl={company.logo_url}
+                isEditMode={isEditMode}
                 onUpload={async (url) => {
                   await updateMutation.mutateAsync({ logo_url: url });
                 }}
@@ -246,6 +267,7 @@ export default function CompanyProfile() {
                     {/* Name */}
                     <EditableField
                       value={company.name}
+                      isEditMode={isEditMode}
                       onSave={async (name) => {
                         await updateMutation.mutateAsync({ name });
                       }}
@@ -266,6 +288,7 @@ export default function CompanyProfile() {
                     {/* Tagline */}
                     <EditableField
                       value={company.tagline || ''}
+                      isEditMode={isEditMode}
                       onSave={async (tagline) => {
                         await updateMutation.mutateAsync({ tagline });
                       }}
@@ -286,6 +309,7 @@ export default function CompanyProfile() {
                     {/* Description */}
                     <EditableField
                       value={company.description || ''}
+                      isEditMode={isEditMode}
                       onSave={async (description) => {
                         await updateMutation.mutateAsync({ description });
                       }}
@@ -324,20 +348,22 @@ export default function CompanyProfile() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <Button variant="outline" size="sm" onClick={handleShare} className="gap-2 flex-1 md:flex-none">
-                <Share2 className="w-4 h-4" />
-                שתף
-              </Button>
-              
-              <Button 
-                className="gap-2 flex-1 md:flex-none"
-                onClick={() => navigate(`/s/${company.slug}`)}
-              >
-                <ExternalLink className="w-4 h-4" />
-                צפה כלקוח
-              </Button>
-            </div>
+            {!isEditMode && (
+              <div className="flex items-center gap-3 w-full md:w-auto">
+                <Button variant="outline" size="sm" onClick={handleShare} className="gap-2 flex-1 md:flex-none">
+                  <Share2 className="w-4 h-4" />
+                  שתף
+                </Button>
+                
+                <Button 
+                  className="gap-2 flex-1 md:flex-none"
+                  onClick={() => navigate(`/s/${company.slug}`)}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  צפה כלקוח
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Contact Info */}
@@ -345,6 +371,7 @@ export default function CompanyProfile() {
             <div className="flex flex-wrap gap-6 text-sm">
               <EditableField
                 value={company.phone || ''}
+                isEditMode={isEditMode}
                 onSave={async (phone) => {
                   await updateMutation.mutateAsync({ phone });
                 }}
@@ -366,6 +393,7 @@ export default function CompanyProfile() {
 
               <EditableField
                 value={company.email || ''}
+                isEditMode={isEditMode}
                 onSave={async (email) => {
                   await updateMutation.mutateAsync({ email });
                 }}
@@ -387,6 +415,7 @@ export default function CompanyProfile() {
 
               <EditableField
                 value={company.website || ''}
+                isEditMode={isEditMode}
                 onSave={async (website) => {
                   await updateMutation.mutateAsync({ website });
                 }}
@@ -418,6 +447,7 @@ export default function CompanyProfile() {
       {/* Services Section */}
       <EditableList
         items={company.services || []}
+        isEditMode={isEditMode}
         onUpdate={async (services) => {
           await updateMutation.mutateAsync({ services });
         }}
@@ -428,6 +458,7 @@ export default function CompanyProfile() {
       {/* Gallery Section */}
       <EditableGallery
         images={company.gallery || []}
+        isEditMode={isEditMode}
         onUpdate={async (gallery) => {
           await updateMutation.mutateAsync({ gallery });
         }}
