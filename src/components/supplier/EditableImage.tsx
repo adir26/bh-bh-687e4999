@@ -6,7 +6,6 @@ import { showToast } from '@/utils/toast';
 
 interface EditableImageProps {
   currentUrl: string | null;
-  isEditMode: boolean;
   onUpload: (url: string) => Promise<void>;
   companyId: string;
   type: 'logo' | 'banner';
@@ -16,7 +15,6 @@ interface EditableImageProps {
 
 export const EditableImage: React.FC<EditableImageProps> = ({
   currentUrl,
-  isEditMode,
   onUpload,
   companyId,
   type,
@@ -75,37 +73,7 @@ export const EditableImage: React.FC<EditableImageProps> = ({
     }
   };
 
-  if (!isEditMode) {
-    // Normal view mode
-    if (type === 'banner') {
-      return currentUrl ? (
-        <div className={`w-full h-48 md:h-64 overflow-hidden ${className}`}>
-          <img 
-            src={currentUrl} 
-            alt={alt}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      ) : null;
-    }
-
-    // Logo
-    return currentUrl ? (
-      <div className={`relative ${className}`}>
-        <img
-          src={currentUrl}
-          alt={alt}
-          className="w-20 h-20 rounded-full object-cover border-2 border-primary/10"
-        />
-      </div>
-    ) : (
-      <div className={`w-20 h-20 rounded-full bg-muted flex items-center justify-center ${className}`}>
-        <ImageIcon className="w-10 h-10 text-muted-foreground" />
-      </div>
-    );
-  }
-
-  // Edit mode
+  // Always show with upload on hover
   return (
     <div className={`relative group ${className}`}>
       {/* Current Image */}
@@ -137,7 +105,7 @@ export const EditableImage: React.FC<EditableImageProps> = ({
         )
       )}
 
-      {/* Upload Overlay */}
+      {/* Upload Overlay - Always available on hover */}
       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
         <input
           type="file"

@@ -6,7 +6,6 @@ import { Edit, Check, X, Loader2 } from 'lucide-react';
 
 interface EditableFieldProps {
   value: string | null;
-  isEditMode: boolean;
   onSave: (value: string) => Promise<void>;
   type?: 'text' | 'textarea' | 'email' | 'tel' | 'url';
   placeholder?: string;
@@ -17,7 +16,6 @@ interface EditableFieldProps {
 
 export const EditableField: React.FC<EditableFieldProps> = ({
   value,
-  isEditMode,
   onSave,
   type = 'text',
   placeholder = '',
@@ -54,21 +52,21 @@ export const EditableField: React.FC<EditableFieldProps> = ({
     setIsEditing(false);
   };
 
-  // In edit mode but not actively editing - show with hover effect
-  if (isEditMode && !isEditing) {
+  // Not editing - show with edit icon
+  if (!isEditing) {
     return (
       <div
         className={`relative group cursor-pointer transition-all rounded-md ${className}`}
         onClick={() => setIsEditing(true)}
       >
-        <div className="group-hover:bg-muted/30 group-hover:outline group-hover:outline-2 group-hover:outline-dashed group-hover:outline-primary/30 group-hover:outline-offset-4 rounded-md transition-all p-1">
+        <div className="group-hover:bg-muted/30 rounded-md transition-all p-1 flex items-center gap-2">
           {children || (
             <span className="text-muted-foreground">{placeholder}</span>
           )}
-        </div>
-        <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-lg">
-            <Edit className="w-3 h-3 text-primary-foreground" />
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="w-5 h-5 bg-primary/10 hover:bg-primary/20 rounded-full flex items-center justify-center">
+              <Edit className="w-3 h-3 text-primary" />
+            </div>
           </div>
         </div>
       </div>
@@ -76,7 +74,7 @@ export const EditableField: React.FC<EditableFieldProps> = ({
   }
 
   // Actively editing
-  if (isEditMode && isEditing) {
+  if (isEditing) {
     const isTextarea = type === 'textarea';
     return (
       <div className={`space-y-2 ${className}`}>
