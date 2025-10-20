@@ -30,15 +30,16 @@ const PublicSupplierProfile: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: supplier, isLoading: supplierLoading, error: supplierError } = usePublicSupplier(slug!);
-  const { data: categoriesData } = useSupplierCategories(supplier?.id || '');
-  const { data: productsData, isLoading: productsLoading } = usePublicSupplierProducts(
-    supplier?.id || '',
-    {
-      page: currentPage,
-      search: searchQuery || undefined,
-      categoryId: selectedCategory || undefined,
-    }
-  );
+const { data: categoriesData } = useSupplierCategories(supplier?.id || '', supplier?.owner_id);
+const { data: productsData, isLoading: productsLoading } = usePublicSupplierProducts(
+  supplier?.id || '',
+  {
+    page: currentPage,
+    search: searchQuery || undefined,
+    categoryId: selectedCategory || undefined,
+    ownerId: supplier?.owner_id,
+  }
+);
 
   // Track profile view when supplier data loads
   useEffect(() => {

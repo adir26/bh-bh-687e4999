@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface PublicSupplier {
   id: string;
+  owner_id?: string;
   name: string;
   description?: string;
   tagline?: string;
@@ -43,6 +44,7 @@ export const usePublicSupplier = (slug: string) => {
         .from('companies')
         .select(`
           id,
+          owner_id,
           name,
           description,
           tagline,
@@ -84,6 +86,7 @@ export const usePublicSupplierProducts = (supplierId: string, options?: {
   limit?: number;
   search?: string;
   categoryId?: string;
+  ownerId?: string;
 }) => {
   const page = options?.page || 1;
   const limit = options?.limit || 12;
@@ -109,9 +112,14 @@ export const usePublicSupplierProducts = (supplierId: string, options?: {
           ),
           category:categories(id, name)
         `, { count: 'exact' })
-        .eq('supplier_id', supplierId)
         .eq('is_published', true)
         .order('created_at', { ascending: false });
+
+      if (options?.ownerId) {
+        query = query.or(`company_id.eq.${supplierId},supplier_id.eq.${options.ownerId}`);
+      } else {
+        query = query.or(`company_id.eq.${supplierId},supplier_id.eq.${supplierId}`);
+      }
 
       if (search) {
         query = query.ilike('name', `%${search}%`);
@@ -216,9 +224,9 @@ export const usePublicProduct = (productId: string) => {
   });
 };
 
-export const useSupplierCategories = (supplierId: string) => {
+export const useSupplierCategories = (companyId: string, ownerId?: string) => {
   return useQuery({
-    queryKey: ['supplier-categories', supplierId],
+    queryKey: ['supplier-categories', companyId, ownerId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('categories')
@@ -229,13 +237,14 @@ export const useSupplierCategories = (supplierId: string) => {
             products!inner(
               id,
               supplier_id,
+              company_id,
               is_published
             )
           )
         `)
-        .eq('product_categories.products.supplier_id', supplierId)
         .eq('product_categories.products.is_published', true)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .or(`product_categories.products.company_id.eq.${companyId},product_categories.products.supplier_id.eq.${ownerId ?? companyId}`);
 
       if (error) throw error;
 
@@ -253,6 +262,6 @@ export const useSupplierCategories = (supplierId: string) => {
 
       return uniqueCategories;
     },
-    enabled: !!supplierId,
+    enabled: !!companyId,
   });
 };

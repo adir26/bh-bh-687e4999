@@ -21,6 +21,7 @@ import { usePublicSupplierProducts } from '@/hooks/usePublicSupplier';
 
 interface CompanyData {
   id: string;
+  owner_id: string;
   name: string;
   slug: string;
   description: string | null;
@@ -472,7 +473,7 @@ export default function CompanyProfile() {
 
 // Products Section Component
 function ProductsSection({ company, navigate }: { company: CompanyData; navigate: any }) {
-  const { data: productsData, isLoading } = usePublicSupplierProducts(company.id, { limit: 8 });
+  const { data: productsData, isLoading } = usePublicSupplierProducts(company.id, { limit: 8, ownerId: company.owner_id });
 
   return (
     <div className="container max-w-6xl mx-auto px-4 py-8">
