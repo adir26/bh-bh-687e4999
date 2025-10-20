@@ -81,7 +81,7 @@ const SupplierProducts = () => {
               <Card key={product.id} className="cursor-pointer hover:shadow-lg transition-shadow">
                 <CardContent className="p-0">
                   <img
-                    src={product.signedImages?.[0] || product.images?.[0] || '/placeholder.svg'}
+                    src={product.primaryImage || product.images?.[0] || '/placeholder.svg'}
                     alt={product.name}
                     className="w-full h-32 object-cover rounded-t-lg"
                   />
