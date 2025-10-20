@@ -64,34 +64,137 @@ export const validateImageFiles = (files: File[]): string[] => {
 };
 
 export const productsService = {
+  // ✅ NEW: Add image to product_images table
+  async attachProductImage(
+    productId: string, 
+    supplierId: string,
+    storagePath: string, 
+    isPrimary: boolean = false
+  ) {
+    // If primary, demote all others first
+    if (isPrimary) {
+      await supabase
+        .from('product_images')
+        .update({ is_primary: false })
+        .eq('product_id', productId);
+    }
+
+    const { data, error } = await supabase
+      .from('product_images')
+      .insert({
+        product_id: productId,
+        storage_path: storagePath,
+        is_primary: isPrimary,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Compute public URL
+    const { data: urlData } = supabase.storage
+      .from('product-images')
+      .getPublicUrl(storagePath);
+
+    return { ...data, public_url: urlData.publicUrl };
+  },
+
+  // ✅ NEW: Get images for a product
+  async getProductImages(productId: string) {
+    const { data, error } = await supabase
+      .from('product_images')
+      .select('*')
+      .eq('product_id', productId)
+      .order('is_primary', { ascending: false })
+      .order('sort_order', { ascending: true });
+
+    if (error) throw error;
+
+    // Add public URLs
+    return (data || []).map(img => ({
+      ...img,
+      public_url: supabase.storage
+        .from('product-images')
+        .getPublicUrl(img.storage_path).data.publicUrl
+    }));
+  },
+
+  // ✅ NEW: Delete image from both storage and DB
+  async deleteProductImage(imageId: string, supplierId: string) {
+    // Get image record
+    const { data: image, error: fetchError } = await supabase
+      .from('product_images')
+      .select('storage_path, product:products!inner(supplier_id)')
+      .eq('id', imageId)
+      .single();
+
+    if (fetchError) throw fetchError;
+    if ((image.product as any).supplier_id !== supplierId) {
+      throw new Error('Unauthorized');
+    }
+
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from('product-images')
+      .remove([image.storage_path]);
+
+    if (storageError) console.warn('Storage delete failed:', storageError);
+
+    // Delete from DB
+    const { error: dbError } = await supabase
+      .from('product_images')
+      .delete()
+      .eq('id', imageId);
+
+    if (dbError) throw dbError;
+  },
+
   async listBySupplier(supplierId: string, page = 0, limit = PRODUCTS_PER_PAGE) {
     const from = page * limit;
     const to = from + limit - 1;
 
     const { data, error, count } = await supabase
       .from("products")
-      .select("*", { count: 'exact' })
+      .select(`
+        *,
+        product_images(
+          id,
+          storage_path,
+          is_primary,
+          sort_order
+        )
+      `, { count: 'exact' })
       .eq("supplier_id", supplierId)
       .order("created_at", { ascending: false })
       .range(from, to);
 
     if (error) throw error;
-    const items = (data || []) as DBProduct[];
 
-    // Get public URLs for images (bucket is public)
-    const withSigned = items.map((p) => {
-      const images = p.images || [];
-      const publicUrls: string[] = images.map(path => {
-        const { data } = supabase.storage
-          .from("product-images")
-          .getPublicUrl(path);
-        return data.publicUrl;
-      });
-      return { ...p, imagesSigned: publicUrls } as DBProduct & { imagesSigned: string[] };
+    // Process images from product_images table
+    const items = (data || []).map(product => {
+      const productImages = (product.product_images || []) as any[];
+      const images = productImages
+        .sort((a, b) => {
+          if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
+          return a.sort_order - b.sort_order;
+        })
+        .map(img => ({
+          ...img,
+          public_url: supabase.storage
+            .from('product-images')
+            .getPublicUrl(img.storage_path).data.publicUrl
+        }));
+
+      return {
+        ...product,
+        imageUrls: images.map(i => i.public_url),
+        primaryImage: images.find(i => i.is_primary)?.public_url || images[0]?.public_url,
+        productImages: images
+      };
     });
 
     return {
-      items: withSigned,
+      items,
       totalCount: count || 0,
       hasNextPage: count ? (from + limit) < count : false,
       hasPrevPage: page > 0
@@ -104,29 +207,47 @@ export const productsService = {
 
     const { data, error, count } = await supabase
       .from("products")
-      .select("*", { count: 'exact' })
+      .select(`
+        *,
+        product_images(
+          id,
+          storage_path,
+          is_primary,
+          sort_order
+        )
+      `, { count: 'exact' })
       .eq("supplier_id", supplierId)
       .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
       .order("created_at", { ascending: false })
       .range(from, to);
 
     if (error) throw error;
-    const items = (data || []) as DBProduct[];
 
-    // Get public URLs for images (bucket is public)
-    const withSigned = items.map((p) => {
-      const images = p.images || [];
-      const publicUrls: string[] = images.map(path => {
-        const { data } = supabase.storage
-          .from("product-images")
-          .getPublicUrl(path);
-        return data.publicUrl;
-      });
-      return { ...p, imagesSigned: publicUrls } as DBProduct & { imagesSigned: string[] };
+    // Process images from product_images table
+    const items = (data || []).map(product => {
+      const productImages = (product.product_images || []) as any[];
+      const images = productImages
+        .sort((a, b) => {
+          if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
+          return a.sort_order - b.sort_order;
+        })
+        .map(img => ({
+          ...img,
+          public_url: supabase.storage
+            .from('product-images')
+            .getPublicUrl(img.storage_path).data.publicUrl
+        }));
+
+      return {
+        ...product,
+        imageUrls: images.map(i => i.public_url),
+        primaryImage: images.find(i => i.is_primary)?.public_url || images[0]?.public_url,
+        productImages: images
+      };
     });
 
     return {
-      items: withSigned,
+      items,
       totalCount: count || 0,
       hasNextPage: count ? (from + limit) < count : false,
       hasPrevPage: page > 0
@@ -177,7 +298,7 @@ export const productsService = {
     await trackEvent("product_deleted", { product_id: productId });
   },
 
-  async uploadImage(file: File, supplierId: string, productId: string) {
+  async uploadImage(file: File, supplierId: string, productId: string, isPrimary: boolean = false) {
     // Validate file before upload
     const validationError = validateImageFile(file);
     if (validationError) {
@@ -194,6 +315,14 @@ export const productsService = {
     });
     if (error) throw error;
 
+    // ✅ NEW: Add to product_images table
+    const imageRecord = await this.attachProductImage(
+      productId, 
+      supplierId, 
+      path, 
+      isPrimary
+    );
+
     await trackEvent("product_image_uploaded", { 
       supplier_id: supplierId, 
       product_id: productId, 
@@ -201,8 +330,7 @@ export const productsService = {
       file_type: file.type 
     });
 
-    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
-    return { path, signedUrl: data.publicUrl };
+    return imageRecord;
   },
 
   async deleteImage(imagePath: string, supplierId: string, productId: string) {

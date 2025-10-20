@@ -752,6 +752,7 @@ export type Database = {
           name: string
           owner_id: string
           phone: string | null
+          products_count: number
           rating: number | null
           review_count: number | null
           services: Json | null
@@ -785,6 +786,7 @@ export type Database = {
           name: string
           owner_id: string
           phone?: string | null
+          products_count?: number
           rating?: number | null
           review_count?: number | null
           services?: Json | null
@@ -818,6 +820,7 @@ export type Database = {
           name?: string
           owner_id?: string
           phone?: string | null
+          products_count?: number
           rating?: number | null
           review_count?: number | null
           services?: Json | null
@@ -2656,6 +2659,44 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_product_categories_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_images: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean
+          product_id: string
+          public_url: string | null
+          sort_order: number
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          product_id: string
+          public_url?: string | null
+          sort_order?: number
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          product_id?: string
+          public_url?: string | null
+          sort_order?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"

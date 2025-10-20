@@ -101,9 +101,14 @@ export const usePublicSupplierProducts = (supplierId: string, options?: {
           description,
           price,
           currency,
-          images,
+          product_images(
+            id,
+            storage_path,
+            is_primary,
+            sort_order
+          ),
           category:categories(id, name)
-        `)
+        `, { count: 'exact' })
         .eq('supplier_id', supplierId)
         .eq('is_published', true)
         .order('created_at', { ascending: false });
@@ -125,33 +130,30 @@ export const usePublicSupplierProducts = (supplierId: string, options?: {
 
       if (error) throw error;
 
-      // Generate signed URLs for product images
-      const productsWithSignedUrls = await Promise.all(
-        (data || []).map(async (product) => {
-          if (!product.images || product.images.length === 0) {
-            return { ...product, signedImages: [] };
-          }
+      // Process images from product_images table
+      const productsWithImages = (data || []).map(product => {
+        const productImages = (product.product_images || []) as any[];
+        const images = productImages
+          .sort((a, b) => {
+            if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
+            return a.sort_order - b.sort_order;
+          })
+          .map(img => {
+            const { data: urlData } = supabase.storage
+              .from('product-images')
+              .getPublicUrl(img.storage_path);
+            return urlData.publicUrl;
+          });
 
-          const signedImages = await Promise.all(
-            product.images.map(async (imagePath: string) => {
-              try {
-                const { data: signedData } = await supabase.storage
-                  .from('product-images')
-                  .createSignedUrl(imagePath, 60 * 60 * 24); // 24 hours
-                
-                return signedData?.signedUrl || imagePath;
-              } catch {
-                return imagePath;
-              }
-            })
-          );
-
-          return { ...product, signedImages };
-        })
-      );
+        return {
+          ...product,
+          images,
+          primaryImage: images[0] || '/placeholder.svg'
+        };
+      });
 
       return {
-        products: productsWithSignedUrls || [],
+        products: productsWithImages,
         totalCount: count || 0,
         hasMore: (count || 0) > page * limit,
       };
@@ -172,7 +174,12 @@ export const usePublicProduct = (productId: string) => {
           description,
           price,
           currency,
-          images,
+          product_images(
+            id,
+            storage_path,
+            is_primary,
+            sort_order
+          ),
           category:categories(id, name)
         `)
         .eq('id', productId)
@@ -186,7 +193,24 @@ export const usePublicProduct = (productId: string) => {
         throw error;
       }
 
-      return data;
+      // Process images from product_images table
+      const productImages = (data.product_images || []) as any[];
+      const images = productImages
+        .sort((a, b) => {
+          if (a.is_primary !== b.is_primary) return a.is_primary ? -1 : 1;
+          return a.sort_order - b.sort_order;
+        })
+        .map(img => {
+          const { data: urlData } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(img.storage_path);
+          return urlData.publicUrl;
+        });
+
+      return {
+        ...data,
+        images
+      };
     },
     enabled: !!productId,
   });
