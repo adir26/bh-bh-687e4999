@@ -456,6 +456,10 @@ export default function SupplierOrders() {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               activeStatuses={getActiveStatuses()}
+              onStatusUpdateClick={(order) => {
+                setSelectedOrder(order);
+                setStatusDialogOpen(true);
+              }}
             />
           </TabsContent>
 
@@ -471,6 +475,10 @@ export default function SupplierOrders() {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
               activeStatuses={getClosedStatuses()}
+              onStatusUpdateClick={(order) => {
+                setSelectedOrder(order);
+                setStatusDialogOpen(true);
+              }}
             />
           </TabsContent>
         </Tabs>
@@ -695,6 +703,7 @@ interface OrdersTableProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   activeStatuses: OrderStatus[];
+  onStatusUpdateClick: (order: Order) => void;
 }
 
 function OrdersTable({
@@ -707,7 +716,8 @@ function OrdersTable({
   currentPage,
   totalPages,
   onPageChange,
-  activeStatuses
+  activeStatuses,
+  onStatusUpdateClick
 }: OrdersTableProps) {
   return (
     <div className="space-y-4">
@@ -793,16 +803,30 @@ function OrdersTable({
                     }
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOrderClick(order);
-                      }}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onStatusUpdateClick(order);
+                        }}
+                        title="עדכן סטטוס"
+                      >
+                        <StatusBadge status={order.current_status} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOrderClick(order);
+                        }}
+                        title="צפייה מלאה"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
