@@ -2816,6 +2816,7 @@ export type Database = {
             | null
           onboarding_step: number | null
           onboarding_version: number | null
+          phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
@@ -2842,6 +2843,7 @@ export type Database = {
             | null
           onboarding_step?: number | null
           onboarding_version?: number | null
+          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -2868,6 +2870,7 @@ export type Database = {
             | null
           onboarding_step?: number | null
           onboarding_version?: number | null
+          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -2875,6 +2878,48 @@ export type Database = {
           {
             foreignKeyName: "profiles_blocked_by_fkey"
             columns: ["blocked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_participants: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_participants_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_participants_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2889,6 +2934,9 @@ export type Database = {
           client_id: string
           created_at: string
           description: string | null
+          detailed_status:
+            | Database["public"]["Enums"]["project_detailed_status"]
+            | null
           end_date: string | null
           id: string
           location: string | null
@@ -2904,6 +2952,9 @@ export type Database = {
           client_id: string
           created_at?: string
           description?: string | null
+          detailed_status?:
+            | Database["public"]["Enums"]["project_detailed_status"]
+            | null
           end_date?: string | null
           id?: string
           location?: string | null
@@ -2919,6 +2970,9 @@ export type Database = {
           client_id?: string
           created_at?: string
           description?: string | null
+          detailed_status?:
+            | Database["public"]["Enums"]["project_detailed_status"]
+            | null
           end_date?: string | null
           id?: string
           location?: string | null
@@ -4453,6 +4507,10 @@ export type Database = {
         Args: { p_labels?: Json; p_metric_name: string; p_metric_value: number }
         Returns: undefined
       }
+      map_detailed_to_status: {
+        Args: { ds: Database["public"]["Enums"]["project_detailed_status"] }
+        Returns: Database["public"]["Enums"]["project_status"]
+      }
       mark_all_notifications_read: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -4509,6 +4567,20 @@ export type Database = {
       refresh_supplier_stats: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      rpc_create_project_with_participants: {
+        Args: {
+          p_budget_max?: number
+          p_budget_min?: number
+          p_category_id?: string
+          p_client_id: string
+          p_description: string
+          p_detailed?: Database["public"]["Enums"]["project_detailed_status"]
+          p_location?: string
+          p_supplier_id: string
+          p_title: string
+        }
+        Returns: string
       }
       rpc_log_call: {
         Args: {
@@ -4645,6 +4717,18 @@ export type Database = {
         | "confirmed"
         | "in_progress"
         | "completed"
+        | "cancelled"
+      project_detailed_status:
+        | "new"
+        | "waiting_for_scheduling"
+        | "measurement"
+        | "waiting_for_client_approval"
+        | "in_progress"
+        | "in_progress_preparation"
+        | "on_hold"
+        | "completed"
+        | "waiting_for_final_payment"
+        | "closed_paid_in_full"
         | "cancelled"
       project_status: "planning" | "active" | "completed" | "cancelled"
       user_role: "client" | "supplier" | "admin"
@@ -4783,6 +4867,19 @@ export const Constants = {
         "confirmed",
         "in_progress",
         "completed",
+        "cancelled",
+      ],
+      project_detailed_status: [
+        "new",
+        "waiting_for_scheduling",
+        "measurement",
+        "waiting_for_client_approval",
+        "in_progress",
+        "in_progress_preparation",
+        "on_hold",
+        "completed",
+        "waiting_for_final_payment",
+        "closed_paid_in_full",
         "cancelled",
       ],
       project_status: ["planning", "active", "completed", "cancelled"],

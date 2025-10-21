@@ -15,6 +15,10 @@ import { useSupplierProjects } from '@/hooks/useSupplierProjects';
 import { orderService } from '@/services/orderService';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { AddClientDialog } from './AddClientDialog';
+import { AddProjectDialog } from './AddProjectDialog';
+import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CreateOrderDialogProps {
   open: boolean;
@@ -29,9 +33,12 @@ interface OrderItem {
 }
 
 export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: CreateOrderDialogProps) {
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [showAddClientDialog, setShowAddClientDialog] = useState(false);
+  const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   
   // Form fields
   const [title, setTitle] = useState('');
@@ -46,8 +53,8 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
     { product_name: '', qty: 1, unit_price: 0 }
   ]);
 
-  const { data: clients = [], isLoading: loadingClients } = useSupplierClients();
-  const { data: projects = [], isLoading: loadingProjects } = useSupplierProjects(selectedClientId);
+  const { data: clients = [], isLoading: loadingClients, refetch: refetchClients } = useSupplierClients();
+  const { data: projects = [], isLoading: loadingProjects, refetch: refetchProjects } = useSupplierProjects(selectedClientId);
 
   // Calculate total amount
   const totalAmount = orderItems.reduce((sum, item) => {
@@ -173,10 +180,17 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
                 <SelectValue placeholder="בחר לקוח" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="__new_client__">
+                  <div className="flex items-center gap-2 text-primary font-semibold">
+                    <Plus className="w-4 h-4" />
+                    הוסף לקוח חדש
+                  </div>
+                </SelectItem>
+                {clients.length > 0 && <Separator className="my-2" />}
                 {loadingClients ? (
                   <SelectItem value="loading" disabled>טוען לקוחות...</SelectItem>
                 ) : clients.length === 0 ? (
-                  <SelectItem value="none" disabled>אין לקוחות זמינים</SelectItem>
+                  <div className="px-2 py-6 text-center text-sm text-muted-foreground">אין לקוחות. צור לקוח חדש.</div>
                 ) : (
                   clients.map(client => (
                     <SelectItem key={client.id} value={client.id}>
@@ -193,17 +207,30 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
             <Label>פרויקט *</Label>
             <Select 
               value={selectedProjectId} 
-              onValueChange={setSelectedProjectId}
+              onValueChange={(value) => {
+                if (value === '__new_project__') {
+                  setShowAddProjectDialog(true);
+                } else {
+                  setSelectedProjectId(value);
+                }
+              }}
               disabled={!selectedClientId}
             >
               <SelectTrigger>
                 <SelectValue placeholder="בחר פרויקט" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="__new_project__">
+                  <div className="flex items-center gap-2 text-primary font-semibold">
+                    <Plus className="w-4 h-4" />
+                    הוסף פרויקט חדש
+                  </div>
+                </SelectItem>
+                {projects.length > 0 && <Separator className="my-2" />}
                 {loadingProjects ? (
                   <SelectItem value="loading" disabled>טוען פרויקטים...</SelectItem>
                 ) : projects.length === 0 ? (
-                  <SelectItem value="none" disabled>אין פרויקטים זמינים ללקוח זה</SelectItem>
+                  <div className="px-2 py-6 text-center text-sm text-muted-foreground">אין פרויקטים. צור פרויקט חדש.</div>
                 ) : (
                   projects.map(project => (
                     <SelectItem key={project.id} value={project.id}>
@@ -422,7 +449,28 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      <AddClientDialog
+        open={showAddClientDialog}
+        onOpenChange={setShowAddClientDialog}
+        onClientCreated={(newClientId) => {
+          setSelectedClientId(newClientId);
+          refetchClients();
+        }}
+      />
+
+      <AddProjectDialog
+        open={showAddProjectDialog}
+        onOpenChange={setShowAddProjectDialog}
+        clientId={selectedClientId}
+        supplierId={user?.id || ''}
+        onProjectCreated={(newProjectId) => {
+          setSelectedProjectId(newProjectId);
+          refetchProjects();
+        }}
+      />
+    </>
   );
 }
