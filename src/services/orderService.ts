@@ -372,5 +372,102 @@ export const orderService = {
         (payload) => callback(payload.new as OrderEvent)
       )
       .subscribe();
+  },
+
+  // Create a new order
+  async createOrder(orderData: {
+    client_id: string;
+    project_id: string;
+    title: string;
+    description?: string;
+    amount: number;
+    customer_name?: string;
+    customer_phone?: string;
+    customer_email?: string;
+    eta_at?: string;
+    due_date?: string;
+    shipping_address?: any;
+    items?: Array<{
+      product_name: string;
+      qty: number;
+      unit_price: number;
+    }>;
+  }): Promise<Order> {
+    const { data: userData } = await supabase.auth.getUser();
+    const supplierId = userData.user?.id;
+    if (!supplierId) throw new Error('Not authenticated');
+
+    // Create the order
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        supplier_id: supplierId,
+        client_id: orderData.client_id,
+        project_id: orderData.project_id,
+        title: orderData.title,
+        description: orderData.description,
+        amount: orderData.amount,
+        customer_name: orderData.customer_name,
+        customer_phone: orderData.customer_phone,
+        customer_email: orderData.customer_email,
+        eta_at: orderData.eta_at,
+        due_date: orderData.due_date,
+        shipping_address: orderData.shipping_address,
+        status: 'pending',
+        current_status: 'pending'
+      })
+      .select()
+      .single();
+
+    if (orderError) throw orderError;
+
+    // Add order items if provided
+    if (orderData.items && orderData.items.length > 0) {
+      const itemsToInsert = orderData.items.map(item => ({
+        order_id: order.id,
+        product_name: item.product_name,
+        qty: item.qty,
+        unit_price: item.unit_price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(itemsToInsert);
+
+      if (itemsError) {
+        console.error('Error inserting order items:', itemsError);
+        // Continue even if items fail - order is created
+      }
+    }
+
+    // Create initial event
+    try {
+      await this.createOrderEvent(order.id, 'order_created', {
+        title: order.title,
+        amount: order.amount,
+        client_id: order.client_id
+      });
+    } catch (error) {
+      console.error('Error creating order event:', error);
+      // Continue - event is not critical
+    }
+
+    // Create initial status event
+    try {
+      await supabase
+        .from('order_status_events')
+        .insert({
+          order_id: order.id,
+          old_status: null,
+          new_status: 'pending',
+          is_customer_visible: false,
+          changed_by: supplierId
+        });
+    } catch (error) {
+      console.error('Error creating status event:', error);
+      // Continue - status event is not critical
+    }
+
+    return order as Order;
   }
 };

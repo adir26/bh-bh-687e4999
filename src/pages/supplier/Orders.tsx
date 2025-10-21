@@ -32,6 +32,7 @@ import { StatusBadge, getActiveStatuses, getClosedStatuses, type OrderStatus } f
 import { PhoneLink } from '@/components/supplier/PhoneLink';
 import { Timeline } from '@/components/supplier/Timeline';
 import { FileUploader, FileList } from '@/components/supplier/FileUploader';
+import { CreateOrderDialog } from '@/components/supplier/CreateOrderDialog';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -219,6 +220,7 @@ export default function SupplierOrders() {
   const [statusEvents, setStatusEvents] = useState<StatusEvent[]>([]);
   const [orderAttachments, setOrderAttachments] = useState<any[]>([]);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [createOrderDialogOpen, setCreateOrderDialogOpen] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
   
@@ -404,17 +406,26 @@ export default function SupplierOrders() {
       {/* Header */}
       <div className="bg-white border-b border-border sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/supplier/dashboard')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                חזור לדשבורד
+              </Button>
+              <h1 className="text-2xl font-bold text-foreground">ניהול הזמנות</h1>
+            </div>
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/supplier/dashboard')}
+              onClick={() => setCreateOrderDialogOpen(true)}
               className="flex items-center gap-2"
             >
-              <ArrowLeft className="w-4 h-4" />
-              חזור לדשבורד
+              <Plus className="w-4 h-4 ml-1" />
+              הזמנה חדשה
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">ניהול הזמנות</h1>
           </div>
         </div>
       </div>
@@ -643,6 +654,15 @@ export default function SupplierOrders() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Create Order Dialog */}
+        <CreateOrderDialog
+          open={createOrderDialogOpen}
+          onOpenChange={setCreateOrderDialogOpen}
+          onOrderCreated={() => {
+            refetch();
+          }}
+        />
 
         {/* Status Update Dialog */}
         <StatusUpdateDialog
