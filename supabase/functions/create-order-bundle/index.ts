@@ -102,10 +102,115 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Call the atomic RPC function
+    // Create authenticated admin client for profile creation
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    );
+
+    let resolvedLeadId: string | undefined;
+    let resolvedClientId: string | undefined;
+
+    // Handle client/lead creation if mode=create
+    if (payload.lead.mode === 'create' && payload.lead.new) {
+      const { full_name, email, phone } = payload.lead.new;
+      
+      // Create auth user + profile via admin client
+      const tempPassword = crypto.randomUUID();
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: email || `${crypto.randomUUID()}@temp.local`,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          full_name,
+          role: 'client',
+        },
+      });
+
+      if (authError || !authData.user) {
+        console.error('[create-order-bundle] Failed to create client auth user:', authError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to create client user', details: authError?.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      resolvedClientId = authData.user.id;
+
+      // Update profile with phone
+      if (phone) {
+        await supabaseAdmin
+          .from('profiles')
+          .update({ phone })
+          .eq('id', resolvedClientId);
+      }
+
+      // Create lead
+      const { data: leadData, error: leadError } = await supabase
+        .from('leads')
+        .insert({
+          supplier_id: user.id,
+          client_id: resolvedClientId,
+          name: full_name,
+          contact_email: email,
+          contact_phone: phone,
+          status: 'project_in_process',
+          source_key: 'orders',
+          priority_key: 'medium',
+          notes: 'Auto-created from Create Order Bundle',
+        })
+        .select('id')
+        .single();
+
+      if (leadError || !leadData) {
+        console.error('[create-order-bundle] Failed to create lead:', leadError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to create lead', details: leadError?.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      resolvedLeadId = leadData.id;
+
+    } else if (payload.lead.mode === 'select' && payload.lead.lead_id) {
+      // Use existing lead
+      const { data: leadData, error: leadError } = await supabase
+        .from('leads')
+        .select('id, client_id')
+        .eq('id', payload.lead.lead_id)
+        .eq('supplier_id', user.id)
+        .single();
+
+      if (leadError || !leadData) {
+        console.error('[create-order-bundle] Lead not found:', leadError);
+        return new Response(
+          JSON.stringify({ error: 'Lead not found or access denied' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      resolvedLeadId = leadData.id;
+      resolvedClientId = leadData.client_id;
+
+      // Update lead status
+      await supabase
+        .from('leads')
+        .update({ status: 'project_in_process' })
+        .eq('id', resolvedLeadId);
+    }
+
+    if (!resolvedLeadId || !resolvedClientId) {
+      return new Response(
+        JSON.stringify({ error: 'Failed to resolve lead and client' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Now call the RPC with resolved IDs
     const { data, error } = await supabase.rpc('create_order_bundle', {
       payload: {
-        lead: payload.lead,
+        lead_id: resolvedLeadId,
+        client_id: resolvedClientId,
         project: payload.project,
         order: payload.order,
       }
