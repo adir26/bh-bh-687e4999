@@ -12,7 +12,7 @@ interface AddClientDialogProps {
   onOpenChange: (open: boolean) => void;
   onClientCreated: (clientId: string) => void;
   supplierId: string;
-  leadStatus?: 'new' | 'project_in_progress';
+  leadStatus?: 'new' | 'project_in_process';
 }
 
 export function AddClientDialog({

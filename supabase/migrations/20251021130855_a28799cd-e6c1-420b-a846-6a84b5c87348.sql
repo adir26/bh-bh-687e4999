@@ -75,13 +75,12 @@ BEGIN
   RETURNING id INTO v_order_id;
 
   -- ===== STEP 3: Create Order Items =====
-  INSERT INTO public.order_items (order_id, product_id, name, description, quantity, unit_price)
-  SELECT 
+  INSERT INTO public.order_items (order_id, product_name, description, quantity, unit_price)
+  SELECT
     v_order_id,
-    (item->>'product_id')::uuid,
-    item->>'name',
+    COALESCE(item->>'product_name', item->>'name'),
     item->>'description',
-    (item->>'qty')::numeric,
+    COALESCE(item->>'quantity', item->>'qty')::numeric,
     (item->>'unit_price')::numeric
   FROM jsonb_array_elements(payload->'order'->'items') AS item;
 

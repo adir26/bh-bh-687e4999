@@ -60,7 +60,7 @@ export async function createClient(data: CreateClientData): Promise<string> {
 export async function createClientWithLead(
   data: CreateClientData,
   supplierId: string,
-  leadStatus: 'new' | 'project_in_progress' = 'new'
+  leadStatus: 'new' | 'project_in_process' = 'new'
 ): Promise<string> {
   // 1. Create the client
   const clientId = await createClient(data);
@@ -71,13 +71,13 @@ export async function createClientWithLead(
       client_id: clientId,
       supplier_id: supplierId,
       status: leadStatus,
-      source_key: leadStatus === 'project_in_progress' ? 'orders' : 'website',
+      source_key: leadStatus === 'project_in_process' ? 'orders' : 'website',
       contact_phone: data.phone || null,
       contact_email: data.email,
       name: data.full_name,
       priority_key: 'medium',
-      notes: leadStatus === 'project_in_progress' 
-        ? 'נוצר אוטומטית ממודול ההזמנות' 
+      notes: leadStatus === 'project_in_process'
+        ? 'נוצר אוטומטית ממודול ההזמנות'
         : 'נוצר אוטומטית מיצירת הזמנה',
     } as any);
 
