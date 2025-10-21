@@ -12,6 +12,7 @@ interface AddClientDialogProps {
   onOpenChange: (open: boolean) => void;
   onClientCreated: (clientId: string) => void;
   supplierId: string;
+  leadStatus?: 'new' | 'project_in_progress';
 }
 
 export function AddClientDialog({
@@ -19,6 +20,7 @@ export function AddClientDialog({
   onOpenChange,
   onClientCreated,
   supplierId,
+  leadStatus = 'new',
 }: AddClientDialogProps) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -45,7 +47,7 @@ export function AddClientDialog({
         full_name: fullName.trim(),
         email: email.trim(),
         phone: phone.trim() || undefined,
-      }, supplierId);
+      }, supplierId, leadStatus);
 
       toast.success('הלקוח נוצר בהצלחה');
       onClientCreated(clientId);

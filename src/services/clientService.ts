@@ -59,23 +59,26 @@ export async function createClient(data: CreateClientData): Promise<string> {
 
 export async function createClientWithLead(
   data: CreateClientData,
-  supplierId: string
+  supplierId: string,
+  leadStatus: 'new' | 'project_in_progress' = 'new'
 ): Promise<string> {
   // 1. Create the client
   const clientId = await createClient(data);
 
-  // 2. Create lead automatically (status: new)
+  // 2. Create lead automatically with the specified status
   try {
     const { error: leadError } = await supabase.from('leads').insert({
       client_id: clientId,
       supplier_id: supplierId,
-      status: 'new',
-      source_key: 'website',
+      status: leadStatus,
+      source_key: leadStatus === 'project_in_progress' ? 'orders' : 'website',
       contact_phone: data.phone || null,
       contact_email: data.email,
       name: data.full_name,
       priority_key: 'medium',
-      notes: 'נוצר אוטומטית מיצירת הזמנה',
+      notes: leadStatus === 'project_in_progress' 
+        ? 'נוצר אוטומטית ממודול ההזמנות' 
+        : 'נוצר אוטומטית מיצירת הזמנה',
     } as any);
 
     if (leadError) {

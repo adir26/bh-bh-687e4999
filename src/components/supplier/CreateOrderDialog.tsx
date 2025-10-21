@@ -21,6 +21,7 @@ import { SelectLeadDialog } from './SelectLeadDialog';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CreateOrderDialogProps {
   open: boolean;
@@ -40,6 +41,7 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
+  const [selectedLeadId, setSelectedLeadId] = useState<string>('');
   const [showAddClientDialog, setShowAddClientDialog] = useState(false);
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
   const [showSelectLeadDialog, setShowSelectLeadDialog] = useState(false);
@@ -96,6 +98,7 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
   const resetForm = () => {
     setSelectedClientId('');
     setSelectedProjectId('');
+    setSelectedLeadId('');
     setTitle('');
     setDescription('');
     setCustomerName('');
@@ -155,6 +158,25 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
         shipping_address: shippingAddress ? { address: shippingAddress } : undefined,
         items: validItems
       });
+
+      // Update lead status if a lead was selected
+      if (selectedLeadId) {
+        const { error: leadUpdateError } = await supabase
+          .from('leads')
+          .update({
+            status: 'project_in_progress',
+            client_id: selectedClientId,
+          })
+          .eq('id', selectedLeadId);
+
+        if (leadUpdateError) {
+          console.error('Failed to update lead status:', leadUpdateError);
+        } else {
+          await queryClient.invalidateQueries({ 
+            queryKey: ['supplier-leads', user?.id] 
+          });
+        }
+      }
 
       toast.success('ההזמנה נוצרה בהצלחה');
       resetForm();
@@ -476,7 +498,9 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
         open={showAddClientDialog}
         onOpenChange={setShowAddClientDialog}
         supplierId={user?.id || ''}
+        leadStatus="project_in_progress"
         onClientCreated={async (newClientId) => {
+          setSelectedLeadId(''); // Reset lead when creating new client
           setSelectedClientId(newClientId);
           await queryClient.invalidateQueries({ 
             queryKey: ['supplier-clients', user?.id],
@@ -505,11 +529,14 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
         supplierId={user?.id || ''}
         onLeadSelected={async (leadId, clientId) => {
           if (clientId) {
+            setSelectedLeadId(leadId);
             setSelectedClientId(clientId);
             await queryClient.invalidateQueries({ 
               queryKey: ['supplier-clients', user?.id],
               refetchType: 'active'
             });
+          } else {
+            toast.error('ליד זה לא מקושר ללקוח');
           }
         }}
       />
