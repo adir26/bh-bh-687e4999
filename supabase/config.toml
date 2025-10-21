@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.submit-quote-approval]
 verify_jwt = false
+
+[functions.convert-lead-to-client]
+verify_jwt = true

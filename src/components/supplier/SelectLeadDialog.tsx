@@ -5,8 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSupplierLeads } from '@/hooks/useSupplierLeads';
-import { Loader2, Mail, Phone, User } from 'lucide-react';
+import { Loader2, Mail, Phone, User, UserPlus } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface SelectLeadDialogProps {
   open: boolean;
@@ -23,6 +25,8 @@ export function SelectLeadDialog({
 }: SelectLeadDialogProps) {
   const { data: leads, isLoading } = useSupplierLeads(supplierId);
   const [searchTerm, setSearchTerm] = useState('');
+  const [convertingLeadId, setConvertingLeadId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const filteredLeads = leads?.filter(lead =>
     lead.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,9 +60,39 @@ export function SelectLeadDialog({
     }
   };
 
+  const handleConvertLead = async (lead: typeof leads[0]) => {
+    setConvertingLeadId(lead.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('convert-lead-to-client', {
+        body: { leadId: lead.id }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success('הליד הומר ללקוח בהצלחה!');
+        
+        // Refresh leads and clients data
+        await queryClient.invalidateQueries({ queryKey: ['supplier-leads', supplierId] });
+        await queryClient.invalidateQueries({ queryKey: ['supplier-clients'] });
+        
+        // Select the newly converted client
+        onLeadSelected(lead.id, data.client_id);
+        onOpenChange(false);
+      } else {
+        throw new Error(data?.error || 'Failed to convert lead');
+      }
+    } catch (error: any) {
+      console.error('Error converting lead:', error);
+      toast.error('שגיאה בהמרת הליד: ' + (error.message || 'Unknown error'));
+    } finally {
+      setConvertingLeadId(null);
+    }
+  };
+
   const handleSelectLead = (lead: typeof leads[0]) => {
     if (!lead.client_id) {
-      toast.error('ליד זה לא מקושר ללקוח. אנא צור לקוח מתוך ניהול הלידים תחילה.');
+      toast.error('ליד זה לא מקושר ללקוח. השתמש בכפתור "המר ללקוח" תחילה.');
       return;
     }
     onLeadSelected(lead.id, lead.client_id);
@@ -118,13 +152,34 @@ export function SelectLeadDialog({
                       </div>
                     </div>
                     
-                    <Button
-                      size="sm"
-                      onClick={() => handleSelectLead(lead)}
-                      disabled={!lead.client_id}
-                    >
-                      בחר
-                    </Button>
+                    {!lead.client_id ? (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        onClick={() => handleConvertLead(lead)}
+                        disabled={convertingLeadId === lead.id}
+                        className="gap-2"
+                      >
+                        {convertingLeadId === lead.id ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <span>ממיר...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="h-3 w-3" />
+                            <span>המר ללקוח</span>
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={() => handleSelectLead(lead)}
+                      >
+                        בחר
+                      </Button>
+                    )}
                   </div>
                 </Card>
               ))
