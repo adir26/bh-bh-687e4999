@@ -39,6 +39,10 @@ interface CreateOrderBundlePayload {
       zip?: string;
       notes?: string;
     };
+    customer_name?: string | null;
+    customer_email?: string | null;
+    customer_phone?: string | null;
+    shipping_address?: any;
     items: Array<{
       product_id?: string | null;
       product_name?: string;
@@ -151,75 +155,70 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create authenticated admin client for profile creation
+    // Create authenticated admin client for ghost client creation
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     );
 
-    let resolvedLeadId: string | undefined;
-    let resolvedClientId: string | undefined;
+    // Step 2: Create or find ghost client for this supplier
+    const ghostEmail = `ghost+${user.id}@temp.local`;
+    
+    let ghostClientId: string;
+    
+    const { data: existingGhost } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('email', ghostEmail)
+      .maybeSingle();
 
-    // Handle client/lead creation if mode=create
-    if (payload.lead.mode === 'create' && payload.lead.new) {
-      const { full_name, email, phone } = payload.lead.new;
-      const normalizedEmail = email ? email.toLowerCase().trim() : `${crypto.randomUUID()}@temp.local`;
+    if (existingGhost) {
+      ghostClientId = existingGhost.id;
+      console.log('[create-order-bundle] Using existing ghost client:', ghostClientId);
+    } else {
+      // Create ghost client
+      const tempPassword = crypto.randomUUID();
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: ghostEmail,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          full_name: `Ghost Client for Supplier ${user.id}`,
+          role: 'client',
+          is_ghost: true,
+          ghost_owner: user.id,
+        },
+      });
 
-      // Check if profile already exists by email
-      const { data: existingProfile } = await supabaseAdmin
-        .from('profiles')
-        .select('id')
-        .eq('email', normalizedEmail)
-        .maybeSingle();
-
-      if (existingProfile) {
-        // Use existing profile
-        resolvedClientId = existingProfile.id;
-        console.log('[create-order-bundle] Using existing profile:', resolvedClientId);
-      } else {
-        // Create new auth user + profile via admin client
-        const tempPassword = crypto.randomUUID();
-        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-          email: normalizedEmail,
-          password: tempPassword,
-          email_confirm: true,
-          user_metadata: {
-            full_name,
-            role: 'client',
-          },
-        });
-
-        if (authError || !authData.user) {
-          console.error('[create-order-bundle] Failed to create client auth user:', authError);
-          return new Response(
-            JSON.stringify({ error: 'Failed to create client user', details: authError?.message }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
-        }
-
-        resolvedClientId = authData.user.id;
-        console.log('[create-order-bundle] Created new client:', resolvedClientId);
-
-        // Update profile with phone if provided
-        if (phone) {
-          await supabaseAdmin
-            .from('profiles')
-            .update({ phone })
-            .eq('id', resolvedClientId);
-        }
+      if (authError || !authData.user) {
+        console.error('[create-order-bundle] Failed to create ghost client:', authError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to create ghost client', details: authError?.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
 
-      // Create lead with correct source_key
+      ghostClientId = authData.user.id;
+      console.log('[create-order-bundle] Created new ghost client:', ghostClientId);
+    }
+
+    // Step 3: Resolve Lead
+    let resolvedLeadId: string | null = null;
+
+    if (payload.lead.mode === 'create' && payload.lead.new) {
+      const { full_name, email, phone } = payload.lead.new;
+      
+      // Create lead with ghost client
       const { data: leadData, error: leadError } = await supabase
         .from('leads')
         .insert({
           supplier_id: user.id,
-          client_id: resolvedClientId,
-          name: full_name,
-          contact_email: normalizedEmail !== `${crypto.randomUUID()}@temp.local` ? normalizedEmail : null,
-          contact_phone: phone,
+          client_id: ghostClientId,
+          name: full_name || 'לקוח חדש',
+          contact_email: email || null,
+          contact_phone: phone || null,
           status: 'project_in_process',
-          source_key: 'other',  // Fixed: changed from 'orders' to 'other'
+          source_key: 'other',
           priority_key: 'medium',
           notes: 'Auto-created from Create Order Bundle',
         })
@@ -236,51 +235,71 @@ Deno.serve(async (req) => {
 
       resolvedLeadId = leadData.id;
       console.log('[create-order-bundle] Created new lead:', resolvedLeadId);
-
     } else if (payload.lead.mode === 'select' && payload.lead.lead_id) {
-      // Use existing lead
-      const { data: leadData, error: leadError } = await supabase
+      const { data: existingLead, error: leadFetchError } = await supabase
         .from('leads')
-        .select('id, client_id')
+        .select('id, client_id, supplier_id')
         .eq('id', payload.lead.lead_id)
         .eq('supplier_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (leadError || !leadData) {
-        console.error('[create-order-bundle] Lead not found:', leadError);
+      if (leadFetchError || !existingLead) {
+        console.error('[create-order-bundle] Failed to fetch selected lead:', leadFetchError);
         return new Response(
-          JSON.stringify({ error: 'Lead not found or access denied' }),
+          JSON.stringify({ error: 'Selected lead not found or access denied', details: leadFetchError?.message }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      resolvedLeadId = leadData.id;
-      resolvedClientId = leadData.client_id;
-
-      // Update lead status
-      await supabase
-        .from('leads')
-        .update({ status: 'project_in_process' })
-        .eq('id', resolvedLeadId);
-    }
-
-    if (!resolvedLeadId || !resolvedClientId) {
+      resolvedLeadId = existingLead.id;
+      
+      // Update lead to use ghost client if it doesn't have a client_id
+      if (!existingLead.client_id) {
+        await supabase
+          .from('leads')
+          .update({ client_id: ghostClientId, status: 'project_in_process' })
+          .eq('id', resolvedLeadId);
+      } else {
+        // Just update status if client already exists
+        await supabase
+          .from('leads')
+          .update({ status: 'project_in_process' })
+          .eq('id', resolvedLeadId);
+        
+        // Use existing client_id if present (could be real client)
+        ghostClientId = existingLead.client_id;
+      }
+    } else {
+      console.error('[create-order-bundle] Invalid lead mode:', payload.lead.mode);
       return new Response(
-        JSON.stringify({ error: 'Failed to resolve lead and client' }),
+        JSON.stringify({ error: 'Invalid lead mode. Must be "create" or "select".' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Now call the RPC with resolved IDs
+    if (!resolvedLeadId) {
+      return new Response(
+        JSON.stringify({ error: 'Failed to resolve lead' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Step 4: Call RPC with normalized payload including customer details
     const rpcPayload = {
       lead_id: resolvedLeadId,
-      client_id: resolvedClientId,
+      client_id: ghostClientId,
       project: payload.project,
       order: {
         ...payload.order,
+        customer_name: payload.order.customer_name || payload.lead?.new?.full_name || null,
+        customer_email: payload.order.customer_email || payload.lead?.new?.email || null,
+        customer_phone: payload.order.customer_phone || payload.lead?.new?.phone || null,
+        shipping_address: payload.order.shipping_address || payload.order.address || null,
         items: normalizedItems,
       },
     };
+
+    console.log('[create-order-bundle] Calling RPC with payload:', JSON.stringify(rpcPayload, null, 2));
 
     const { data, error } = await supabase.rpc('create_order_bundle', {
       payload: rpcPayload,

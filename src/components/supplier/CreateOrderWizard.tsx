@@ -78,6 +78,9 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
     zip: '',
     notes: '',
   });
+  const [customerName, setCustomerName] = useState('');
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   
   // Step 4: Items
   const [items, setItems] = useState<OrderItem[]>([
@@ -93,6 +96,9 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
     setStartDate('');
     setEndDate('');
     setOrderAddress({ street: '', city: '', zip: '', notes: '' });
+    setCustomerName('');
+    setCustomerEmail('');
+    setCustomerPhone('');
     setItems([{ product_name: '', description: '', quantity: 1, unit_price: 0 }]);
     setAvailableProjects([]);
   };
@@ -211,6 +217,10 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
           start_date: startDate || null,
           end_date: endDate || null,
           address: orderAddress,
+          customer_name: customerName || leadData.new?.full_name || null,
+          customer_email: customerEmail || leadData.new?.email || null,
+          customer_phone: customerPhone || leadData.new?.phone || null,
+          shipping_address: orderAddress,
           items: items.map(item => ({
             product_id: item.product_id || null,
             product_name: item.product_name,
@@ -338,7 +348,7 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
                       />
                     </div>
                     <div>
-                      <Label>אימייל</Label>
+                      <Label>אימייל (לא חובה)</Label>
                       <Input
                         type="email"
                         value={leadData.new?.email || ''}
@@ -346,7 +356,7 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
                           ...leadData,
                           new: { ...leadData.new!, email: e.target.value },
                         })}
-                        placeholder="email@example.com"
+                        placeholder="לא חובה - לצורך יצירת קשר בלבד"
                       />
                     </div>
                     <div>
@@ -498,6 +508,37 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
                     placeholder="תיאור ההזמנה"
                     rows={3}
                   />
+                </div>
+
+                <div className="border-t pt-4 mt-4">
+                  <h4 className="font-medium mb-3">פרטי לקוח</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <Label>שם לקוח</Label>
+                      <Input
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder={leadData.new?.full_name || "שם הלקוח"}
+                      />
+                    </div>
+                    <div>
+                      <Label>אימייל לקוח</Label>
+                      <Input
+                        type="email"
+                        value={customerEmail}
+                        onChange={(e) => setCustomerEmail(e.target.value)}
+                        placeholder={leadData.new?.email || "email@example.com"}
+                      />
+                    </div>
+                    <div>
+                      <Label>טלפון לקוח</Label>
+                      <Input
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder={leadData.new?.phone || "05X-XXXXXXX"}
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
