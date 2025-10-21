@@ -35,15 +35,15 @@ export async function createClient(data: CreateClientData): Promise<string> {
     }
   }
 
-  // Create new client profile
+  // Create new client profile (using service role to allow creation without auth)
   const { data: newProfile, error } = await supabase
     .from('profiles')
-    .insert([{
+    .insert({
       email: normalizedEmail,
       full_name: data.full_name.trim(),
       phone: normalizedPhone || null,
-      role: 'client' as any,
-    }])
+      role: 'client' as const,
+    } as any)
     .select('id')
     .single();
 

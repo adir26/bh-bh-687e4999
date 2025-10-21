@@ -165,7 +165,8 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle>הזמנה חדשה</DialogTitle>
