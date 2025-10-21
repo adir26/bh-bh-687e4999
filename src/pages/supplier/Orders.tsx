@@ -94,9 +94,27 @@ function StatusUpdateDialog({ order, open, onOpenChange, onStatusUpdated }: Stat
   const [isCustomerVisible, setIsCustomerVisible] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const getAllowedNextStatuses = (status: OrderStatus): OrderStatus[] => {
+    switch (status) {
+      case 'pending':
+        return ['confirmed', 'canceled'];
+      case 'confirmed':
+        return ['in_production', 'canceled'];
+      case 'in_production':
+        return ['ready', 'canceled'];
+      case 'ready':
+        return ['shipped', 'delivered', 'canceled'];
+      case 'shipped':
+        return ['delivered', 'refunded', 'canceled'];
+      default:
+        return [];
+    }
+  };
+
   useEffect(() => {
     if (order) {
-      setNewStatus(order.current_status);
+      const allowed = getAllowedNextStatuses(order.current_status);
+      setNewStatus(allowed[0] || order.current_status);
       setReason('');
       setIsCustomerVisible(false);
     }
@@ -137,7 +155,7 @@ function StatusUpdateDialog({ order, open, onOpenChange, onStatusUpdated }: Stat
 
   if (!order) return null;
 
-  const statusOptions: OrderStatus[] = ['pending', 'confirmed', 'in_production', 'ready', 'shipped', 'delivered', 'canceled', 'refunded'];
+  const statusOptions = getAllowedNextStatuses(order.current_status);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
