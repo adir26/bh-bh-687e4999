@@ -164,7 +164,7 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
         const { error: leadUpdateError } = await supabase
           .from('leads')
           .update({
-            status: 'project_in_progress',
+            status: 'project_in_process',
             client_id: selectedClientId,
           })
           .eq('id', selectedLeadId);
@@ -494,7 +494,7 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
         open={showAddClientDialog}
         onOpenChange={setShowAddClientDialog}
         supplierId={user?.id || ''}
-        leadStatus="project_in_progress"
+        leadStatus="project_in_process"
         onClientCreated={async (newClientId) => {
           setSelectedLeadId(''); // Reset lead when creating new client
           setSelectedClientId(newClientId);

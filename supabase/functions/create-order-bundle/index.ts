@@ -41,12 +41,22 @@ interface CreateOrderBundlePayload {
     };
     items: Array<{
       product_id?: string | null;
-      name: string;
+      product_name?: string;
+      name?: string;
       description?: string | null;
-      qty: number;
+      quantity?: number;
+      qty?: number;
       unit_price: number;
     }>;
   };
+}
+
+interface NormalizedOrderItem {
+  product_id: string | null;
+  product_name: string;
+  description: string | null;
+  quantity: number;
+  unit_price: number;
 }
 
 Deno.serve(async (req) => {
@@ -100,6 +110,45 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Order must have at least one item' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    const normalizedItems: NormalizedOrderItem[] = [];
+
+    for (const [index, item] of payload.order.items.entries()) {
+      const productName = (item.product_name ?? item.name ?? '').trim();
+      const quantityRaw = item.quantity ?? item.qty ?? 0;
+      const unitPriceRaw = item.unit_price ?? 0;
+
+      if (!productName) {
+        return new Response(
+          JSON.stringify({ error: `Order item ${index + 1} is missing product_name` }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const quantity = Number(quantityRaw);
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        return new Response(
+          JSON.stringify({ error: `Order item ${index + 1} has invalid quantity` }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const unitPrice = Number(unitPriceRaw);
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+        return new Response(
+          JSON.stringify({ error: `Order item ${index + 1} has invalid unit_price` }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      normalizedItems.push({
+        product_id: item.product_id ?? null,
+        product_name: productName,
+        description: item.description ?? null,
+        quantity,
+        unit_price: unitPrice,
+      });
     }
 
     // Create authenticated admin client for profile creation
@@ -207,13 +256,18 @@ Deno.serve(async (req) => {
     }
 
     // Now call the RPC with resolved IDs
+    const rpcPayload = {
+      lead_id: resolvedLeadId,
+      client_id: resolvedClientId,
+      project: payload.project,
+      order: {
+        ...payload.order,
+        items: normalizedItems,
+      },
+    };
+
     const { data, error } = await supabase.rpc('create_order_bundle', {
-      payload: {
-        lead_id: resolvedLeadId,
-        client_id: resolvedClientId,
-        project: payload.project,
-        order: payload.order,
-      }
+      payload: rpcPayload,
     });
 
     if (error) {

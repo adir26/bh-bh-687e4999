@@ -46,9 +46,9 @@ interface ProjectData {
 
 interface OrderItem {
   product_id?: string;
-  name: string;
+  product_name: string;
   description: string;
-  qty: number;
+  quantity: number;
   unit_price: number;
 }
 
@@ -81,7 +81,7 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
   
   // Step 4: Items
   const [items, setItems] = useState<OrderItem[]>([
-    { name: '', description: '', qty: 1, unit_price: 0 },
+    { product_name: '', description: '', quantity: 1, unit_price: 0 },
   ]);
 
   const resetForm = () => {
@@ -93,7 +93,7 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
     setStartDate('');
     setEndDate('');
     setOrderAddress({ street: '', city: '', zip: '', notes: '' });
-    setItems([{ name: '', description: '', qty: 1, unit_price: 0 }]);
+    setItems([{ product_name: '', description: '', quantity: 1, unit_price: 0 }]);
     setAvailableProjects([]);
   };
 
@@ -162,11 +162,11 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
         return false;
       }
       for (const item of items) {
-        if (!item.name.trim()) {
+        if (!item.product_name.trim()) {
           toast.error('כל פריט חייב שם');
           return false;
         }
-        if (item.qty <= 0) {
+        if (item.quantity <= 0) {
           toast.error('כמות חייבת להיות גדולה מ-0');
           return false;
         }
@@ -213,9 +213,9 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
           address: orderAddress,
           items: items.map(item => ({
             product_id: item.product_id || null,
-            name: item.name,
+            product_name: item.product_name,
             description: item.description || null,
-            qty: item.qty,
+            quantity: item.quantity,
             unit_price: item.unit_price,
           })),
         },
@@ -260,7 +260,7 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
   };
 
   const addItem = () => {
-    setItems([...items, { name: '', description: '', qty: 1, unit_price: 0 }]);
+    setItems([...items, { product_name: '', description: '', quantity: 1, unit_price: 0 }]);
   };
 
   const removeItem = (index: number) => {
@@ -274,7 +274,7 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
   };
 
   const calculateTotal = () => {
-    return items.reduce((sum, item) => sum + (item.qty * item.unit_price), 0);
+    return items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
   };
 
   return (
@@ -562,8 +562,8 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
                     <div>
                       <Label>שם פריט *</Label>
                       <Input
-                        value={item.name}
-                        onChange={(e) => updateItem(index, 'name', e.target.value)}
+                        value={item.product_name}
+                        onChange={(e) => updateItem(index, 'product_name', e.target.value)}
                         placeholder="שם הפריט"
                       />
                     </div>
@@ -583,8 +583,8 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
                         <Input
                           type="number"
                           min="1"
-                          value={item.qty}
-                          onChange={(e) => updateItem(index, 'qty', Number(e.target.value))}
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, 'quantity', Number(e.target.value))}
                         />
                       </div>
                       <div>
@@ -601,7 +601,7 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
                         <Label>סה"כ</Label>
                         <Input
                           type="text"
-                          value={`₪${(item.qty * item.unit_price).toFixed(2)}`}
+                          value={`₪${(item.quantity * item.unit_price).toFixed(2)}`}
                           disabled
                         />
                       </div>
