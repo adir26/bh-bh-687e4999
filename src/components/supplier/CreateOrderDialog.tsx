@@ -463,9 +463,10 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
       <AddClientDialog
         open={showAddClientDialog}
         onOpenChange={setShowAddClientDialog}
-        onClientCreated={(newClientId) => {
+        supplierId={user?.id || ''}
+        onClientCreated={async (newClientId) => {
           setSelectedClientId(newClientId);
-          refetchClients();
+          await refetchClients();
         }}
       />
 
@@ -474,9 +475,9 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
         onOpenChange={setShowAddProjectDialog}
         clientId={selectedClientId}
         supplierId={user?.id || ''}
-        onProjectCreated={(newProjectId) => {
+        onProjectCreated={async (newProjectId) => {
           setSelectedProjectId(newProjectId);
-          refetchProjects();
+          await refetchProjects();
         }}
       />
     </>

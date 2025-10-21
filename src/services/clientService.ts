@@ -56,3 +56,35 @@ export async function createClient(data: CreateClientData): Promise<string> {
 
   return newProfile.id;
 }
+
+export async function createClientWithLead(
+  data: CreateClientData,
+  supplierId: string
+): Promise<string> {
+  // 1. Create the client
+  const clientId = await createClient(data);
+
+  // 2. Create lead automatically (status: new)
+  try {
+    const { error: leadError } = await supabase.from('leads').insert({
+      client_id: clientId,
+      supplier_id: supplierId,
+      status: 'new',
+      source_key: 'website',
+      contact_phone: data.phone || null,
+      contact_email: data.email,
+      name: data.full_name,
+      priority_key: 'medium',
+      notes: 'נוצר אוטומטית מיצירת הזמנה',
+    } as any);
+
+    if (leadError) {
+      console.error('Failed to create lead:', leadError);
+      // Don't throw - client was already created
+    }
+  } catch (err) {
+    console.error('Lead creation error:', err);
+  }
+
+  return clientId;
+}

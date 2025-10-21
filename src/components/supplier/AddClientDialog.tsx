@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { createClient } from '@/services/clientService';
+import { createClientWithLead } from '@/services/clientService';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -11,12 +11,14 @@ interface AddClientDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onClientCreated: (clientId: string) => void;
+  supplierId: string;
 }
 
 export function AddClientDialog({
   open,
   onOpenChange,
   onClientCreated,
+  supplierId,
 }: AddClientDialogProps) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -39,11 +41,11 @@ export function AddClientDialog({
 
     setIsSubmitting(true);
     try {
-      const clientId = await createClient({
+      const clientId = await createClientWithLead({
         full_name: fullName.trim(),
         email: email.trim(),
         phone: phone.trim() || undefined,
-      });
+      }, supplierId);
 
       toast.success('הלקוח נוצר בהצלחה');
       onClientCreated(clientId);
