@@ -32,7 +32,7 @@ import { StatusBadge, getActiveStatuses, getClosedStatuses, type OrderStatus } f
 import { PhoneLink } from '@/components/supplier/PhoneLink';
 import { Timeline } from '@/components/supplier/Timeline';
 import { FileUploader, FileList } from '@/components/supplier/FileUploader';
-import { CreateOrderDialog } from '@/components/supplier/CreateOrderDialog';
+import { CreateOrderWizard } from '@/components/supplier/CreateOrderWizard';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -655,11 +655,11 @@ export default function SupplierOrders() {
           </DialogContent>
         </Dialog>
 
-        {/* Create Order Dialog */}
-        <CreateOrderDialog
+        {/* Create Order Wizard */}
+        <CreateOrderWizard
           open={createOrderDialogOpen}
           onOpenChange={setCreateOrderDialogOpen}
-          onOrderCreated={() => {
+          onSuccess={() => {
             refetch();
           }}
         />

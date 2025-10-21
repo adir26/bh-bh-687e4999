@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.convert-lead-to-client]
 verify_jwt = true
+
+[functions.create-order-bundle]
+verify_jwt = true

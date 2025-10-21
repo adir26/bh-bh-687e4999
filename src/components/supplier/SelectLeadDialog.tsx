@@ -14,7 +14,7 @@ interface SelectLeadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   supplierId: string;
-  onLeadSelected: (leadId: string, clientId: string | null) => void;
+  onLeadSelected: (leadId: string, clientId: string | null, leadName?: string) => void;
 }
 
 export function SelectLeadDialog({ 
@@ -77,7 +77,7 @@ export function SelectLeadDialog({
         await queryClient.invalidateQueries({ queryKey: ['supplier-clients'] });
         
         // Select the newly converted client
-        onLeadSelected(lead.id, data.client_id);
+        onLeadSelected(lead.id, data.client_id, lead.name || undefined);
         onOpenChange(false);
       } else {
         throw new Error(data?.error || 'Failed to convert lead');
@@ -95,7 +95,7 @@ export function SelectLeadDialog({
       toast.error('ליד זה לא מקושר ללקוח. השתמש בכפתור "המר ללקוח" תחילה.');
       return;
     }
-    onLeadSelected(lead.id, lead.client_id);
+    onLeadSelected(lead.id, lead.client_id, lead.name || undefined);
     onOpenChange(false);
   };
 
