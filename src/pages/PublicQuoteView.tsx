@@ -17,7 +17,6 @@ export default function PublicQuoteView() {
   const { token } = useParams<{ token: string }>();
   const queryClient = useQueryClient();
   const [approvalModalOpen, setApprovalModalOpen] = useState(false);
-  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
 
   const { data: quoteData, isLoading, error } = useQuery({
     queryKey: ['public-quote', token],
@@ -125,18 +124,18 @@ export default function PublicQuoteView() {
           clientName: formData.clientName,
           clientIdNumber: formData.clientIdNumber,
           clientPhone: formData.clientPhone,
-          clientEmail: formData.clientEmail,
+          clientEmail: '', // Not required anymore
           signatureDataUrl: formData.signatureDataUrl,
-          status: approvalAction === 'approve' ? 'approved' : 'rejected',
-          rejectionReason: formData.rejectionReason,
-          consentAccepted: formData.consentAccepted
+          status: 'approved',
+          rejectionReason: '',
+          consentAccepted: true
         }
       });
 
       if (error) throw error;
       if (!data.success) throw new Error(data.error || 'שגיאה לא ידועה');
 
-      showToast.success(data.message);
+      showToast.success('הצעת המחיר אושרה בהצלחה! הספק קיבל את האישור.');
       setApprovalModalOpen(false);
       
       queryClient.invalidateQueries({ queryKey: ['public-quote', token] });
@@ -156,13 +155,13 @@ export default function PublicQuoteView() {
       const { data, error } = await supabase.functions.invoke('submit-quote-approval', {
         body: {
           token,
-          clientName: 'Anonymous Rejection',
+          clientName: 'דחייה ללא פרטים',
           clientIdNumber: '000000000',
-          clientPhone: '',
-          clientEmail: 'anonymous@system.local',
+          clientPhone: '0000000000',
+          clientEmail: 'rejected@system.local',
           signatureDataUrl: '',
           status: 'rejected',
-          rejectionReason: 'דחייה מהירה על ידי הלקוח',
+          rejectionReason: 'הלקוח דחה את ההצעה',
           consentAccepted: true
         }
       });
@@ -170,7 +169,7 @@ export default function PublicQuoteView() {
       if (error) throw error;
       if (!data.success) throw new Error(data.error || 'שגיאה לא ידועה');
 
-      showToast.success('הצעת המחיר נדחתה');
+      showToast.success('הדחייה אושרה - הספק קיבל עדכון');
       queryClient.invalidateQueries({ queryKey: ['public-quote', token] });
     } catch (error: any) {
       console.error('Error rejecting quote:', error);
@@ -298,10 +297,7 @@ export default function PublicQuoteView() {
                   {quoteData.quote.status === 'sent' && (
                     <>
                       <Button 
-                        onClick={() => {
-                          setApprovalAction('approve');
-                          setApprovalModalOpen(true);
-                        }}
+                        onClick={() => setApprovalModalOpen(true)}
                         className={`flex-1 ${currentStyle.accent} text-white`}
                       >
                         <CheckCircle className="w-4 h-4 ml-1" />
@@ -339,7 +335,6 @@ export default function PublicQuoteView() {
           open={approvalModalOpen}
           onClose={() => setApprovalModalOpen(false)}
           onSubmit={handleApprovalSubmit}
-          action={approvalAction}
         />
       </div>
     </PageBoundary>
