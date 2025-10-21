@@ -128,7 +128,19 @@ export default function PublicQuoteView() {
       });
 
       if (error) throw error;
-      if (!data.success) throw new Error(data.error || 'שגיאה לא ידועה');
+      if (!data.success) {
+        const errorMsg = data.error || 'שגיאה לא ידועה';
+        
+        // Check if it's a "not in sent status" error
+        if (errorMsg.includes('אינה במצב נשלחה') || errorMsg.includes('לא ניתן לאשר')) {
+          showToast.error('ההצעה כבר עברה טיפול. אנא בקש מהספק לשלוח אותה מחדש.');
+          setApprovalModalOpen(false);
+          queryClient.invalidateQueries({ queryKey: ['public-quote', token] });
+          return;
+        }
+        
+        throw new Error(errorMsg);
+      }
 
       showToast.success('הצעת המחיר אושרה בהצלחה! הספק קיבל את האישור.');
       setApprovalModalOpen(false);
@@ -160,7 +172,18 @@ export default function PublicQuoteView() {
       });
 
       if (error) throw error;
-      if (!data.success) throw new Error(data.error || 'שגיאה לא ידועה');
+      if (!data.success) {
+        const errorMsg = data.error || 'שגיאה לא ידועה';
+        
+        // Check if it's a "not in sent status" error
+        if (errorMsg.includes('אינה במצב נשלחה') || errorMsg.includes('לא ניתן לאשר')) {
+          showToast.error('ההצעה כבר עברה טיפול. אנא בקש מהספק לשלוח אותה מחדש.');
+          queryClient.invalidateQueries({ queryKey: ['public-quote', token] });
+          return;
+        }
+        
+        throw new Error(errorMsg);
+      }
 
       showToast.success('הדחייה אושרה - הספק קיבל עדכון');
       queryClient.invalidateQueries({ queryKey: ['public-quote', token] });

@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -171,8 +171,10 @@ const handler = async (req: Request): Promise<Response> => {
     console.log('[submit-quote-approval] Quote validated:', { quoteId: quote.id, status: quote.status });
 
     if (quote.status !== 'sent') {
+      console.log('[submit-quote-approval] Quote not in sent status - rejecting approval attempt');
       return new Response(JSON.stringify({ 
-        error: `לא ניתן לאשר הצעה במצב: ${quote.status}` 
+        error: 'ההצעה אינה במצב נשלחה (sent). אם ההצעה כבר אושרה/נדחתה – יש לשלוח אותה מחדש כדי לאפשר פעולה נוספת.',
+        currentStatus: quote.status
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders }

@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Eye } from 'lucide-react';
+import { Plus, Edit, Eye, Send } from 'lucide-react';
+import { showToast } from '@/utils/toast';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { withTimeout } from '@/lib/withTimeout';
 import { SupplierHeader } from '@/components/SupplierHeader';
@@ -44,6 +45,21 @@ export default function QuotesList() {
     } catch (error) {
       console.error('Failed to generate preview link:', error);
       navigate(`/quote/share/${quoteId}`);
+    }
+  };
+
+  const handleResendQuote = async (quote: Quote) => {
+    if (!quote.client_id) {
+      showToast.error('לא ניתן לשלוח הצעה ללא לקוח משויך');
+      return;
+    }
+
+    try {
+      await quotesService.sendQuote(quote.id, quote.client_id);
+      showToast.success('ההצעה נשלחה מחדש בהצלחה! הלקוח יקבל קישור חדש');
+    } catch (error: any) {
+      console.error('Failed to resend quote:', error);
+      showToast.error(error.message || 'שגיאה בשליחת ההצעה מחדש');
     }
   };
 
@@ -160,6 +176,17 @@ export default function QuotesList() {
                                       title="ערוך"
                                     >
                                       <Edit className="w-4 h-4" />
+                                    </Button>
+                                  )}
+                                  {(quote.status === 'accepted' || quote.status === 'rejected') && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleResendQuote(quote)}
+                                      title="שלח מחדש"
+                                      className="text-blue-600 hover:text-blue-700"
+                                    >
+                                      <Send className="w-4 h-4" />
                                     </Button>
                                   )}
                                   <Button
