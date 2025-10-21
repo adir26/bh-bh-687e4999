@@ -65,6 +65,6 @@ export function useSupplierClients() {
         phone: clientPhones.get(profile.id)
       })).sort((a, b) => a.full_name.localeCompare(b.full_name, 'he'));
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0,
   });
 }

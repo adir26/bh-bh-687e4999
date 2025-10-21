@@ -19,6 +19,7 @@ import { AddClientDialog } from './AddClientDialog';
 import { AddProjectDialog } from './AddProjectDialog';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface CreateOrderDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ interface OrderItem {
 
 export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: CreateOrderDialogProps) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
@@ -466,7 +468,10 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
         supplierId={user?.id || ''}
         onClientCreated={async (newClientId) => {
           setSelectedClientId(newClientId);
-          await refetchClients();
+          await queryClient.invalidateQueries({ 
+            queryKey: ['supplier-clients', user?.id],
+            refetchType: 'active'
+          });
         }}
       />
 
@@ -477,7 +482,10 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
         supplierId={user?.id || ''}
         onProjectCreated={async (newProjectId) => {
           setSelectedProjectId(newProjectId);
-          await refetchProjects();
+          await queryClient.invalidateQueries({ 
+            queryKey: ['supplier-projects', user?.id, selectedClientId],
+            refetchType: 'active'
+          });
         }}
       />
     </>
