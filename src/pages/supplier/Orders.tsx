@@ -96,16 +96,24 @@ function StatusUpdateDialog({ order, open, onOpenChange, onStatusUpdated }: Stat
 
   const getAllowedNextStatuses = (status: OrderStatus): OrderStatus[] => {
     switch (status) {
-      case 'pending':
-        return ['confirmed', 'canceled'];
-      case 'confirmed':
-        return ['in_production', 'canceled'];
-      case 'in_production':
-        return ['ready', 'canceled'];
-      case 'ready':
-        return ['shipped', 'delivered', 'canceled'];
-      case 'shipped':
-        return ['delivered', 'refunded', 'canceled'];
+      case 'new':
+        return ['waiting_for_scheduling', 'cancelled'];
+      case 'waiting_for_scheduling':
+        return ['measurement', 'cancelled'];
+      case 'measurement':
+        return ['waiting_for_client_approval', 'cancelled'];
+      case 'waiting_for_client_approval':
+        return ['in_progress', 'cancelled'];
+      case 'in_progress':
+        return ['in_progress_preparation', 'on_hold', 'completed'];
+      case 'in_progress_preparation':
+        return ['in_progress', 'on_hold', 'completed'];
+      case 'on_hold':
+        return ['in_progress', 'cancelled'];
+      case 'completed':
+        return ['waiting_for_final_payment'];
+      case 'waiting_for_final_payment':
+        return ['closed_paid_in_full'];
       default:
         return [];
     }

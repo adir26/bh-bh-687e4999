@@ -4749,6 +4749,15 @@ export type Database = {
         Args: { p_company_id: string }
         Returns: undefined
       }
+      update_order_status: {
+        Args: {
+          p_new_status: string
+          p_order_id: string
+          p_reason?: string
+          p_visible_to_customer?: boolean
+        }
+        Returns: Json
+      }
       validate_admin_session: {
         Args: { _user_id: string }
         Returns: Json
