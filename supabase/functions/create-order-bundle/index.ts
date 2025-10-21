@@ -57,12 +57,25 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Create authenticated client (for most operations)
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
           headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    );
+
+    // Create admin client (for creating profiles, bypassing RLS)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
         },
       }
     );
@@ -137,8 +150,8 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Create client (profile)
-      const { data: newClient, error: clientError } = await supabase
+      // Create client (profile) using admin client to bypass RLS
+      const { data: newClient, error: clientError } = await supabaseAdmin
         .from('profiles')
         .insert({
           full_name: payload.lead.new.full_name,
