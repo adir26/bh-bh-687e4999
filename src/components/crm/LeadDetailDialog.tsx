@@ -92,6 +92,8 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
     'not_relevant': 'לא רלוונטי',
     'error': 'טעות',
     'denies_contact': 'מכחיש פנייה',
+    'project_in_progress': 'פרויקט בתהליך',
+    'project_completed': 'פרויקט הסתיים',
   };
 
   const sourceLabels: Record<string, string> = {

@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type LeadStatus = 'new' | 'no_answer' | 'followup' | 'no_answer_x5' | 'not_relevant' | 'error' | 'denies_contact';
+export type LeadStatus = 'new' | 'no_answer' | 'followup' | 'no_answer_x5' | 'not_relevant' | 'error' | 'denies_contact' | 'project_in_progress' | 'project_completed';
 
 export interface Lead {
   id: string;

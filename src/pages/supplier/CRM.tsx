@@ -26,7 +26,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { AddLeadDialog } from '@/components/crm/AddLeadDialog';
 import { LeadDetailDialog } from '@/components/crm/LeadDetailDialog';
 
-const STATUSES: LeadStatus[] = ['new', 'no_answer', 'followup', 'no_answer_x5', 'not_relevant', 'error', 'denies_contact'];
+const STATUSES: LeadStatus[] = ['new', 'no_answer', 'followup', 'no_answer_x5', 'not_relevant', 'error', 'denies_contact', 'project_in_progress', 'project_completed'];
 
 function statusLabel(s: LeadStatus) {
   switch (s) {
@@ -37,6 +37,8 @@ function statusLabel(s: LeadStatus) {
     case 'not_relevant': return 'לא רלוונטי';
     case 'error': return 'טעות';
     case 'denies_contact': return 'מכחיש פנייה';
+    case 'project_in_progress': return 'פרויקט בתהליך';
+    case 'project_completed': return 'פרויקט הסתיים';
   }
 }
 
@@ -48,6 +50,8 @@ const statusBadgeVariant: Record<LeadStatus, 'default' | 'secondary' | 'outline'
   not_relevant: 'outline',
   error: 'destructive',
   denies_contact: 'destructive',
+  project_in_progress: 'default',
+  project_completed: 'secondary',
 };
 
 function priorityBadgeVariant(priority: string): 'default' | 'secondary' | 'outline' | 'destructive' {
@@ -115,7 +119,9 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
       no_answer_x5: [], 
       not_relevant: [], 
       error: [], 
-      denies_contact: [] 
+      denies_contact: [],
+      project_in_progress: [],
+      project_completed: []
     };
     for (const l of leads) {
       if (STATUSES.includes(l.status)) {
