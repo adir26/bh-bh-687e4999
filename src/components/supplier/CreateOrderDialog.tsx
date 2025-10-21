@@ -199,50 +199,46 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Client Selection */}
+          {/* Lead Selection */}
           <div className="space-y-2">
-            <Label>לקוח *</Label>
-            <Select value={selectedClientId} onValueChange={(value) => {
-              if (value === '__select_lead__') {
-                setShowSelectLeadDialog(true);
-              } else if (value === '__new_client__') {
-                setShowAddClientDialog(true);
-              } else {
-                setSelectedClientId(value);
-                setSelectedProjectId('');
-              }
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder="בחר לקוח" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__select_lead__">
-                  <div className="flex items-center gap-2 text-primary font-semibold">
-                    <Plus className="w-4 h-4" />
-                    בחר מלידים קיימים
-                  </div>
-                </SelectItem>
-                <SelectItem value="__new_client__">
-                  <div className="flex items-center gap-2 text-primary font-semibold">
-                    <Plus className="w-4 h-4" />
-                    הוסף לקוח חדש
-                  </div>
-                </SelectItem>
-                {clients.length > 0 && <Separator className="my-2" />}
-                {loadingClients ? (
-                  <SelectItem value="loading" disabled>טוען לקוחות...</SelectItem>
-                ) : clients.length === 0 ? (
-                  <div className="px-2 py-6 text-center text-sm text-muted-foreground">אין לקוחות. צור לקוח חדש.</div>
-                ) : (
-                  clients.map(client => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.full_name} {client.email && `(${client.email})`}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+            <Label>בחר ליד *</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1 justify-start"
+                onClick={() => setShowSelectLeadDialog(true)}
+              >
+                <Plus className="w-4 h-4 ml-2" />
+                {selectedLeadId ? 'שנה ליד' : 'בחר מלידים קיימים'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAddClientDialog(true)}
+              >
+                <Plus className="w-4 h-4 ml-2" />
+                לקוח חדש
+              </Button>
+            </div>
           </div>
+
+          {/* Client Info (read-only, auto-filled from lead) */}
+          {selectedClientId && (
+            <div className="space-y-2">
+              <Label>לקוח</Label>
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm font-medium">
+                  {clients.find(c => c.id === selectedClientId)?.full_name || 'לא נמצא'}
+                </p>
+                {clients.find(c => c.id === selectedClientId)?.email && (
+                  <p className="text-sm text-muted-foreground">
+                    {clients.find(c => c.id === selectedClientId)?.email}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Project Selection */}
           <div className="space-y-2">
@@ -531,12 +527,14 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
           if (clientId) {
             setSelectedLeadId(leadId);
             setSelectedClientId(clientId);
+            setSelectedProjectId(''); // Reset project when changing lead
             await queryClient.invalidateQueries({ 
               queryKey: ['supplier-clients', user?.id],
               refetchType: 'active'
             });
+            toast.success('ליד נבחר בהצלחה');
           } else {
-            toast.error('ליד זה לא מקושר ללקוח');
+            toast.error('ליד זה לא מקושר ללקוח. יש ליצור לקוח תחילה.');
           }
         }}
       />
