@@ -35,7 +35,7 @@ interface ApprovalRequest {
   clientName: string;
   clientIdNumber: string;
   clientPhone: string;
-  clientEmail: string;
+  clientEmail?: string;
   signatureDataUrl?: string;
   status: 'approved' | 'rejected';
   rejectionReason?: string;
@@ -87,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Validation (skip for quick reject)
     if (!isQuickReject) {
-      if (!token || !clientName || !clientIdNumber || !clientPhone || !clientEmail || !status) {
+      if (!token || !clientName || !clientIdNumber || !clientPhone || !status) {
         return new Response(JSON.stringify({ error: 'חסרים שדות חובה' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json', ...corsHeaders }
@@ -252,7 +252,7 @@ const handler = async (req: Request): Promise<Response> => {
         client_name: clientName,
         client_id_number: clientIdNumber,
         client_phone: clientPhone,
-        client_email: clientEmail,
+        client_email: clientEmail || null,
         approval_date: new Date().toISOString(),
         status,
         rejection_reason: rejectionReason,

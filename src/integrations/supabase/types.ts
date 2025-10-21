@@ -3158,7 +3158,7 @@ export type Database = {
       quote_approvals: {
         Row: {
           approval_date: string
-          client_email: string
+          client_email: string | null
           client_id_number: string
           client_name: string
           client_phone: string
@@ -3177,7 +3177,7 @@ export type Database = {
         }
         Insert: {
           approval_date?: string
-          client_email: string
+          client_email?: string | null
           client_id_number: string
           client_name: string
           client_phone: string
@@ -3196,7 +3196,7 @@ export type Database = {
         }
         Update: {
           approval_date?: string
-          client_email?: string
+          client_email?: string | null
           client_id_number?: string
           client_name?: string
           client_phone?: string

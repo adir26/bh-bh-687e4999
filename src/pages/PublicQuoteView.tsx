@@ -121,13 +121,8 @@ export default function PublicQuoteView() {
       const { data, error } = await supabase.functions.invoke('submit-quote-approval', {
         body: {
           token,
-          clientName: formData.clientName,
-          clientIdNumber: formData.clientIdNumber,
-          clientPhone: formData.clientPhone,
-          clientEmail: '', // Not required anymore
-          signatureDataUrl: formData.signatureDataUrl,
+          ...formData,
           status: 'approved',
-          rejectionReason: '',
           consentAccepted: true
         }
       });
@@ -155,11 +150,9 @@ export default function PublicQuoteView() {
       const { data, error } = await supabase.functions.invoke('submit-quote-approval', {
         body: {
           token,
-          clientName: 'דחייה ללא פרטים',
+          clientName: 'Anonymous Rejection',
           clientIdNumber: '000000000',
           clientPhone: '0000000000',
-          clientEmail: 'rejected@system.local',
-          signatureDataUrl: '',
           status: 'rejected',
           rejectionReason: 'הלקוח דחה את ההצעה',
           consentAccepted: true
