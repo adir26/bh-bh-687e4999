@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { AddClientDialog } from './AddClientDialog';
 import { AddProjectDialog } from './AddProjectDialog';
+import { SelectLeadDialog } from './SelectLeadDialog';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
@@ -41,6 +42,7 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [showAddClientDialog, setShowAddClientDialog] = useState(false);
   const [showAddProjectDialog, setShowAddProjectDialog] = useState(false);
+  const [showSelectLeadDialog, setShowSelectLeadDialog] = useState(false);
   
   // Form fields
   const [title, setTitle] = useState('');
@@ -179,7 +181,9 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
           <div className="space-y-2">
             <Label>לקוח *</Label>
             <Select value={selectedClientId} onValueChange={(value) => {
-              if (value === '__new_client__') {
+              if (value === '__select_lead__') {
+                setShowSelectLeadDialog(true);
+              } else if (value === '__new_client__') {
                 setShowAddClientDialog(true);
               } else {
                 setSelectedClientId(value);
@@ -190,6 +194,12 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
                 <SelectValue placeholder="בחר לקוח" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="__select_lead__">
+                  <div className="flex items-center gap-2 text-primary font-semibold">
+                    <Plus className="w-4 h-4" />
+                    בחר מלידים קיימים
+                  </div>
+                </SelectItem>
                 <SelectItem value="__new_client__">
                   <div className="flex items-center gap-2 text-primary font-semibold">
                     <Plus className="w-4 h-4" />
@@ -486,6 +496,21 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
             queryKey: ['supplier-projects', user?.id, selectedClientId],
             refetchType: 'active'
           });
+        }}
+      />
+
+      <SelectLeadDialog
+        open={showSelectLeadDialog}
+        onOpenChange={setShowSelectLeadDialog}
+        supplierId={user?.id || ''}
+        onLeadSelected={async (leadId, clientId) => {
+          if (clientId) {
+            setSelectedClientId(clientId);
+            await queryClient.invalidateQueries({ 
+              queryKey: ['supplier-clients', user?.id],
+              refetchType: 'active'
+            });
+          }
         }}
       />
     </>
