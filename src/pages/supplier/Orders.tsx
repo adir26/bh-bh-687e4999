@@ -277,7 +277,7 @@ export default function SupplierOrders() {
         ...order,
         customer_name: order.customer_name || order.client_profile?.full_name || 'לקוח ללא שם',
         customer_email: order.customer_email || order.client_profile?.email || '',
-        current_status: (order.current_status || order.status) as OrderStatus
+        current_status: ((order.current_status || order.status) === 'pending' ? 'new' : (order.current_status || order.status)) as OrderStatus
       })) || [];
     },
     retry: 1,

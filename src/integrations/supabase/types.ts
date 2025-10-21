@@ -2308,7 +2308,7 @@ export type Database = {
           closed_at: string | null
           completed_at: string | null
           created_at: string
-          current_status: string | null
+          current_status: string
           customer_email: string | null
           customer_name: string | null
           customer_phone: string | null
@@ -2339,7 +2339,7 @@ export type Database = {
           closed_at?: string | null
           completed_at?: string | null
           created_at?: string
-          current_status?: string | null
+          current_status?: string
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
@@ -2370,7 +2370,7 @@ export type Database = {
           closed_at?: string | null
           completed_at?: string | null
           created_at?: string
-          current_status?: string | null
+          current_status?: string
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null

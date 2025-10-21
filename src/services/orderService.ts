@@ -414,7 +414,7 @@ export const orderService = {
         due_date: orderData.due_date,
         shipping_address: orderData.shipping_address,
         status: 'pending',
-        current_status: 'pending'
+        current_status: 'new'
       })
       .select()
       .single();
@@ -459,7 +459,7 @@ export const orderService = {
         .insert({
           order_id: order.id,
           old_status: null,
-          new_status: 'pending',
+          new_status: 'new',
           is_customer_visible: false,
           changed_by: supplierId
         });
