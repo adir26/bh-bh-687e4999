@@ -176,7 +176,14 @@ export function CreateOrderDialog({ open, onOpenChange, onOrderCreated }: Create
           {/* Client Selection */}
           <div className="space-y-2">
             <Label>לקוח *</Label>
-            <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+            <Select value={selectedClientId} onValueChange={(value) => {
+              if (value === '__new_client__') {
+                setShowAddClientDialog(true);
+              } else {
+                setSelectedClientId(value);
+                setSelectedProjectId('');
+              }
+            }}>
               <SelectTrigger>
                 <SelectValue placeholder="בחר לקוח" />
               </SelectTrigger>
