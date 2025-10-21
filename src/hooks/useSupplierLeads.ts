@@ -32,7 +32,7 @@ export function useSupplierLeads(supplierId: string) {
           created_at
         `)
         .eq('supplier_id', supplierId)
-        .in('status', ['new', 'contacted', 'qualified', 'project_in_progress'])
+        .in('status', ['new', 'followup', 'no_answer', 'project_in_process'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;

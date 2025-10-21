@@ -2122,26 +2122,32 @@ export type Database = {
       order_items: {
         Row: {
           created_at: string
+          description: string | null
           id: string
+          line_total: number
           order_id: string
           product_name: string
-          qty: number
+          quantity: number
           unit_price: number
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
+          line_total?: number
           order_id: string
           product_name: string
-          qty?: number
+          quantity?: number
           unit_price: number
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
+          line_total?: number
           order_id?: string
           product_name?: string
-          qty?: number
+          quantity?: number
           unit_price?: number
         }
         Relationships: [
@@ -2286,6 +2292,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          address_json: Json
           amount: number
           client_id: string
           closed_at: string | null
@@ -2298,6 +2305,7 @@ export type Database = {
           customer_phone_e164: string | null
           description: string | null
           due_date: string | null
+          end_date: string | null
           eta_at: string | null
           id: string
           order_number: string | null
@@ -2305,13 +2313,16 @@ export type Database = {
           project_id: string
           refunded_total: number | null
           shipping_address: Json | null
+          start_date: string | null
           status: Database["public"]["Enums"]["order_status"]
           supplier_id: string
           title: string
+          total_amount: number
           total_ils: number | null
           updated_at: string
         }
         Insert: {
+          address_json?: Json
           amount: number
           client_id: string
           closed_at?: string | null
@@ -2324,6 +2335,7 @@ export type Database = {
           customer_phone_e164?: string | null
           description?: string | null
           due_date?: string | null
+          end_date?: string | null
           eta_at?: string | null
           id?: string
           order_number?: string | null
@@ -2331,13 +2343,16 @@ export type Database = {
           project_id: string
           refunded_total?: number | null
           shipping_address?: Json | null
+          start_date?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           supplier_id: string
           title: string
+          total_amount?: number
           total_ils?: number | null
           updated_at?: string
         }
         Update: {
+          address_json?: Json
           amount?: number
           client_id?: string
           closed_at?: string | null
@@ -2350,6 +2365,7 @@ export type Database = {
           customer_phone_e164?: string | null
           description?: string | null
           due_date?: string | null
+          end_date?: string | null
           eta_at?: string | null
           id?: string
           order_number?: string | null
@@ -2357,9 +2373,11 @@ export type Database = {
           project_id?: string
           refunded_total?: number | null
           shipping_address?: Json | null
+          start_date?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           supplier_id?: string
           title?: string
+          total_amount?: number
           total_ils?: number | null
           updated_at?: string
         }
@@ -4341,6 +4359,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_order_bundle: {
+        Args: { payload: Json }
+        Returns: Json
+      }
       create_order_event: {
         Args: { p_event_type: string; p_meta?: Json; p_order_id: string }
         Returns: string
@@ -4632,6 +4654,14 @@ export type Database = {
       snooze_lead: {
         Args: { p_hours?: number; p_lead_id: string }
         Returns: boolean
+      }
+      supplier_client_projects: {
+        Args: { p_client_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          title: string
+        }[]
       }
       supplier_dashboard_metrics: {
         Args: { _from: string; _supplier_id: string; _to: string }

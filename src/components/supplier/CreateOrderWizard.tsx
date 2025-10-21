@@ -110,12 +110,10 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
       client_id: clientId,
     });
 
-    // Fetch projects for this client
-    const { data: projects } = await supabase
-      .from('projects')
-      .select('id, title')
-      .eq('client_id', clientId)
-      .order('created_at', { ascending: false });
+    // Fetch projects for this client using RPC
+    const { data: projects } = await supabase.rpc('supplier_client_projects', {
+      p_client_id: clientId
+    });
 
     setAvailableProjects(projects || []);
     setShowSelectLeadDialog(false);

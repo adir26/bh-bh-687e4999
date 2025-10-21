@@ -61,8 +61,10 @@ interface Order {
 interface OrderItem {
   id: string;
   product_name: string;
-  qty: number;
+  quantity: number;
   unit_price: number;
+  description?: string | null;
+  line_total: number;
 }
 
 interface StatusEvent {
@@ -572,9 +574,9 @@ export default function SupplierOrders() {
                           {orderItems.map((item) => (
                             <TableRow key={item.id}>
                               <TableCell>{item.product_name}</TableCell>
-                              <TableCell>{item.qty}</TableCell>
+                              <TableCell>{item.quantity}</TableCell>
                               <TableCell>₪{item.unit_price.toLocaleString('he-IL')}</TableCell>
-                              <TableCell>₪{(item.qty * item.unit_price).toLocaleString('he-IL')}</TableCell>
+                              <TableCell>₪{(item.quantity * item.unit_price).toLocaleString('he-IL')}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
