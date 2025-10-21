@@ -94,35 +94,24 @@ function StatusUpdateDialog({ order, open, onOpenChange, onStatusUpdated }: Stat
   const [isCustomerVisible, setIsCustomerVisible] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const getAllowedNextStatuses = (status: OrderStatus): OrderStatus[] => {
-    switch (status) {
-      case 'new':
-        return ['waiting_for_scheduling', 'cancelled'];
-      case 'waiting_for_scheduling':
-        return ['measurement', 'cancelled'];
-      case 'measurement':
-        return ['waiting_for_client_approval', 'cancelled'];
-      case 'waiting_for_client_approval':
-        return ['in_progress', 'cancelled'];
-      case 'in_progress':
-        return ['in_progress_preparation', 'on_hold', 'completed'];
-      case 'in_progress_preparation':
-        return ['in_progress', 'on_hold', 'completed'];
-      case 'on_hold':
-        return ['in_progress', 'cancelled'];
-      case 'completed':
-        return ['waiting_for_final_payment'];
-      case 'waiting_for_final_payment':
-        return ['closed_paid_in_full'];
-      default:
-        return [];
-    }
-  };
+  // All available order statuses
+  const allStatuses: OrderStatus[] = [
+    'new',
+    'waiting_for_scheduling',
+    'measurement',
+    'waiting_for_client_approval',
+    'in_progress',
+    'in_progress_preparation',
+    'on_hold',
+    'completed',
+    'waiting_for_final_payment',
+    'closed_paid_in_full',
+    'cancelled'
+  ];
 
   useEffect(() => {
     if (order) {
-      const allowed = getAllowedNextStatuses(order.current_status);
-      setNewStatus(allowed[0] || order.current_status);
+      setNewStatus(order.current_status);
       setReason('');
       setIsCustomerVisible(false);
     }
@@ -163,8 +152,6 @@ function StatusUpdateDialog({ order, open, onOpenChange, onStatusUpdated }: Stat
 
   if (!order) return null;
 
-  const statusOptions = getAllowedNextStatuses(order.current_status);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" dir="rtl">
@@ -185,7 +172,7 @@ function StatusUpdateDialog({ order, open, onOpenChange, onStatusUpdated }: Stat
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {statusOptions.map(status => (
+                {allStatuses.map(status => (
                   <SelectItem key={status} value={status}>
                     <div className="flex items-center gap-2">
                       <StatusBadge status={status} />
@@ -204,6 +191,10 @@ function StatusUpdateDialog({ order, open, onOpenChange, onStatusUpdated }: Stat
               placeholder="הסבר את הסיבה לשינוי הסטטוס..."
               rows={3}
             />
+          </div>
+
+          <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-500 p-3 rounded-md">
+            ⚠️ שים לב: ניתן לבחור כל סטטוס. אנא ודא שהמעבר הגיוני לפני עדכון.
           </div>
 
           <div className="flex items-center space-x-2">
