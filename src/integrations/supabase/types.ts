@@ -2126,6 +2126,7 @@ export type Database = {
           id: string
           line_total: number
           order_id: string
+          product_id: string | null
           product_name: string
           quantity: number
           unit_price: number
@@ -2136,6 +2137,7 @@ export type Database = {
           id?: string
           line_total?: number
           order_id: string
+          product_id?: string | null
           product_name: string
           quantity?: number
           unit_price: number
@@ -2146,6 +2148,7 @@ export type Database = {
           id?: string
           line_total?: number
           order_id?: string
+          product_id?: string | null
           product_name?: string
           quantity?: number
           unit_price?: number
@@ -2156,6 +2159,13 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -2308,6 +2318,7 @@ export type Database = {
           end_date: string | null
           eta_at: string | null
           id: string
+          lead_id: string | null
           order_number: string | null
           payment_status: string | null
           project_id: string
@@ -2338,6 +2349,7 @@ export type Database = {
           end_date?: string | null
           eta_at?: string | null
           id?: string
+          lead_id?: string | null
           order_number?: string | null
           payment_status?: string | null
           project_id: string
@@ -2368,6 +2380,7 @@ export type Database = {
           end_date?: string | null
           eta_at?: string | null
           id?: string
+          lead_id?: string | null
           order_number?: string | null
           payment_status?: string | null
           project_id?: string
@@ -2387,6 +2400,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
           {

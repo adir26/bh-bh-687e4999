@@ -163,48 +163,63 @@ Deno.serve(async (req) => {
     // Handle client/lead creation if mode=create
     if (payload.lead.mode === 'create' && payload.lead.new) {
       const { full_name, email, phone } = payload.lead.new;
-      
-      // Create auth user + profile via admin client
-      const tempPassword = crypto.randomUUID();
-      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email: email || `${crypto.randomUUID()}@temp.local`,
-        password: tempPassword,
-        email_confirm: true,
-        user_metadata: {
-          full_name,
-          role: 'client',
-        },
-      });
+      const normalizedEmail = email ? email.toLowerCase().trim() : `${crypto.randomUUID()}@temp.local`;
 
-      if (authError || !authData.user) {
-        console.error('[create-order-bundle] Failed to create client auth user:', authError);
-        return new Response(
-          JSON.stringify({ error: 'Failed to create client user', details: authError?.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      // Check if profile already exists by email
+      const { data: existingProfile } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('email', normalizedEmail)
+        .maybeSingle();
+
+      if (existingProfile) {
+        // Use existing profile
+        resolvedClientId = existingProfile.id;
+        console.log('[create-order-bundle] Using existing profile:', resolvedClientId);
+      } else {
+        // Create new auth user + profile via admin client
+        const tempPassword = crypto.randomUUID();
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email: normalizedEmail,
+          password: tempPassword,
+          email_confirm: true,
+          user_metadata: {
+            full_name,
+            role: 'client',
+          },
+        });
+
+        if (authError || !authData.user) {
+          console.error('[create-order-bundle] Failed to create client auth user:', authError);
+          return new Response(
+            JSON.stringify({ error: 'Failed to create client user', details: authError?.message }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        resolvedClientId = authData.user.id;
+        console.log('[create-order-bundle] Created new client:', resolvedClientId);
+
+        // Update profile with phone if provided
+        if (phone) {
+          await supabaseAdmin
+            .from('profiles')
+            .update({ phone })
+            .eq('id', resolvedClientId);
+        }
       }
 
-      resolvedClientId = authData.user.id;
-
-      // Update profile with phone
-      if (phone) {
-        await supabaseAdmin
-          .from('profiles')
-          .update({ phone })
-          .eq('id', resolvedClientId);
-      }
-
-      // Create lead
+      // Create lead with correct source_key
       const { data: leadData, error: leadError } = await supabase
         .from('leads')
         .insert({
           supplier_id: user.id,
           client_id: resolvedClientId,
           name: full_name,
-          contact_email: email,
+          contact_email: normalizedEmail !== `${crypto.randomUUID()}@temp.local` ? normalizedEmail : null,
           contact_phone: phone,
           status: 'project_in_process',
-          source_key: 'orders',
+          source_key: 'other',  // Fixed: changed from 'orders' to 'other'
           priority_key: 'medium',
           notes: 'Auto-created from Create Order Bundle',
         })
@@ -220,6 +235,7 @@ Deno.serve(async (req) => {
       }
 
       resolvedLeadId = leadData.id;
+      console.log('[create-order-bundle] Created new lead:', resolvedLeadId);
 
     } else if (payload.lead.mode === 'select' && payload.lead.lead_id) {
       // Use existing lead
