@@ -70,36 +70,36 @@ const KPICard: React.FC<KPICardProps> = ({
 
   return (
     <Card 
-      className={`mobile-card hover-lift transition-all duration-200 ${
+      className={`mobile-card hover-lift transition-all duration-200 min-h-[120px] ${
         navigateTo ? 'cursor-pointer hover:border-primary/20' : ''
       }`}
       onClick={handleClick}
     >
-      <CardContent className="mobile-padding">
-        <div className="flex items-center justify-between" dir="rtl">
+      <CardContent className="mobile-padding h-full">
+        <div className="flex items-center justify-between h-full" dir="rtl">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <p className="text-sm font-medium text-muted-foreground truncate">
                 {title}
               </p>
               {badge && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs shrink-0">
                   {badge}
                 </Badge>
               )}
             </div>
             <div className="space-y-1">
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-xl sm:text-2xl font-bold text-foreground truncate">
                 {typeof value === 'number' ? value.toLocaleString('he-IL') : value}
               </p>
               {change !== undefined && (
                 <div className="flex items-center gap-1">
                   {change >= 0 ? (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
+                    <TrendingUp className="h-3 w-3 text-green-500 shrink-0" />
                   ) : (
-                    <TrendingUp className="h-3 w-3 text-red-500 rotate-180" />
+                    <TrendingUp className="h-3 w-3 text-red-500 rotate-180 shrink-0" />
                   )}
-                  <span className={`text-xs font-medium ${
+                  <span className={`text-xs font-medium truncate ${
                     change >= 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {change >= 0 ? '+' : ''}{formatPercentage(change)}
@@ -108,7 +108,7 @@ const KPICard: React.FC<KPICardProps> = ({
               )}
             </div>
           </div>
-          <div className={`p-3 rounded-full ${getColorClasses(color)}`}>
+          <div className={`p-3 rounded-full shrink-0 ${getColorClasses(color)}`}>
             {icon}
           </div>
         </div>
@@ -171,7 +171,7 @@ export const DashboardKPIs: React.FC<DashboardKPIsProps> = ({
   const ordersChange = calculatePercentageChange(metrics.orders_completed, metrics.prev_orders_completed);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {/* New Leads */}
       <KPICard
         title="לידים חדשים"

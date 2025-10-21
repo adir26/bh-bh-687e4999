@@ -290,14 +290,14 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] flex flex-col" dir="rtl">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>
               יצירת הזמנה חדשה - שלב {step} מתוך 4
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto px-1 -mx-1 space-y-6 pb-4">
             {/* Step 1: Lead Selection */}
             {step === 1 && (
               <div className="space-y-4">
@@ -541,7 +541,7 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label>תאריך התחלה</Label>
                     <Input
@@ -618,7 +618,7 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
                       />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div>
                         <Label>כמות *</Label>
                         <Input
@@ -668,8 +668,8 @@ export function CreateOrderWizard({ open, onOpenChange, onSuccess }: CreateOrder
               </div>
             )}
 
-            {/* Navigation */}
-            <div className="flex justify-between pt-4 border-t">
+            {/* Navigation - Sticky Footer */}
+            <div className="flex justify-between pt-4 border-t bg-background flex-shrink-0">
               <Button
                 variant="outline"
                 onClick={handleBack}

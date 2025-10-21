@@ -4,9 +4,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* RTL Support for Admin Panel */
+/* RTL Support for Admin Panel and Dialogs */
 .admin-rtl {
   direction: rtl;
+}
+
+.dialog-rtl {
+  direction: rtl;
+}
+
+/* RTL scrollbar adjustments */
+[dir="rtl"] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[dir="rtl"] ::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+[dir="rtl"] ::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+[dir="rtl"] ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 

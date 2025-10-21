@@ -511,14 +511,15 @@ export default function SupplierOrders() {
 
         {/* Order Details Dialog */}
         <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
             <DialogHeader>
-              <DialogTitle className="flex items-center justify-between">
+              <DialogTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <span>הזמנה #{selectedOrder?.order_number || selectedOrder?.id.slice(0, 8)}</span>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setStatusDialogOpen(true)}
+                  className="w-full sm:w-auto"
                 >
                   עדכון סטטוס
                 </Button>
@@ -536,7 +537,7 @@ export default function SupplierOrders() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                       <div>
                         <Label className="text-sm text-muted-foreground">תאריך</Label>
                         <p className="font-medium">
@@ -558,7 +559,7 @@ export default function SupplierOrders() {
                       </div>
                       <div>
                         <Label className="text-sm text-muted-foreground">לקוח</Label>
-                        <p className="font-medium">{selectedOrder.customer_name}</p>
+                        <p className="font-medium truncate">{selectedOrder.customer_name}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -781,83 +782,143 @@ function OrdersTable({
         </div>
       </div>
 
-      {/* Orders Table */}
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead># הזמנה</TableHead>
-                <TableHead>תאריך</TableHead>
-                <TableHead>לקוח</TableHead>
-                <TableHead>טלפון</TableHead>
-                <TableHead>סכום</TableHead>
-                <TableHead>סטטוס</TableHead>
-                <TableHead>ETA</TableHead>
-                <TableHead>פעולות</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order) => (
-                <TableRow 
-                  key={order.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => onOrderClick(order)}
+      {/* Mobile Cards View */}
+      <div className="block md:hidden space-y-4">
+        {orders.map((order) => (
+          <Card key={order.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onOrderClick(order)}>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-sm">
+                    הזמנה #{order.order_number || order.id.slice(0, 8)}
+                  </div>
+                  <div className="text-sm text-muted-foreground truncate">
+                    {order.customer_name}
+                  </div>
+                </div>
+                <StatusBadge status={order.current_status} />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">תאריך: </span>
+                  <span>{format(new Date(order.created_at), 'dd/MM/yyyy', { locale: he })}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">סכום: </span>
+                  <span className="font-medium">₪{order.total_ils?.toLocaleString('he-IL')}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between pt-2 border-t">
+                <PhoneLink 
+                  phone={order.customer_phone}
+                  phoneE164={order.customer_phone_e164}
+                  orderId={order.id}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onStatusUpdateClick(order);
+                  }}
                 >
-                  <TableCell className="font-medium">
-                    {order.order_number || order.id.slice(0, 8)}
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: he })}
-                  </TableCell>
-                  <TableCell>{order.customer_name}</TableCell>
-                  <TableCell>
-                    <PhoneLink 
-                      phone={order.customer_phone}
-                      phoneE164={order.customer_phone_e164}
-                      orderId={order.id}
-                    />
-                  </TableCell>
-                  <TableCell>₪{order.total_ils?.toLocaleString('he-IL')}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={order.current_status} />
-                  </TableCell>
-                  <TableCell>
-                    {order.eta_at ? 
-                      format(new Date(order.eta_at), 'dd/MM', { locale: he }) : 
-                      '-'
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onStatusUpdateClick(order);
-                        }}
-                        title="עדכן סטטוס"
-                      >
-                        <StatusBadge status={order.current_status} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOrderClick(order);
-                        }}
-                        title="צפייה מלאה"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  עדכון סטטוס
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        
+        {orders.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-8 text-muted-foreground">
+              אין הזמנות להצגה
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <Card className="hidden md:block">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[100px]"># הזמנה</TableHead>
+                  <TableHead className="min-w-[100px]">תאריך</TableHead>
+                  <TableHead className="min-w-[120px]">לקוח</TableHead>
+                  <TableHead className="min-w-[100px]">טלפון</TableHead>
+                  <TableHead className="min-w-[80px]">סכום</TableHead>
+                  <TableHead className="min-w-[100px]">סטטוס</TableHead>
+                  <TableHead className="min-w-[80px]">ETA</TableHead>
+                  <TableHead className="min-w-[120px]">פעולות</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {orders.map((order) => (
+                  <TableRow 
+                    key={order.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => onOrderClick(order)}
+                  >
+                    <TableCell className="font-medium">
+                      {order.order_number || order.id.slice(0, 8)}
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(order.created_at), 'dd/MM/yyyy', { locale: he })}
+                    </TableCell>
+                    <TableCell className="max-w-[150px] truncate">{order.customer_name}</TableCell>
+                    <TableCell>
+                      <PhoneLink 
+                        phone={order.customer_phone}
+                        phoneE164={order.customer_phone_e164}
+                        orderId={order.id}
+                      />
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">₪{order.total_ils?.toLocaleString('he-IL')}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={order.current_status} />
+                    </TableCell>
+                    <TableCell>
+                      {order.eta_at ? 
+                        format(new Date(order.eta_at), 'dd/MM', { locale: he }) : 
+                        '-'
+                      }
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onStatusUpdateClick(order);
+                          }}
+                          title="עדכן סטטוס"
+                        >
+                          <StatusBadge status={order.current_status} />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOrderClick(order);
+                          }}
+                          title="צפייה מלאה"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           
           {orders.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
