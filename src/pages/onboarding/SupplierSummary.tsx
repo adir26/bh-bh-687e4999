@@ -94,6 +94,19 @@ export default function SupplierSummary() {
     navigate('/onboarding/supplier-products');
   };
 
+  // Warn user if they try to leave without publishing
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isPublishing) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isPublishing]);
+
   const companyInfo = onboardingData?.companyInfo;
   const branding = onboardingData?.branding;
   const products = onboardingData?.products;
@@ -261,7 +274,7 @@ export default function SupplierSummary() {
 
       {/* Fixed Bottom Button */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-8 z-50">
-        <div className="max-w-md mx-auto space-y-3">
+        <div className="max-w-md mx-auto space-y-2">
           <Button 
             onClick={handlePublish}
             disabled={isPublishing}
@@ -271,13 +284,9 @@ export default function SupplierSummary() {
             {isPublishing ? 'מפרסמים את הדף שלכם...' : 'פרסמו את דף החברה שלכם'}
           </Button>
           
-          <Button 
-            onClick={() => completeOnboarding()}
-            variant="blue-secondary"
-            className="w-full py-3 text-base rounded-xl h-12 font-medium"
-          >
-            עבור לדשבורד הספק
-          </Button>
+          <p className="text-center text-sm text-muted-foreground px-4">
+            פרסום החברה ייצור עבורכם דף ספק פומבי, יקשר אתכם לקטגוריות הרלוונטיות וישמור את כל הנתונים שהזנתם
+          </p>
         </div>
       </div>
     </div>
