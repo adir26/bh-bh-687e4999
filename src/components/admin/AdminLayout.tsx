@@ -16,8 +16,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
   const { isAdminAuthenticated, sessionExpiry, validateAdminAccess } = useSecureAdminAuth();
 
+  const isLoginPage = location.pathname === "/admin/login";
+
   const checkAuth = useCallback(async () => {
-    if (location.pathname === "/admin/login") return;
+    if (isLoginPage) return;
     
     // Skip validation if already authenticated and session is valid for more than 1 minute
     const msLeft = sessionExpiry ? sessionExpiry.getTime() - Date.now() : 0;
@@ -35,19 +37,18 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       localStorage.removeItem("adminUserId");
       navigate("/admin/login");
     }
-  }, [location.pathname, isAdminAuthenticated, sessionExpiry, validateAdminAccess, navigate]);
+  }, [isLoginPage, isAdminAuthenticated, sessionExpiry, validateAdminAccess, navigate]);
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  const isLoginPage = location.pathname === "/admin/login";
-
+  // Allow rendering login page WITHOUT admin auth check
   if (isLoginPage) {
-    return <div className="admin-rtl">{children}</div>;
+    return <div className="admin-rtl">{children || <Outlet />}</div>;
   }
 
-  // Block access if admin authentication is not validated
+  // Block access to admin panel if not authenticated
   if (!isAdminAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

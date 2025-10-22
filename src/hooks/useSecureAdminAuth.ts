@@ -8,6 +8,7 @@ interface AdminSession {
   isValidated: boolean;
   sessionExpiry: Date | null;
   sessionToken: string;
+  userId: string;
 }
 
 const ADMIN_SESSION_DURATION = 4 * 60 * 60 * 1000; // 4 hours
@@ -19,7 +20,8 @@ export const useSecureAdminAuth = () => {
     isAuthenticated: false,
     isValidated: false,
     sessionExpiry: null,
-    sessionToken: ''
+    sessionToken: '',
+    userId: ''
   });
   const isValidating = useRef(false);
 
@@ -37,9 +39,14 @@ export const useSecureAdminAuth = () => {
         return false;
       }
 
-      // Check if session exists and is valid
+      // Check if session exists, is valid, AND belongs to current user
       const storedSession = await getStoredSession();
-      if (storedSession && storedSession.sessionExpiry && new Date() < storedSession.sessionExpiry) {
+      if (
+        storedSession && 
+        storedSession.userId === user.id && 
+        storedSession.sessionExpiry && 
+        new Date() < storedSession.sessionExpiry
+      ) {
         setAdminSession(storedSession);
         return true;
       }
@@ -64,7 +71,8 @@ export const useSecureAdminAuth = () => {
         isAuthenticated: true,
         isValidated: true,
         sessionExpiry: new Date(Date.now() + ADMIN_SESSION_DURATION),
-        sessionToken
+        sessionToken,
+        userId: user.id
       };
 
       setAdminSession(newSession);
@@ -117,7 +125,8 @@ export const useSecureAdminAuth = () => {
       isAuthenticated: false,
       isValidated: false,
       sessionExpiry: null,
-      sessionToken: ''
+      sessionToken: '',
+      userId: ''
     });
     SecureStorage.remove(STORAGE_KEY);
   };
