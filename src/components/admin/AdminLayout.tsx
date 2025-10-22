@@ -1,24 +1,29 @@
 import { ReactNode, useEffect, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { AdminBottomNavigation } from "./AdminBottomNavigation";
-import { supabase } from "@/integrations/supabase/client";
 import { useSecureAdminAuth } from "@/hooks/useSecureAdminAuth";
 import { SecureStorage } from "@/utils/secureStorage";
 
 interface AdminLayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdminAuthenticated, validateAdminAccess } = useSecureAdminAuth();
+  const { isAdminAuthenticated, sessionExpiry, validateAdminAccess } = useSecureAdminAuth();
 
   const checkAuth = useCallback(async () => {
     if (location.pathname === "/admin/login") return;
+    
+    // Skip validation if already authenticated and session is valid for more than 1 minute
+    const msLeft = sessionExpiry ? sessionExpiry.getTime() - Date.now() : 0;
+    if (isAdminAuthenticated && msLeft > 60_000) {
+      return;
+    }
     
     // Use secure admin authentication
     const isValid = await validateAdminAccess();
@@ -30,7 +35,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       localStorage.removeItem("adminUserId");
       navigate("/admin/login");
     }
-  }, [location.pathname, validateAdminAccess, navigate]);
+  }, [location.pathname, isAdminAuthenticated, sessionExpiry, validateAdminAccess, navigate]);
 
   useEffect(() => {
     checkAuth();
@@ -68,7 +73,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <AdminHeader />
             <main className="flex-1 overflow-auto pb-20 md:pb-6">
               <div className="p-4 md:p-6 max-w-full">
-                {children}
+                {children || <Outlet />}
               </div>
             </main>
           </div>

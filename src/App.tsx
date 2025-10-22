@@ -548,104 +548,38 @@ const App = () => {
                 } />
                 <Route path="/ideabooks/:id" element={<IdeabookDetail />} />
                 
-                {/* Admin routes */}
+                {/* Admin routes - Nested structure with single AdminLayout */}
                 <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
-                <Route path="/admin/dashboard" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><AdminDashboard /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/users" element={<Navigate to="/admin/customers" replace />} />
-                <Route path="/admin/customers" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><CustomerManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/suppliers" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><SupplierManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/orders" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><AdminOrderManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/quotes" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><QuoteManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/complaints" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><ComplaintManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/categories" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><CategoryManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/support-chat" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><SupportChatManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/leads" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><LeadManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/content" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><ContentManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/reviews" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><ReviewsModeration /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/reports" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><AdvancedReports /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/automation" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><AutomationCenter /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/permissions" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><PermissionsManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/homepage-content" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><HomepageContentManagement /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/homepage-content/preview" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><HomepagePreview /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/inspiration" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><AdminInspiration /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/analytics" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><AdminAnalytics /></AdminLayout>
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/settings" element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <AdminLayout><SystemSettings /></AdminLayout>
-                  </ProtectedRoute>
-                } />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']} redirectTo="/admin/login">
+                      <AdminLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Navigate to="dashboard" replace />} />
+                  <Route path="dashboard" element={<AdminDashboard />} />
+                  <Route path="users" element={<Navigate to="/admin/customers" replace />} />
+                  <Route path="customers" element={<CustomerManagement />} />
+                  <Route path="suppliers" element={<SupplierManagement />} />
+                  <Route path="orders" element={<AdminOrderManagement />} />
+                  <Route path="quotes" element={<QuoteManagement />} />
+                  <Route path="complaints" element={<ComplaintManagement />} />
+                  <Route path="categories" element={<CategoryManagement />} />
+                  <Route path="support-chat" element={<SupportChatManagement />} />
+                  <Route path="leads" element={<LeadManagement />} />
+                  <Route path="content" element={<ContentManagement />} />
+                  <Route path="reviews" element={<ReviewsModeration />} />
+                  <Route path="reports" element={<AdvancedReports />} />
+                  <Route path="automation" element={<AutomationCenter />} />
+                  <Route path="permissions" element={<PermissionsManagement />} />
+                  <Route path="homepage-content" element={<HomepageContentManagement />} />
+                  <Route path="homepage-content/preview" element={<HomepagePreview />} />
+                  <Route path="inspiration" element={<AdminInspiration />} />
+                  <Route path="analytics" element={<AdminAnalytics />} />
+                  <Route path="settings" element={<SystemSettings />} />
+                </Route>
                  
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<Navigate to="/" replace />} />
