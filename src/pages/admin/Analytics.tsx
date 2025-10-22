@@ -26,41 +26,65 @@ import {
   Award,
   Star
 } from "lucide-react";
-
-const revenueData = [
-  { month: "Jan", revenue: 45000, orders: 120, users: 890 },
-  { month: "Feb", revenue: 52000, orders: 145, users: 950 },
-  { month: "Mar", revenue: 48000, orders: 135, users: 1020 },
-  { month: "Apr", revenue: 61000, orders: 168, users: 1150 },
-  { month: "May", revenue: 55000, orders: 152, users: 1200 },
-  { month: "Jun", revenue: 67000, orders: 184, users: 1350 },
-];
-
-const categoryData = [
-  { name: "Kitchen & Appliances", value: 35, color: "#8884d8" },
-  { name: "Home Renovation", value: 28, color: "#82ca9d" },
-  { name: "Furniture", value: 20, color: "#ffc658" },
-  { name: "Outdoor & Garden", value: 12, color: "#ff7300" },
-  { name: "Other", value: 5, color: "#00ff00" },
-];
-
-const userActivityData = [
-  { time: "00:00", active: 120 },
-  { time: "04:00", active: 89 },
-  { time: "08:00", active: 340 },
-  { time: "12:00", active: 520 },
-  { time: "16:00", active: 480 },
-  { time: "20:00", active: 380 },
-];
-
-const topMetrics = [
-  { title: "Total Revenue", value: "$328,000", change: "+12.5%", icon: DollarSign, color: "text-green-600" },
-  { title: "Active Users", value: "12,459", change: "+8.2%", icon: Users, color: "text-blue-600" },
-  { title: "Order Volume", value: "1,024", change: "+15.3%", icon: ShoppingCart, color: "text-purple-600" },
-  { title: "Avg Rating", value: "4.8/5", change: "+0.2", icon: Star, color: "text-yellow-600" },
-];
+import { useAdminAnalytics } from "@/hooks/useAdminAnalytics";
 
 export default function AdminAnalytics() {
+  const { data: analyticsData, isLoading, error } = useAdminAnalytics();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !analyticsData) {
+    return (
+      <div className="space-y-6 pb-nav-safe">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
+          <p className="text-destructive">Failed to load analytics data. Please try again.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { revenue: revenueData, categories: categoryData, userActivity: userActivityData, metrics, performance } = analyticsData;
+
+  const topMetrics = [
+    { 
+      title: "Total Revenue", 
+      value: `₪${metrics.totalRevenue.toLocaleString()}`, 
+      change: metrics.revenueChange, 
+      icon: DollarSign, 
+      color: "text-green-600" 
+    },
+    { 
+      title: "Active Users", 
+      value: metrics.activeUsers.toLocaleString(), 
+      change: metrics.usersChange, 
+      icon: Users, 
+      color: "text-blue-600" 
+    },
+    { 
+      title: "Order Volume", 
+      value: metrics.orderVolume.toLocaleString(), 
+      change: metrics.ordersChange, 
+      icon: ShoppingCart, 
+      color: "text-purple-600" 
+    },
+    { 
+      title: "Avg Rating", 
+      value: `${metrics.avgRating}/5`, 
+      change: metrics.ratingChange, 
+      icon: Star, 
+      color: "text-yellow-600" 
+    },
+  ];
   return (
     <div className="space-y-6 pb-nav-safe">
       <div>
@@ -213,8 +237,8 @@ export default function AdminAnalytics() {
                 <Target className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">3.2%</div>
-                <p className="text-xs text-muted-foreground">+0.5% from last month</p>
+                <div className="text-2xl font-bold">{performance.conversionRate.toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground">{performance.conversionChange} from last month</p>
               </CardContent>
             </Card>
 
@@ -224,8 +248,8 @@ export default function AdminAnalytics() {
                 <Activity className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$320</div>
-                <p className="text-xs text-muted-foreground">+$45 from last month</p>
+                <div className="text-2xl font-bold">₪{Math.round(performance.avgOrderValue).toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">{performance.avgOrderChange} from last month</p>
               </CardContent>
             </Card>
 
@@ -235,8 +259,8 @@ export default function AdminAnalytics() {
                 <Award className="h-4 w-4 text-yellow-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">96%</div>
-                <p className="text-xs text-muted-foreground">+2% from last month</p>
+                <div className="text-2xl font-bold">{performance.customerSatisfaction}%</div>
+                <p className="text-xs text-muted-foreground">{performance.satisfactionChange} from last month</p>
               </CardContent>
             </Card>
           </div>
