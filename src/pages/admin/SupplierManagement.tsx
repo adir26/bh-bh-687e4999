@@ -287,7 +287,6 @@ const SupplierManagement = () => {
           <CardHeader>
             <div className="flex flex-col lg:flex-row gap-4 justify-between">
               <div className="flex-1 max-w-md">
-              <div className="relative">
                 <SearchInput
                   placeholder="חיפוש ספקים..."
                   value={searchTerm}
@@ -296,17 +295,6 @@ const SupplierManagement = () => {
                   className="text-right"
                   dir="rtl"
                 />
-                {searchTerm && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-                    onClick={() => setSearchTerm("")}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
               </div>
               
               <div className="flex flex-wrap gap-2">

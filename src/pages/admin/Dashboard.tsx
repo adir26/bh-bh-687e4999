@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
   Users, 
   ShoppingCart, 
@@ -16,36 +17,6 @@ import { KpiCards } from '@/components/admin/KpiCards';
 import { AdminDashboardCharts } from '@/components/admin/AdminDashboardCharts';
 import { useKpiDaily, useTopSuppliers, useTopCategories, useKpiSummary, useAdminAudit, useRefreshData, getDateRangeFromPreset } from '@/hooks/useAdminKpis';
 import type { DateRange } from '@/types/kpi';
-
-const kpiData = [
-  { title: "סה״כ משתמשים", value: "12,459", change: "+12%", icon: Users, color: "text-blue-600" },
-  { title: "הזמנות פעילות", value: "1,247", change: "+8%", icon: ShoppingCart, color: "text-green-600" },
-  { title: "סה״כ הכנסות", value: "₪89,432", change: "+23%", icon: DollarSign, color: "text-purple-600" },
-  { title: "דירוג ממוצע", value: "4.8", change: "+0.2", icon: Star, color: "text-yellow-600" },
-];
-
-const monthlyData = [
-  { name: "ינו׳", users: 400, orders: 240, revenue: 2400 },
-  { name: "פבר׳", users: 300, orders: 139, revenue: 1398 },
-  { name: "מרץ", users: 200, orders: 980, revenue: 9800 },
-  { name: "אפר׳", users: 278, orders: 390, revenue: 3908 },
-  { name: "מאי", users: 189, orders: 480, revenue: 4800 },
-  { name: "יוני", users: 239, orders: 380, revenue: 3800 },
-];
-
-const categoryData = [
-  { name: "מטבח", value: 35, color: "#8884d8" },
-  { name: "שיפוצים", value: 25, color: "#82ca9d" },
-  { name: "ריהוט", value: 20, color: "#ffc658" },
-  { name: "אחר", value: 20, color: "#ff7300" },
-];
-
-const recentActivity = [
-  { type: "רישום משתמש חדש", details: "יוחנן דוד הצטרף", time: "לפני דקותיים", icon: Users },
-  { type: "הזמנה חדשה", details: "הזמנה #1234 בוצעה", time: "לפני 5 דקות", icon: ShoppingCart },
-  { type: "ביקורת נשלחה", details: "ביקורת 5 כוכבים עבור ספקי ABC", time: "לפני 10 דקות", icon: Star },
-  { type: "תלונה הוגשה", details: "דווח על בעיה במשלוח", time: "לפני 15 דקות", icon: MessageSquare },
-];
 
 export default function AdminDashboard() {
   const [dateRange, setDateRange] = useState<DateRange>(getDateRangeFromPreset('30d'));
@@ -87,6 +58,27 @@ export default function AdminDashboard() {
 
   const isLoading = kpiLoading || suppliersLoading || categoriesLoading || summaryLoading;
   const hasError = kpiError || suppliersError || categoriesError || summaryError;
+
+  if (hasError) {
+    return (
+      <div className="space-y-4 md:space-y-6 font-hebrew pb-nav-safe" dir="rtl">
+        <div>
+          <h1 className="text-xl md:text-3xl font-bold tracking-tight rtl-text-right">לוח בקרה</h1>
+          <p className="text-muted-foreground text-mobile-sm md:text-base rtl-text-right">סקירה כללית של ביצועי הפלטפורמה</p>
+        </div>
+        
+        <Card>
+          <CardContent className="p-6 text-center space-y-4">
+            <p className="text-destructive font-semibold">שגיאה בטעינת נתוני Dashboard</p>
+            <p className="text-muted-foreground">לא הצלחנו לטעון את הנתונים. אנא נסה שוב.</p>
+            <Button onClick={handleRefresh} disabled={refreshMutation.isPending}>
+              {refreshMutation.isPending ? "מרענן..." : "נסה שוב"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 md:space-y-6 font-hebrew pb-nav-safe" dir="rtl">

@@ -3,13 +3,15 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useNavigate } from "react-router-dom";
 import { LogOut, Shield, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSecureAdminAuth } from "@/hooks/useSecureAdminAuth";
 
 export function AdminHeader() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { logout } = useSecureAdminAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("adminToken");
+    logout();
     toast({
       title: "התנתקת בהצלחה",
       description: "יצאת מהמערכת בהצלחה",

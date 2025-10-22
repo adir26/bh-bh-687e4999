@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useQuery } from '@tanstack/react-query';
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,75 +20,33 @@ import {
   Calendar,
   AlertCircle
 } from "lucide-react";
-import { supabase } from '@/integrations/supabase/client';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
+import { useAdminLeads, useLeadMutations, useAllSuppliers, useLeadRealtimeSubscription } from '@/hooks/useAdminLeads';
+import { EnhancedLead, LeadFilters, PaginationParams, LEAD_STATUS_LABELS } from '@/types/admin';
 
-interface Lead {
-  id: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  customerAvatar?: string;
-  status: "new" | "contacted" | "qualified" | "converted" | "lost";
-  priority: "low" | "medium" | "high" | "hot";
-  source: "website" | "referral" | "ads" | "social" | "direct";
-  category: string;
-  budget: string;
-  location: string;
-  createdAt: string;
-  lastContact?: string;
-  assignedTo?: string;
-  notes: string;
-  score: number;
+// Helper function for debouncing
+function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
+  let timeoutId: ReturnType<typeof setTimeout>;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
 }
 
-function LeadManagementContent({ leads }: { leads: Lead[] }) {
+function LeadManagementContent({ 
+  leads, 
+  isLoading 
+}: { 
+  leads: EnhancedLead[];
+  isLoading: boolean;
+}) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      new: "bg-blue-100 text-blue-800",
-      contacted: "bg-yellow-100 text-yellow-800",
-      qualified: "bg-purple-100 text-purple-800",
-      converted: "bg-green-100 text-green-800",
-      lost: "bg-red-100 text-red-800"
-    };
-    return variants[status as keyof typeof variants] || "";
-  };
-
-  const getPriorityBadge = (priority: string) => {
-    const variants = {
-      low: "bg-gray-100 text-gray-800",
-      medium: "bg-blue-100 text-blue-800",
-      high: "bg-orange-100 text-orange-800",
-      hot: "bg-red-100 text-red-800"
-    };
-    return variants[priority as keyof typeof variants] || "";
-  };
-
-  const getSourceBadge = (source: string) => {
-    const variants = {
-      website: "bg-green-100 text-green-800",
-      referral: "bg-purple-100 text-purple-800",
-      ads: "bg-orange-100 text-orange-800",
-      social: "bg-blue-100 text-blue-800",
-      direct: "bg-gray-100 text-gray-800"
-    };
-    return variants[source as keyof typeof variants] || "";
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
-    return "text-red-600";
-  };
-
   const filteredLeads = leads.filter(lead => {
-    const matchesSearch = lead.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         lead.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         lead.customerEmail.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (lead.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         (lead.contact_email || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = selectedStatus === "all" || lead.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });
@@ -139,7 +96,7 @@ function LeadManagementContent({ leads }: { leads: Lead[] }) {
             <Star className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₪{leads.length * 25000}</div>
+            <div className="text-2xl font-bold">₪{(leads.length * 25000).toLocaleString('he-IL')}</div>
             <p className="text-xs text-muted-foreground">הערכת ערך כולל</p>
           </CardContent>
         </Card>
@@ -149,7 +106,7 @@ function LeadManagementContent({ leads }: { leads: Lead[] }) {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{leads.filter(l => l.priority === 'hot').length}</div>
+            <div className="text-2xl font-bold">{leads.filter(l => l.priority === 'high').length}</div>
             <p className="text-xs text-muted-foreground">דורשים טיפול מיידי</p>
           </CardContent>
         </Card>
@@ -188,110 +145,59 @@ function LeadManagementContent({ leads }: { leads: Lead[] }) {
           ) : (
             <div className="grid gap-4">
               {filteredLeads.map((lead) => (
-                <Card key={lead.id} className="hover:shadow-lg transition-shadow">
+                  <Card key={lead.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-4 space-x-reverse flex-1">
                         <Avatar className="h-12 w-12">
-                          <AvatarImage src={lead.customerAvatar} />
-                          <AvatarFallback>{lead.customerName.charAt(0)}</AvatarFallback>
+                          <AvatarFallback>{(lead.name || 'L')[0]}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 space-y-2">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-medium text-lg">{lead.customerName}</h3>
-                            <Badge className={getStatusBadge(lead.status)}>
-                              {lead.status === "new" ? "חדש" :
-                               lead.status === "contacted" ? "ניצר קשר" :
-                               lead.status === "qualified" ? "מוכשר" :
-                               lead.status === "converted" ? "הומר" : "אבד"}
+                            <h3 className="font-medium text-lg">{lead.name || 'לקוח ללא שם'}</h3>
+                            <Badge>
+                              {LEAD_STATUS_LABELS[lead.status as keyof typeof LEAD_STATUS_LABELS] || lead.status}
                             </Badge>
-                            <Badge className={getPriorityBadge(lead.priority)}>
-                              {lead.priority === "hot" ? "חם" :
-                               lead.priority === "high" ? "גבוה" :
-                               lead.priority === "medium" ? "בינוני" : "נמוך"}
+                            <Badge>
+                              {lead.priority || 'רגיל'}
                             </Badge>
-                            <Badge className={getSourceBadge(lead.source)}>
-                              {lead.source === "website" ? "אתר" :
-                               lead.source === "referral" ? "המלצה" :
-                               lead.source === "ads" ? "פרסום" :
-                               lead.source === "social" ? "רשתות חברתיות" : "ישיר"}
+                            <Badge>
+                              {lead.source || 'לא צוין'}
                             </Badge>
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
                               <Mail className="h-4 w-4" />
-                              <span>{lead.customerEmail}</span>
+                              <span>{lead.contact_email || '—'}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Phone className="h-4 w-4" />
-                              <span>{lead.customerPhone}</span>
+                              <span>{lead.contact_phone || '—'}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4" />
-                              <span>{lead.location}</span>
+                              <Calendar className="h-4 w-4" />
+                              <span>{new Date(lead.created_at).toLocaleDateString('he-IL')}</span>
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">קטגוריה: </span>
-                              <span>{lead.category}</span>
-                            </div>
-                            <div>
-                              <span className="font-medium">תקציב: </span>
-                              <span>{lead.budget}</span>
-                            </div>
-                          </div>
-
-                          {lead.assignedTo && (
-                            <div className="text-sm">
-                              <span className="font-medium">אחראי: </span>
-                              <span>{lead.assignedTo}</span>
+                          {lead.notes && (
+                            <div className="text-sm text-muted-foreground">
+                              <p><span className="font-medium">הערות: </span>{lead.notes}</p>
                             </div>
                           )}
-
-                          <div className="text-sm text-muted-foreground">
-                            <p><span className="font-medium">הערות: </span>{lead.notes}</p>
-                          </div>
-
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>נוצר: {lead.createdAt}</span>
-                            </div>
-                            {lead.lastContact && (
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span>קשר אחרון: {lead.lastContact}</span>
-                              </div>
-                            )}
-                          </div>
                         </div>
                       </div>
                       
-                      <div className="flex flex-col items-end gap-3">
-                        <div className="text-left">
-                          <div className={`text-2xl font-bold ${getScoreColor(lead.score)}`}>
-                            {lead.score}
-                          </div>
-                          <div className="text-xs text-muted-foreground">ציון איכות</div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Phone className="h-4 w-4 ml-2" />
-                            התקשר
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Mail className="h-4 w-4 ml-2" />
-                            שלח מייל
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 ml-2" />
-                            צפייה
-                          </Button>
-                        </div>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline">
+                          <Phone className="h-4 w-4 ml-2" />
+                          התקשר
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Eye className="h-4 w-4 ml-2" />
+                          צפייה
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -571,57 +477,30 @@ function LeadManagementContent({ leads }: { leads: Lead[] }) {
 }
 
 export default function LeadManagement() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("all");
-
-  const { data: leads = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['admin-leads', selectedStatus, searchQuery],
-    queryFn: async ({ signal }) => {
-      let query = supabase
-        .from('leads')
-        .select(`
-          *,
-          profiles!leads_client_id_fkey (
-            full_name,
-            email
-          )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (selectedStatus !== 'all') {
-        query = query.eq('status', selectedStatus);
-      }
-
-      if (searchQuery) {
-        query = query.or(`name.ilike.%${searchQuery}%,contact_email.ilike.%${searchQuery}%`);
-      }
-
-      const { data, error } = await query;
-      
-      if (error) throw error;
-
-      return data?.map(lead => ({
-        id: lead.id,
-        customerName: lead.name || (lead.profiles && lead.profiles[0]?.full_name) || 'לקוח ללא שם',
-        customerEmail: lead.contact_email || (lead.profiles && lead.profiles[0]?.email) || '',
-        customerPhone: lead.contact_phone || '',
-        customerAvatar: undefined,
-        status: lead.status as Lead['status'],
-        priority: (lead.priority || 'medium') as Lead['priority'],
-        source: (lead.source || 'website') as Lead['source'],
-        category: 'עיצוב פנים',
-        budget: '0-50,000 ₪',
-        location: 'לא צוין',
-        createdAt: new Date(lead.created_at).toLocaleDateString('he-IL'),
-        lastContact: lead.last_contact_date ? new Date(lead.last_contact_date).toLocaleDateString('he-IL') : undefined,
-        assignedTo: undefined,
-        notes: lead.notes || '',
-        score: Math.floor(Math.random() * 40) + 60
-      })) || [];
-    },
-    retry: 1,
-    staleTime: 30_000,
+  const [filters, setFilters] = useState<LeadFilters>({});
+  const [pagination, setPagination] = useState<PaginationParams>({
+    page: 1,
+    limit: 100,
+    offset: 0
   });
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Hooks
+  const { leads, totalCount, isLoading, error, refetch } = useAdminLeads(filters, pagination);
+  useLeadRealtimeSubscription();
+
+  // Debounced search
+  const debouncedSearch = useCallback(
+    debounce((term: string) => {
+      setFilters(prev => ({ ...prev, search: term || undefined }));
+      setPagination(prev => ({ ...prev, page: 1, offset: 0 }));
+    }, 300),
+    []
+  );
+
+  useEffect(() => {
+    debouncedSearch(searchTerm);
+  }, [searchTerm, debouncedSearch]);
 
   return (
     <PageBoundary 
@@ -629,7 +508,7 @@ export default function LeadManagement() {
       isError={!!error}
       error={error}
       onRetry={refetch}
-      isEmpty={leads.length === 0}
+      isEmpty={leads.length === 0 && !isLoading}
       empty={
         <EmptyState
           icon={Users}
@@ -638,7 +517,7 @@ export default function LeadManagement() {
         />
       }
     >
-      <LeadManagementContent leads={leads} />
+      <LeadManagementContent leads={leads} isLoading={isLoading} />
     </PageBoundary>
   );
 }
