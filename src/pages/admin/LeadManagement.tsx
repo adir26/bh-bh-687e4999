@@ -1,28 +1,23 @@
 import { useState, useCallback, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Users, 
   Search, 
   Eye, 
-  Clock, 
-  CheckCircle, 
-  Star, 
   Phone, 
-  Mail, 
-  MapPin,
+  Mail,
   TrendingUp,
   Target,
   Calendar,
-  AlertCircle
+  Clock
 } from "lucide-react";
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
-import { useAdminLeads, useLeadMutations, useAllSuppliers, useLeadRealtimeSubscription } from '@/hooks/useAdminLeads';
+import { useAdminLeads, useLeadRealtimeSubscription } from '@/hooks/useAdminLeads';
 import { EnhancedLead, LeadFilters, PaginationParams, LEAD_STATUS_LABELS } from '@/types/admin';
 
 // Helper function for debouncing
@@ -35,21 +30,30 @@ function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (.
 }
 
 function LeadManagementContent({ 
-  leads, 
-  isLoading 
+  leads 
 }: { 
   leads: EnhancedLead[];
-  isLoading: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("all");
 
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = (lead.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                          (lead.contact_email || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = selectedStatus === "all" || lead.status === selectedStatus;
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
+
+  const getStatusBadge = (status: string) => {
+    const statusText = LEAD_STATUS_LABELS[status as keyof typeof LEAD_STATUS_LABELS] || status;
+    const colors: Record<string, string> = {
+      new: "bg-blue-100 text-blue-800",
+      contacted: "bg-yellow-100 text-yellow-800",
+      qualified: "bg-purple-100 text-purple-800",
+      proposal_sent: "bg-orange-100 text-orange-800",
+      converted: "bg-green-100 text-green-800",
+      lost: "bg-red-100 text-red-800"
+    };
+    return <Badge className={colors[status] || "bg-gray-100 text-gray-800"}>{statusText}</Badge>;
+  };
 
   return (
     <div className="space-y-6 font-hebrew" dir="rtl">
@@ -60,10 +64,6 @@ function LeadManagementContent({
             ניהול ומעקב אחר לקוחות פוטנציאליים והזדמנויות מכירה
           </p>
         </div>
-        <Button>
-          <Users className="h-4 w-4 ml-2" />
-          לקוח חדש
-        </Button>
       </div>
 
       {/* סטטיסטיקות מהירות */}
@@ -93,7 +93,7 @@ function LeadManagementContent({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">ערך צינור</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">₪{(leads.length * 25000).toLocaleString('he-IL')}</div>
@@ -102,376 +102,112 @@ function LeadManagementContent({
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">לידים חמים</CardTitle>
+            <CardTitle className="text-sm font-medium">בטיפול</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{leads.filter(l => l.priority === 'high').length}</div>
-            <p className="text-xs text-muted-foreground">דורשים טיפול מיידי</p>
+            <div className="text-2xl font-bold">{leads.filter(l => ['contacted', 'qualified', 'proposal_sent'].includes(l.status || '')).length}</div>
+            <p className="text-xs text-muted-foreground">דורשים מעקב</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="all" className="space-y-4">
-        <div className="flex justify-between items-center">
-          <TabsList>
-            <TabsTrigger value="all">הכל</TabsTrigger>
-            <TabsTrigger value="new">חדשים</TabsTrigger>
-            <TabsTrigger value="contacted">ניצרו קשר</TabsTrigger>
-            <TabsTrigger value="qualified">מוכשרים</TabsTrigger>
-            <TabsTrigger value="hot">לידים חמים</TabsTrigger>
-          </TabsList>
-          
-          <div className="flex gap-2">
-            <div className="relative">
-              <Search className="absolute right-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="חיפוש לפי שם, אימייל או קטגוריה..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pr-8 w-80"
-              />
-            </div>
-          </div>
-        </div>
-
-        <TabsContent value="all" className="space-y-4">
-          {filteredLeads.length === 0 ? (
-            <EmptyState
-              icon={Users}
-              title="אין לידים"
-              description="לא נמצאו לידים התואמים לחיפוש שלכם."
+      {/* Search */}
+      <Card>
+        <CardHeader>
+          <div className="relative">
+            <Search className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="חיפוש לפי שם, אימייל..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-10 text-right"
+              dir="rtl"
             />
-          ) : (
-            <div className="grid gap-4">
-              {filteredLeads.map((lead) => (
-                  <Card key={lead.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4 space-x-reverse flex-1">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback>{(lead.name || 'L')[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-medium text-lg">{lead.name || 'לקוח ללא שם'}</h3>
-                            <Badge>
-                              {LEAD_STATUS_LABELS[lead.status as keyof typeof LEAD_STATUS_LABELS] || lead.status}
-                            </Badge>
-                            <Badge>
-                              {lead.priority || 'רגיל'}
-                            </Badge>
-                            <Badge>
-                              {lead.source || 'לא צוין'}
-                            </Badge>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                              <Mail className="h-4 w-4" />
-                              <span>{lead.contact_email || '—'}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Phone className="h-4 w-4" />
-                              <span>{lead.contact_phone || '—'}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4" />
-                              <span>{new Date(lead.created_at).toLocaleDateString('he-IL')}</span>
-                            </div>
-                          </div>
+          </div>
+        </CardHeader>
+      </Card>
 
-                          {lead.notes && (
-                            <div className="text-sm text-muted-foreground">
-                              <p><span className="font-medium">הערות: </span>{lead.notes}</p>
-                            </div>
-                          )}
-                        </div>
+      {/* Leads List */}
+      {filteredLeads.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="אין לידים"
+          description="לא נמצאו לידים התואמים לחיפוש שלכם."
+        />
+      ) : (
+        <div className="grid gap-4">
+          {filteredLeads.map((lead) => (
+            <Card key={lead.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-4 space-x-reverse flex-1">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback>{(lead.name || 'L')[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-medium text-lg">{lead.name || 'לקוח ללא שם'}</h3>
+                        {getStatusBadge(lead.status || 'new')}
+                        {lead.priority && (
+                          <Badge variant="outline">{lead.priority}</Badge>
+                        )}
+                        {lead.source && (
+                          <Badge variant="outline">{lead.source}</Badge>
+                        )}
                       </div>
                       
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline">
-                          <Phone className="h-4 w-4 ml-2" />
-                          התקשר
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Eye className="h-4 w-4 ml-2" />
-                          צפייה
-                        </Button>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
+                        {lead.contact_email && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4" />
+                            <span>{lead.contact_email}</span>
+                          </div>
+                        )}
+                        {lead.contact_phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4" />
+                            <span>{lead.contact_phone}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          <span>{new Date(lead.created_at).toLocaleDateString('he-IL')}</span>
+                        </div>
                       </div>
+
+                      {lead.notes && (
+                        <div className="text-sm text-muted-foreground">
+                          <p><span className="font-medium">הערות: </span>{lead.notes}</p>
+                        </div>
+                      )}
+
+                      {lead.last_contact_date && (
+                        <div className="text-xs text-muted-foreground">
+                          קשר אחרון: {new Date(lead.last_contact_date).toLocaleDateString('he-IL')}
+                        </div>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="new" className="space-y-4">
-          <div className="grid gap-4">
-              {filteredLeads
-                .filter(lead => lead.status === "new")
-                .map((lead) => (
-                  <Card key={lead.id} className="hover:shadow-lg transition-shadow border-blue-200">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-4 space-x-reverse flex-1">
-                          <Avatar className="h-12 w-12">
-                            <AvatarImage src={lead.customerAvatar} />
-                            <AvatarFallback>{lead.customerName.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-medium text-lg">{lead.customerName}</h3>
-                              <Badge className="bg-blue-100 text-blue-800">חדש</Badge>
-                              <Badge className={getPriorityBadge(lead.priority)}>
-                                {lead.priority === "hot" ? "חם" :
-                                 lead.priority === "high" ? "גבוה" :
-                                 lead.priority === "medium" ? "בינוני" : "נמוך"}
-                              </Badge>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="font-medium">קטגוריה: </span>
-                                <span>{lead.category}</span>
-                              </div>
-                              <div>
-                                <span className="font-medium">תקציב: </span>
-                                <span>{lead.budget}</span>
-                              </div>
-                            </div>
-
-                            <div className="text-sm text-muted-foreground">
-                              <p>{lead.notes}</p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-col items-end gap-3">
-                          <div className="text-left">
-                            <div className={`text-2xl font-bold ${getScoreColor(lead.score)}`}>
-                              {lead.score}
-                            </div>
-                            <div className="text-xs text-muted-foreground">ציון איכות</div>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Button size="sm">
-                              <Phone className="h-4 w-4 ml-2" />
-                              התקשר עכשיו
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4 ml-2" />
-                              צפייה
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-        </TabsContent>
-
-        <TabsContent value="contacted" className="space-y-4">
-          <div className="grid gap-4">
-              {filteredLeads
-                .filter(lead => lead.status === "contacted")
-                .map((lead) => (
-                  <Card key={lead.id} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-4 space-x-reverse flex-1">
-                          <Avatar className="h-12 w-12">
-                            <AvatarImage src={lead.customerAvatar} />
-                            <AvatarFallback>{lead.customerName.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h3 className="font-medium text-lg">{lead.customerName}</h3>
-                              <Badge className="bg-yellow-100 text-yellow-800">ניצר קשר</Badge>
-                              <Badge className={getPriorityBadge(lead.priority)}>
-                                {lead.priority === "hot" ? "חם" :
-                                 lead.priority === "high" ? "גבוה" :
-                                 lead.priority === "medium" ? "בינוני" : "נמוך"}
-                              </Badge>
-                            </div>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="font-medium">קטגוריה: </span>
-                                <span>{lead.category}</span>
-                              </div>
-                              <div>
-                                <span className="font-medium">אחראי: </span>
-                                <span>{lead.assignedTo || 'לא נקבע'}</span>
-                              </div>
-                            </div>
-
-                            <div className="text-sm text-muted-foreground">
-                              <p>קשר אחרון: {lead.lastContact || 'לא עודכן'}</p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-col items-end gap-3">
-                          <div className="text-left">
-                            <div className={`text-2xl font-bold ${getScoreColor(lead.score)}`}>
-                              {lead.score}
-                            </div>
-                            <div className="text-xs text-muted-foreground">ציון איכות</div>
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-4 w-4 ml-2" />
-                              צפייה
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-              ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="qualified" className="space-y-4">
-          <div className="grid gap-4">
-            {filteredLeads
-              .filter(lead => lead.status === "qualified")
-              .map((lead) => (
-                <Card key={lead.id} className="hover:shadow-lg transition-shadow border-purple-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4 space-x-reverse flex-1">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={lead.customerAvatar} />
-                          <AvatarFallback>{lead.customerName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-medium text-lg">{lead.customerName}</h3>
-                            <Badge className="bg-purple-100 text-purple-800">מוכשר</Badge>
-                            <Badge className={getPriorityBadge(lead.priority)}>
-                              {lead.priority === "hot" ? "חם" :
-                               lead.priority === "high" ? "גבוה" :
-                               lead.priority === "medium" ? "בינוני" : "נמוך"}
-                            </Badge>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">קטגוריה: </span>
-                              <span>{lead.category}</span>
-                            </div>
-                            <div>
-                              <span className="font-medium">תקציב: </span>
-                              <span>{lead.budget}</span>
-                            </div>
-                          </div>
-
-                          <div className="text-sm text-muted-foreground">
-                            <p>אחראי: {lead.assignedTo || 'לא נקבע'}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col items-end gap-3">
-                        <div className="text-left">
-                          <div className={`text-2xl font-bold ${getScoreColor(lead.score)}`}>
-                            {lead.score}
-                          </div>
-                          <div className="text-xs text-muted-foreground">ציון איכות</div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button size="sm">
-                            <CheckCircle className="h-4 w-4 ml-2" />
-                            המר ללקוח
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 ml-2" />
-                            צפייה
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="hot" className="space-y-4">
-          <div className="grid gap-4">
-            {filteredLeads
-              .filter(lead => lead.priority === "hot")
-              .map((lead) => (
-                <Card key={lead.id} className="hover:shadow-lg transition-shadow border-red-200">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4 space-x-reverse flex-1">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src={lead.customerAvatar} />
-                          <AvatarFallback>{lead.customerName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-medium text-lg">{lead.customerName}</h3>
-                            <Badge className="bg-red-100 text-red-800">🔥 חם</Badge>
-                            <Badge className={getStatusBadge(lead.status)}>
-                              {lead.status === "new" ? "חדש" :
-                               lead.status === "contacted" ? "ניצר קשר" :
-                               lead.status === "qualified" ? "מוכשר" :
-                               lead.status === "converted" ? "הומר" : "אבד"}
-                            </Badge>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium">קטגוריה: </span>
-                              <span>{lead.category}</span>
-                            </div>
-                            <div>
-                              <span className="font-medium">תקציב: </span>
-                              <span>{lead.budget}</span>
-                            </div>
-                          </div>
-
-                          <div className="text-sm text-muted-foreground">
-                            <p><span className="font-medium">הערות: </span>{lead.notes}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col items-end gap-3">
-                        <div className="text-left">
-                          <div className={`text-2xl font-bold ${getScoreColor(lead.score)}`}>
-                            {lead.score}
-                          </div>
-                          <div className="text-xs text-muted-foreground">ציון איכות</div>
-                        </div>
-                        
-                        <div className="flex gap-2">
-                          <Button size="sm" className="bg-red-600 hover:bg-red-700">
-                            <Phone className="h-4 w-4 ml-2" />
-                            דחוף - התקשר
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 ml-2" />
-                            צפייה
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-          </div>
-        </TabsContent>
-      </Tabs>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    {lead.contact_phone && (
+                      <Button size="sm" variant="outline">
+                        <Phone className="h-4 w-4 ml-2" />
+                        התקשר
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline">
+                      <Eye className="h-4 w-4 ml-2" />
+                      צפייה
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -517,7 +253,7 @@ export default function LeadManagement() {
         />
       }
     >
-      <LeadManagementContent leads={leads} isLoading={isLoading} />
+      <LeadManagementContent leads={leads} />
     </PageBoundary>
   );
 }
