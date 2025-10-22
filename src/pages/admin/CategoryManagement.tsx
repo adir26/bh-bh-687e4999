@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Filter, Edit, Trash2, Plus, Tag, Eye, MoreHorizontal, ChevronUp, ChevronDown, X } from "lucide-react";
+import { Filter, Edit, Trash2, Plus, Tag, Eye, MoreHorizontal, ChevronUp, ChevronDown } from "lucide-react";
 import { SearchInput } from "@/components/ui/search-input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -301,26 +301,14 @@ export default function CategoryManagement() {
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-4 justify-between">
             <div className="flex-1 max-w-sm order-2 sm:order-1">
-              <div className="relative">
-                <SearchInput
-                  placeholder="חיפוש קטגוריות..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onClear={clearSearch}
-                  className="text-right"
-                  dir="rtl"
-                />
-                {searchTerm && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-                    onClick={clearSearch}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+              <SearchInput
+                placeholder="חיפוש קטגוריות..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onClear={clearSearch}
+                className="text-right"
+                dir="rtl"
+              />
             </div>
             <div className="flex gap-2 order-1 sm:order-2">
               <Select 
