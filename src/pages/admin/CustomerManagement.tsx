@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAdminCustomers, useCustomerMutations, useCustomerComplaints, useComplaintMutations, useCustomerRealtimeSubscription } from "@/hooks/useAdminCustomers";
 import { CustomerFilters, PaginationParams, STATUS_LABELS } from "@/types/admin";
 import { UserDetailModal } from "@/components/admin/UserDetailModal";
+import { PageBoundary } from "@/components/system/PageBoundary";
 import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 25;
@@ -149,19 +150,19 @@ export default function CustomerManagement() {
     onboarding_in_progress: customers.filter(c => c.onboarding_status === 'in_progress').length
   };
 
-  if (isLoading && currentPage === 1) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">טוען נתוני לקוחות...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4 md:space-y-6 font-hebrew" dir="rtl">
+    <>
+      <PageBoundary
+        isLoading={isLoading && currentPage === 1}
+        isError={false}
+        isEmpty={!isLoading && customers.length === 0}
+        empty={
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground">לא נמצאו לקוחות</p>
+          </Card>
+        }
+      >
+        <div className="space-y-4 md:space-y-6 font-hebrew" dir="rtl">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -502,8 +503,10 @@ export default function CustomerManagement() {
           </Button>
         </div>
       )}
+    </div>
+  </PageBoundary>
 
-      {/* Block Customer Dialog */}
+  {/* Block Customer Dialog */}
       <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
         <DialogContent className="font-hebrew" dir="rtl">
           <DialogHeader>
@@ -582,6 +585,6 @@ export default function CustomerManagement() {
         open={userDetailOpen}
         onOpenChange={setUserDetailOpen}
       />
-    </div>
+    </>
   );
 }

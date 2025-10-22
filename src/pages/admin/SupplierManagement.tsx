@@ -54,6 +54,7 @@ import {
   EnhancedCompany
 } from '@/types/admin';
 import { cn } from '@/lib/utils';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 // Helper function for debouncing
 function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
@@ -95,18 +96,15 @@ const SupplierManagement = () => {
   // Real-time subscription
   useSupplierRealtimeSubscription();
 
-  // Debounced search
-  const debouncedSearch = useCallback(
-    debounce((term: string) => {
-      setFilters(prev => ({ ...prev, search: term || undefined }));
-      setPagination(prev => ({ ...prev, page: 1, offset: 0 }));
-    }, 300),
-    []
-  );
-
+  // Debounced search - fixed to prevent infinite loops
   React.useEffect(() => {
-    debouncedSearch(searchTerm);
-  }, [searchTerm, debouncedSearch]);
+    const timer = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchTerm || undefined }));
+      setPagination(prev => ({ ...prev, page: 1, offset: 0 }));
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Helper functions
   const getStatusBadge = (status: string) => {
@@ -226,7 +224,17 @@ const SupplierManagement = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-6 font-hebrew" dir="rtl">
+      <PageBoundary
+        isLoading={isLoading}
+        isError={false}
+        isEmpty={!isLoading && suppliers.length === 0}
+        empty={
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground">לא נמצאו ספקים</p>
+          </Card>
+        }
+      >
+        <div className="space-y-6 font-hebrew" dir="rtl">
         {/* Header */}
         <div className="text-right">
           <h1 className="text-3xl font-bold tracking-tight">ניהול ספקים</h1>
@@ -627,9 +635,11 @@ const SupplierManagement = () => {
             </div>
           </div>
         )}
+      </div>
+    </PageBoundary>
 
-        {/* Verification Dialog */}
-        <Dialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
+    {/* Verification Dialog */}
+      <Dialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
           <DialogContent className="font-hebrew" dir="rtl">
             <DialogHeader>
               <DialogTitle className="text-right">ניהול אימות ספק</DialogTitle>
@@ -667,7 +677,6 @@ const SupplierManagement = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
     </AdminLayout>
   );
 };

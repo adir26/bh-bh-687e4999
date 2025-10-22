@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { withTimeout } from '@/lib/withTimeout';
 import { toast } from '@/hooks/use-toast';
 import { subDays, startOfMonth, endOfMonth, subMonths, format } from 'date-fns';
 import type { DateRange, KpiData, TopSupplier, TopCategory, KpiSummary, DateRangePreset } from '@/types/kpi';
@@ -31,12 +32,14 @@ export const useKpiDaily = (dateRange: DateRange) => {
   return useQuery({
     queryKey: ['admin-kpi-daily', format(dateRange.from, 'yyyy-MM-dd'), format(dateRange.to, 'yyyy-MM-dd')],
     queryFn: async (): Promise<KpiData[]> => {
-      const { data, error } = await supabase
+      const query = supabase
         .from('kpi_daily')
         .select('*')
         .gte('date', format(dateRange.from, 'yyyy-MM-dd'))
         .lte('date', format(dateRange.to, 'yyyy-MM-dd'))
         .order('date', { ascending: true });
+
+      const { data, error } = await withTimeout(query, 15000);
 
       if (error) {
         console.error('Error fetching KPI data:', error);
@@ -55,9 +58,11 @@ export const useTopSuppliers = (dateRange: DateRange) => {
   return useQuery({
     queryKey: ['admin-top-suppliers', format(dateRange.from, 'yyyy-MM-dd'), format(dateRange.to, 'yyyy-MM-dd')],
     queryFn: async (): Promise<TopSupplier[]> => {
-      const { data, error } = await supabase
+      const query = supabase
         .from('top_suppliers_30d')
         .select('*');
+
+      const { data, error } = await withTimeout(query, 15000);
 
       if (error) {
         console.error('Error fetching top suppliers:', error);
@@ -76,9 +81,11 @@ export const useTopCategories = (dateRange: DateRange) => {
   return useQuery({
     queryKey: ['admin-top-categories', format(dateRange.from, 'yyyy-MM-dd'), format(dateRange.to, 'yyyy-MM-dd')],
     queryFn: async (): Promise<TopCategory[]> => {
-      const { data, error } = await supabase
+      const query = supabase
         .from('top_categories_30d')
         .select('*');
+
+      const { data, error } = await withTimeout(query, 15000);
 
       if (error) {
         console.error('Error fetching top categories:', error);
@@ -102,20 +109,24 @@ export const useKpiSummary = (dateRange: DateRange) => {
       const prevTo = subDays(dateRange.to, days);
 
       // Get current period data
-      const { data: currentData, error: currentError } = await supabase
+      const currentQuery = supabase
         .from('kpi_daily')
         .select('*')
         .gte('date', format(dateRange.from, 'yyyy-MM-dd'))
         .lte('date', format(dateRange.to, 'yyyy-MM-dd'));
 
+      const { data: currentData, error: currentError } = await withTimeout(currentQuery, 15000);
+
       if (currentError) throw currentError;
 
       // Get previous period data for comparison
-      const { data: prevData, error: prevError } = await supabase
+      const prevQuery = supabase
         .from('kpi_daily')
         .select('*')
         .gte('date', format(prevFrom, 'yyyy-MM-dd'))
         .lte('date', format(prevTo, 'yyyy-MM-dd'));
+
+      const { data: prevData, error: prevError } = await withTimeout(prevQuery, 15000);
 
       if (prevError) throw prevError;
 

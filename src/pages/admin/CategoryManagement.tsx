@@ -18,6 +18,7 @@ import { CategoryFilters, PaginationParams, EnhancedCategory } from '@/types/adm
 import { CategoryStatsCards } from '@/components/admin/CategoryStatsCards';
 import { CategoryTableRow } from '@/components/admin/CategoryTableRow';
 import { CategoryFormDialog } from '@/components/admin/CategoryFormDialog';
+import { PageBoundary } from '@/components/system/PageBoundary';
 
 // Helper function for debouncing
 function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
@@ -62,19 +63,15 @@ export default function CategoryManagement() {
   // Real-time subscription
   useCategoryRealtimeSubscription();
 
-  // Debounced search
-  const debouncedSearch = useCallback(
-    debounce((term: string) => {
-      setFilters(prev => ({ ...prev, search: term || undefined }));
-      setPagination(prev => ({ ...prev, page: 1, offset: 0 }));
-    }, 300),
-    []
-  );
-
-  // Effect for search
+  // Debounced search - fixed to prevent infinite loops
   useEffect(() => {
-    debouncedSearch(searchTerm);
-  }, [searchTerm, debouncedSearch]);
+    const timer = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchTerm || undefined }));
+      setPagination(prev => ({ ...prev, page: 1, offset: 0 }));
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   // Get parent categories for dropdown
   const parentCategories = categories.filter(cat => !cat.parent_id);
@@ -243,23 +240,21 @@ export default function CategoryManagement() {
     setFilters(prev => ({ ...prev, search: undefined }));
   };
 
-  if (error) {
-    return (
-      <div className="space-y-4 md:space-y-6 font-hebrew">
-        <div className="text-right flex justify-center items-center min-h-[400px]">
-          <Card className="p-6 text-center">
-            <p className="text-destructive">אירעה שגיאה בטעינת הנתונים</p>
-            <Button onClick={() => window.location.reload()} className="mt-4">
-              טען מחדש
-            </Button>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4 md:space-y-6 font-hebrew pb-safe">
+    <>
+      <PageBoundary
+        isLoading={isLoading}
+        isError={!!error}
+        error={error}
+        onRetry={() => window.location.reload()}
+        isEmpty={!isLoading && categories.length === 0}
+        empty={
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground">לא נמצאו קטגוריות</p>
+          </Card>
+        }
+      >
+        <div className="space-y-4 md:space-y-6 font-hebrew pb-safe">
       <div className="text-right flex justify-between items-center">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">ניהול קטגוריות</h1>
@@ -611,8 +606,10 @@ export default function CategoryManagement() {
           )}
         </CardContent>
       </Card>
+    </div>
+  </PageBoundary>
 
-      {/* Delete Dialog */}
+  {/* Delete Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent className="font-hebrew">
           <AlertDialogHeader>
@@ -648,6 +645,6 @@ export default function CategoryManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </>
   );
 }

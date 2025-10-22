@@ -15,6 +15,7 @@ import { useAdminOrders, useOrderMutations, useOrderRefunds, useOrderRealtimeSub
 import { OrderFilters, PaginationParams, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from "@/types/admin";
 import { toast } from "sonner";
 import { FEATURES } from "@/config/featureFlags";
+import { PageBoundary } from "@/components/system/PageBoundary";
 
 const ITEMS_PER_PAGE = 25;
 
@@ -156,19 +157,19 @@ export default function AdminOrderManagement() {
     completed: orders.filter(o => o.status === 'completed').length
   };
 
-  if (isLoading && currentPage === 1) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">טוען נתוני הזמנות...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4 md:space-y-6 font-hebrew" dir="rtl">
+    <>
+      <PageBoundary
+        isLoading={isLoading && currentPage === 1}
+        isError={false}
+        isEmpty={!isLoading && orders.length === 0}
+        empty={
+          <Card className="p-6 text-center">
+            <p className="text-muted-foreground">לא נמצאו הזמנות</p>
+          </Card>
+        }
+      >
+        <div className="space-y-4 md:space-y-6 font-hebrew" dir="rtl">
       {/* Header */}
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -451,8 +452,10 @@ export default function AdminOrderManagement() {
           </Button>
         </div>
       )}
+    </div>
+  </PageBoundary>
 
-      {/* Status Update Dialog */}
+  {/* Status Update Dialog */}
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
         <DialogContent className="font-hebrew" dir="rtl">
           <DialogHeader>
@@ -547,6 +550,6 @@ export default function AdminOrderManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

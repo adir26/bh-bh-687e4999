@@ -30,11 +30,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     // Use secure admin authentication
     const isValid = await validateAdminAccess();
     if (!isValid) {
-      // Clear any insecure legacy data
+      // Clear any insecure legacy data - using SecureStorage only
       SecureStorage.remove('adminAuthenticated');
       SecureStorage.remove('adminUserId');
-      localStorage.removeItem("adminAuthenticated");
-      localStorage.removeItem("adminUserId");
       navigate("/admin/login");
     }
   }, [isLoginPage, isAdminAuthenticated, sessionExpiry, validateAdminAccess, navigate]);
