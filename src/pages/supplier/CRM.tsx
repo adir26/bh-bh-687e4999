@@ -42,17 +42,31 @@ function statusLabel(s: LeadStatus) {
   }
 }
 
-const statusBadgeVariant: Record<LeadStatus, 'default' | 'secondary' | 'outline' | 'destructive'> = {
-  new: 'default',
-  no_answer: 'secondary',
-  followup: 'outline',
-  no_answer_x5: 'destructive',
-  not_relevant: 'outline',
-  error: 'destructive',
-  denies_contact: 'destructive',
-  project_in_process: 'default',
-  project_completed: 'secondary',
-};
+function getStatusBadgeClass(status: LeadStatus): string {
+  const baseClass = "inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold";
+  switch (status) {
+    case 'new':
+      return `${baseClass} bg-blue-500 text-white hover:bg-blue-600`;
+    case 'no_answer':
+      return `${baseClass} bg-gray-400 text-white hover:bg-gray-500`;
+    case 'followup':
+      return `${baseClass} bg-amber-500 text-white hover:bg-amber-600`;
+    case 'no_answer_x5':
+      return `${baseClass} bg-red-500 text-white hover:bg-red-600`;
+    case 'not_relevant':
+      return `${baseClass} bg-gray-600 text-white hover:bg-gray-700`;
+    case 'error':
+      return `${baseClass} bg-red-400 text-white hover:bg-red-500`;
+    case 'denies_contact':
+      return `${baseClass} bg-purple-500 text-white hover:bg-purple-600`;
+    case 'project_in_process':
+      return `${baseClass} bg-emerald-500 text-white hover:bg-emerald-600`;
+    case 'project_completed':
+      return `${baseClass} bg-emerald-600 text-white hover:bg-emerald-700`;
+    default:
+      return `${baseClass} bg-gray-500 text-white`;
+  }
+}
 
 function priorityBadgeVariant(priority: string): 'default' | 'secondary' | 'outline' | 'destructive' {
   switch (priority) {
@@ -227,7 +241,7 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
               <CardHeader>
                 <CardTitle className="flex items-center justify-between text-base">
                   <span>{statusLabel(status)}</span>
-                  <Badge variant={statusBadgeVariant[status]}>{leadsByStatus[status]?.length || 0}</Badge>
+                  <Badge className={getStatusBadgeClass(status)}>{leadsByStatus[status]?.length || 0}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -288,7 +302,7 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
                        <a href={`mailto:${l.contact_email}`} className="underline">{l.contact_email}</a>
                      ) : '—'}
                    </td>
-                   <td className="p-3"><Badge>{statusLabel(l.status)}</Badge></td>
+                   <td className="p-3"><Badge className={getStatusBadgeClass(l.status)}>{statusLabel(l.status)}</Badge></td>
                    <td className="p-3">
                      <SLABadge lead={l} />
                    </td>
