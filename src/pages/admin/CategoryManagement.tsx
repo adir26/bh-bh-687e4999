@@ -8,7 +8,6 @@ import { Filter, Edit, Trash2, Plus, Tag, Eye, MoreHorizontal, ChevronUp, Chevro
 import { SearchInput } from "@/components/ui/search-input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,7 +15,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useAdminCategories, useCategoryMutations, useCategoryRealtimeSubscription } from '@/hooks/useAdminCategories';
 import { CategoryFilters, PaginationParams, EnhancedCategory } from '@/types/admin';
-import { cn } from '@/lib/utils';
+import { CategoryStatsCards } from '@/components/admin/CategoryStatsCards';
+import { CategoryTableRow } from '@/components/admin/CategoryTableRow';
+import { CategoryFormDialog } from '@/components/admin/CategoryFormDialog';
 
 // Helper function for debouncing
 function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void {
@@ -264,149 +265,36 @@ export default function CategoryManagement() {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">ניהול קטגוריות</h1>
           <p className="text-muted-foreground text-sm md:text-base">ניהול קטגוריות ותגיות השירותים</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="font-hebrew">
-              <Plus className="h-4 w-4 ml-2" />
-              הוספת קטגוריה
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md font-hebrew">
-            <DialogHeader>
-              <DialogTitle className="text-right">הוספת קטגוריה חדשה</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 text-right">
-              <div>
-                <Label htmlFor="category-name" className="font-hebrew">שם הקטגוריה *</Label>
-                <Input
-                  id="category-name"
-                  value={newCategory.name}
-                  onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
-                  placeholder="למשל: בניה ושיפוצים"
-                  className="text-right"
-                  dir="rtl"
-                />
-              </div>
-              <div>
-                <Label htmlFor="category-description" className="font-hebrew">תיאור</Label>
-                <Textarea
-                  id="category-description"
-                  value={newCategory.description}
-                  onChange={(e) => setNewCategory({...newCategory, description: e.target.value})}
-                  placeholder="תיאור הקטגוריה..."
-                  className="text-right"
-                  dir="rtl"
-                  rows={3}
-                />
-              </div>
-              <div>
-                <Label htmlFor="parent-category" className="font-hebrew">קטגוריית אב</Label>
-                <Select value={newCategory.parent_id || ""} onValueChange={(value) => setNewCategory({...newCategory, parent_id: value || null})}>
-                  <SelectTrigger className="text-right" dir="rtl">
-                    <SelectValue placeholder="בחר קטגוריית אב (אופציונלי)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">ללא קטגוריית אב</SelectItem>
-                    {parentCategories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="category-icon" className="font-hebrew">אייקון</Label>
-                <Input
-                  id="category-icon"
-                  value={newCategory.icon}
-                  onChange={(e) => setNewCategory({...newCategory, icon: e.target.value})}
-                  placeholder="שם האייקון (לדוגמה: Home)"
-                  className="text-right"
-                  dir="rtl"
-                />
-              </div>
-              <div className="flex gap-4 justify-between">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="is-active"
-                    checked={newCategory.is_active}
-                    onChange={(e) => setNewCategory({...newCategory, is_active: e.target.checked})}
-                  />
-                  <Label htmlFor="is-active" className="font-hebrew">פעיל</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="is-public"
-                    checked={newCategory.is_public}
-                    onChange={(e) => setNewCategory({...newCategory, is_public: e.target.checked})}
-                  />
-                  <Label htmlFor="is-public" className="font-hebrew">ציבורי</Label>
-                </div>
-              </div>
-              <Button 
-                onClick={handleAddCategory}
-                className="w-full font-hebrew"
-                disabled={!newCategory.name.trim() || createCategory.isPending}
-              >
-                {createCategory.isPending ? 'מוסיף...' : 'הוספת קטגוריה'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setIsAddDialogOpen(true)} className="font-hebrew">
+          <Plus className="h-4 w-4 ml-2" />
+          הוספת קטגוריה
+        </Button>
       </div>
 
+      <CategoryFormDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        formData={newCategory}
+        onFormDataChange={setNewCategory}
+        onSubmit={handleAddCategory}
+        parentCategories={parentCategories}
+        isLoading={createCategory.isPending}
+        mode="add"
+      />
+
+      <CategoryFormDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        formData={newCategory}
+        onFormDataChange={setNewCategory}
+        onSubmit={handleEditCategory}
+        parentCategories={parentCategories}
+        isLoading={updateCategory.isPending}
+        mode="edit"
+      />
+
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">סה״כ קטגוריות</CardTitle>
-            <Tag className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">{totalCount}</div>
-            <p className="text-xs text-muted-foreground text-right">קטגוריות בסיסטם</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">קטגוריות פעילות</CardTitle>
-            <Tag className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">
-              {categories.filter(cat => cat.is_active).length}
-            </div>
-            <p className="text-xs text-muted-foreground text-right">מתוך {totalCount} קטגוריות</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">ספקים משויכים</CardTitle>
-            <Tag className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">
-              {categories.reduce((sum, cat) => sum + (cat.supplier_count || 0), 0)}
-            </div>
-            <p className="text-xs text-muted-foreground text-right">בכל הקטגוריות</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground text-right">מוצרים משויכים</CardTitle>
-            <Tag className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-right">
-              {categories.reduce((sum, cat) => sum + (cat.product_count || 0), 0)}
-            </div>
-            <p className="text-xs text-muted-foreground text-right">בכל הקטגוריות</p>
-          </CardContent>
-        </Card>
-      </div>
+      <CategoryStatsCards categories={categories} totalCount={totalCount} />
 
       {/* Categories Table */}
       <Card>
@@ -735,103 +623,6 @@ export default function CategoryManagement() {
           )}
         </CardContent>
       </Card>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md font-hebrew">
-          <DialogHeader>
-            <DialogTitle className="text-right">עריכת קטגוריה</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 text-right">
-            <div>
-              <Label htmlFor="edit-category-name" className="font-hebrew">שם הקטגוריה *</Label>
-              <Input
-                id="edit-category-name"
-                value={newCategory.name}
-                onChange={(e) => setNewCategory({...newCategory, name: e.target.value})}
-                placeholder="למשל: בניה ושיפוצים"
-                className="text-right"
-                dir="rtl"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-category-description" className="font-hebrew">תיאור</Label>
-              <Textarea
-                id="edit-category-description"
-                value={newCategory.description}
-                onChange={(e) => setNewCategory({...newCategory, description: e.target.value})}
-                placeholder="תיאור הקטגוריה..."
-                className="text-right"
-                dir="rtl"
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-parent-category" className="font-hebrew">קטגוריית אב</Label>
-              <Select value={newCategory.parent_id || ""} onValueChange={(value) => setNewCategory({...newCategory, parent_id: value || null})}>
-                <SelectTrigger className="text-right" dir="rtl">
-                  <SelectValue placeholder="בחר קטגוריית אב (אופציונלי)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">ללא קטגוריית אב</SelectItem>
-                  {parentCategories.filter(cat => cat.id !== selectedCategory?.id).map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="edit-category-icon" className="font-hebrew">אייקון</Label>
-              <Input
-                id="edit-category-icon"
-                value={newCategory.icon}
-                onChange={(e) => setNewCategory({...newCategory, icon: e.target.value})}
-                placeholder="שם האייקון (לדוגמה: Home)"
-                className="text-right"
-                dir="rtl"
-              />
-            </div>
-            <div className="flex gap-4 justify-between">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="edit-is-active"
-                  checked={newCategory.is_active}
-                  onChange={(e) => setNewCategory({...newCategory, is_active: e.target.checked})}
-                />
-                <Label htmlFor="edit-is-active" className="font-hebrew">פעיל</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="edit-is-public"
-                  checked={newCategory.is_public}
-                  onChange={(e) => setNewCategory({...newCategory, is_public: e.target.checked})}
-                />
-                <Label htmlFor="edit-is-public" className="font-hebrew">ציבורי</Label>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleEditCategory}
-                className="flex-1 font-hebrew"
-                disabled={!newCategory.name.trim() || updateCategory.isPending}
-              >
-                {updateCategory.isPending ? 'מעדכן...' : 'עדכן קטגוריה'}
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => setIsEditDialogOpen(false)}
-                className="font-hebrew"
-              >
-                ביטול
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
