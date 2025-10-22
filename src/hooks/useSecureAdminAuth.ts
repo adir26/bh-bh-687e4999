@@ -12,15 +12,16 @@ interface AdminSession {
 
 const ADMIN_SESSION_DURATION = 4 * 60 * 60 * 1000; // 4 hours
 const STORAGE_KEY = 'admin_session_v2';
+const DEFAULT_SESSION: AdminSession = {
+  isAuthenticated: false,
+  isValidated: false,
+  sessionExpiry: null,
+  sessionToken: ''
+};
 
 export const useSecureAdminAuth = () => {
   const { user, profile } = useAuth();
-  const [adminSession, setAdminSession] = useState<AdminSession>({
-    isAuthenticated: false,
-    isValidated: false,
-    sessionExpiry: null,
-    sessionToken: ''
-  });
+  const [adminSession, setAdminSession] = useState<AdminSession>(DEFAULT_SESSION);
   const isValidating = useRef(false);
 
   const validateAdminAccess = async () => {
@@ -113,14 +114,38 @@ export const useSecureAdminAuth = () => {
   };
 
   const clearAdminSession = () => {
-    setAdminSession({
-      isAuthenticated: false,
-      isValidated: false,
-      sessionExpiry: null,
-      sessionToken: ''
-    });
+    setAdminSession(DEFAULT_SESSION);
     SecureStorage.remove(STORAGE_KEY);
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const restoreSession = async () => {
+      const storedSession = await getStoredSession();
+      if (!isMounted) return;
+
+      if (storedSession?.sessionExpiry && storedSession.sessionExpiry.getTime() > Date.now()) {
+        const isValidated = storedSession.isValidated ?? false;
+        setAdminSession({
+          ...storedSession,
+          // Ensure the hydrated session is marked as validated to prevent re-check loops
+          isAuthenticated: Boolean(storedSession.isAuthenticated) && isValidated,
+          isValidated
+        });
+      } else if (storedSession) {
+        // Stored session exists but expired – clear it to avoid stale data loops
+        setAdminSession(DEFAULT_SESSION);
+        SecureStorage.remove(STORAGE_KEY);
+      }
+    };
+
+    restoreSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const extendSession = async () => {
     if (adminSession.isValidated && adminSession.sessionToken) {
