@@ -2,218 +2,45 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';
-import { CategorySection } from '@/components/CategorySection';
-import { showToast } from '@/utils/toast';
+import { SupplierSection } from '@/components/SupplierSection';
+import { useCategorySuppliers } from '@/hooks/useCategorySuppliers';
+import { Supplier } from '@/data/suppliers';
+import { Card } from '@/components/ui/card';
 
 const TopSuppliers = () => {
   const navigate = useNavigate();
 
-  // קבלני שיפוצים
-  const renovationContractors = [
-    {
-      id: '1',
-      title: 'קבלן שיפוצים מוביל 1',
-      subtitle: 'קבלני שיפוצים',
-      image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'קבלן שיפוצים מוביל 2',
-      subtitle: 'קבלני שיפוצים',
-      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'קבלן שיפוצים מוביל 3',
-      subtitle: 'קבלני שיפוצים',
-      image: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=480&h=480&fit=crop'
-    }
-  ];
-
-  // חשמלאים
-  const electricians = [
-    {
-      id: '1',
-      title: 'חשמלאי מוביל 1',
-      subtitle: 'חשמלאים',
-      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'חשמלאי מוביל 2',
-      subtitle: 'חשמלאים',
-      image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'חשמלאי מוביל 3',
-      subtitle: 'חשמלאים',
-      image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=480&h=480&fit=crop'
-    }
-  ];
-
-  // אינסטלטורים
-  const plumbers = [
-    {
-      id: '1',
-      title: 'אינסטלטור מוביל 1',
-      subtitle: 'אינסטלטורים',
-      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'אינסטלטור מוביל 2',
-      subtitle: 'אינסטלטורים',
-      image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'אינסטלטור מוביל 3',
-      subtitle: 'אינסטלטורים',
-      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=480&h=480&fit=crop'
-    }
-  ];
-
-  // מתקיני מיזוג אוויר
-  const airConditioningInstallers = [
-    {
-      id: '1',
-      title: 'מתקין מיזוג מוביל 1',
-      subtitle: 'מתקיני מיזוג אוויר',
-      image: 'https://images.unsplash.com/photo-1634638324170-0cd3b310f2ae?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'מתקין מיזוג מוביל 2',
-      subtitle: 'מתקיני מיזוג אוויר',
-      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'מתקין מיזוג מוביל 3',
-      subtitle: 'מתקיני מיזוג אוויר',
-      image: 'https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?w=480&h=480&fit=crop'
-    }
-  ];
-
-  // קבלני גבס
-  const drywallContractors = [
-    {
-      id: '1',
-      title: 'קבלן גבס מוביל 1',
-      subtitle: 'קבלני גבס',
-      image: 'https://images.unsplash.com/photo-1540932239986-30128078f3c5?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'קבלן גבס מוביל 2',
-      subtitle: 'קבלני גבס',
-      image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'קבלן גבס מוביל 3',
-      subtitle: 'קבלני גבס',
-      image: 'https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=480&h=480&fit=crop'
-    }
-  ];
-
-  // מעצבי פנים
-  const interiorDesigners = [
-    {
-      id: '1',
-      title: 'מעצב פנים מוביל 1',
-      subtitle: 'מעצבי פנים',
-      image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'מעצב פנים מוביל 2',
-      subtitle: 'מעצבי פנים',
-      image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'מעצב פנים מוביל 3',
-      subtitle: 'מעצבי פנים',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=480&h=480&fit=crop'
-    }
-  ];
-
-  // חנויות רהיטים
-  const furnitureStores = [
-    {
-      id: '1',
-      title: 'חנות רהיטים מובילה 1',
-      subtitle: 'חנויות רהיטים',
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'חנות רהיטים מובילה 2',
-      subtitle: 'חנויות רהיטים',
-      image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'חנות רהיטים מובילה 3',
-      subtitle: 'חנויות רהיטים',
-      image: 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=480&h=480&fit=crop'
-    }
-  ];
-
-  // יועצי משכנתאות
-  const mortgageAdvisors = [
-    {
-      id: '1',
-      title: 'יועץ משכנתאות מוביל 1',
-      subtitle: 'יועצי משכנתאות',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'יועץ משכנתאות מוביל 2',
-      subtitle: 'יועצי משכנתאות',
-      image: 'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'יועץ משכנתאות מוביל 3',
-      subtitle: 'יועצי משכנתאות',
-      image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=480&h=480&fit=crop'
-    }
-  ];
-
-  // חברות הובלה
-  const movingCompanies = [
-    {
-      id: '1',
-      title: 'חברת הובלה מובילה 1',
-      subtitle: 'חברות הובלה',
-      image: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=480&h=480&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'חברת הובלה מובילה 2',
-      subtitle: 'חברות הובלה',
-      image: 'https://images.unsplash.com/photo-1609942924155-81c0ad76e738?w=480&h=480&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'חברת הובלה מובילה 3',
-      subtitle: 'חברות הובלה',
-      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=480&h=480&fit=crop'
-    }
-  ];
+  // Load suppliers from database for each category
+  const { data: renovationContractors = [], isLoading: loadingRenovation } = useCategorySuppliers('renovation');
+  const { data: electricians = [], isLoading: loadingElectricians } = useCategorySuppliers('electricians');
+  const { data: plumbers = [], isLoading: loadingPlumbers } = useCategorySuppliers('plumbers');
+  const { data: airConditioningInstallers = [], isLoading: loadingAC } = useCategorySuppliers('air-conditioning');
+  const { data: drywallContractors = [], isLoading: loadingDrywall } = useCategorySuppliers('drywall');
+  const { data: interiorDesigners = [], isLoading: loadingDesigners } = useCategorySuppliers('interior-design');
+  const { data: furnitureStores = [], isLoading: loadingFurniture } = useCategorySuppliers('furniture');
+  const { data: mortgageAdvisors = [], isLoading: loadingMortgage } = useCategorySuppliers('mortgage-advisors');
+  const { data: movingCompanies = [], isLoading: loadingMoving } = useCategorySuppliers('moving-services');
 
   // Event handlers
-  const handleCategoryClick = (item: any) => {
-    showToast.success(`נבחר ספק: ${item.title} - יועבר לפרופיל`);
+  const handleSupplierClick = (supplier: Supplier) => {
+    // Navigate to real supplier profile using slug
+    if (supplier.slug) {
+      navigate(`/s/${supplier.slug}`);
+    } else {
+      navigate(`/supplier/${supplier.id}`);
+    }
   };
 
   const handleAllSuppliersClick = (category: string) => {
     navigate(`/category/${category}/suppliers`);
   };
+
+  // Empty state component
+  const EmptyState = ({ category }: { category: string }) => (
+    <Card className="p-6 text-center text-muted-foreground mx-3">
+      אין ספקים זמינים בקטגוריה {category} כרגע
+    </Card>
+  );
 
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-white">
@@ -225,12 +52,18 @@ const TopSuppliers = () => {
             <SectionTitleWithButton 
               title="קבלני שיפוצים" 
               buttonText="לכל הספקים"
-              onButtonClick={() => handleAllSuppliersClick('renovation-contractors')}
+              onButtonClick={() => handleAllSuppliersClick('renovation')}
             />
-            <CategorySection 
-              items={renovationContractors} 
-              onItemClick={handleCategoryClick}
-            />
+            {loadingRenovation ? (
+              <div className="text-center py-4 text-muted-foreground">טוען...</div>
+            ) : renovationContractors.length > 0 ? (
+              <SupplierSection 
+                suppliers={renovationContractors} 
+                onSupplierClick={handleSupplierClick}
+              />
+            ) : (
+              <EmptyState category="קבלני שיפוצים" />
+            )}
           </div>
 
           <div className="w-full">
@@ -239,10 +72,16 @@ const TopSuppliers = () => {
               buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('electricians')}
             />
-            <CategorySection 
-              items={electricians} 
-              onItemClick={handleCategoryClick}
-            />
+            {loadingElectricians ? (
+              <div className="text-center py-4 text-muted-foreground">טוען...</div>
+            ) : electricians.length > 0 ? (
+              <SupplierSection 
+                suppliers={electricians} 
+                onSupplierClick={handleSupplierClick}
+              />
+            ) : (
+              <EmptyState category="חשמלאים" />
+            )}
           </div>
 
           <div className="w-full">
@@ -251,10 +90,16 @@ const TopSuppliers = () => {
               buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('plumbers')}
             />
-            <CategorySection 
-              items={plumbers} 
-              onItemClick={handleCategoryClick}
-            />
+            {loadingPlumbers ? (
+              <div className="text-center py-4 text-muted-foreground">טוען...</div>
+            ) : plumbers.length > 0 ? (
+              <SupplierSection 
+                suppliers={plumbers} 
+                onSupplierClick={handleSupplierClick}
+              />
+            ) : (
+              <EmptyState category="אינסטלטורים" />
+            )}
           </div>
 
           <div className="w-full">
@@ -263,34 +108,52 @@ const TopSuppliers = () => {
               buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('air-conditioning')}
             />
-            <CategorySection 
-              items={airConditioningInstallers} 
-              onItemClick={handleCategoryClick}
-            />
+            {loadingAC ? (
+              <div className="text-center py-4 text-muted-foreground">טוען...</div>
+            ) : airConditioningInstallers.length > 0 ? (
+              <SupplierSection 
+                suppliers={airConditioningInstallers} 
+                onSupplierClick={handleSupplierClick}
+              />
+            ) : (
+              <EmptyState category="מתקיני מיזוג אוויר" />
+            )}
           </div>
 
           <div className="w-full">
             <SectionTitleWithButton 
               title="קבלני גבס" 
               buttonText="לכל הספקים"
-              onButtonClick={() => handleAllSuppliersClick('drywall-contractors')}
+              onButtonClick={() => handleAllSuppliersClick('drywall')}
             />
-            <CategorySection 
-              items={drywallContractors} 
-              onItemClick={handleCategoryClick}
-            />
+            {loadingDrywall ? (
+              <div className="text-center py-4 text-muted-foreground">טוען...</div>
+            ) : drywallContractors.length > 0 ? (
+              <SupplierSection 
+                suppliers={drywallContractors} 
+                onSupplierClick={handleSupplierClick}
+              />
+            ) : (
+              <EmptyState category="קבלני גבס" />
+            )}
           </div>
 
           <div className="w-full">
             <SectionTitleWithButton 
               title="מעצבי פנים" 
               buttonText="לכל הספקים"
-              onButtonClick={() => handleAllSuppliersClick('interior-designers')}
+              onButtonClick={() => handleAllSuppliersClick('interior-design')}
             />
-            <CategorySection 
-              items={interiorDesigners} 
-              onItemClick={handleCategoryClick}
-            />
+            {loadingDesigners ? (
+              <div className="text-center py-4 text-muted-foreground">טוען...</div>
+            ) : interiorDesigners.length > 0 ? (
+              <SupplierSection 
+                suppliers={interiorDesigners} 
+                onSupplierClick={handleSupplierClick}
+              />
+            ) : (
+              <EmptyState category="מעצבי פנים" />
+            )}
           </div>
 
           <div className="w-full">
@@ -299,10 +162,16 @@ const TopSuppliers = () => {
               buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('furniture')}
             />
-            <CategorySection 
-              items={furnitureStores} 
-              onItemClick={handleCategoryClick}
-            />
+            {loadingFurniture ? (
+              <div className="text-center py-4 text-muted-foreground">טוען...</div>
+            ) : furnitureStores.length > 0 ? (
+              <SupplierSection 
+                suppliers={furnitureStores} 
+                onSupplierClick={handleSupplierClick}
+              />
+            ) : (
+              <EmptyState category="חנויות רהיטים" />
+            )}
           </div>
 
           <div className="w-full">
@@ -311,22 +180,34 @@ const TopSuppliers = () => {
               buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('mortgage-advisors')}
             />
-            <CategorySection 
-              items={mortgageAdvisors} 
-              onItemClick={handleCategoryClick}
-            />
+            {loadingMortgage ? (
+              <div className="text-center py-4 text-muted-foreground">טוען...</div>
+            ) : mortgageAdvisors.length > 0 ? (
+              <SupplierSection 
+                suppliers={mortgageAdvisors} 
+                onSupplierClick={handleSupplierClick}
+              />
+            ) : (
+              <EmptyState category="יועצי משכנתאות" />
+            )}
           </div>
 
           <div className="w-full">
             <SectionTitleWithButton 
               title="חברות הובלה" 
               buttonText="לכל הספקים"
-              onButtonClick={() => handleAllSuppliersClick('moving-companies')}
+              onButtonClick={() => handleAllSuppliersClick('moving-services')}
             />
-            <CategorySection 
-              items={movingCompanies} 
-              onItemClick={handleCategoryClick}
-            />
+            {loadingMoving ? (
+              <div className="text-center py-4 text-muted-foreground">טוען...</div>
+            ) : movingCompanies.length > 0 ? (
+              <SupplierSection 
+                suppliers={movingCompanies} 
+                onSupplierClick={handleSupplierClick}
+              />
+            ) : (
+              <EmptyState category="חברות הובלה" />
+            )}
           </div>
         </div>
       </main>

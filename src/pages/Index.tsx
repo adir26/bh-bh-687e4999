@@ -16,7 +16,7 @@ import { BottomCTA } from '@/components/BottomCTA';
 import { OnboardingStatusBanner } from '@/components/OnboardingStatusBanner';
 import { SearchInput } from '@/components/ui/search-input';
 import { PopularCategories } from '@/components/PopularCategories';
-import { getSuppliersByCategory, Supplier } from '@/data/suppliers';
+import { Supplier } from '@/data/suppliers';
 import { showToast } from '@/utils/toast';
 
 // Import local images
@@ -328,11 +328,11 @@ const Index = () => {
     }
   ];
 
-  // Get suppliers for each category
-  const kitchenSuppliers = getSuppliersByCategory('kitchens');
-  const furnitureSuppliers = getSuppliersByCategory('furniture');
-  const airConditioningSuppliers = getSuppliersByCategory('air-conditioning');
-  const renovationSuppliers = getSuppliersByCategory('renovation');
+  // Get suppliers from database for each category
+  const { data: kitchenSuppliers = [] } = useCategorySuppliers('kitchens');
+  const { data: furnitureSuppliers = [] } = useCategorySuppliers('furniture');
+  const { data: airConditioningSuppliers = [] } = useCategorySuppliers('air-conditioning');
+  const { data: renovationSuppliers = [] } = useCategorySuppliers('renovation');
 
   // Event handlers
   const handleQuickSelectionClick = (item: any) => {
