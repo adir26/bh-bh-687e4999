@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "./AdminSidebar";
@@ -17,24 +17,24 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
   const { isAdminAuthenticated, validateAdminAccess } = useSecureAdminAuth();
 
-  useEffect(() => {
-    const checkAdminAuth = async () => {
-      if (location.pathname === "/admin/login") return;
-      
-      // Use secure admin authentication
-      const isValid = await validateAdminAccess();
-      if (!isValid) {
-        // Clear any insecure legacy data
-        SecureStorage.remove('adminAuthenticated');
-        SecureStorage.remove('adminUserId');
-        localStorage.removeItem("adminAuthenticated");
-        localStorage.removeItem("adminUserId");
-        navigate("/admin/login");
-      }
-    };
+  const checkAuth = useCallback(async () => {
+    if (location.pathname === "/admin/login") return;
+    
+    // Use secure admin authentication
+    const isValid = await validateAdminAccess();
+    if (!isValid) {
+      // Clear any insecure legacy data
+      SecureStorage.remove('adminAuthenticated');
+      SecureStorage.remove('adminUserId');
+      localStorage.removeItem("adminAuthenticated");
+      localStorage.removeItem("adminUserId");
+      navigate("/admin/login");
+    }
+  }, [location.pathname, validateAdminAccess, navigate]);
 
-    checkAdminAuth();
-  }, [navigate, location.pathname, validateAdminAccess]);
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
 
   const isLoginPage = location.pathname === "/admin/login";
 
@@ -44,7 +44,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   // Block access if admin authentication is not validated
   if (!isAdminAuthenticated) {
-    return null; // Let the useEffect handle navigation
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">מאמת הרשאות מנהל...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

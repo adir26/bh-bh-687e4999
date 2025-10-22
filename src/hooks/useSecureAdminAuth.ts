@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { SecureStorage } from '@/utils/secureStorage';
@@ -10,7 +10,7 @@ interface AdminSession {
   sessionToken: string;
 }
 
-const ADMIN_SESSION_DURATION = 30 * 60 * 1000; // 30 minutes (reduced from 4 hours)
+const ADMIN_SESSION_DURATION = 4 * 60 * 60 * 1000; // 4 hours
 const STORAGE_KEY = 'admin_session_v2';
 
 export const useSecureAdminAuth = () => {
@@ -21,13 +21,15 @@ export const useSecureAdminAuth = () => {
     sessionExpiry: null,
     sessionToken: ''
   });
-
-  // Validate admin session on mount and auth changes
-  useEffect(() => {
-    validateAdminAccess();
-  }, [user, profile]);
+  const isValidating = useRef(false);
 
   const validateAdminAccess = async () => {
+    // Prevent concurrent validations
+    if (isValidating.current) {
+      return adminSession.isAuthenticated && adminSession.isValidated;
+    }
+    
+    isValidating.current = true;
     try {
       // First check if user is authenticated and has admin role in profile
       if (!user || !profile || profile.role !== 'admin') {
@@ -73,6 +75,8 @@ export const useSecureAdminAuth = () => {
       console.error('Admin validation error:', error);
       clearAdminSession();
       return false;
+    } finally {
+      isValidating.current = false;
     }
   };
 
