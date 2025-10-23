@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
@@ -16,6 +16,10 @@ import { Plus, Edit, Trash2, GripVertical, Upload, X } from 'lucide-react';
 import { useHomepageItems, useCreateItem, useUpdateItem, useDeleteItem, useReorderItems, useHomepageImageUpload } from '@/hooks/useHomepageCMS';
 import type { HomepageSection, HomepageItem, LinkType, CreateItemRequest, UpdateItemRequest } from '@/types/homepage';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useToast } from '@/hooks/use-toast';
 
 interface HomepageItemManagerProps {
   section: HomepageSection;
@@ -329,10 +333,14 @@ function ItemEditor({ item, sectionId, open, onClose }: ItemEditorProps) {
 export function HomepageItemManager({ section, open, onClose }: HomepageItemManagerProps) {
   const [editingItem, setEditingItem] = useState<HomepageItem | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [showSupplierSelector, setShowSupplierSelector] = useState(false);
 
   const { data: items = [] } = useHomepageItems(section.id);
   const deleteItem = useDeleteItem();
   const reorderItems = useReorderItems();
+
+  // Check if this is a supplier_cards section
+  const isSupplierSection = section.type === 'supplier_cards';
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -368,9 +376,9 @@ export function HomepageItemManager({ section, open, onClose }: HomepageItemMana
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>ניהול פריטים - {section.title_he || section.type}</span>
-              <Button onClick={() => setIsCreating(true)}>
+              <Button onClick={() => isSupplierSection ? setShowSupplierSelector(true) : setIsCreating(true)}>
                 <Plus className="h-4 w-4 ml-2" />
-                פריט חדש
+                {isSupplierSection ? 'בחר ספקים' : 'פריט חדש'}
               </Button>
             </DialogTitle>
           </DialogHeader>
@@ -421,15 +429,205 @@ export function HomepageItemManager({ section, open, onClose }: HomepageItemMana
         </DialogContent>
       </Dialog>
 
-      <ItemEditor
-        item={editingItem || undefined}
-        sectionId={section.id}
-        open={isCreating || !!editingItem}
-        onClose={() => {
-          setIsCreating(false);
-          setEditingItem(null);
-        }}
-      />
+      {isSupplierSection ? (
+        <SupplierSelector
+          sectionId={section.id}
+          open={showSupplierSelector}
+          onClose={() => setShowSupplierSelector(false)}
+          existingItems={items}
+        />
+      ) : (
+        <ItemEditor
+          item={editingItem || undefined}
+          sectionId={section.id}
+          open={isCreating || !!editingItem}
+          onClose={() => {
+            setIsCreating(false);
+            setEditingItem(null);
+          }}
+        />
+      )}
+
+      {!isSupplierSection && editingItem && (
+        <ItemEditor
+          item={editingItem}
+          sectionId={section.id}
+          open={!!editingItem}
+          onClose={() => setEditingItem(null)}
+        />
+      )}
     </>
+  );
+}
+
+interface SupplierSelectorProps {
+  sectionId: string;
+  open: boolean;
+  onClose: () => void;
+  existingItems: HomepageItem[];
+}
+
+function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierSelectorProps) {
+  const [selectedSuppliers, setSelectedSuppliers] = useState<Set<string>>(new Set());
+  const createItem = useCreateItem();
+  const deleteItem = useDeleteItem();
+  const { toast } = useToast();
+
+  // Fetch all approved suppliers
+  const { data: suppliers = [], isLoading } = useQuery({
+    queryKey: ['approved-suppliers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('id, name, tagline, logo_url, slug, featured, rating')
+        .eq('status', 'approved')
+        .eq('is_public', true)
+        .order('featured', { ascending: false })
+        .order('rating', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open
+  });
+
+  // Initialize selected suppliers from existing items
+  useEffect(() => {
+    if (open && existingItems.length > 0) {
+      const existingSupplierIds = new Set(
+        existingItems
+          .filter(item => item.link_type === 'supplier' && item.link_target_id)
+          .map(item => item.link_target_id!)
+      );
+      setSelectedSuppliers(existingSupplierIds);
+    }
+  }, [open, existingItems]);
+
+  const toggleSupplier = (supplierId: string) => {
+    setSelectedSuppliers(prev => {
+      const next = new Set(prev);
+      if (next.has(supplierId)) {
+        next.delete(supplierId);
+      } else {
+        next.add(supplierId);
+      }
+      return next;
+    });
+  };
+
+  const handleSave = async () => {
+    try {
+      // Get current supplier IDs
+      const currentSupplierIds = new Set(
+        existingItems
+          .filter(item => item.link_type === 'supplier' && item.link_target_id)
+          .map(item => item.link_target_id!)
+      );
+
+      // Remove deselected suppliers
+      const toRemove = existingItems.filter(
+        item => item.link_type === 'supplier' && 
+                item.link_target_id && 
+                !selectedSuppliers.has(item.link_target_id)
+      );
+
+      for (const item of toRemove) {
+        await deleteItem.mutateAsync({ id: item.id, section_id: sectionId });
+      }
+
+      // Add newly selected suppliers
+      const toAdd = Array.from(selectedSuppliers).filter(
+        id => !currentSupplierIds.has(id)
+      );
+
+      let orderIndex = existingItems.length;
+      for (const supplierId of toAdd) {
+        const supplier = suppliers.find(s => s.id === supplierId);
+        if (!supplier) continue;
+
+        await createItem.mutateAsync({
+          section_id: sectionId,
+          title_he: supplier.name,
+          subtitle_he: supplier.tagline || '',
+          image_url: supplier.logo_url || '',
+          link_type: 'supplier',
+          link_target_id: supplierId,
+          order_index: orderIndex++,
+          is_active: true
+        });
+      }
+
+      toast({
+        title: 'הצלחה',
+        description: 'הספקים עודכנו בהצלחה'
+      });
+      onClose();
+    } catch (error) {
+      console.error('Error saving suppliers:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'אירעה שגיאה בשמירת הספקים',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogHeader>
+          <DialogTitle>בחר ספקים מובילים</DialogTitle>
+        </DialogHeader>
+
+        {isLoading ? (
+          <div className="text-center py-8">טוען ספקים...</div>
+        ) : (
+          <div className="space-y-2">
+            {suppliers.map(supplier => (
+              <div
+                key={supplier.id}
+                className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                onClick={() => toggleSupplier(supplier.id)}
+              >
+                <Checkbox
+                  checked={selectedSuppliers.has(supplier.id)}
+                  onCheckedChange={() => toggleSupplier(supplier.id)}
+                />
+                {supplier.logo_url && (
+                  <img
+                    src={supplier.logo_url}
+                    alt={supplier.name}
+                    className="w-10 h-10 object-cover rounded"
+                  />
+                )}
+                <div className="flex-1 text-right">
+                  <div className="font-medium flex items-center gap-2">
+                    {supplier.name}
+                    {supplier.featured && (
+                      <Badge variant="secondary" className="text-xs">מומלץ</Badge>
+                    )}
+                  </div>
+                  {supplier.tagline && (
+                    <div className="text-sm text-muted-foreground">{supplier.tagline}</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex justify-between pt-4">
+          <Button 
+            onClick={handleSave}
+            disabled={createItem.isPending || deleteItem.isPending}
+          >
+            שמור ({selectedSuppliers.size} ספקים)
+          </Button>
+          <Button variant="outline" onClick={onClose}>
+            ביטול
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

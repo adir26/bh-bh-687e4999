@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { isInGuestMode } from '@/hooks/useGuestMode';
 import { useCategorySuppliers } from '@/hooks/useCategorySuppliers';
 import { useAppEvents } from '@/hooks/useAppEvents';
+import { useHomepagePublicContent } from '@/hooks/useHomepageCMS';
 import { OnboardingGuard } from '@/components/OnboardingGuard';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
@@ -49,6 +50,40 @@ const Index = () => {
   const { data: mortgageAdvisorsData = [] } = useCategorySuppliers('mortgage-advisors');
   const { data: movingServicesData = [] } = useCategorySuppliers('moving-services');
   const { data: homeLoansData = [] } = useCategorySuppliers('home-loans');
+
+  // Fetch featured suppliers from CMS
+  const { data: homepageContent = [] } = useHomepagePublicContent('web');
+  
+  // Extract featured suppliers section
+  const featuredSuppliersSection = homepageContent.find(
+    item => item.section_type === 'supplier_cards' && item.section_id
+  );
+
+  // Group items by section to get featured suppliers
+  const featuredSupplierItems = homepageContent.filter(
+    item => item.section_type === 'supplier_cards' && 
+            item.item_link_type === 'supplier' &&
+            item.item_link_target_id
+  );
+
+  // Convert CMS items to Supplier format
+  const featuredSuppliers: Supplier[] = featuredSupplierItems.map(item => ({
+    id: item.item_link_target_id || '',
+    name: item.item_title || '',
+    tagline: item.item_subtitle || '',
+    logo: item.item_image_url || '',
+    category: '',
+    rating: 0,
+    reviewCount: 0,
+    phone: '',
+    location: '',
+    description: '',
+    slug: item.item_link_target_id || '',
+    services: [],
+    gallery: [],
+    products: [],
+    reviews: []
+  }));
   
   // Calculate CTA href based on auth state
   const ctaHref = user && !isGuest ? '/onboarding/welcome' : '/welcome';
@@ -497,6 +532,21 @@ const Index = () => {
               onItemClick={handleCategoryClick}
             />
           </div>
+
+          {/* Featured Suppliers from CMS */}
+          {featuredSuppliers.length > 0 && (
+            <div className="w-full">
+              <SectionTitleWithButton 
+                title="ספקים מובילים"
+                buttonText="לכל הספקים"
+                onButtonClick={() => navigate('/top-suppliers')}
+              />
+              <SupplierSection 
+                suppliers={featuredSuppliers}
+                onSupplierClick={handleSupplierClick}
+              />
+            </div>
+          )}
 
           <div className="w-full">
             <SectionTitleWithButton 
