@@ -104,6 +104,7 @@ import PermissionsManagement from "./pages/admin/PermissionsManagement";
 import { HomepageContentManagement } from "./pages/admin/HomepageContentManagement";
 import { HomepagePreview } from "./pages/admin/HomepagePreview";
 import { AdminLayout } from "./components/admin/AdminLayout";
+import { AdminRouteGuard } from "./components/admin/AdminRouteGuard";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { OnboardingGuard } from "./components/OnboardingGuard";
@@ -548,13 +549,15 @@ const App = () => {
                 } />
                 <Route path="/ideabooks/:id" element={<IdeabookDetail />} />
                 
-                {/* Admin routes - Nested structure with single AdminLayout */}
+                {/* Admin routes - Nested structure with single AdminLayout + AdminRouteGuard */}
                 <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
                 <Route
                   path="/admin"
                   element={
                     <ProtectedRoute allowedRoles={['admin']} redirectTo="/admin/login">
-                      <AdminLayout />
+                      <AdminRouteGuard>
+                        <AdminLayout />
+                      </AdminRouteGuard>
                     </ProtectedRoute>
                   }
                 >
@@ -563,22 +566,10 @@ const App = () => {
                   <Route path="users" element={<Navigate to="/admin/customers" replace />} />
                   <Route path="customers" element={<CustomerManagement />} />
                   <Route path="suppliers" element={<SupplierManagement />} />
-                  <Route path="orders" element={<AdminOrderManagement />} />
-                  <Route path="quotes" element={<QuoteManagement />} />
-                  <Route path="complaints" element={<ComplaintManagement />} />
                   <Route path="categories" element={<CategoryManagement />} />
-                  <Route path="support-chat" element={<SupportChatManagement />} />
-                  <Route path="leads" element={<LeadManagement />} />
-                  <Route path="content" element={<ContentManagement />} />
-                  <Route path="reviews" element={<ReviewsModeration />} />
-                  <Route path="reports" element={<AdvancedReports />} />
-                  <Route path="automation" element={<AutomationCenter />} />
-                  <Route path="permissions" element={<PermissionsManagement />} />
                   <Route path="homepage-content" element={<HomepageContentManagement />} />
                   <Route path="homepage-content/preview" element={<HomepagePreview />} />
-                  <Route path="inspiration" element={<AdminInspiration />} />
                   <Route path="analytics" element={<AdminAnalytics />} />
-                  <Route path="settings" element={<SystemSettings />} />
                 </Route>
                  
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

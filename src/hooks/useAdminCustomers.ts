@@ -262,7 +262,11 @@ export const useCustomerRealtimeSubscription = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const channel = supabase
+    // Import and check ADMIN_REALTIME_ENABLED
+    import('@/config/adminFlags').then(({ ADMIN_REALTIME_ENABLED }) => {
+      if (!ADMIN_REALTIME_ENABLED) return;
+      
+      const channel = supabase
       .channel('admin-customers-changes')
       .on(
         'postgres_changes',
@@ -286,10 +290,11 @@ export const useCustomerRealtimeSubscription = () => {
           queryClient.invalidateQueries({ queryKey: ['customer-complaints'] });
         }
       )
-      .subscribe();
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    });
   }, [queryClient]);
 };

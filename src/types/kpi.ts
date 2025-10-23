@@ -6,12 +6,13 @@ export interface DateRange {
 }
 
 export interface KpiData {
-  date: string;
-  new_users: number;
-  new_suppliers: number;
-  orders_count: number;
-  gmv_ils: number;
-  revenue_ils: number;
+  d: string;
+  signups_total: number;
+  signups_suppliers: number;
+  signups_customers: number;
+  dau: number;
+  wau: number;
+  mau: number;
 }
 
 export interface TopSupplier {

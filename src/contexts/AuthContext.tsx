@@ -351,6 +351,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
 
+      // Log login success event
+      try {
+        if (data.user) {
+          await supabase.from('app_events').insert({
+            user_id: data.user.id,
+            role: data.user.user_metadata?.role || 'client',
+            event_name: 'login_success',
+            metadata: { timestamp: new Date().toISOString() }
+          });
+        }
+      } catch (error) {
+        console.error('Failed to log login event:', error);
+      }
+
       // Profile fetch and navigation will be handled by useEffect
       console.log('[AUTH] Login successful, profile and navigation handled by useEffect');
 

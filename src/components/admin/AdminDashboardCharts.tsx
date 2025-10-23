@@ -111,11 +111,19 @@ export const AdminDashboardCharts: React.FC<AdminDashboardChartsProps> = ({
     );
   }
 
-  // Prepare chart data
-  const revenueChartData = kpiData.map(item => ({
-    date: item.date,
-    הכנסות: item.revenue_ils,
-    הזמנות: item.orders_count,
+  // Prepare chart data - עכשיו עם DAU/WAU/MAU
+  const userActivityChartData = kpiData.map(item => ({
+    date: item.d,
+    DAU: item.dau,
+    WAU: item.wau,
+    MAU: item.mau,
+  }));
+
+  const signupsChartData = kpiData.map(item => ({
+    date: item.d,
+    'הרשמות כוללות': item.signups_total,
+    'לקוחות': item.signups_customers,
+    'ספקים': item.signups_suppliers,
   }));
 
   const suppliersTableData = topSuppliers.slice(0, 10).map(supplier => ({
@@ -142,15 +150,15 @@ export const AdminDashboardCharts: React.FC<AdminDashboardChartsProps> = ({
         <Card className="mobile-card">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-right font-hebrew text-mobile-sm md:text-base">
-              מגמות הכנסות והזמנות יומיות
+              פעילות משתמשים (DAU/WAU/MAU)
             </CardTitle>
             <Button
               variant="outline"
               size="sm"
               onClick={() => exportToCSV(
-                revenueChartData, 
-                'revenue_trends', 
-                ['date', 'revenue', 'orders']
+                userActivityChartData, 
+                'user_activity', 
+                ['date', 'DAU', 'WAU', 'MAU']
               )}
               className="gap-2"
             >
@@ -161,7 +169,7 @@ export const AdminDashboardCharts: React.FC<AdminDashboardChartsProps> = ({
           <CardContent>
             <div className="h-[200px] md:h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueChartData}>
+                <LineChart data={userActivityChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis 
                     dataKey="date" 
@@ -171,19 +179,66 @@ export const AdminDashboardCharts: React.FC<AdminDashboardChartsProps> = ({
                   <Tooltip content={<CustomTooltip />} />
                   <Line 
                     type="monotone" 
-                    dataKey="הכנסות" 
+                    dataKey="DAU" 
                     stroke="#8884d8" 
                     strokeWidth={2}
-                    name="הכנסות יומיות"
+                    name="משתמשים יומיים פעילים"
                   />
                   <Line 
                     type="monotone" 
-                    dataKey="הזמנות" 
+                    dataKey="WAU" 
                     stroke="#82ca9d" 
                     strokeWidth={2}
-                    name="הזמנות יומיות"
+                    name="משתמשים שבועיים פעילים"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="MAU" 
+                    stroke="#ffc658" 
+                    strokeWidth={2}
+                    name="משתמשים חודשיים פעילים"
                   />
                 </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Signups Chart */}
+        <Card className="mobile-card">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-right font-hebrew text-mobile-sm md:text-base">
+              הרשמות יומיות
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportToCSV(
+                signupsChartData, 
+                'daily_signups', 
+                ['date', 'הרשמות כוללות', 'לקוחות', 'ספקים']
+              )}
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              CSV
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[200px] md:h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={signupsChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="date" 
+                    tickFormatter={(value) => format(new Date(value), 'dd/MM')}
+                  />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="הרשמות כוללות" fill="#8884d8" />
+                  <Bar dataKey="לקוחות" fill="#82ca9d" />
+                  <Bar dataKey="ספקים" fill="#ffc658" />
+                </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>

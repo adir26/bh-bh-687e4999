@@ -348,7 +348,11 @@ export const useCategoryRealtimeSubscription = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const channel = supabase
+    // Import and check ADMIN_REALTIME_ENABLED
+    import('@/config/adminFlags').then(({ ADMIN_REALTIME_ENABLED }) => {
+      if (!ADMIN_REALTIME_ENABLED) return;
+      
+      const channel = supabase
       .channel('admin-categories-changes')
       .on(
         'postgres_changes',
@@ -384,10 +388,11 @@ export const useCategoryRealtimeSubscription = () => {
           queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
         }
       )
-      .subscribe();
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    });
   }, [queryClient]);
 };

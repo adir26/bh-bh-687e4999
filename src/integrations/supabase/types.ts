@@ -106,12 +106,47 @@ export type Database = {
         }
         Relationships: []
       }
+      app_events: {
+        Row: {
+          event_name: string
+          id: number
+          metadata: Json | null
+          occurred_at: string
+          role: string | null
+          user_id: string | null
+        }
+        Insert: {
+          event_name: string
+          id?: number
+          metadata?: Json | null
+          occurred_at?: string
+          role?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          event_name?: string
+          id?: number
+          metadata?: Json | null
+          occurred_at?: string
+          role?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           changed_fields: string[] | null
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           operation: string
@@ -124,7 +159,7 @@ export type Database = {
           changed_fields?: string[] | null
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           operation: string
@@ -137,7 +172,7 @@ export type Database = {
           changed_fields?: string[] | null
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           operation?: string
@@ -1254,6 +1289,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      kpi_daily: {
+        Row: {
+          d: string
+          dau: number
+          mau: number
+          signups_customers: number
+          signups_suppliers: number
+          signups_total: number
+          wau: number
+        }
+        Insert: {
+          d: string
+          dau?: number
+          mau?: number
+          signups_customers?: number
+          signups_suppliers?: number
+          signups_total?: number
+          wau?: number
+        }
+        Update: {
+          d?: string
+          dau?: number
+          mau?: number
+          signups_customers?: number
+          signups_suppliers?: number
+          signups_total?: number
+          wau?: number
+        }
+        Relationships: []
       }
       lead_activities: {
         Row: {
@@ -3564,7 +3629,7 @@ export type Database = {
           clicked_result_type: string | null
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           results_count: number | null
           search_filters: Json | null
           search_query: string
@@ -3577,7 +3642,7 @@ export type Database = {
           clicked_result_type?: string | null
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           results_count?: number | null
           search_filters?: Json | null
           search_query: string
@@ -3590,7 +3655,7 @@ export type Database = {
           clicked_result_type?: string | null
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           results_count?: number | null
           search_filters?: Json | null
           search_query?: string
@@ -4248,17 +4313,6 @@ export type Database = {
         }
         Relationships: []
       }
-      kpi_daily: {
-        Row: {
-          date: string | null
-          gmv_ils: number | null
-          new_suppliers: number | null
-          new_users: number | null
-          orders_count: number | null
-          revenue_ils: number | null
-        }
-        Relationships: []
-      }
       top_categories_30d: {
         Row: {
           category_id: string | null
@@ -4296,6 +4350,18 @@ export type Database = {
         Args: { _lead_ids: string[]; _supplier_id: string }
         Returns: number
       }
+      admin_get_kpis: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          d: string
+          dau: number
+          mau: number
+          signups_customers: number
+          signups_suppliers: number
+          signups_total: number
+          wau: number
+        }[]
+      }
       admin_merge_leads: {
         Args: { _duplicate_ids: string[]; _primary_id: string }
         Returns: undefined
@@ -4304,10 +4370,7 @@ export type Database = {
         Args: { _amount: number; _order_id: string; _reason: string }
         Returns: string
       }
-      admin_reorder_categories: {
-        Args: { _ids: string[] }
-        Returns: undefined
-      }
+      admin_reorder_categories: { Args: { _ids: string[] }; Returns: undefined }
       admin_update_lead_status: {
         Args: { _lead_ids: string[]; _status: string }
         Returns: number
@@ -4340,10 +4403,7 @@ export type Database = {
         }
         Returns: Json
       }
-      auto_assign_leads: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
+      auto_assign_leads: { Args: never; Returns: number }
       calculate_selection_totals: {
         Args: { p_group_id: string; p_selected_items: Json }
         Returns: Json
@@ -4365,10 +4425,7 @@ export type Database = {
         Args: { p_reason?: string; p_ticket_id: string }
         Returns: undefined
       }
-      create_first_admin: {
-        Args: { _user_id: string }
-        Returns: undefined
-      }
+      create_first_admin: { Args: { _user_id: string }; Returns: undefined }
       create_notification: {
         Args: {
           p_message: string
@@ -4379,10 +4436,7 @@ export type Database = {
         }
         Returns: string
       }
-      create_order_bundle: {
-        Args: { payload: Json }
-        Returns: Json
-      }
+      create_order_bundle: { Args: { payload: Json }; Returns: Json }
       create_order_event: {
         Args: { p_event_type: string; p_meta?: Json; p_order_id: string }
         Returns: string
@@ -4391,34 +4445,13 @@ export type Database = {
         Args: { p_html_content?: string; p_quote_id: string }
         Returns: string
       }
-      delete_user_account: {
-        Args: { user_id: string }
-        Returns: undefined
-      }
-      escalate_overdue_tickets: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      generate_co_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_lead_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_order_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_quote_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_ticket_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      delete_user_account: { Args: { user_id: string }; Returns: undefined }
+      escalate_overdue_tickets: { Args: never; Returns: undefined }
+      generate_co_number: { Args: never; Returns: string }
+      generate_lead_number: { Args: never; Returns: string }
+      generate_order_number: { Args: never; Returns: string }
+      generate_quote_number: { Args: never; Returns: string }
+      generate_ticket_number: { Args: never; Returns: string }
       get_category_performance: {
         Args: { _category_id?: string }
         Returns: {
@@ -4537,10 +4570,7 @@ export type Database = {
         }
         Returns: string
       }
-      is_admin: {
-        Args: { user_id: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { user_id: string }; Returns: boolean }
       is_ideabook_collaborator: {
         Args: { _ideabook_id: string; _user_id: string }
         Returns: boolean
@@ -4553,10 +4583,7 @@ export type Database = {
         Args: { ds: Database["public"]["Enums"]["project_detailed_status"] }
         Returns: Database["public"]["Enums"]["project_status"]
       }
-      mark_all_notifications_read: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
         Args: { notification_id: string }
         Returns: undefined
@@ -4569,14 +4596,8 @@ export type Database = {
         Args: { p_message_ids?: string[]; p_ticket_id: string }
         Returns: undefined
       }
-      process_sla_reminders: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      promote_to_admin: {
-        Args: { target_user_id: string }
-        Returns: undefined
-      }
+      process_sla_reminders: { Args: never; Returns: number }
+      promote_to_admin: { Args: { target_user_id: string }; Returns: undefined }
       recalculate_budget_totals: {
         Args: { p_budget_id: string }
         Returns: undefined
@@ -4590,26 +4611,12 @@ export type Database = {
         }
         Returns: undefined
       }
-      refresh_all_analytics: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      refresh_category_performance: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      refresh_popular_products: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      refresh_project_analytics: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      refresh_supplier_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      refresh_all_analytics: { Args: never; Returns: undefined }
+      refresh_category_performance: { Args: never; Returns: undefined }
+      refresh_kpi_daily: { Args: { p_date?: string }; Returns: undefined }
+      refresh_popular_products: { Args: never; Returns: undefined }
+      refresh_project_analytics: { Args: never; Returns: undefined }
+      refresh_supplier_stats: { Args: never; Returns: undefined }
       rpc_create_project_with_participants: {
         Args: {
           p_budget_max?: number
@@ -4663,14 +4670,8 @@ export type Database = {
         Args: { p_action: string; p_actor_id?: string; p_token: string }
         Returns: Json
       }
-      slugify: {
-        Args: { txt: string }
-        Returns: string
-      }
-      slugify_company_name: {
-        Args: { name: string }
-        Returns: string
-      }
+      slugify: { Args: { txt: string }; Returns: string }
+      slugify_company_name: { Args: { name: string }; Returns: string }
       snooze_lead: {
         Args: { p_hours?: number; p_lead_id: string }
         Returns: boolean
@@ -4745,10 +4746,7 @@ export type Database = {
         Args: { p_entity_id: string; p_entity_type: string }
         Returns: boolean
       }
-      track_profile_view: {
-        Args: { p_company_id: string }
-        Returns: undefined
-      }
+      track_profile_view: { Args: { p_company_id: string }; Returns: undefined }
       update_order_status: {
         Args: {
           p_new_status: string
@@ -4758,10 +4756,7 @@ export type Database = {
         }
         Returns: Json
       }
-      validate_admin_session: {
-        Args: { _user_id: string }
-        Returns: Json
-      }
+      validate_admin_session: { Args: { _user_id: string }; Returns: Json }
       validate_booking_availability: {
         Args: { p_ends_at: string; p_starts_at: string; p_supplier_id: string }
         Returns: boolean

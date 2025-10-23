@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { isInGuestMode } from '@/hooks/useGuestMode';
 import { useCategorySuppliers } from '@/hooks/useCategorySuppliers';
+import { useAppEvents } from '@/hooks/useAppEvents';
 import { OnboardingGuard } from '@/components/OnboardingGuard';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
@@ -37,6 +38,12 @@ const Index = () => {
   const { user } = useAuth();
   const isGuest = isInGuestMode();
   const [searchQuery, setSearchQuery] = useState('');
+  const { logEvent } = useAppEvents();
+
+  // Log app_open event when component mounts
+  useEffect(() => {
+    logEvent('app_open', { page: 'home' });
+  }, []);
   
   // Load suppliers from database
   const { data: mortgageAdvisorsData = [] } = useCategorySuppliers('mortgage-advisors');

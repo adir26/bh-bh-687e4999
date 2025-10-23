@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Users, 
   ShoppingCart, 
@@ -20,6 +21,21 @@ import type { DateRange } from '@/types/kpi';
 
 export default function AdminDashboard() {
   const [dateRange, setDateRange] = useState<DateRange>(getDateRangeFromPreset('30d'));
+
+  // Refresh KPI daily on mount
+  useEffect(() => {
+    const refreshKPIs = async () => {
+      try {
+        await supabase.rpc('refresh_kpi_daily', { 
+          p_date: new Date().toISOString().split('T')[0] 
+        });
+      } catch (error) {
+        console.error('Failed to refresh KPIs:', error);
+      }
+    };
+    
+    refreshKPIs();
+  }, []);
   
   // Fetch real KPI data
   const { data: kpiData, isLoading: kpiLoading, error: kpiError } = useKpiDaily(dateRange);

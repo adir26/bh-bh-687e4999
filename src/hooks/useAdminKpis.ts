@@ -32,14 +32,13 @@ export const useKpiDaily = (dateRange: DateRange) => {
   return useQuery({
     queryKey: ['admin-kpi-daily', format(dateRange.from, 'yyyy-MM-dd'), format(dateRange.to, 'yyyy-MM-dd')],
     queryFn: async (): Promise<KpiData[]> => {
-      const query = supabase
-        .from('kpi_daily')
-        .select('*')
-        .gte('date', format(dateRange.from, 'yyyy-MM-dd'))
-        .lte('date', format(dateRange.to, 'yyyy-MM-dd'))
-        .order('date', { ascending: true });
-
-      const { data, error } = await withTimeout(query, 15000);
+      const { data, error } = await withTimeout(
+        supabase.rpc('admin_get_kpis', {
+          p_from: format(dateRange.from, 'yyyy-MM-dd'),
+          p_to: format(dateRange.to, 'yyyy-MM-dd')
+        }),
+        15000
+      );
 
       if (error) {
         console.error('Error fetching KPI data:', error);
@@ -109,44 +108,46 @@ export const useKpiSummary = (dateRange: DateRange) => {
       const prevTo = subDays(dateRange.to, days);
 
       // Get current period data
-      const currentQuery = supabase
-        .from('kpi_daily')
-        .select('*')
-        .gte('date', format(dateRange.from, 'yyyy-MM-dd'))
-        .lte('date', format(dateRange.to, 'yyyy-MM-dd'));
-
-      const { data: currentData, error: currentError } = await withTimeout(currentQuery, 15000);
+      const { data: currentData, error: currentError } = await withTimeout(
+        supabase.rpc('admin_get_kpis', {
+          p_from: format(dateRange.from, 'yyyy-MM-dd'),
+          p_to: format(dateRange.to, 'yyyy-MM-dd')
+        }),
+        15000
+      );
 
       if (currentError) throw currentError;
 
       // Get previous period data for comparison
-      const prevQuery = supabase
-        .from('kpi_daily')
-        .select('*')
-        .gte('date', format(prevFrom, 'yyyy-MM-dd'))
-        .lte('date', format(prevTo, 'yyyy-MM-dd'));
-
-      const { data: prevData, error: prevError } = await withTimeout(prevQuery, 15000);
+      const { data: prevData, error: prevError } = await withTimeout(
+        supabase.rpc('admin_get_kpis', {
+          p_from: format(prevFrom, 'yyyy-MM-dd'),
+          p_to: format(prevTo, 'yyyy-MM-dd')
+        }),
+        15000
+      );
 
       if (prevError) throw prevError;
 
       // Calculate current period totals
       const currentTotals = (currentData || []).reduce((acc, day) => ({
-        users: Math.max(acc.users, day.new_users || 0),
-        suppliers: Math.max(acc.suppliers, day.new_suppliers || 0),
-        orders: acc.orders + (day.orders_count || 0),
-        gmv: acc.gmv + (day.gmv_ils || 0),
-        revenue: acc.revenue + (day.revenue_ils || 0),
-      }), { users: 0, suppliers: 0, orders: 0, gmv: 0, revenue: 0 });
+        users: acc.users + (day.signups_total || 0),
+        suppliers: acc.suppliers + (day.signups_suppliers || 0),
+        customers: acc.customers + (day.signups_customers || 0),
+        dau: Math.max(acc.dau, day.dau || 0),
+        wau: Math.max(acc.wau, day.wau || 0),
+        mau: Math.max(acc.mau, day.mau || 0),
+      }), { users: 0, suppliers: 0, customers: 0, dau: 0, wau: 0, mau: 0 });
 
       // Calculate previous period totals
       const prevTotals = (prevData || []).reduce((acc, day) => ({
-        users: Math.max(acc.users, day.new_users || 0),
-        suppliers: Math.max(acc.suppliers, day.new_suppliers || 0),
-        orders: acc.orders + (day.orders_count || 0),
-        gmv: acc.gmv + (day.gmv_ils || 0),
-        revenue: acc.revenue + (day.revenue_ils || 0),
-      }), { users: 0, suppliers: 0, orders: 0, gmv: 0, revenue: 0 });
+        users: acc.users + (day.signups_total || 0),
+        suppliers: acc.suppliers + (day.signups_suppliers || 0),
+        customers: acc.customers + (day.signups_customers || 0),
+        dau: Math.max(acc.dau, day.dau || 0),
+        wau: Math.max(acc.wau, day.wau || 0),
+        mau: Math.max(acc.mau, day.mau || 0),
+      }), { users: 0, suppliers: 0, customers: 0, dau: 0, wau: 0, mau: 0 });
 
       // Calculate percentage changes
       const calculateChange = (current: number, previous: number) => {
@@ -157,14 +158,14 @@ export const useKpiSummary = (dateRange: DateRange) => {
       return {
         total_users: currentTotals.users,
         total_suppliers: currentTotals.suppliers,
-        total_orders: currentTotals.orders,
-        total_gmv: currentTotals.gmv,
-        total_revenue: currentTotals.revenue,
+        total_orders: 0, // Not tracked in new KPI structure
+        total_gmv: 0, // Not tracked in new KPI structure
+        total_revenue: 0, // Not tracked in new KPI structure
         avg_rating: 4.8, // Placeholder - would need reviews aggregation
         users_change: calculateChange(currentTotals.users, prevTotals.users),
         suppliers_change: calculateChange(currentTotals.suppliers, prevTotals.suppliers),
-        orders_change: calculateChange(currentTotals.orders, prevTotals.orders),
-        revenue_change: calculateChange(currentTotals.revenue, prevTotals.revenue),
+        orders_change: 0, // Not tracked in new KPI structure
+        revenue_change: 0, // Not tracked in new KPI structure
       };
     },
     staleTime: 5 * 60 * 1000, // 5 minutes cache
