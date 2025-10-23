@@ -1,15 +1,13 @@
-export const LAUNCH_MODE = import.meta.env.VITE_ADMIN_LAUNCH_MODE === 'true';
+export const ENABLED_ADMIN_ROUTES = [
+  '/admin/login',
+  '/admin/dashboard',
+  '/admin/analytics',
+  '/admin/customers',
+  '/admin/suppliers',
+  '/admin/categories',
+  '/admin/homepage-content'
+];
 
-export const ENABLED_ADMIN_ROUTES = LAUNCH_MODE
-  ? [
-      '/admin/login',
-      '/admin/dashboard',
-      '/admin/analytics',
-      '/admin/customers',
-      '/admin/suppliers',
-      '/admin/categories',
-      '/admin/homepage-content'
-    ]
-  : 'ALL';
+// Disable realtime features in slim admin panel for performance and stability
+export const ADMIN_REALTIME_ENABLED = false;
 
-export const ADMIN_REALTIME_ENABLED = !LAUNCH_MODE;

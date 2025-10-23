@@ -33,10 +33,12 @@ export const useKpiDaily = (dateRange: DateRange) => {
     queryKey: ['admin-kpi-daily', format(dateRange.from, 'yyyy-MM-dd'), format(dateRange.to, 'yyyy-MM-dd')],
     queryFn: async (): Promise<KpiData[]> => {
       const { data, error } = await withTimeout(
-        supabase.rpc('admin_get_kpis', {
-          p_from: format(dateRange.from, 'yyyy-MM-dd'),
-          p_to: format(dateRange.to, 'yyyy-MM-dd')
-        }),
+        supabase
+          .from('kpi_daily')
+          .select('d, signups_total, signups_suppliers, signups_customers, dau, wau, mau')
+          .gte('d', format(dateRange.from, 'yyyy-MM-dd'))
+          .lte('d', format(dateRange.to, 'yyyy-MM-dd'))
+          .order('d', { ascending: true }),
         15000
       );
 
@@ -45,7 +47,7 @@ export const useKpiDaily = (dateRange: DateRange) => {
         throw error;
       }
 
-      return data || [];
+      return (data as KpiData[]) || [];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes cache
     gcTime: 15 * 60 * 1000, // 15 minutes in memory

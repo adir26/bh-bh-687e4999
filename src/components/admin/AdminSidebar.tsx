@@ -13,11 +13,7 @@ import {
 import { ENABLED_ADMIN_ROUTES } from "@/config/adminFlags";
 import { ADMIN_NAVIGATION_ITEMS } from "@/config/adminNavigation";
 
-const enabledRoutes = new Set(
-  ENABLED_ADMIN_ROUTES === "ALL"
-    ? ADMIN_NAVIGATION_ITEMS.filter((item) => item.isImplemented).map((item) => item.path)
-    : ENABLED_ADMIN_ROUTES
-);
+const enabledRoutes = new Set(ENABLED_ADMIN_ROUTES);
 
 const navigationItems = ADMIN_NAVIGATION_ITEMS.filter((item) => enabledRoutes.has(item.path));
 
