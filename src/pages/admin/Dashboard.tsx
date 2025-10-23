@@ -1,23 +1,105 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Users, 
   ShoppingCart, 
-  FileText, 
   TrendingUp,
-  DollarSign,
-  Star,
-  MessageSquare,
-  Package
+  Calendar,
+  Mail
 } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { DateRangePicker } from '@/components/admin/DateRangePicker';
 import { KpiCards } from '@/components/admin/KpiCards';
-import { AdminDashboardCharts } from '@/components/admin/AdminDashboardCharts';
 import { useKpiDaily, useTopSuppliers, useTopCategories, useKpiSummary, useAdminAudit, useRefreshData, getDateRangeFromPreset } from '@/hooks/useAdminKpis';
 import type { DateRange } from '@/types/kpi';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Component for recent signups
+function RecentSignupsTable() {
+  const [recentUsers, setRecentUsers] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  useEffect(() => {
+    const fetchRecentUsers = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, role, created_at')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+        setRecentUsers(data || []);
+      } catch (error) {
+        console.error('Error fetching recent users:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRecentUsers();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (recentUsers.length === 0) {
+    return <div className="text-center py-8 text-muted-foreground">אין משתמשים חדשים</div>;
+  }
+
+  const getRoleBadge = (role: string) => {
+    if (role === 'supplier') {
+      return <Badge className="bg-blue-100 text-blue-800">ספק</Badge>;
+    }
+    if (role === 'client') {
+      return <Badge variant="outline">לקוח</Badge>;
+    }
+    return <Badge variant="secondary">{role}</Badge>;
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('he-IL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="text-right">שם</TableHead>
+          <TableHead className="text-right">אימייל</TableHead>
+          <TableHead className="text-right">תפקיד</TableHead>
+          <TableHead className="text-right">תאריך הצטרפות</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {recentUsers.map((user) => (
+          <TableRow key={user.id}>
+            <TableCell className="text-right font-medium">{user.full_name || 'משתמש'}</TableCell>
+            <TableCell className="text-right">{user.email}</TableCell>
+            <TableCell className="text-right">{getRoleBadge(user.role)}</TableCell>
+            <TableCell className="text-right">{formatDate(user.created_at)}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
 
 export default function AdminDashboard() {
   const [dateRange, setDateRange] = useState<DateRange>(getDateRangeFromPreset('30d'));
@@ -118,14 +200,100 @@ export default function AdminDashboard() {
         error={summaryError}
       />
 
-      {/* Charts and Analytics */}
-      <AdminDashboardCharts
-        kpiData={kpiData}
-        topSuppliers={topSuppliers}
-        topCategories={topCategories}
-        loading={isLoading}
-        error={hasError as Error}
-      />
+      {/* Recent Activity Tables */}
+      <div className="responsive-grid-2">
+        {/* Top Suppliers */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-right font-hebrew">ספקים מובילים</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
+              </div>
+            ) : topSuppliers && topSuppliers.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">ספק</TableHead>
+                    <TableHead className="text-right">הזמנות</TableHead>
+                    <TableHead className="text-right">דירוג</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {topSuppliers.slice(0, 5).map((supplier, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="text-right font-medium">{supplier.name || 'ללא שם'}</TableCell>
+                      <TableCell className="text-right">{supplier.orders || 0}</TableCell>
+                      <TableCell className="text-right">N/A</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">אין נתונים</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Top Categories */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-right font-hebrew">קטגוריות פופולריות</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
+              </div>
+            ) : topCategories && topCategories.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-right">קטגוריה</TableHead>
+                    <TableHead className="text-right">ספקים</TableHead>
+                    <TableHead className="text-right">לידים</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {topCategories.slice(0, 5).map((category, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="text-right font-medium">{category.category_name || 'ללא שם'}</TableCell>
+                      <TableCell className="text-right">-</TableCell>
+                      <TableCell className="text-right">{category.orders || 0}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">אין נתונים</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Signups Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-right font-hebrew">משתמשים חדשים (10 אחרונים)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          ) : (
+            <RecentSignupsTable />
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
