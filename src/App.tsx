@@ -82,25 +82,13 @@ import Settings from "./pages/Settings";
 import FAQ from "./pages/FAQ";
 import NotificationPreferences from "./pages/NotificationPreferences";
 
-// Admin pages
+// Admin pages - Only enabled routes in Slim Admin MVP
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/Dashboard";
-import UserManagement from "./pages/admin/UserManagement";
 import CustomerManagement from "./pages/admin/CustomerManagement";
-import AdminOrderManagement from "./pages/admin/OrderManagement";
 import AdminAnalytics from "./pages/admin/Analytics";
-import SystemSettings from "./pages/admin/SystemSettings";
 import SupplierManagement from "./pages/admin/SupplierManagement";
-import ComplaintManagement from "./pages/admin/ComplaintManagement";
 import CategoryManagement from "./pages/admin/CategoryManagement";
-import QuoteManagement from "./pages/admin/QuoteManagement";
-import SupportChatManagement from "./pages/admin/SupportChatManagement";
-import LeadManagement from "./pages/admin/LeadManagement";
-import ContentManagement from "./pages/admin/ContentManagement";
-import ReviewsModeration from "./pages/admin/ReviewsModeration";
-import AdvancedReports from "./pages/admin/AdvancedReports";
-import AutomationCenter from "./pages/admin/AutomationCenter";
-import PermissionsManagement from "./pages/admin/PermissionsManagement";
 import { HomepageContentManagement } from "./pages/admin/HomepageContentManagement";
 import { HomepagePreview } from "./pages/admin/HomepagePreview";
 import { AdminLayout } from "./components/admin/AdminLayout";
