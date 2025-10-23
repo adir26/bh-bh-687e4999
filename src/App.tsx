@@ -90,7 +90,6 @@ import AdminAnalytics from "./pages/admin/Analytics";
 import SupplierManagement from "./pages/admin/SupplierManagement";
 import CategoryManagement from "./pages/admin/CategoryManagement";
 import { HomepageContentManagement } from "./pages/admin/HomepageContentManagement";
-import { HomepagePreview } from "./pages/admin/HomepagePreview";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminRouteGuard } from "./components/admin/AdminRouteGuard";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -109,7 +108,7 @@ import Inspiration from "./pages/Inspiration";
 import PhotoDetail from "./pages/PhotoDetail";
 import Ideabooks from "./pages/Ideabooks";
 import IdeabookDetail from "./pages/IdeabookDetail";
-import AdminInspiration from "./pages/admin/AdminInspiration";
+
 import PublicProductView from "./pages/PublicProductView";
 import PublicHomepage from "./pages/PublicHomepage";
 import Welcome from "./pages/Welcome";
@@ -556,7 +555,6 @@ const App = () => {
                   <Route path="suppliers" element={<SupplierManagement />} />
                   <Route path="categories" element={<CategoryManagement />} />
                   <Route path="homepage-content" element={<HomepageContentManagement />} />
-                  <Route path="homepage-content/preview" element={<HomepagePreview />} />
                   <Route path="analytics" element={<AdminAnalytics />} />
                 </Route>
                  

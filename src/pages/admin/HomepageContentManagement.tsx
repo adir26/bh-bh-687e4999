@@ -101,14 +101,6 @@ export function HomepageContentManagement() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => window.open('/admin/homepage-content/preview', '_blank')}
-            className="gap-2"
-          >
-            <ExternalLink className="h-4 w-4" />
-            תצוגה מקדימה
-          </Button>
           <Button onClick={() => setIsCreating(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             קטע חדש
