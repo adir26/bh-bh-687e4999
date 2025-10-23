@@ -1,14 +1,7 @@
 import { 
   BarChart3, 
   Users, 
-  ShoppingCart, 
-  FileText, 
-  MessageSquare, 
-  Star,
-  Package,
   Tag,
-  Settings,
-  Bell,
   Home,
   Layout
 } from "lucide-react";
@@ -24,26 +17,20 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { ENABLED_ADMIN_ROUTES } from "@/config/adminFlags";
 
-const navigationItems = [
+const allNavigationItems = [
   { title: "לוח בקרה", url: "/admin/dashboard", icon: Home },
   { title: "אנליטיקה", url: "/admin/analytics", icon: BarChart3 },
-  { title: "משתמשים", url: "/admin/users", icon: Users },
+  { title: "לקוחות", url: "/admin/customers", icon: Users },
   { title: "ספקים", url: "/admin/suppliers", icon: Users },
-  { title: "הזמנות", url: "/admin/orders", icon: ShoppingCart },
-  { title: "הצעות מחיר", url: "/admin/quotes", icon: FileText },
-  { title: "תלונות", url: "/admin/complaints", icon: MessageSquare },
   { title: "קטגוריות", url: "/admin/categories", icon: Tag },
-  { title: "צ'אטים", url: "/admin/support-chat", icon: MessageSquare },
-  { title: "לידים", url: "/admin/leads", icon: Star },
-  { title: "תוכן", url: "/admin/content", icon: FileText },
   { title: "עמוד הבית", url: "/admin/homepage-content", icon: Layout },
-  { title: "ביקורות", url: "/admin/reviews", icon: Star },
-  { title: "דוחות מתקדמים", url: "/admin/reports", icon: BarChart3 },
-  { title: "אוטומציה", url: "/admin/automation", icon: Package },
-  { title: "הרשאות", url: "/admin/permissions", icon: Users },
-  { title: "הגדרות", url: "/admin/settings", icon: Settings },
 ];
+
+const navigationItems = ENABLED_ADMIN_ROUTES === 'ALL' 
+  ? allNavigationItems
+  : allNavigationItems.filter(item => ENABLED_ADMIN_ROUTES.includes(item.url));
 
 export function AdminSidebar() {
   const { state } = useSidebar();
