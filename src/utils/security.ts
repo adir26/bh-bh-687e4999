@@ -41,18 +41,33 @@ export const validateEmail = (email: string): boolean => {
   return emailRegex.test(sanitizeEmail(email));
 };
 
-export const generateCSP = (): string => {
-  return [
+interface GenerateCspOptions {
+  includeFrameAncestors?: boolean;
+  includeUpgradeInsecureRequests?: boolean;
+}
+
+export const generateCSP = (options: GenerateCspOptions = {}): string => {
+  const directives = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https:",
-    "font-src 'self'",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
-    "frame-ancestors 'none'",
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' https://fonts.gstatic.com",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.ipify.org",
     "object-src 'none'",
-    "base-uri 'self'"
-  ].join('; ');
+    "base-uri 'self'",
+    "form-action 'self'"
+  ];
+
+  if (options.includeFrameAncestors) {
+    directives.push("frame-ancestors 'none'");
+  }
+
+  if (options.includeUpgradeInsecureRequests) {
+    directives.push('upgrade-insecure-requests');
+  }
+
+  return directives.join('; ');
 };
 
 // Rate limiting utility
