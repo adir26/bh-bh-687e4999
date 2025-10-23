@@ -1,38 +1,14 @@
-import { Home, BarChart3, Users, Settings, MessageSquare, FileText } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { ENABLED_ADMIN_ROUTES } from "@/config/adminFlags";
+import { ADMIN_NAVIGATION_ITEMS } from "@/config/adminNavigation";
 
-const navItems = [
-  { 
-    id: "dashboard", 
-    label: "לוח בקרה", 
-    icon: Home, 
-    path: "/admin/dashboard" 
-  },
-  { 
-    id: "analytics", 
-    label: "אנליטיקה", 
-    icon: BarChart3, 
-    path: "/admin/analytics" 
-  },
-  { 
-    id: "reports", 
-    label: "דוחות", 
-    icon: FileText, 
-    path: "/admin/reports" 
-  },
-  { 
-    id: "automation", 
-    label: "אוטומציה", 
-    icon: MessageSquare, 
-    path: "/admin/automation" 
-  },
-  { 
-    id: "permissions", 
-    label: "הרשאות", 
-    icon: Users, 
-    path: "/admin/permissions" 
-  },
-];
+const enabledRoutes = new Set(
+  ENABLED_ADMIN_ROUTES === "ALL"
+    ? ADMIN_NAVIGATION_ITEMS.filter((item) => item.isImplemented).map((item) => item.path)
+    : ENABLED_ADMIN_ROUTES
+);
+
+const navItems = ADMIN_NAVIGATION_ITEMS.filter((item) => enabledRoutes.has(item.path));
 
 export function AdminBottomNavigation() {
   const location = useLocation();
@@ -42,8 +18,10 @@ export function AdminBottomNavigation() {
     <div className="bottom-nav md:hidden">
       <div className="flex h-full px-2">
         {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          
+          const isActive =
+            location.pathname === item.path ||
+            location.pathname.startsWith(`${item.path}/`);
+
           return (
             <button
               key={item.id}

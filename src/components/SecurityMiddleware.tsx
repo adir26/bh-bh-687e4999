@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSecureInput } from '@/hooks/useSecureInput';
 import { SecureStorage } from '@/utils/secureStorage';
+import { generateCSP } from '@/utils/security';
 
 interface SecurityMiddlewareProps {
   children: React.ReactNode;
@@ -19,19 +19,10 @@ export const SecurityMiddleware: React.FC<SecurityMiddlewareProps> = ({ children
       if (!cspMeta) {
         const meta = document.createElement('meta');
         meta.setAttribute('http-equiv', 'Content-Security-Policy');
-        meta.setAttribute('content', 
-          "default-src 'self'; " +
-          "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; " +
-          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-          "img-src 'self' data: https: blob:; " +
-          "connect-src 'self' https://yislkmhnitznvbxfpcxd.supabase.co wss://yislkmhnitznvbxfpcxd.supabase.co https://api.ipify.org; " +
-          "font-src 'self' https://fonts.gstatic.com; " +
-          "frame-ancestors 'none'; " +
-          "base-uri 'self'; " +
-          "form-action 'self'; " +
-          "upgrade-insecure-requests;"
-        );
+        meta.setAttribute('content', generateCSP({ includeUpgradeInsecureRequests: true }));
         document.head.appendChild(meta);
+      } else {
+        cspMeta.setAttribute('content', generateCSP({ includeUpgradeInsecureRequests: true }));
       }
 
       // Add Referrer Policy

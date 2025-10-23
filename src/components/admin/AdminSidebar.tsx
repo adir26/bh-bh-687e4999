@@ -1,10 +1,3 @@
-import { 
-  BarChart3, 
-  Users, 
-  Tag,
-  Home,
-  Layout
-} from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -18,26 +11,23 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { ENABLED_ADMIN_ROUTES } from "@/config/adminFlags";
+import { ADMIN_NAVIGATION_ITEMS } from "@/config/adminNavigation";
 
-const allNavigationItems = [
-  { title: "לוח בקרה", url: "/admin/dashboard", icon: Home },
-  { title: "אנליטיקה", url: "/admin/analytics", icon: BarChart3 },
-  { title: "לקוחות", url: "/admin/customers", icon: Users },
-  { title: "ספקים", url: "/admin/suppliers", icon: Users },
-  { title: "קטגוריות", url: "/admin/categories", icon: Tag },
-  { title: "עמוד הבית", url: "/admin/homepage-content", icon: Layout },
-];
+const enabledRoutes = new Set(
+  ENABLED_ADMIN_ROUTES === "ALL"
+    ? ADMIN_NAVIGATION_ITEMS.filter((item) => item.isImplemented).map((item) => item.path)
+    : ENABLED_ADMIN_ROUTES
+);
 
-const navigationItems = ENABLED_ADMIN_ROUTES === 'ALL' 
-  ? allNavigationItems
-  : allNavigationItems.filter(item => ENABLED_ADMIN_ROUTES.includes(item.url));
+const navigationItems = ADMIN_NAVIGATION_ITEMS.filter((item) => enabledRoutes.has(item.path));
 
 export function AdminSidebar() {
   const { state } = useSidebar();
   const location = useLocation();
   const isCollapsed = state === "collapsed";
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) =>
+    location.pathname === path || location.pathname.startsWith(`${path}/`);
   const getNavClass = (path: string) =>
     isActive(path) 
       ? "bg-primary text-primary-foreground font-medium" 
@@ -53,14 +43,14 @@ export function AdminSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${getNavClass(item.url)} text-right`}
+                    <NavLink
+                      to={item.path}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${getNavClass(item.path)} text-right`}
                     >
                       <item.icon className="h-4 w-4 ml-2" />
-                      {!isCollapsed && <span className="flex-1 text-right">{item.title}</span>}
+                      {!isCollapsed && <span className="flex-1 text-right">{item.label}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { SecureStorage } from '@/utils/secureStorage';
+
+type AdminAuthStatus = 'idle' | 'checking' | 'authenticated' | 'error';
 
 interface AdminSession {
   isAuthenticated: boolean;
@@ -23,6 +25,8 @@ export const useSecureAdminAuth = () => {
     sessionToken: '',
     userId: ''
   });
+  const [status, setStatus] = useState<AdminAuthStatus>('idle');
+  const [lastError, setLastError] = useState<string | null>(null);
   const isValidating = useRef(false);
 
   const validateAdminAccess = async () => {
@@ -30,24 +34,28 @@ export const useSecureAdminAuth = () => {
     if (isValidating.current) {
       return adminSession.isAuthenticated && adminSession.isValidated;
     }
-    
+
     isValidating.current = true;
+    setStatus('checking');
+    setLastError(null);
     try {
       // First check if user is authenticated and has admin role in profile
       if (!user || !profile || profile.role !== 'admin') {
-        clearAdminSession();
+        clearAdminSession('missing-admin-role');
         return false;
       }
 
       // Check if session exists, is valid, AND belongs to current user
       const storedSession = await getStoredSession();
       if (
-        storedSession && 
-        storedSession.userId === user.id && 
-        storedSession.sessionExpiry && 
+        storedSession &&
+        storedSession.userId === user.id &&
+        storedSession.sessionExpiry &&
         new Date() < storedSession.sessionExpiry
       ) {
         setAdminSession(storedSession);
+        setStatus('authenticated');
+        setLastError(null);
         return true;
       }
 
@@ -58,8 +66,9 @@ export const useSecureAdminAuth = () => {
       const result = validationResult as { valid: boolean; reason?: string; session_data?: any } | null;
 
       if (error || !result?.valid) {
-        clearAdminSession();
-        console.warn('Admin access denied:', result?.reason || error?.message);
+        const reason = result?.reason || error?.message || 'validation-failed';
+        clearAdminSession(reason);
+        console.warn('Admin access denied:', reason);
         return false;
       }
 
@@ -76,12 +85,15 @@ export const useSecureAdminAuth = () => {
       };
 
       setAdminSession(newSession);
+      setStatus('authenticated');
+      setLastError(null);
       await storeSession(newSession);
       return true;
 
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'unknown-error';
       console.error('Admin validation error:', error);
-      clearAdminSession();
+      clearAdminSession(message);
       return false;
     } finally {
       isValidating.current = false;
@@ -120,7 +132,7 @@ export const useSecureAdminAuth = () => {
     }
   };
 
-  const clearAdminSession = () => {
+  const clearAdminSession = (reason?: string) => {
     setAdminSession({
       isAuthenticated: false,
       isValidated: false,
@@ -129,6 +141,13 @@ export const useSecureAdminAuth = () => {
       userId: ''
     });
     SecureStorage.remove(STORAGE_KEY);
+    if (reason) {
+      setStatus('error');
+      setLastError(reason);
+    } else {
+      setStatus('idle');
+      setLastError(null);
+    }
   };
 
   const extendSession = async () => {
@@ -151,6 +170,8 @@ export const useSecureAdminAuth = () => {
     sessionExpiry: adminSession.sessionExpiry,
     extendSession,
     logout,
-    validateAdminAccess
+    validateAdminAccess,
+    status,
+    lastError
   };
 };
