@@ -1,10 +1,15 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { ENABLED_ADMIN_ROUTES } from "@/config/adminFlags";
-import { ADMIN_NAVIGATION_ITEMS } from "@/config/adminNavigation";
+import { Home, BarChart3, Users, Tag, Layout } from "lucide-react";
 
-const enabledRoutes = new Set(ENABLED_ADMIN_ROUTES);
-
-const navItems = ADMIN_NAVIGATION_ITEMS.filter((item) => enabledRoutes.has(item.path));
+// Hardcoded navigation - only 6 items allowed
+const navItems = [
+  { id: "dashboard", label: "בקרה", path: "/admin/dashboard", icon: Home },
+  { id: "analytics", label: "דוחות", path: "/admin/analytics", icon: BarChart3 },
+  { id: "customers", label: "לקוחות", path: "/admin/customers", icon: Users },
+  { id: "suppliers", label: "ספקים", path: "/admin/suppliers", icon: Users },
+  { id: "categories", label: "קטגוריות", path: "/admin/categories", icon: Tag },
+  { id: "homepage", label: "עמוד בית", path: "/admin/homepage-content", icon: Layout },
+];
 
 export function AdminBottomNavigation() {
   const location = useLocation();

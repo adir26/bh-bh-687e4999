@@ -537,6 +537,7 @@ const App = () => {
                 <Route path="/ideabooks/:id" element={<IdeabookDetail />} />
                 
                 {/* Admin routes - Nested structure with single AdminLayout + AdminRouteGuard */}
+                {/* Admin Routes - Only 7 allowed */}
                 <Route path="/admin/login" element={<AdminLayout><AdminLogin /></AdminLayout>} />
                 <Route
                   path="/admin"
@@ -550,12 +551,11 @@ const App = () => {
                 >
                   <Route index element={<Navigate to="dashboard" replace />} />
                   <Route path="dashboard" element={<AdminDashboard />} />
-                  <Route path="users" element={<Navigate to="/admin/customers" replace />} />
+                  <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="customers" element={<CustomerManagement />} />
                   <Route path="suppliers" element={<SupplierManagement />} />
                   <Route path="categories" element={<CategoryManagement />} />
                   <Route path="homepage-content" element={<HomepageContentManagement />} />
-                  <Route path="analytics" element={<AdminAnalytics />} />
                 </Route>
                  
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

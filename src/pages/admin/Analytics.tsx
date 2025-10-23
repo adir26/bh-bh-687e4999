@@ -1,23 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  LineChart, 
-  Line,
-  AreaChart,
-  Area
-} from "recharts";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   TrendingUp, 
   Users, 
-  ShoppingCart, 
-  UserPlus
+  UserPlus,
+  BarChart
 } from "lucide-react";
 import { useKpiDaily, useKpiSummary } from "@/hooks/useAdminKpis";
 import { getDateRangeFromPreset } from "@/hooks/useAdminKpis";
@@ -77,23 +64,10 @@ export default function AdminAnalytics() {
     );
   }
 
-  // Prepare data for charts
-  const signupData = kpiData.map(item => ({
-    date: new Date(item.d).toLocaleDateString('he-IL', { month: 'short', day: 'numeric' }),
-    total: item.signups_total,
-    suppliers: item.signups_suppliers,
-    customers: item.signups_customers,
-  }));
-
-  const activityData = kpiData.map(item => ({
-    date: new Date(item.d).toLocaleDateString('he-IL', { month: 'short', day: 'numeric' }),
-    dau: item.dau,
-    wau: item.wau,
-    mau: item.mau,
-  }));
-
   // Summary metrics
   const totalSignups = kpiData.reduce((sum, item) => sum + item.signups_total, 0);
+  const totalSupplierSignups = kpiData.reduce((sum, item) => sum + item.signups_suppliers, 0);
+  const totalCustomerSignups = kpiData.reduce((sum, item) => sum + item.signups_customers, 0);
   const avgDAU = Math.round(kpiData.reduce((sum, item) => sum + item.dau, 0) / kpiData.length);
   const avgWAU = Math.round(kpiData.reduce((sum, item) => sum + item.wau, 0) / kpiData.length);
   const avgMAU = Math.round(kpiData.reduce((sum, item) => sum + item.mau, 0) / kpiData.length);
@@ -109,34 +83,42 @@ export default function AdminAnalytics() {
     { 
       title: "ממוצע DAU", 
       value: avgDAU.toLocaleString(), 
-      change: "+0%",
+      change: "יומי",
       icon: Users, 
       color: "text-blue-600" 
     },
     { 
       title: "ממוצע WAU", 
       value: avgWAU.toLocaleString(), 
-      change: "+0%",
+      change: "שבועי",
       icon: Users, 
       color: "text-purple-600" 
     },
     { 
       title: "ממוצע MAU", 
       value: avgMAU.toLocaleString(), 
-      change: "+0%",
+      change: "חודשי",
       icon: TrendingUp, 
       color: "text-orange-600" 
     },
   ];
 
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('he-IL', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+  };
+
   return (
     <div className="space-y-6 pb-nav-safe">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">אנליטיקה</h1>
-        <p className="text-muted-foreground">תובנות ביצועים מקיפות - 30 ימים אחרונים</p>
+        <p className="text-muted-foreground">תובנות ביצועים - 30 ימים אחרונים</p>
       </div>
 
-      {/* Top Metrics */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {topMetrics.map((metric, index) => (
           <Card key={index}>
@@ -148,96 +130,103 @@ export default function AdminAnalytics() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{metric.value}</div>
-              <p className="text-xs text-muted-foreground">
-                <span className={metric.change.startsWith('+') ? "text-green-600" : "text-muted-foreground"}>
-                  {metric.change}
-                </span> לעומת תקופה קודמת
+              <p className="text-xs text-muted-foreground mt-1">
+                {metric.change}
               </p>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Tabs defaultValue="signups" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="signups">הרשמות</TabsTrigger>
-          <TabsTrigger value="activity">פעילות משתמשים</TabsTrigger>
-        </TabsList>
+      {/* Additional Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-right">הרשמות ספקים</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{totalSupplierSignups}</div>
+            <p className="text-sm text-muted-foreground mt-1">30 ימים אחרונים</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-right">הרשמות לקוחות</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{totalCustomerSignups}</div>
+            <p className="text-sm text-muted-foreground mt-1">30 ימים אחרונים</p>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="signups" className="space-y-4">
-          <div className="grid grid-cols-1 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>הרשמות יומיות - 30 ימים אחרונים</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={signupData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="customers" fill="#8884d8" name="לקוחות" stackId="a" />
-                    <Bar dataKey="suppliers" fill="#82ca9d" name="ספקים" stackId="a" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-right">יחס ספקים/לקוחות</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">
+              {totalCustomerSignups > 0 
+                ? (totalSupplierSignups / totalCustomerSignups).toFixed(2) 
+                : '0'}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1">ספק לכל לקוח</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Daily KPI Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-right">נתוני KPI יומיים - 30 ימים אחרונים</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-right">תאריך</TableHead>
+                  <TableHead className="text-right">סה"כ הרשמות</TableHead>
+                  <TableHead className="text-right">ספקים</TableHead>
+                  <TableHead className="text-right">לקוחות</TableHead>
+                  <TableHead className="text-right">DAU</TableHead>
+                  <TableHead className="text-right">WAU</TableHead>
+                  <TableHead className="text-right">MAU</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {kpiData.slice(0, 30).reverse().map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="text-right font-medium">
+                      {formatDate(item.d)}
+                    </TableCell>
+                    <TableCell className="text-right">{item.signups_total}</TableCell>
+                    <TableCell className="text-right">{item.signups_suppliers}</TableCell>
+                    <TableCell className="text-right">{item.signups_customers}</TableCell>
+                    <TableCell className="text-right">{item.dau}</TableCell>
+                    <TableCell className="text-right">{item.wau}</TableCell>
+                    <TableCell className="text-right">{item.mau}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="activity" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>DAU - משתמשים פעילים יומית</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={activityData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="dau" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>WAU & MAU - פעילות שבועית וחודשית</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={activityData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="wau" stroke="#82ca9d" strokeWidth={2} name="WAU" />
-                    <Line type="monotone" dataKey="mau" stroke="#ffc658" strokeWidth={2} name="MAU" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
+      {/* Metrics Explanation */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-right">הסבר מדדים</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2 text-sm text-muted-foreground text-right">
+            <p><strong>DAU (Daily Active Users):</strong> משתמשים שנכנסו למערכת היום</p>
+            <p><strong>WAU (Weekly Active Users):</strong> משתמשים שנכנסו למערכת ב-7 ימים האחרונים</p>
+            <p><strong>MAU (Monthly Active Users):</strong> משתמשים שנכנסו למערכת ב-30 ימים האחרונים</p>
           </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>מידע נוסף</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p><strong>DAU (Daily Active Users):</strong> משתמשים שנכנסו למערכת היום</p>
-                <p><strong>WAU (Weekly Active Users):</strong> משתמשים שנכנסו למערכת ב-7 ימים האחרונים</p>
-                <p><strong>MAU (Monthly Active Users):</strong> משתמשים שנכנסו למערכת ב-30 ימים האחרונים</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }
