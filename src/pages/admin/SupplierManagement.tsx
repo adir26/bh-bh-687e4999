@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { Search, MoreHorizontal, Eye, CheckCircle, XCircle, UserCheck, Filter, Plus, Upload, Download, RefreshCw, X } from 'lucide-react';
+import { Search, MoreHorizontal, Eye, CheckCircle, XCircle, UserCheck, Filter, Plus, Upload, Download, RefreshCw, X, Home } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -95,6 +97,19 @@ const SupplierManagement = () => {
   
   // Real-time subscription
   useSupplierRealtimeSubscription();
+
+  // Query to get featured supplier IDs from homepage
+  const { data: featuredSupplierIds = [] } = useQuery({
+    queryKey: ['featured-supplier-ids'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('homepage_items')
+        .select('link_target_id')
+        .eq('link_type', 'supplier')
+        .not('link_target_id', 'is', null);
+      return data?.map(item => item.link_target_id) || [];
+    }
+  });
 
   // Debounced search - fixed to prevent infinite loops
   React.useEffect(() => {
@@ -481,6 +496,7 @@ const SupplierManagement = () => {
                         <TableHead className="text-right">קטגוריות</TableHead>
                         <TableHead className="text-right">מוצרים</TableHead>
                         <TableHead className="text-right">דירוג</TableHead>
+                        <TableHead className="text-center">בעמוד הבית</TableHead>
                         <TableHead className="text-right">נוצר</TableHead>
                         <TableHead className="w-12"></TableHead>
                       </TableRow>
@@ -530,6 +546,16 @@ const SupplierManagement = () => {
                           <TableCell className="text-right">{supplier.product_count || 0}</TableCell>
                           <TableCell className="text-right">
                             {supplier.rating ? supplier.rating.toFixed(1) : 'לא דורג'}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {featuredSupplierIds.includes(supplier.id) ? (
+                              <Badge variant="default" className="gap-1">
+                                <Home className="h-3 w-3" />
+                                מוצג
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline">לא מוצג</Badge>
+                            )}
                           </TableCell>
                           <TableCell className="text-right">
                             {new Date(supplier.created_at).toLocaleDateString('he-IL')}

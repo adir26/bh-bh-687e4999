@@ -493,13 +493,17 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
 
   // Initialize selected suppliers from existing items
   useEffect(() => {
-    if (open && existingItems.length > 0) {
-      const existingSupplierIds = new Set(
-        existingItems
-          .filter(item => item.link_type === 'supplier' && item.link_target_id)
-          .map(item => item.link_target_id!)
-      );
-      setSelectedSuppliers(existingSupplierIds);
+    if (open) {
+      if (existingItems.length > 0) {
+        const existingSupplierIds = new Set(
+          existingItems
+            .filter(item => item.link_type === 'supplier' && item.link_target_id)
+            .map(item => item.link_target_id!)
+        );
+        setSelectedSuppliers(existingSupplierIds);
+      } else {
+        setSelectedSuppliers(new Set());
+      }
     }
   }, [open, existingItems]);
 
@@ -572,47 +576,76 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
     }
   };
 
+  // Sort suppliers: selected first, then featured, then by rating
+  const sortedSuppliers = [...suppliers].sort((a, b) => {
+    const aSelected = selectedSuppliers.has(a.id);
+    const bSelected = selectedSuppliers.has(b.id);
+    if (aSelected && !bSelected) return -1;
+    if (!aSelected && bSelected) return 1;
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    return (b.rating || 0) - (a.rating || 0);
+  });
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
-          <DialogTitle>בחר ספקים מובילים</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            בחר ספקים להצגה בעמוד הבית
+            <Badge variant="secondary" className="text-xs">
+              {selectedSuppliers.size} נבחרו מתוך {suppliers.length}
+            </Badge>
+          </DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
           <div className="text-center py-8">טוען ספקים...</div>
         ) : (
           <div className="space-y-2">
-            {suppliers.map(supplier => (
-              <div
-                key={supplier.id}
-                className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                onClick={() => toggleSupplier(supplier.id)}
-              >
-                <Checkbox
-                  checked={selectedSuppliers.has(supplier.id)}
-                  onCheckedChange={() => toggleSupplier(supplier.id)}
-                />
-                {supplier.logo_url && (
-                  <img
-                    src={supplier.logo_url}
-                    alt={supplier.name}
-                    className="w-10 h-10 object-cover rounded"
+            {sortedSuppliers.map(supplier => {
+              const isSelected = selectedSuppliers.has(supplier.id);
+              return (
+                <div
+                  key={supplier.id}
+                  className={cn(
+                    "flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors",
+                    isSelected && "border-primary bg-primary/5"
+                  )}
+                  onClick={() => toggleSupplier(supplier.id)}
+                >
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => toggleSupplier(supplier.id)}
                   />
-                )}
-                <div className="flex-1 text-right">
-                  <div className="font-medium flex items-center gap-2">
-                    {supplier.name}
-                    {supplier.featured && (
-                      <Badge variant="secondary" className="text-xs">מומלץ</Badge>
+                  {supplier.logo_url && (
+                    <img
+                      src={supplier.logo_url}
+                      alt={supplier.name}
+                      className="w-10 h-10 object-cover rounded"
+                    />
+                  )}
+                  <div className="flex-1 text-right">
+                    <div className="font-medium flex items-center gap-2 justify-end">
+                      {supplier.name}
+                      {isSelected && (
+                        <Badge variant="default" className="text-xs">
+                          מוצג כעת
+                        </Badge>
+                      )}
+                      {supplier.featured && (
+                        <Badge variant="secondary" className="text-xs">
+                          מומלץ
+                        </Badge>
+                      )}
+                    </div>
+                    {supplier.tagline && (
+                      <div className="text-sm text-muted-foreground">{supplier.tagline}</div>
                     )}
                   </div>
-                  {supplier.tagline && (
-                    <div className="text-sm text-muted-foreground">{supplier.tagline}</div>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -621,7 +654,7 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
             onClick={handleSave}
             disabled={createItem.isPending || deleteItem.isPending}
           >
-            שמור ({selectedSuppliers.size} ספקים)
+            {createItem.isPending || deleteItem.isPending ? 'שומר...' : `שמור (${selectedSuppliers.size} ספקים)`}
           </Button>
           <Button variant="outline" onClick={onClose}>
             ביטול
