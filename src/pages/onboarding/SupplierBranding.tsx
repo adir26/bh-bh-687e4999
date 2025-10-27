@@ -8,12 +8,17 @@ import { Input } from '@/components/ui/input';
 import OnboardingProgress from '@/components/OnboardingProgress';
 import { ChevronRight, Upload, Clock } from 'lucide-react';
 import supplierBrandingImage from '@/assets/supplier-branding.jpg';
+import { supabase } from '@/integrations/supabase/client';
+import { showToast } from '@/utils/toast';
 
 export default function SupplierBranding() {
   const navigate = useNavigate();
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
-    logo: null as File | null,
-    banner: null as File | null,
+    logoUrl: null as string | null,
+    bannerUrl: null as string | null,
+    logoFileName: null as string | null,
+    bannerFileName: null as string | null,
     description: '',
     showBusinessHours: false,
     businessHours: {
@@ -37,8 +42,68 @@ export default function SupplierBranding() {
     { key: 'saturday', label: 'שבת' }
   ];
 
-  const handleFileUpload = (type: 'logo' | 'banner', file: File) => {
-    setFormData({...formData, [type]: file});
+  const handleFileUpload = async (type: 'logo' | 'banner', file: File) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showToast.error('נא להעלות קובץ תמונה בלבד');
+      return;
+    }
+
+    // Validate file size (5MB for logo, 10MB for banner)
+    const maxSize = type === 'logo' ? 5 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showToast.error(`גודל הקובץ חייב להיות עד ${type === 'logo' ? '5' : '10'}MB`);
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${type}-${Date.now()}.${fileExt}`;
+      const filePath = `${type}s/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('company-media')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('company-media')
+        .getPublicUrl(filePath);
+
+      // Update form state with URL
+      if (type === 'logo') {
+        setFormData({
+          ...formData,
+          logoUrl: publicUrl,
+          logoFileName: file.name
+        });
+      } else {
+        setFormData({
+          ...formData,
+          bannerUrl: publicUrl,
+          bannerFileName: file.name
+        });
+      }
+
+      showToast.success('התמונה הועלתה בהצלחה');
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      showToast.error('שגיאה בהעלאת התמונה');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleNext = () => {
@@ -47,9 +112,10 @@ export default function SupplierBranding() {
     localStorage.setItem('supplierOnboarding', JSON.stringify({
       ...currentData,
       branding: {
-        ...formData,
-        logo: formData.logo?.name || null,
-        banner: formData.banner?.name || null
+        logo: formData.logoUrl,
+        coverImage: formData.bannerUrl,
+        description: formData.description,
+        businessHours: formData.showBusinessHours ? formData.businessHours : null
       },
       currentStep: 3
     }));
@@ -118,7 +184,7 @@ export default function SupplierBranding() {
                   <label htmlFor="logo-upload" className="cursor-pointer">
                     <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground mb-1">
-                      {formData.logo ? formData.logo.name : 'העלו לוגו (מומלץ 500x500px)'}
+                      {uploading && !formData.logoUrl ? 'מעלה...' : formData.logoFileName ? formData.logoFileName : 'העלו לוגו (מומלץ 500x500px)'}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       JPG, PNG עד 5MB
@@ -140,7 +206,7 @@ export default function SupplierBranding() {
                   <label htmlFor="banner-upload" className="cursor-pointer">
                     <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                     <p className="text-sm text-muted-foreground mb-1">
-                      {formData.banner ? formData.banner.name : 'העלו תמונת רקע (מומלץ 1200x600px)'}
+                      {uploading && !formData.bannerUrl ? 'מעלה...' : formData.bannerFileName ? formData.bannerFileName : 'העלו תמונת רקע (מומלץ 1200x600px)'}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       JPG, PNG עד 10MB
@@ -251,11 +317,11 @@ export default function SupplierBranding() {
         <div className="max-w-md mx-auto">
           <Button 
             onClick={handleNext}
-            disabled={!isFormValid}
+            disabled={!isFormValid || uploading}
             variant="blue"
             className="w-full py-4 text-lg rounded-xl h-14 font-medium"
           >
-            הבא
+            {uploading ? 'מעלה תמונה...' : 'הבא'}
           </Button>
         </div>
       </div>
