@@ -84,6 +84,9 @@ const Index = () => {
     products: [],
     reviews: []
   }));
+
+  // Debug: Log featured suppliers count for QA
+  console.log('Featured suppliers loaded from CMS:', featuredSuppliers.length);
   
   // Calculate CTA href based on auth state
   const ctaHref = user && !isGuest ? '/onboarding/welcome' : '/welcome';

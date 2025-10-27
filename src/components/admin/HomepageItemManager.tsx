@@ -17,7 +17,7 @@ import { useHomepageItems, useCreateItem, useUpdateItem, useDeleteItem, useReord
 import type { HomepageSection, HomepageItem, LinkType, CreateItemRequest, UpdateItemRequest } from '@/types/homepage';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 
@@ -469,6 +469,7 @@ interface SupplierSelectorProps {
 
 function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierSelectorProps) {
   const [selectedSuppliers, setSelectedSuppliers] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
   const createItem = useCreateItem();
   const deleteItem = useDeleteItem();
   const { toast } = useToast();
@@ -561,6 +562,9 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
         });
       }
 
+      // Force refresh of homepage content
+      await queryClient.refetchQueries({ queryKey: ['homepage-public-content'] });
+      
       toast({
         title: 'הצלחה',
         description: 'הספקים עודכנו בהצלחה'
