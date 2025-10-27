@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { searchItems, getPopularSearches, type SearchableItem } from '@/data/searchData';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { searchableCategories, searchableServices, getPopularSearches, type SearchableItem } from '@/data/searchData';
+import { useSearchableCompanies } from './useSearchableCompanies';
 
 const RECENT_SEARCHES_KEY = 'recent_searches';
 const MAX_RECENT_SEARCHES = 8;
@@ -18,6 +19,39 @@ export function useSearch() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
+  
+  // Fetch dynamic suppliers from Supabase
+  const { data: dynamicCompanies = [], isLoading: isLoadingCompanies } = useSearchableCompanies();
+  
+  // Convert dynamic companies to searchable items
+  const searchableSuppliers = useMemo<SearchableItem[]>(() => {
+    return dynamicCompanies.map(company => ({
+      id: company.id,
+      title: company.name,
+      subtitle: company.tagline || '',
+      image: company.logo_url || '/placeholder.svg',
+      type: 'supplier' as const,
+      category: company.company_categories?.[0]?.category?.slug,
+      location: `${company.city || ''} ${company.area || ''}`.trim() || undefined,
+      rating: company.rating || undefined,
+      keywords: [
+        company.name,
+        company.tagline || '',
+        company.description || '',
+        company.city || '',
+        company.area || '',
+        ...(company.company_categories?.map(cc => cc.category?.name || '').filter(Boolean) || [])
+      ].filter(Boolean),
+      route: `/s/${company.slug}`
+    }));
+  }, [dynamicCompanies]);
+  
+  // Combine all searchable items
+  const allSearchableItems = useMemo<SearchableItem[]>(() => [
+    ...searchableCategories,
+    ...searchableSuppliers,
+    ...searchableServices
+  ], [searchableSuppliers]);
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -42,15 +76,66 @@ export function useSearch() {
 
   // Perform search
   const performSearch = useCallback((searchQuery: string, searchFilters?: SearchFilters) => {
+    if (!searchQuery.trim()) {
+      setResults([]);
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     
     // Simulate slight delay for better UX
     setTimeout(() => {
-      const searchResults = searchItems(searchQuery, searchFilters);
-      setResults(searchResults);
+      const normalizedQuery = searchQuery.toLowerCase().trim();
+      let filteredItems = allSearchableItems;
+
+      // Apply filters
+      if (searchFilters?.type) {
+        filteredItems = filteredItems.filter(item => item.type === searchFilters.type);
+      }
+      if (searchFilters?.category) {
+        filteredItems = filteredItems.filter(item => item.category === searchFilters.category);
+      }
+      if (searchFilters?.location) {
+        filteredItems = filteredItems.filter(item => 
+          item.location?.toLowerCase().includes(searchFilters.location!.toLowerCase())
+        );
+      }
+      if (searchFilters?.minRating) {
+        filteredItems = filteredItems.filter(item => 
+          item.rating ? item.rating >= searchFilters.minRating! : true
+        );
+      }
+
+      // Search in keywords, title, and subtitle
+      const searchResults = filteredItems.filter(item => {
+        const searchableText = [
+          item.title.toLowerCase(),
+          item.subtitle.toLowerCase(),
+          item.location?.toLowerCase() || '',
+          ...item.keywords.map(k => k.toLowerCase())
+        ].join(' ');
+
+        return searchableText.includes(normalizedQuery);
+      });
+
+      // Sort by relevance
+      const sortedResults = searchResults.sort((a, b) => {
+        const aTitle = a.title.toLowerCase().includes(normalizedQuery) ? 2 : 0;
+        const bTitle = b.title.toLowerCase().includes(normalizedQuery) ? 2 : 0;
+        const aSubtitle = a.subtitle.toLowerCase().includes(normalizedQuery) ? 1 : 0;
+        const bSubtitle = b.subtitle.toLowerCase().includes(normalizedQuery) ? 1 : 0;
+        
+        const aScore = aTitle + aSubtitle + (a.rating || 0);
+        const bScore = bTitle + bSubtitle + (b.rating || 0);
+        
+        return bScore - aScore;
+      });
+
+      setResults(sortedResults);
       setIsLoading(false);
     }, 150);
-  }, []);
+  }, [allSearchableItems]);
 
   // Update search query and perform search
   const updateQuery = useCallback((newQuery: string) => {
@@ -127,7 +212,7 @@ export function useSearch() {
     results,
     recentSearches,
     popularSearches,
-    isLoading,
+    isLoading: isLoading || isLoadingCompanies,
     filters,
     selectedFilter,
     updateQuery,
