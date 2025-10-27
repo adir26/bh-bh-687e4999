@@ -447,9 +447,9 @@ const SupplierManagement = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="center">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => window.open(`/s/${supplier.slug}`, '_blank')}>
                               <Eye className="h-4 w-4 ml-2" />
-                              צפייה בפרטים
+                              צפה בפרופיל
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -568,9 +568,9 @@ const SupplierManagement = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => window.open(`/s/${supplier.slug}`, '_blank')}>
                                   <Eye className="h-4 w-4 ml-2" />
-                                  צפייה בפרטים
+                                  צפה בפרופיל
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
