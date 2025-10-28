@@ -8,6 +8,10 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ContactSupplierForm } from '@/components/supplier/ContactSupplierForm';
+import { ReviewForm } from '@/components/supplier/ReviewForm';
+import { useCompanyReviews } from '@/hooks/useCompanyReviews';
+import { formatDistanceToNow } from 'date-fns';
+import { he } from 'date-fns/locale';
 import { 
   Star, 
   MapPin, 
@@ -32,16 +36,17 @@ const PublicSupplierProfile: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: supplier, isLoading: supplierLoading, error: supplierError } = usePublicSupplier(slug!);
-const { data: categoriesData } = useSupplierCategories(supplier?.id || '', supplier?.owner_id);
-const { data: productsData, isLoading: productsLoading } = usePublicSupplierProducts(
-  supplier?.id || '',
-  {
-    page: currentPage,
-    search: searchQuery || undefined,
-    categoryId: selectedCategory || undefined,
-    ownerId: supplier?.owner_id,
-  }
-);
+  const { data: categoriesData } = useSupplierCategories(supplier?.id || '', supplier?.owner_id);
+  const { data: productsData, isLoading: productsLoading } = usePublicSupplierProducts(
+    supplier?.id || '',
+    {
+      page: currentPage,
+      search: searchQuery || undefined,
+      categoryId: selectedCategory || undefined,
+      ownerId: supplier?.owner_id,
+    }
+  );
+  const { data: reviews = [], refetch: refetchReviews } = useCompanyReviews(supplier?.id || '');
 
   // Track profile view when supplier data loads
   useEffect(() => {
@@ -321,58 +326,53 @@ const { data: productsData, isLoading: productsLoading } = usePublicSupplierProd
         </div>
       )}
 
-      {/* Pricing Section */}
+      {/* Reviews Section - Real Data */}
       <div className="px-4 py-6 border-t">
-        <h3 className="text-lg font-bold mb-3">מחירים</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          המחירים משתנים בקשיקים ל לקידום, זמן החודרת, מהומת עמכו וכן המוצרי וגמלותנו
-        </p>
-        <div className="p-4 bg-muted/50 rounded-lg">
-          <div className="text-center">
-            <p className="text-2xl font-bold">50,000₪-200,000₪</p>
-            <p className="text-xs text-muted-foreground mt-1">לפרויקט בינוני שמתעקלקות מפרט משקללות</p>
+        <h3 className="text-lg font-bold mb-4">ביקורות ({reviews.length})</h3>
+        
+        {reviews.length > 0 ? (
+          <div className="space-y-4">
+            {reviews.map((review) => (
+              <div key={review.id} className="p-4 rounded-lg bg-muted/30">
+                <div className="flex items-start gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-sm font-medium">
+                      {review.reviewer_name?.slice(0, 2).toUpperCase() || '??'}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{review.title || review.reviewer_name || 'משתמש'}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(review.created_at), { 
+                        addSuffix: true, 
+                        locale: he 
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex mb-2">{renderStars(review.rating)}</div>
+                {review.content && (
+                  <p className="text-sm text-muted-foreground">
+                    {review.content}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
-        </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <p className="text-sm">עדיין אין ביקורות לספק זה</p>
+            <p className="text-xs mt-1">היה הראשון לשתף את החוויה שלך</p>
+          </div>
+        )}
       </div>
 
-      {/* Reviews Section - Placeholder */}
-      <div className="px-4 py-6 border-t">
-        <h3 className="text-lg font-bold mb-4">אנחנו רשמתם</h3>
-        <div className="space-y-4">
-          {/* Sample Review 1 */}
-          <div className="p-4 rounded-lg bg-muted/30">
-            <div className="flex items-start gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-medium">NC</span>
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-sm">Noa Cohen</p>
-                <p className="text-xs text-muted-foreground">3 months ago</p>
-              </div>
-            </div>
-            <div className="flex mb-2">{renderStars(5)}</div>
-            <p className="text-sm text-muted-foreground">
-              Elite Kitchens transformed my kitchen into a dream space! Their attention to detail and professionalism were outstanding.
-            </p>
-          </div>
-
-          {/* Sample Review 2 */}
-          <div className="p-4 rounded-lg bg-muted/30">
-            <div className="flex items-start gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                <span className="text-sm font-medium">AL</span>
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-sm">Avi Levi</p>
-                <p className="text-xs text-muted-foreground">3 months ago</p>
-              </div>
-            </div>
-            <div className="flex mb-2">{renderStars(4)}</div>
-            <p className="text-sm text-muted-foreground">
-              Great service and quality work. Minor delays but overall satisfied.
-            </p>
-          </div>
-        </div>
+      {/* Add Review Form */}
+      <div className="px-4 py-6 border-t bg-muted/30">
+        <ReviewForm 
+          companyId={supplier.id}
+          onReviewSubmitted={refetchReviews}
+        />
       </div>
 
       {/* Contact Form Section */}
