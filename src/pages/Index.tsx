@@ -6,6 +6,7 @@ import { useCategorySuppliers } from '@/hooks/useCategorySuppliers';
 import { useAppEvents } from '@/hooks/useAppEvents';
 import { useHomepagePublicContent } from '@/hooks/useHomepageCMS';
 import { useFeaturedSuppliers } from '@/hooks/useFeaturedSuppliers';
+import { useQueryClient } from '@tanstack/react-query';
 import { OnboardingGuard } from '@/components/OnboardingGuard';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
@@ -41,6 +42,7 @@ const Index = () => {
   const isGuest = isInGuestMode();
   const [searchQuery, setSearchQuery] = useState('');
   const { logEvent } = useAppEvents();
+  const queryClient = useQueryClient();
 
   // Log app_open event when component mounts
   useEffect(() => {
@@ -66,6 +68,19 @@ const Index = () => {
 
   // Fetch full supplier details from database
   const { data: featuredSuppliers = [], isLoading: isFeaturedLoading } = useFeaturedSuppliers(featuredSupplierIds);
+
+  // Polling for real-time updates in development
+  useEffect(() => {
+    const isDev = import.meta.env.DEV;
+    if (!isDev) return;
+    
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ['featured-suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['homepage-public-content'] });
+    }, 30000); // 30 seconds in dev mode
+    
+    return () => clearInterval(interval);
+  }, [queryClient]);
 
   // Debug: Log featured suppliers count for QA
   console.log('Featured supplier IDs from CMS:', featuredSupplierIds.length);
@@ -520,19 +535,29 @@ const Index = () => {
           </div>
 
           {/* Featured Suppliers from CMS */}
-          {featuredSuppliers.length > 0 && (
-            <div className="w-full">
-              <SectionTitleWithButton 
-                title="ספקים מובילים"
-                buttonText="לכל הספקים"
-                onButtonClick={() => navigate('/top-suppliers')}
-              />
+          <div className="w-full">
+            <SectionTitleWithButton 
+              title="ספקים מובילים"
+              buttonText="לכל הספקים"
+              onButtonClick={() => navigate('/top-suppliers')}
+            />
+            {isFeaturedLoading ? (
+              <div className="flex gap-4 overflow-x-auto pb-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-64 h-32 bg-muted/50 animate-pulse rounded-lg" />
+                ))}
+              </div>
+            ) : featuredSuppliers.length > 0 ? (
               <SupplierSection 
                 suppliers={featuredSuppliers}
                 onSupplierClick={handleSupplierClick}
               />
-            </div>
-          )}
+            ) : (
+              <div className="p-8 text-center text-muted-foreground border rounded-lg">
+                אין ספקים מובילים להצגה כרגע
+              </div>
+            )}
+          </div>
 
           <div className="w-full">
             <SectionTitleWithButton 

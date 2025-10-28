@@ -163,7 +163,10 @@ export const useCreateItem = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['homepage-items', variables.section_id] });
+      queryClient.invalidateQueries({ queryKey: ['homepage-items'] });
       queryClient.invalidateQueries({ queryKey: ['homepage-public-content'] });
+      queryClient.invalidateQueries({ queryKey: ['featured-suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['approved-suppliers'] });
       toast({ title: "הצלחה", description: "הפריט נוצר בהצלחה" });
     },
     onError: (error) => {
@@ -195,7 +198,10 @@ export const useUpdateItem = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['homepage-items', variables.section_id] });
+      queryClient.invalidateQueries({ queryKey: ['homepage-items'] });
       queryClient.invalidateQueries({ queryKey: ['homepage-public-content'] });
+      queryClient.invalidateQueries({ queryKey: ['featured-suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['approved-suppliers'] });
       toast({ title: "הצלחה", description: "הפריט עודכן בהצלחה" });
     },
     onError: (error) => {
@@ -224,7 +230,10 @@ export const useDeleteItem = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['homepage-items', variables.section_id] });
+      queryClient.invalidateQueries({ queryKey: ['homepage-items'] });
       queryClient.invalidateQueries({ queryKey: ['homepage-public-content'] });
+      queryClient.invalidateQueries({ queryKey: ['featured-suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['approved-suppliers'] });
       toast({ title: "הצלחה", description: "הפריט נמחק בהצלחה" });
     },
     onError: (error) => {
@@ -262,7 +271,10 @@ export const useReorderItems = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['homepage-items', variables.sectionId] });
+      queryClient.invalidateQueries({ queryKey: ['homepage-items'] });
       queryClient.invalidateQueries({ queryKey: ['homepage-public-content'] });
+      queryClient.invalidateQueries({ queryKey: ['featured-suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['approved-suppliers'] });
     },
     onError: (error) => {
       console.error('Error reordering items:', error);

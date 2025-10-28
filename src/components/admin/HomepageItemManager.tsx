@@ -469,27 +469,28 @@ interface SupplierSelectorProps {
 
 function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierSelectorProps) {
   const [selectedSuppliers, setSelectedSuppliers] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
   const createItem = useCreateItem();
   const deleteItem = useDeleteItem();
   const { toast } = useToast();
 
-  // Fetch all approved suppliers
+  // Fetch all approved suppliers with real-time sync
   const { data: suppliers = [], isLoading } = useQuery({
     queryKey: ['approved-suppliers'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('companies')
-        .select('id, name, tagline, logo_url, slug, featured, rating')
+        .select('id, name, tagline, logo_url, slug, rating')
         .eq('status', 'approved')
         .eq('is_public', true)
-        .order('featured', { ascending: false })
         .order('rating', { ascending: false });
 
       if (error) throw error;
       return data || [];
     },
-    enabled: open
+    enabled: open,
+    refetchInterval: open ? 3000 : false, // Refresh every 3 seconds when dialog is open
   });
 
   // Initialize selected suppliers from existing items
@@ -521,6 +522,7 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
   };
 
   const handleSave = async () => {
+    setIsSaving(true);
     try {
       // Get current supplier IDs
       const currentSupplierIds = new Set(
@@ -562,14 +564,23 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
         });
       }
 
-      // Force refresh of homepage content
-      await queryClient.refetchQueries({ queryKey: ['homepage-public-content'] });
+      // Force refresh of all related queries
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: ['homepage-public-content'] }),
+        queryClient.refetchQueries({ queryKey: ['homepage-items'] }),
+        queryClient.refetchQueries({ queryKey: ['featured-suppliers'] }),
+      ]);
       
       toast({
         title: 'הצלחה',
-        description: 'הספקים עודכנו בהצלחה'
+        description: `${selectedSuppliers.size} ספקים נשמרו בהצלחה ויוצגו בעמוד הבית`
       });
-      onClose();
+      
+      // Small delay before closing to show success message
+      setTimeout(() => {
+        onClose();
+        setIsSaving(false);
+      }, 500);
     } catch (error) {
       console.error('Error saving suppliers:', error);
       toast({
@@ -577,17 +588,16 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
         description: 'אירעה שגיאה בשמירת הספקים',
         variant: 'destructive'
       });
+      setIsSaving(false);
     }
   };
 
-  // Sort suppliers: selected first, then featured, then by rating
+  // Sort suppliers: selected first, then by rating
   const sortedSuppliers = [...suppliers].sort((a, b) => {
     const aSelected = selectedSuppliers.has(a.id);
     const bSelected = selectedSuppliers.has(b.id);
     if (aSelected && !bSelected) return -1;
     if (!aSelected && bSelected) return 1;
-    if (a.featured && !b.featured) return -1;
-    if (!a.featured && b.featured) return 1;
     return (b.rating || 0) - (a.rating || 0);
   });
 
@@ -637,11 +647,6 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
                           מוצג כעת
                         </Badge>
                       )}
-                      {supplier.featured && (
-                        <Badge variant="secondary" className="text-xs">
-                          מומלץ
-                        </Badge>
-                      )}
                     </div>
                     {supplier.tagline && (
                       <div className="text-sm text-muted-foreground">{supplier.tagline}</div>
@@ -656,11 +661,11 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
         <div className="flex justify-between pt-4">
           <Button 
             onClick={handleSave}
-            disabled={createItem.isPending || deleteItem.isPending}
+            disabled={isSaving || createItem.isPending || deleteItem.isPending}
           >
-            {createItem.isPending || deleteItem.isPending ? 'שומר...' : `שמור (${selectedSuppliers.size} ספקים)`}
+            {isSaving ? 'שומר ומסנכרן...' : `שמור ${selectedSuppliers.size} ספקים`}
           </Button>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={isSaving}>
             ביטול
           </Button>
         </div>

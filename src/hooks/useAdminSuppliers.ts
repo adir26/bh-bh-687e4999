@@ -45,10 +45,6 @@ export const useAdminSuppliers = (
         query = query.eq('is_public', filters.is_public);
       }
       
-      if (typeof filters.featured === 'boolean') {
-        query = query.eq('featured', filters.featured);
-      }
-      
       if (filters.area) {
         query = query.ilike('area', `%${filters.area}%`);
       }
