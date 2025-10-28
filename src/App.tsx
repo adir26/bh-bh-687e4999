@@ -90,6 +90,7 @@ import AdminAnalytics from "./pages/admin/Analytics";
 import SupplierManagement from "./pages/admin/SupplierManagement";
 import CategoryManagement from "./pages/admin/CategoryManagement";
 import { HomepageContentManagement } from "./pages/admin/HomepageContentManagement";
+import PhotoManagement from "./pages/admin/PhotoManagement";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminRouteGuard } from "./components/admin/AdminRouteGuard";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -108,6 +109,7 @@ import Inspiration from "./pages/Inspiration";
 import PhotoDetail from "./pages/PhotoDetail";
 import Ideabooks from "./pages/Ideabooks";
 import IdeabookDetail from "./pages/IdeabookDetail";
+import MyPhotos from "./pages/supplier/MyPhotos";
 
 import PublicProductView from "./pages/PublicProductView";
 import PublicHomepage from "./pages/PublicHomepage";
@@ -457,6 +459,11 @@ const App = () => {
                     <SupplierFiles />
                   </OnboardingGuard>
                 } />
+                <Route path="/supplier/my-photos" element={
+                  <OnboardingGuard role="supplier">
+                    <MyPhotos />
+                  </OnboardingGuard>
+                } />
                 <Route path="/quotes/:quoteId" element={<QuoteView />} />
                 <Route path="/sign/:token" element={<ProposalSignature />} />
                 
@@ -556,6 +563,7 @@ const App = () => {
                   <Route path="suppliers" element={<SupplierManagement />} />
                   <Route path="categories" element={<CategoryManagement />} />
                   <Route path="homepage-content" element={<HomepageContentManagement />} />
+                  <Route path="photos" element={<PhotoManagement />} />
                 </Route>
                  
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

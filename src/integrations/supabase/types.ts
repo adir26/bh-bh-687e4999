@@ -2679,7 +2679,11 @@ export type Database = {
           height: number | null
           id: string
           is_public: boolean
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           room: string | null
+          status: string | null
           storage_path: string
           style: string | null
           title: string
@@ -2695,7 +2699,11 @@ export type Database = {
           height?: number | null
           id?: string
           is_public?: boolean
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           room?: string | null
+          status?: string | null
           storage_path: string
           style?: string | null
           title: string
@@ -2711,7 +2719,11 @@ export type Database = {
           height?: number | null
           id?: string
           is_public?: boolean
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           room?: string | null
+          status?: string | null
           storage_path?: string
           style?: string | null
           title?: string

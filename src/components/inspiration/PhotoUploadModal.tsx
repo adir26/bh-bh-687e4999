@@ -175,7 +175,8 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
             width: img.width,
             height: img.height,
             uploader_id: user.id,
-            is_public: formData.is_public
+            status: 'pending',
+            is_public: false
           });
 
         if (dbError) throw dbError;
@@ -206,7 +207,7 @@ export function PhotoUploadModal({ isOpen, onOpenChange, onUploadComplete }: Pho
         setUploadProgress(((i + 1) / files.length) * 100);
       }
 
-      toast.success(`${files.length} תמונות הועלו בהצלחה! נשלחו לאישור מנהל`);
+      toast.success(`${files.length} תמונות הועלו בהצלחה! התמונות נשלחו לאישור מנהל ויופיעו בגלריה לאחר האישור.`);
       
       // Reset form
       setFiles([]);

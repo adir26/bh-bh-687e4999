@@ -46,6 +46,7 @@ export default function Inspiration() {
           photo_products(id)
         `)
         .eq('is_public', true)
+        .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
       if (selectedRoom && selectedRoom !== 'all') {

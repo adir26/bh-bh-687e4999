@@ -1,4 +1,4 @@
-import { BarChart3, Home, Layout, LucideIcon, Tag, Users } from "lucide-react";
+import { BarChart3, Home, Image, Layout, LucideIcon, Tag, Users } from "lucide-react";
 
 export interface AdminNavigationItem {
   id: string;
@@ -15,4 +15,5 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   { id: "suppliers", label: "ספקים", path: "/admin/suppliers", icon: Users, isImplemented: true },
   { id: "categories", label: "קטגוריות", path: "/admin/categories", icon: Tag, isImplemented: true },
   { id: "homepage", label: "עמוד הבית", path: "/admin/homepage-content", icon: Layout, isImplemented: true },
+  { id: "photos", label: "גלריית השראה", path: "/admin/photos", icon: Image, isImplemented: true },
 ];

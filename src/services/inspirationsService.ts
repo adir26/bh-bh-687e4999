@@ -13,6 +13,7 @@ export class InspirationsService {
         photo_tags(tag)
       `)
       .eq('is_public', true)
+      .eq('status', 'approved')
       .order('created_at', { ascending: options.sortBy === 'oldest' });
 
     if (options.room && options.room !== 'all') {
