@@ -1499,6 +1499,7 @@ export type Database = {
         Row: {
           assigned_to: string | null
           client_id: string | null
+          company_id: string | null
           contact_email: string | null
           contact_method: string | null
           contact_phone: string | null
@@ -1529,6 +1530,7 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           client_id?: string | null
+          company_id?: string | null
           contact_email?: string | null
           contact_method?: string | null
           contact_phone?: string | null
@@ -1559,6 +1561,7 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           client_id?: string | null
+          company_id?: string | null
           contact_email?: string | null
           contact_method?: string | null
           contact_phone?: string | null
@@ -1592,6 +1595,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
           {

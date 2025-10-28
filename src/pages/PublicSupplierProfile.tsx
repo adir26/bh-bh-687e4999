@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { ContactSupplierForm } from '@/components/supplier/ContactSupplierForm';
 import { 
   Star, 
   MapPin, 
@@ -15,10 +16,11 @@ import {
   Globe, 
   Search, 
   Share2, 
-  MessageCircle,
+  Heart,
   CheckCircle,
   ArrowRight,
-  Home
+  Home,
+  ArrowLeft
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -150,169 +152,251 @@ const { data: productsData, isLoading: productsLoading } = usePublicSupplierProd
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Banner */}
-      {supplier.banner_url && (
-        <div className="w-full h-48 md:h-64 overflow-hidden">
-          <img 
-            src={supplier.banner_url} 
-            alt={supplier.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
+      {/* Mobile Header Bar */}
+      <div className="sticky top-0 z-10 bg-card border-b px-4 py-3 flex items-center justify-between">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowRight className="w-5 h-5" />
+        </Button>
+        <h1 className="text-sm font-medium">פרופיל ספק</h1>
+        <div className="w-10" />
+      </div>
 
-      {/* Header Section */}
-      <div className="bg-card border-b">
-        <div className="container max-w-6xl mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row items-start gap-6">
-            {/* Company Info */}
-            <div className="flex items-start gap-4 flex-1">
-              {supplier.logo_url && (
-                <div className="relative">
-                  <img
-                    src={supplier.logo_url}
-                    alt={supplier.name}
-                    className="w-20 h-20 rounded-full object-cover border-2 border-primary/10"
-                  />
-                  {supplier.verified && (
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4 text-primary-foreground" />
-                    </div>
-                  )}
+      {/* Company Header - Centered with Large Logo */}
+      <div className="bg-card px-4 py-8">
+        <div className="max-w-md mx-auto text-center">
+          {/* Logo */}
+          {supplier.logo_url && (
+            <div className="relative inline-block mb-4">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-background shadow-lg">
+                <img
+                  src={supplier.logo_url}
+                  alt={supplier.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {supplier.verified && (
+                <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-primary rounded-full flex items-center justify-center border-2 border-background">
+                  <CheckCircle className="w-4 h-4 text-primary-foreground" />
                 </div>
               )}
-              
-              <div className="flex-1">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                      {supplier.name}
-                      {supplier.verified && (
-                        <Badge variant="secondary" className="gap-1">
-                          <CheckCircle className="w-3 h-3" />
-                          מאומת
-                        </Badge>
-                      )}
-                    </h1>
-                    
-                    {supplier.tagline && (
-                      <p className="text-lg text-muted-foreground mt-1">
-                        {supplier.tagline}
-                      </p>
-                    )}
-
-                    {supplier.description && (
-                      <p className="text-muted-foreground mt-2 max-w-2xl">
-                        {supplier.description}
-                      </p>
-                    )}
-
-                    <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                      {supplier.area && (
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {supplier.area}
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2">
-                        <div className="flex">{renderStars(Math.round(supplier.rating))}</div>
-                        <span className="font-medium text-foreground">{supplier.rating.toFixed(1)}</span>
-                        <span>({supplier.review_count} ביקורות)</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <Button variant="outline" size="sm" onClick={handleShare} className="gap-2 flex-1 md:flex-none">
-                <Share2 className="w-4 h-4" />
-                שתף
-              </Button>
-              
-              <Button className="gap-2 flex-1 md:flex-none">
-                <MessageCircle className="w-4 h-4" />
-                צור קשר
-              </Button>
-            </div>
-          </div>
-
-          {/* Contact Info */}
-          {(supplier.phone || supplier.email || supplier.website) && (
-            <div className="mt-6 pt-6 border-t">
-              <div className="flex flex-wrap gap-6 text-sm">
-                {supplier.phone && (
-                  <a href={`tel:${supplier.phone}`} className="flex items-center gap-2 text-primary hover:underline">
-                    <Phone className="w-4 h-4" />
-                    {supplier.phone}
-                  </a>
-                )}
-                
-                {supplier.email && (
-                  <a href={`mailto:${supplier.email}`} className="flex items-center gap-2 text-primary hover:underline">
-                    <Mail className="w-4 h-4" />
-                    {supplier.email}
-                  </a>
-                )}
-                
-                {supplier.website && (
-                  <a 
-                    href={supplier.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-primary hover:underline"
-                  >
-                    <Globe className="w-4 h-4" />
-                    אתר האינטרנט
-                  </a>
-                )}
-              </div>
             </div>
           )}
+
+          {/* Company Name */}
+          <h2 className="text-2xl font-bold mb-2">{supplier.name}</h2>
+
+          {/* Rating */}
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="flex">{renderStars(Math.round(supplier.rating))}</div>
+            <span className="font-medium">{supplier.rating.toFixed(1)}</span>
+          </div>
+
+          {/* Review Count & Price Range */}
+          <div className="text-sm text-muted-foreground mb-6">
+            מבוסס על {supplier.review_count} ביקורות | טווח מחירים: 50,000₪-200,000₪
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 mb-6">
+            <Button variant="outline" className="flex-1 gap-2">
+              <Heart className="w-4 h-4" />
+              שמור ספק
+            </Button>
+            <Button className="flex-1 gap-2">
+              בקשת הצעת מחיר
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Services Section */}
-      {supplier.services && supplier.services.length > 0 && (
-        <div className="bg-muted/30 border-y">
-          <div className="container max-w-6xl mx-auto px-4 py-6">
-            <h2 className="text-lg font-semibold mb-4">שירותים</h2>
-            <div className="flex flex-wrap gap-2">
-              {supplier.services.map((service, index) => (
-                <Badge key={index} variant="secondary" className="text-sm py-1 px-3">
-                  {service}
-                </Badge>
-              ))}
-            </div>
+      {/* About Section */}
+      {supplier.description && (
+        <div className="px-4 py-6 border-t">
+          <h3 className="text-lg font-bold mb-3">באונר</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {supplier.description}
+          </p>
+        </div>
+      )}
+
+      {/* Products Section */}
+      {productsData?.products && productsData.products.length > 0 && (
+        <div className="px-4 py-6 border-t">
+          <h3 className="text-lg font-bold mb-4">המוצרים שלנו</h3>
+          
+          {/* Product Tabs */}
+          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+            <Button
+              variant={selectedCategory === '' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedCategory('')}
+              className="whitespace-nowrap rounded-full"
+            >
+              כולם
+            </Button>
+            {categoriesData && categoriesData.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory(category.id)}
+                className="whitespace-nowrap rounded-full"
+              >
+                {category.name}
+              </Button>
+            ))}
+          </div>
+
+          {/* Products Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {productsData.products.slice(0, 4).map((product) => (
+              <Link
+                key={product.id}
+                to={`/s/${supplier.slug}/p/${product.id}`}
+                className="group"
+              >
+                <Card className="overflow-hidden">
+                  {product.primaryImage || (product.images && product.images.length > 0) ? (
+                    <div className="aspect-square overflow-hidden">
+                      <img
+                        src={product.primaryImage || product.images![0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-square bg-muted flex items-center justify-center">
+                      <div className="text-muted-foreground text-3xl">📦</div>
+                    </div>
+                  )}
+                  <CardContent className="p-3">
+                    <h4 className="font-medium text-sm line-clamp-1 mb-1">{product.name}</h4>
+                    <p className="text-xs text-muted-foreground line-clamp-1">
+                      {product.category?.name || 'כללי'}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
           </div>
         </div>
       )}
 
       {/* Gallery Section */}
       {supplier.gallery && supplier.gallery.length > 0 && (
-        <div className="bg-background">
-          <div className="container max-w-6xl mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold mb-6">גלריה</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {supplier.gallery.map((imageUrl, index) => (
-                <div key={index} className="aspect-square rounded-lg overflow-hidden">
-                  <img 
-                    src={imageUrl} 
-                    alt={`Gallery ${index + 1}`}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform"
-                  />
-                </div>
-              ))}
-            </div>
+        <div className="px-4 py-6 border-t">
+          <h3 className="text-lg font-bold mb-4">גלריה</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {supplier.gallery.slice(0, 4).map((imageUrl, index) => (
+              <div key={index} className="aspect-square rounded-lg overflow-hidden">
+                <img 
+                  src={imageUrl} 
+                  alt={`Gallery ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Products Section */}
-      <div className="container max-w-6xl mx-auto px-4 py-8">
+      {/* Services Section */}
+      {supplier.services && supplier.services.length > 0 && (
+        <div className="px-4 py-6 border-t">
+          <h3 className="text-lg font-bold mb-4">בחלק זה קח שאתנו נושאים</h3>
+          <div className="space-y-3">
+            {supplier.services.map((service, index) => (
+              <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                <div className="w-10 h-10 rounded-full bg-background flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                </div>
+                <span className="text-sm font-medium">{service}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Pricing Section */}
+      <div className="px-4 py-6 border-t">
+        <h3 className="text-lg font-bold mb-3">מחירים</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          המחירים משתנים בקשיקים ל לקידום, זמן החודרת, מהומת עמכו וכן המוצרי וגמלותנו
+        </p>
+        <div className="p-4 bg-muted/50 rounded-lg">
+          <div className="text-center">
+            <p className="text-2xl font-bold">50,000₪-200,000₪</p>
+            <p className="text-xs text-muted-foreground mt-1">לפרויקט בינוני שמתעקלקות מפרט משקללות</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Reviews Section - Placeholder */}
+      <div className="px-4 py-6 border-t">
+        <h3 className="text-lg font-bold mb-4">אנחנו רשמתם</h3>
+        <div className="space-y-4">
+          {/* Sample Review 1 */}
+          <div className="p-4 rounded-lg bg-muted/30">
+            <div className="flex items-start gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-medium">NC</span>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-sm">Noa Cohen</p>
+                <p className="text-xs text-muted-foreground">3 months ago</p>
+              </div>
+            </div>
+            <div className="flex mb-2">{renderStars(5)}</div>
+            <p className="text-sm text-muted-foreground">
+              Elite Kitchens transformed my kitchen into a dream space! Their attention to detail and professionalism were outstanding.
+            </p>
+          </div>
+
+          {/* Sample Review 2 */}
+          <div className="p-4 rounded-lg bg-muted/30">
+            <div className="flex items-start gap-3 mb-2">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <span className="text-sm font-medium">AL</span>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-sm">Avi Levi</p>
+                <p className="text-xs text-muted-foreground">3 months ago</p>
+              </div>
+            </div>
+            <div className="flex mb-2">{renderStars(4)}</div>
+            <p className="text-sm text-muted-foreground">
+              Great service and quality work. Minor delays but overall satisfied.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Form Section */}
+      <div className="px-4 py-6 border-t bg-muted/30">
+        <ContactSupplierForm 
+          companyId={supplier.id}
+          companyName={supplier.name}
+          supplierId={supplier.owner_id}
+        />
+      </div>
+
+      {/* Bottom Action Bar */}
+      <div className="sticky bottom-0 bg-card border-t px-4 py-3 flex gap-3">
+        <Button variant="outline" className="flex-1 gap-2">
+          <Heart className="w-4 h-4" />
+          שמור ספק
+        </Button>
+        <Button className="flex-1">
+          בקשת פגישה
+        </Button>
+      </div>
+
+      {/* Full Products List (Hidden by default, shown after products section) */}
+      <div className="container max-w-6xl mx-auto px-4 py-8 hidden">
         {/* Search and Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-1">
