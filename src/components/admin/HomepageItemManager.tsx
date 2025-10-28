@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, GripVertical, Upload, X } from 'lucide-react';
+import { Plus, Edit, Trash2, GripVertical, Upload, X, AlertTriangle, ImageIcon } from 'lucide-react';
 import { useHomepageItems, useCreateItem, useUpdateItem, useDeleteItem, useReorderItems, useHomepageImageUpload } from '@/hooks/useHomepageCMS';
 import type { HomepageSection, HomepageItem, LinkType, CreateItemRequest, UpdateItemRequest } from '@/types/homepage';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { QuickLogoUpload } from './QuickLogoUpload';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface HomepageItemManagerProps {
   section: HomepageSection;
@@ -470,6 +472,7 @@ interface SupplierSelectorProps {
 function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierSelectorProps) {
   const [selectedSuppliers, setSelectedSuppliers] = useState<Set<string>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingLogoFor, setUploadingLogoFor] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const createItem = useCreateItem();
   const deleteItem = useDeleteItem();
@@ -616,46 +619,94 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
         {isLoading ? (
           <div className="text-center py-8">טוען ספקים...</div>
         ) : (
-          <div className="space-y-2">
-            {sortedSuppliers.map(supplier => {
-              const isSelected = selectedSuppliers.has(supplier.id);
-              return (
-                <div
-                  key={supplier.id}
-                  className={cn(
-                    "flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors",
-                    isSelected && "border-primary bg-primary/5"
-                  )}
-                  onClick={() => toggleSupplier(supplier.id)}
-                >
-                  <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => toggleSupplier(supplier.id)}
-                  />
-                  {supplier.logo_url && (
-                    <img
-                      src={supplier.logo_url}
-                      alt={supplier.name}
-                      className="w-10 h-10 object-cover rounded"
+          <TooltipProvider>
+            <div className="space-y-2">
+              {sortedSuppliers.map(supplier => {
+                const isSelected = selectedSuppliers.has(supplier.id);
+                const hasLogo = supplier.logo_url && supplier.logo_url.trim() !== '';
+                const shouldWarn = !hasLogo && isSelected;
+                
+                return (
+                  <div
+                    key={supplier.id}
+                    className={cn(
+                      "flex items-center gap-3 p-3 border rounded-lg transition-colors",
+                      isSelected && "border-primary bg-primary/5",
+                      shouldWarn && "border-warning/50 bg-warning/5"
+                    )}
+                  >
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleSupplier(supplier.id)}
                     />
-                  )}
-                  <div className="flex-1 text-right">
-                    <div className="font-medium flex items-center gap-2 justify-end">
-                      {supplier.name}
-                      {isSelected && (
-                        <Badge variant="default" className="text-xs">
-                          מוצג כעת
-                        </Badge>
+                    
+                    {/* Logo with warning */}
+                    <div className="relative">
+                      {hasLogo ? (
+                        <img
+                          src={supplier.logo_url!}
+                          alt={supplier.name}
+                          className="w-12 h-12 object-cover rounded-lg border-2 border-muted"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/30 flex items-center justify-center">
+                          <ImageIcon className="w-6 h-6 text-muted-foreground/50" />
+                        </div>
+                      )}
+                      {shouldWarn && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="absolute -top-1 -right-1 bg-warning text-warning-foreground rounded-full p-0.5">
+                              <AlertTriangle className="w-3 h-3" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p className="text-xs">⚠️ לספק זה אין לוגו - לא יוצג כראוי</p>
+                          </TooltipContent>
+                        </Tooltip>
                       )}
                     </div>
-                    {supplier.tagline && (
-                      <div className="text-sm text-muted-foreground">{supplier.tagline}</div>
-                    )}
+
+                    <div 
+                      className="flex-1 text-right cursor-pointer"
+                      onClick={() => toggleSupplier(supplier.id)}
+                    >
+                      <div className="font-medium flex items-center gap-2 justify-end flex-wrap">
+                        {supplier.name}
+                        {isSelected && (
+                          <Badge variant="default" className="text-xs">
+                            מוצג כעת
+                          </Badge>
+                        )}
+                        {!hasLogo && (
+                          <Badge variant="outline" className="text-xs border-warning text-warning">
+                            אין לוגו
+                          </Badge>
+                        )}
+                      </div>
+                      {supplier.tagline && (
+                        <div className="text-sm text-muted-foreground">{supplier.tagline}</div>
+                      )}
+                    </div>
+
+                    {/* Upload button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setUploadingLogoFor(supplier.id);
+                      }}
+                      className="shrink-0"
+                    >
+                      <Upload className="w-4 h-4 ml-2" />
+                      {hasLogo ? 'החלף' : 'העלה'}
+                    </Button>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </TooltipProvider>
         )}
 
         <div className="flex justify-between pt-4">
@@ -670,6 +721,17 @@ function SupplierSelector({ sectionId, open, onClose, existingItems }: SupplierS
           </Button>
         </div>
       </DialogContent>
+      
+      {/* Logo Upload Modal */}
+      {uploadingLogoFor && (
+        <QuickLogoUpload
+          companyId={uploadingLogoFor}
+          companyName={suppliers.find(s => s.id === uploadingLogoFor)?.name || ''}
+          currentLogoUrl={suppliers.find(s => s.id === uploadingLogoFor)?.logo_url}
+          open={!!uploadingLogoFor}
+          onClose={() => setUploadingLogoFor(null)}
+        />
+      )}
     </Dialog>
   );
 }

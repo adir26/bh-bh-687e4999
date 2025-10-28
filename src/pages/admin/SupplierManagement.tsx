@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { Search, MoreHorizontal, Eye, CheckCircle, XCircle, UserCheck, Filter, Plus, Upload, Download, RefreshCw, X, Home, Settings } from 'lucide-react';
+import { Search, MoreHorizontal, Eye, CheckCircle, XCircle, UserCheck, Filter, Plus, Upload as UploadIcon, Download, RefreshCw, X, Home, Settings, ImageIcon, AlertTriangle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { QuickLogoUpload } from '@/components/admin/QuickLogoUpload';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -86,6 +87,7 @@ const SupplierManagement = () => {
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<EnhancedCompany | null>(null);
   const [verificationNotes, setVerificationNotes] = useState('');
+  const [uploadingLogoFor, setUploadingLogoFor] = useState<string | null>(null);
   
   // Custom hooks
   const { suppliers, totalCount, totalPages, isLoading, refetch } = useAdminSuppliers(filters, pagination);
@@ -482,6 +484,7 @@ const SupplierManagement = () => {
                             onCheckedChange={handleSelectAll}
                           />
                         </TableHead>
+                        <TableHead className="text-right">לוגו</TableHead>
                         <TableHead className="text-right">חברה</TableHead>
                         <TableHead className="text-right">בעלים</TableHead>
                         <TableHead className="text-right">סטטוס</TableHead>
@@ -495,20 +498,51 @@ const SupplierManagement = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {suppliers.map((supplier) => (
-                        <TableRow key={supplier.id}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedSuppliers.includes(supplier.id)}
-                              onCheckedChange={(checked) => handleSelectSupplier(supplier.id, checked as boolean)}
-                            />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div>
-                              <div className="font-medium">{supplier.name}</div>
-                              <div className="text-sm text-muted-foreground">{supplier.email}</div>
-                            </div>
-                          </TableCell>
+                      {suppliers.map((supplier) => {
+                        const hasLogo = supplier.logo_url && supplier.logo_url.trim() !== '';
+                        
+                        return (
+                          <TableRow key={supplier.id}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedSuppliers.includes(supplier.id)}
+                                onCheckedChange={(checked) => handleSelectSupplier(supplier.id, checked as boolean)}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div 
+                                className="relative w-12 h-12 cursor-pointer group"
+                                onClick={() => setUploadingLogoFor(supplier.id)}
+                              >
+                                {hasLogo ? (
+                                  <>
+                                    <img
+                                      src={supplier.logo_url!}
+                                      alt={supplier.name}
+                                      className="w-12 h-12 object-cover rounded-lg border-2 border-muted"
+                                    />
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                      <UploadIcon className="w-5 h-5 text-white" />
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="w-12 h-12 rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/30 hover:bg-muted/50 flex items-center justify-center transition-colors">
+                                    <div className="relative">
+                                      <ImageIcon className="w-6 h-6 text-muted-foreground/50" />
+                                      <div className="absolute -top-1 -right-1 bg-warning text-warning-foreground rounded-full p-0.5">
+                                        <AlertTriangle className="w-2.5 h-2.5" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div>
+                                <div className="font-medium">{supplier.name}</div>
+                                <div className="text-sm text-muted-foreground">{supplier.email}</div>
+                              </div>
+                            </TableCell>
                           <TableCell className="text-right">
                             <div>
                               <div className="font-medium">{supplier.owner_profile?.full_name}</div>
@@ -604,9 +638,10 @@ const SupplierManagement = () => {
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -686,6 +721,17 @@ const SupplierManagement = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Logo Upload Modal */}
+        {uploadingLogoFor && (
+          <QuickLogoUpload
+            companyId={uploadingLogoFor}
+            companyName={suppliers.find(s => s.id === uploadingLogoFor)?.name || ''}
+            currentLogoUrl={suppliers.find(s => s.id === uploadingLogoFor)?.logo_url}
+            open={!!uploadingLogoFor}
+            onClose={() => setUploadingLogoFor(null)}
+          />
+        )}
     </AdminLayout>
   );
 };
