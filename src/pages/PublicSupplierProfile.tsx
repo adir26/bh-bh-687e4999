@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { ContactSupplierForm } from '@/components/supplier/ContactSupplierForm';
 import { ReviewForm } from '@/components/supplier/ReviewForm';
 import { useCompanyReviews } from '@/hooks/useCompanyReviews';
+import { FavoritesService } from '@/services/favoritesService';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { 
@@ -24,9 +25,11 @@ import {
   CheckCircle,
   ArrowRight,
   Home,
-  ArrowLeft
+  ArrowLeft,
+  Calendar
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { ScheduleMeetingModal } from '@/components/modals/ScheduleMeetingModal';
 
 const PublicSupplierProfile: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -34,6 +37,9 @@ const PublicSupplierProfile: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [isScheduleMeetingOpen, setIsScheduleMeetingOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const { data: supplier, isLoading: supplierLoading, error: supplierError } = usePublicSupplier(slug!);
   const { data: categoriesData } = useSupplierCategories(supplier?.id || '', supplier?.owner_id);
@@ -47,6 +53,26 @@ const PublicSupplierProfile: React.FC = () => {
     }
   );
   const { data: reviews = [], refetch: refetchReviews } = useCompanyReviews(supplier?.id || '');
+
+  // Get current user
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+    };
+    getUser();
+  }, []);
+
+  // Check if favorited
+  useEffect(() => {
+    const checkFavorite = async () => {
+      if (supplier?.id && userId) {
+        const favorited = await FavoritesService.isFavorited('supplier', supplier.id, userId);
+        setIsFavorited(favorited);
+      }
+    };
+    checkFavorite();
+  }, [supplier?.id, userId]);
 
   // Track profile view when supplier data loads
   useEffect(() => {
@@ -63,6 +89,35 @@ const PublicSupplierProfile: React.FC = () => {
       trackView();
     }
   }, [supplier?.id]);
+
+  const handleToggleFavorite = async () => {
+    if (!userId) {
+      toast({
+        title: "נדרשת התחברות",
+        description: "יש להתחבר כדי לשמור ספקים",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!supplier?.id) return;
+
+    try {
+      const newState = await FavoritesService.toggle('supplier', supplier.id);
+      setIsFavorited(newState);
+      toast({
+        title: newState ? "הספק נשמר" : "הספק הוסר",
+        description: newState ? "הספק נוסף למועדפים שלך" : "הספק הוסר מהמועדפים",
+      });
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן לשמור את הספק כרגע",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -207,12 +262,20 @@ const PublicSupplierProfile: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3 mb-6">
-            <Button variant="outline" className="flex-1 gap-2">
-              <Heart className="w-4 h-4" />
-              שמור ספק
+            <Button 
+              variant="outline" 
+              className="flex-1 gap-2"
+              onClick={handleToggleFavorite}
+            >
+              <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
+              {isFavorited ? 'נשמר' : 'שמור ספק'}
             </Button>
-            <Button className="flex-1 gap-2">
-              בקשת הצעת מחיר
+            <Button 
+              className="flex-1 gap-2"
+              onClick={() => setIsScheduleMeetingOpen(true)}
+            >
+              <Calendar className="w-4 h-4" />
+              בקשת פגישה
             </Button>
           </div>
         </div>
@@ -291,17 +354,26 @@ const PublicSupplierProfile: React.FC = () => {
         </div>
       )}
 
-      {/* Gallery Section */}
+      {/* Gallery Section - תמונות השראה */}
       {supplier.gallery && supplier.gallery.length > 0 && (
         <div className="px-4 py-6 border-t">
-          <h3 className="text-lg font-bold mb-4">גלריה</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold">תמונות השראה</h3>
+            <span className="text-sm text-muted-foreground">
+              {supplier.gallery.length} תמונות
+            </span>
+          </div>
           <div className="grid grid-cols-2 gap-3">
-            {supplier.gallery.slice(0, 4).map((imageUrl, index) => (
-              <div key={index} className="aspect-square rounded-lg overflow-hidden">
+            {supplier.gallery.map((imageUrl, index) => (
+              <div 
+                key={index} 
+                className="aspect-square rounded-lg overflow-hidden group cursor-pointer"
+                onClick={() => window.open(imageUrl, '_blank')}
+              >
                 <img 
                   src={imageUrl} 
-                  alt={`Gallery ${index + 1}`}
-                  className="w-full h-full object-cover"
+                  alt={`תמונת השראה ${index + 1}`}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-110"
                 />
               </div>
             ))}
@@ -385,15 +457,33 @@ const PublicSupplierProfile: React.FC = () => {
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="sticky bottom-0 bg-card border-t px-4 py-3 flex gap-3">
-        <Button variant="outline" className="flex-1 gap-2">
-          <Heart className="w-4 h-4" />
-          שמור ספק
+      <div className="sticky bottom-0 bg-card border-t px-4 py-3 flex gap-3 z-10">
+        <Button 
+          variant="outline" 
+          className="flex-1 gap-2"
+          onClick={handleToggleFavorite}
+        >
+          <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
+          {isFavorited ? 'נשמר' : 'שמור ספק'}
         </Button>
-        <Button className="flex-1">
+        <Button 
+          className="flex-1 gap-2"
+          onClick={() => setIsScheduleMeetingOpen(true)}
+        >
+          <Calendar className="w-4 h-4" />
           בקשת פגישה
         </Button>
       </div>
+
+      {/* Schedule Meeting Modal */}
+      {supplier && (
+        <ScheduleMeetingModal
+          isOpen={isScheduleMeetingOpen}
+          onOpenChange={setIsScheduleMeetingOpen}
+          supplierId={supplier.owner_id}
+          supplierName={supplier.name}
+        />
+      )}
 
       {/* Full Products List (Hidden by default, shown after products section) */}
       <div className="container max-w-6xl mx-auto px-4 py-8 hidden">
