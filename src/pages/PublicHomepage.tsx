@@ -8,7 +8,9 @@ import { BottomCTA } from '@/components/BottomCTA';
 import { GuestModeIndicator } from '@/components/GuestModeIndicator';
 import { LoginModal } from '@/components/modals/LoginModal';
 import { useGuestMode } from '@/hooks/useGuestMode';
-import { suppliers } from '@/data/suppliers';
+import { useHomepagePublicContent } from '@/hooks/useHomepageCMS';
+import { useFeaturedSuppliers } from '@/hooks/useFeaturedSuppliers';
+import type { Supplier } from '@/data/suppliers';
 import modernKitchenImage from '@/assets/modern-kitchen-hero.jpg';
 import luxuryBathroomImage from '@/assets/luxury-bathroom-hero.jpg';
 import designerFurnitureImage from '@/assets/designer-furniture-hero.jpg';
@@ -55,6 +57,19 @@ const PublicHomepage: React.FC = () => {
     attemptedAction 
   } = useGuestMode();
 
+  // Fetch featured suppliers from CMS for guest homepage
+  const { data: homepageContent = [] } = useHomepagePublicContent('web');
+  const featuredSupplierIds = homepageContent
+    .filter(
+      (item) =>
+        item.section_type === 'supplier_cards' &&
+        item.item_link_type === 'supplier' &&
+        item.item_link_target_id
+    )
+    .map((item) => item.item_link_target_id!);
+  const { data: featuredSuppliers = [], isLoading: isFeaturedLoading } =
+    useFeaturedSuppliers(featuredSupplierIds);
+
   const handleCategoryClick = (category: typeof sampleCategories[0]) => {
     console.log('Category clicked:', category.title);
     
@@ -72,9 +87,13 @@ const PublicHomepage: React.FC = () => {
     }
   };
 
-  const handleSupplierClick = (supplier: any) => {
+  const handleSupplierClick = (supplier: Supplier) => {
     console.log('Supplier clicked:', supplier.name);
-    navigate(`/supplier/${supplier.id}`);
+    if (supplier.slug) {
+      navigate(`/s/${supplier.slug}`);
+    } else {
+      navigate(`/supplier/${supplier.id}`);
+    }
   };
 
   const handleCTAClick = () => {
@@ -106,7 +125,7 @@ const PublicHomepage: React.FC = () => {
         <section>
           <SectionTitle title="ספקים מובילים" />
           <SupplierSection 
-            suppliers={suppliers.slice(0, 6)} // Show first 6 suppliers
+            suppliers={featuredSuppliers}
             onSupplierClick={handleSupplierClick}
           />
         </section>
