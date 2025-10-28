@@ -5,6 +5,7 @@ import { isInGuestMode } from '@/hooks/useGuestMode';
 import { useCategorySuppliers } from '@/hooks/useCategorySuppliers';
 import { useAppEvents } from '@/hooks/useAppEvents';
 import { useHomepagePublicContent } from '@/hooks/useHomepageCMS';
+import { useFeaturedSuppliers } from '@/hooks/useFeaturedSuppliers';
 import { OnboardingGuard } from '@/components/OnboardingGuard';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
@@ -54,39 +55,21 @@ const Index = () => {
   // Fetch featured suppliers from CMS
   const { data: homepageContent = [] } = useHomepagePublicContent('web');
   
-  // Extract featured suppliers section
-  const featuredSuppliersSection = homepageContent.find(
-    item => item.section_type === 'supplier_cards' && item.section_id
-  );
+  // Extract featured supplier IDs from CMS
+  const featuredSupplierIds = homepageContent
+    .filter(
+      item => item.section_type === 'supplier_cards' && 
+              item.item_link_type === 'supplier' &&
+              item.item_link_target_id
+    )
+    .map(item => item.item_link_target_id!);
 
-  // Group items by section to get featured suppliers
-  const featuredSupplierItems = homepageContent.filter(
-    item => item.section_type === 'supplier_cards' && 
-            item.item_link_type === 'supplier' &&
-            item.item_link_target_id
-  );
-
-  // Convert CMS items to Supplier format
-  const featuredSuppliers: Supplier[] = featuredSupplierItems.map(item => ({
-    id: item.item_link_target_id || '',
-    name: item.item_title || '',
-    tagline: item.item_subtitle || '',
-    logo: item.item_image_url || '',
-    category: '',
-    rating: 0,
-    reviewCount: 0,
-    phone: '',
-    location: '',
-    description: '',
-    slug: item.item_link_target_id || '',
-    services: [],
-    gallery: [],
-    products: [],
-    reviews: []
-  }));
+  // Fetch full supplier details from database
+  const { data: featuredSuppliers = [], isLoading: isFeaturedLoading } = useFeaturedSuppliers(featuredSupplierIds);
 
   // Debug: Log featured suppliers count for QA
-  console.log('Featured suppliers loaded from CMS:', featuredSuppliers.length);
+  console.log('Featured supplier IDs from CMS:', featuredSupplierIds.length);
+  console.log('Featured suppliers loaded from database:', featuredSuppliers.length);
   
   // Calculate CTA href based on auth state
   const ctaHref = user && !isGuest ? '/onboarding/welcome' : '/welcome';
