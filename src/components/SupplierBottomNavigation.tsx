@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, Plus, Package, User, Upload, MessageCircle, Briefcase, Palette, FileCheck } from 'lucide-react';
+import { Home, Users, Plus, Package, User, Upload, MessageCircle, Briefcase, Palette, FileCheck, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Drawer,
@@ -40,6 +40,11 @@ export const SupplierBottomNavigation: React.FC = () => {
   ];
 
   const quickActions = [
+    {
+      icon: Settings,
+      label: 'אינטגרציות',
+      path: '/supplier/integrations/facebook'
+    },
     {
       icon: Briefcase,
       label: 'צור הצעת מחיר',
