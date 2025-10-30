@@ -33,6 +33,11 @@ interface CompanyData {
   area: string | null;
   services: string[];
   business_hours: Record<string, any>;
+  price_range: {
+    min: number;
+    max: number;
+    currency: string;
+  } | null;
   gallery: string[];
   rating: number;
   review_count: number;
@@ -72,7 +77,7 @@ export default function CompanyProfile() {
         .maybeSingle();
 
       if (error) throw error;
-      return data as CompanyData | null;
+      return data;
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -322,12 +327,12 @@ export default function CompanyProfile() {
       )}
 
       {/* Services Section */}
-      {company.services && company.services.length > 0 && (
+      {Array.isArray(company.services) && company.services.length > 0 && (
         <div className="bg-muted/30 border-b">
           <div className="container max-w-6xl mx-auto px-4 py-8">
             <h2 className="text-2xl font-bold mb-4">שירותים</h2>
             <div className="flex flex-wrap gap-2">
-              {company.services.map((service) => (
+              {company.services.filter((s): s is string => typeof s === 'string').map((service) => (
                 <Badge key={service} variant="secondary">
                   {service}
                 </Badge>
@@ -337,13 +342,34 @@ export default function CompanyProfile() {
         </div>
       )}
 
+      {/* Price Range Section */}
+      {company.price_range && 
+       typeof company.price_range === 'object' && 
+       'min' in company.price_range && 
+       'max' in company.price_range &&
+       typeof company.price_range.min === 'number' &&
+       typeof company.price_range.max === 'number' &&
+       company.price_range.min > 0 && 
+       company.price_range.max > 0 && (
+        <div className="bg-background border-b">
+          <div className="container max-w-6xl mx-auto px-4 py-8">
+            <h2 className="text-2xl font-bold mb-4">טווח מחירים</h2>
+            <div className="text-lg">
+              <span className="font-bold text-primary">
+                ₪{company.price_range.min.toLocaleString()} - ₪{company.price_range.max.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Gallery Section */}
-      {company.gallery && company.gallery.length > 0 && (
+      {Array.isArray(company.gallery) && company.gallery.length > 0 && (
         <div className="bg-background border-b">
           <div className="container max-w-6xl mx-auto px-4 py-8">
             <h2 className="text-2xl font-bold mb-4">גלריה</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {company.gallery.map((image, index) => (
+              {company.gallery.filter((img): img is string => typeof img === 'string').map((image, index) => (
                 <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
                   <img
                     src={image}
@@ -364,7 +390,7 @@ export default function CompanyProfile() {
 }
 
 // Products Section Component
-function ProductsSection({ company, navigate }: { company: CompanyData; navigate: any }) {
+function ProductsSection({ company, navigate }: { company: any; navigate: any }) {
   const { data: productsData, isLoading } = usePublicSupplierProducts(company.id, { limit: 8, ownerId: company.owner_id });
 
   return (

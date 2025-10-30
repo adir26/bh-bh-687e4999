@@ -17,6 +17,7 @@ import { showToast } from '@/utils/toast';
 import { Loader2, Save, X, Upload, Trash2, Plus } from 'lucide-react';
 import { BusinessHoursEditor } from '@/components/supplier/BusinessHoursEditor';
 import { MeetingAvailabilityEditor } from '@/components/supplier/MeetingAvailabilityEditor';
+import { PriceRangeEditor } from '@/components/supplier/PriceRangeEditor';
 import {
   Form,
   FormControl,
@@ -52,6 +53,11 @@ export default function EditCompanyProfile() {
     available_days: [],
     hours: { start: '09:00', end: '17:00' },
     notes: '',
+  });
+  const [priceRange, setPriceRange] = useState<any>({
+    min: 0,
+    max: 0,
+    currency: 'ILS',
   });
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [bannerFile, setBannerFile] = useState<File | null>(null);
@@ -105,6 +111,11 @@ export default function EditCompanyProfile() {
         hours: { start: '09:00', end: '17:00' },
         notes: '',
       });
+      setPriceRange(company.price_range || {
+        min: 0,
+        max: 0,
+        currency: 'ILS',
+      });
       setLogoPreview(company.logo_url);
       setBannerPreview(company.banner_url);
     }
@@ -155,6 +166,7 @@ export default function EditCompanyProfile() {
           services,
           business_hours: businessHours,
           meeting_availability: meetingAvailability,
+          price_range: priceRange,
         })
         .eq('id', company.id)
         .select()
@@ -241,48 +253,49 @@ export default function EditCompanyProfile() {
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="container max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
           {/* Images Section */}
           <Card>
             <CardHeader>
-              <CardTitle>תמונות</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">תמונות</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label>לוגו</Label>
-                <div className="mt-2 flex items-center gap-4">
+                <Label className="text-sm sm:text-base">לוגו</Label>
+                <div className="mt-2 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                   {logoPreview && (
                     <img
                       src={logoPreview}
                       alt="Logo preview"
-                      className="w-24 h-24 object-cover rounded-lg border"
+                      className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg border"
                     />
                   )}
-                  <div>
+                  <div className="w-full sm:w-auto">
                     <Input
                       type="file"
                       accept="image/*"
                       onChange={handleLogoChange}
-                      className="max-w-xs"
+                      className="text-sm"
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <Label>באנר</Label>
+                <Label className="text-sm sm:text-base">באנר</Label>
                 <div className="mt-2 space-y-2">
                   {bannerPreview && (
                     <img
                       src={bannerPreview}
                       alt="Banner preview"
-                      className="w-full h-32 object-cover rounded-lg border"
+                      className="w-full h-24 sm:h-32 object-cover rounded-lg border"
                     />
                   )}
                   <Input
                     type="file"
                     accept="image/*"
                     onChange={handleBannerChange}
+                    className="text-sm"
                   />
                 </div>
               </div>
@@ -292,9 +305,9 @@ export default function EditCompanyProfile() {
           {/* Basic Info */}
           <Card>
             <CardHeader>
-              <CardTitle>פרטים בסיסיים</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">פרטים בסיסיים</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -360,9 +373,9 @@ export default function EditCompanyProfile() {
           {/* Contact Info */}
           <Card>
             <CardHeader>
-              <CardTitle>פרטי קשר</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">פרטי קשר</CardTitle>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <FormField
                 control={form.control}
                 name="email"
@@ -452,9 +465,9 @@ export default function EditCompanyProfile() {
           {/* Services */}
           <Card>
             <CardHeader>
-              <CardTitle>שירותים</CardTitle>
+              <CardTitle className="text-lg sm:text-xl">שירותים</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4">
               <div className="flex gap-2">
                 <Input
                   value={newService}
@@ -489,6 +502,9 @@ export default function EditCompanyProfile() {
             </CardContent>
           </Card>
 
+          {/* Price Range */}
+          <PriceRangeEditor value={priceRange} onChange={setPriceRange} />
+
           {/* Business Hours */}
           <BusinessHoursEditor value={businessHours} onChange={setBusinessHours} />
 
@@ -496,11 +512,11 @@ export default function EditCompanyProfile() {
           <MeetingAvailabilityEditor value={meetingAvailability} onChange={setMeetingAvailability} />
 
           {/* Actions */}
-          <div className="flex gap-3 sticky bottom-4 bg-background/95 backdrop-blur p-4 border rounded-lg">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sticky bottom-2 sm:bottom-4 bg-background/95 backdrop-blur p-3 sm:p-4 border rounded-lg shadow-lg">
             <Button
               type="submit"
               disabled={updateMutation.isPending}
-              className="flex-1 gap-2"
+              className="flex-1 gap-2 h-11 sm:h-10"
             >
               {updateMutation.isPending ? (
                 <>
@@ -520,6 +536,7 @@ export default function EditCompanyProfile() {
               variant="outline"
               onClick={() => navigate('/supplier/profile')}
               disabled={updateMutation.isPending}
+              className="h-11 sm:h-10 sm:w-auto"
             >
               ביטול
             </Button>

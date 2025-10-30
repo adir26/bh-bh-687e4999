@@ -789,6 +789,7 @@ export type Database = {
           name: string
           owner_id: string
           phone: string | null
+          price_range: Json | null
           products_count: number
           rating: number | null
           review_count: number | null
@@ -825,6 +826,7 @@ export type Database = {
           name: string
           owner_id: string
           phone?: string | null
+          price_range?: Json | null
           products_count?: number
           rating?: number | null
           review_count?: number | null
@@ -861,6 +863,7 @@ export type Database = {
           name?: string
           owner_id?: string
           phone?: string | null
+          price_range?: Json | null
           products_count?: number
           rating?: number | null
           review_count?: number | null
