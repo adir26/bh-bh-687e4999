@@ -114,29 +114,26 @@ export const EditableGallery: React.FC<EditableGalleryProps> = ({
                 onChange={handleUpload}
                 disabled={uploading}
               />
-              <label htmlFor={`gallery-upload-${companyId}`}>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  disabled={uploading}
-                  asChild
-                >
-                  <span className="cursor-pointer gap-2">
-                    {uploading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        מעלה...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-4 h-4" />
-                        הוסף תמונות
-                      </>
-                    )}
-                  </span>
-                </Button>
-              </label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+                onClick={() => document.getElementById(`gallery-upload-${companyId}`)?.click()}
+                className="gap-2"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    מעלה...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    הוסף תמונות
+                  </>
+                )}
+              </Button>
             </div>
           )}
         </div>
@@ -190,19 +187,16 @@ export const EditableGallery: React.FC<EditableGalleryProps> = ({
               onChange={handleUpload}
               disabled={uploading}
             />
-            <label htmlFor={`gallery-upload-empty-${companyId}`}>
-              <Button
-                type="button"
-                variant="outline"
-                disabled={uploading}
-                asChild
-              >
-                <span className="cursor-pointer gap-2">
-                  <Upload className="w-4 h-4" />
-                  העלה תמונות ראשונות
-                </span>
-              </Button>
-            </label>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={uploading}
+              onClick={() => document.getElementById(`gallery-upload-empty-${companyId}`)?.click()}
+              className="gap-2"
+            >
+              <Upload className="w-4 h-4" />
+              העלה תמונות ראשונות
+            </Button>
           </div>
         ) : null}
       </div>
