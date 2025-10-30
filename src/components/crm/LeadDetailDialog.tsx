@@ -59,7 +59,7 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
       leadsService.updateLead(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lead', leadId] });
-      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['leads'] }); // Invalidate all leads queries
       showToast.success('פרטי הליד עודכנו בהצלחה');
     },
     onError: () => {
@@ -74,7 +74,7 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lead-activities', leadId] });
       queryClient.invalidateQueries({ queryKey: ['lead', leadId] });
-      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['leads'] }); // Invalidate all leads queries
       showToast.success('הפעילות נוספה בהצלחה');
     },
     onError: () => {

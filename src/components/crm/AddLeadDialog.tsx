@@ -65,8 +65,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
   const createLeadMutation = useMutation({
     mutationFn: (data: typeof formData) => leadsService.createLead(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['leads'] }); // Invalidate all leads queries
       toast({
         title: 'ליד נוסף בהצלחה',
         description: 'הליד החדש נוסף למערכת',
