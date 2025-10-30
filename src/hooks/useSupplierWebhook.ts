@@ -15,28 +15,55 @@ export interface SupplierWebhook {
 export function useSupplierWebhook(supplierId: string | null) {
   const queryClient = useQueryClient();
 
-  const { data: webhook, isLoading } = useQuery({
+  const { data: webhook, isLoading, error: webhookError } = useQuery({
     queryKey: ['supplier-webhook', supplierId],
     enabled: !!supplierId,
     queryFn: async () => {
       if (!supplierId) return null;
 
-      // First check if webhook exists
+      console.log('Fetching webhook for supplier:', supplierId);
+
+      // Try to get existing webhook first
       const { data: existing, error: fetchError } = await supabase
         .from('supplier_webhooks')
         .select('*')
         .eq('supplier_id', supplierId)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
-      if (existing) return existing as SupplierWebhook;
+      if (fetchError) {
+        console.error('Error fetching webhook:', fetchError);
+        throw fetchError;
+      }
 
-      // If not, create it using the function
-      const { data, error } = await supabase
-        .rpc('get_or_create_supplier_webhook', { p_supplier_id: supplierId });
+      if (existing) {
+        console.log('Found existing webhook:', existing);
+        return existing as SupplierWebhook;
+      }
 
-      if (error) throw error;
-      return data?.[0] as SupplierWebhook;
+      // If not found, create it
+      console.log('Creating new webhook for supplier:', supplierId);
+      
+      const newToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, '');
+      const newUrl = `https://yislkmhnitznvbxfpcxd.supabase.co/functions/v1/facebook-webhook/${supplierId}?token=${newToken}`;
+
+      const { data: newWebhook, error: insertError } = await supabase
+        .from('supplier_webhooks')
+        .insert({
+          supplier_id: supplierId,
+          secret_token: newToken,
+          webhook_url: newUrl,
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error creating webhook:', insertError);
+        throw insertError;
+      }
+
+      console.log('Created new webhook:', newWebhook);
+      return newWebhook as SupplierWebhook;
     },
   });
 

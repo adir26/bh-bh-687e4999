@@ -60,6 +60,23 @@ export default function FacebookIntegration() {
     );
   }
 
+  if (!company) {
+    return (
+      <div className="min-h-screen bg-background">
+        <SupplierHeader title="אינטגרציות" />
+        <main className="container max-w-7xl mx-auto px-4 py-6 pb-24">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              לא נמצאה חברה משוייכת למשתמש. אנא צור פרופיל חברה תחילה.
+            </AlertDescription>
+          </Alert>
+        </main>
+        <SupplierBottomNavigation />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <SupplierHeader title="אינטגרציות" />
