@@ -32,7 +32,6 @@ export interface Lead {
     breakdown: {
       budget: number;
       urgency: number;
-      category: number;
       completeness: number;
       intent: number;
     };
@@ -69,7 +68,7 @@ export const leadsService = {
       .order('created_at', { ascending: filters.sort === 'oldest' });
 
     if (supplierId) {
-      query = query.eq('supplier_id', supplierId).eq('consent_to_share', true);
+      query = query.eq('supplier_id', supplierId);
     }
 
     if (filters.status) {

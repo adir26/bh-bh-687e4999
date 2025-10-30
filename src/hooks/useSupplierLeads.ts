@@ -47,14 +47,13 @@ export function useSupplierLeads(supplierId: string) {
           budget_range,
           start_date,
           end_date,
-          lead_scores!inner (
+          lead_scores!left (
             score,
             breakdown
           )
         `)
         .eq('supplier_id', supplierId)
-        .eq('consent_to_share', true)
-        .in('status', ['new', 'followup', 'no_answer', 'project_in_process'])
+        .order('created_at', { ascending: false })
         .order('created_at', { ascending: false });
 
       if (error) throw error;
