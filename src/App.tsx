@@ -63,6 +63,7 @@ import NotificationSettings from "./pages/supplier/NotificationSettings";
 import SupplierAnalytics from "./pages/supplier/Analytics";
 import SupplierFiles from "./pages/supplier/Files";
 import CompanyProfile from "./pages/supplier/CompanyProfile";
+import EditCompanyProfile from "./pages/supplier/EditCompanyProfile";
 import OrderChangeOrders from "./pages/supplier/OrderChangeOrders";
 import ChangeOrderDetails from "./pages/supplier/ChangeOrderDetails";
 import OrderSelections from "./pages/supplier/OrderSelections";
@@ -452,6 +453,11 @@ const App = () => {
                 <Route path="/supplier/profile" element={
                   <OnboardingGuard role="supplier">
                     <CompanyProfile />
+                  </OnboardingGuard>
+                } />
+                <Route path="/supplier/profile/edit" element={
+                  <OnboardingGuard role="supplier">
+                    <EditCompanyProfile />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/files" element={

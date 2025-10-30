@@ -785,6 +785,7 @@ export type Database = {
           id: string
           is_public: boolean | null
           logo_url: string | null
+          meeting_availability: Json | null
           name: string
           owner_id: string
           phone: string | null
@@ -820,6 +821,7 @@ export type Database = {
           id?: string
           is_public?: boolean | null
           logo_url?: string | null
+          meeting_availability?: Json | null
           name: string
           owner_id: string
           phone?: string | null
@@ -855,6 +857,7 @@ export type Database = {
           id?: string
           is_public?: boolean | null
           logo_url?: string | null
+          meeting_availability?: Json | null
           name?: string
           owner_id?: string
           phone?: string | null

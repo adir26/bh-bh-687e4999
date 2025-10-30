@@ -9,14 +9,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { showToast } from '@/utils/toast';
 import { 
-  Star, MapPin, Phone, Mail, Globe, Share2, MessageCircle,
-  CheckCircle, Edit, Save, Building2, ExternalLink, ArrowRight, Package
+  Star, MapPin, Phone, Mail, Globe, Share2, Edit2,
+  CheckCircle, Building2, ExternalLink, Package
 } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
-import { EditableField } from '@/components/supplier/EditableField';
-import { EditableImage } from '@/components/supplier/EditableImage';
-import { EditableList } from '@/components/supplier/EditableList';
-import { EditableGallery } from '@/components/supplier/EditableGallery';
 import { usePublicSupplierProducts } from '@/hooks/usePublicSupplier';
 
 interface CompanyData {
@@ -46,8 +42,6 @@ interface CompanyData {
 export default function CompanyProfile() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [isEditMode, setIsEditMode] = useState(false);
 
   // Check user role
   const { data: userRole } = useQuery({
@@ -66,7 +60,7 @@ export default function CompanyProfile() {
 
   const isSupplier = userRole === 'supplier' || (user as any)?.user_metadata?.role === 'supplier';
 
-  // Fetch company data
+  // Fetch company data (read-only)
   const { data: company, isLoading, error } = useQuery({
     queryKey: ['company', user?.id],
     enabled: !!user?.id,
@@ -81,31 +75,6 @@ export default function CompanyProfile() {
       return data as CompanyData | null;
     },
     staleTime: 5 * 60 * 1000,
-  });
-
-  // Update company mutation
-  const updateMutation = useMutation({
-    mutationFn: async (updatedData: Partial<CompanyData>) => {
-      if (!company?.id) throw new Error('No company found');
-
-      const { data, error } = await supabase
-        .from('companies')
-        .update(updatedData)
-        .eq('id', company.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['company', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['companies'] });
-    },
-    onError: (error: any) => {
-      console.error('Error updating company:', error);
-      showToast.error(error.message || 'שגיאה בעדכון פרטי החברה');
-    },
   });
 
   const handleShare = async () => {
@@ -203,46 +172,32 @@ export default function CompanyProfile() {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      {/* Sticky Edit Toggle Button */}
+      {/* Header with Edit Button */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
         <div className="container max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
+            <h1 className="text-lg font-semibold">פרופיל החברה</h1>
             <Button
-              variant={isEditMode ? 'default' : 'outline'}
-              onClick={() => setIsEditMode(!isEditMode)}
+              onClick={() => navigate('/supplier/profile/edit')}
               className="gap-2"
             >
-              {isEditMode ? (
-                <>
-                  <Save className="w-4 h-4" />
-                  סיים עריכה
-                </>
-              ) : (
-                <>
-                  <Edit className="w-4 h-4" />
-                  ערוך פרופיל
-                </>
-              )}
+              <Edit2 className="w-4 h-4" />
+              ערוך פרופיל
             </Button>
-
-            <div className="text-sm text-muted-foreground">
-              {isEditMode ? 'לחץ על אלמנט כדי לערוך' : 'כך הפרופיל נראה ללקוחות'}
-            </div>
           </div>
         </div>
       </div>
 
       {/* Banner */}
-      <EditableImage
-        currentUrl={company.banner_url}
-        isEditMode={isEditMode}
-        onUpload={async (url) => {
-          await updateMutation.mutateAsync({ banner_url: url });
-        }}
-        companyId={company.id}
-        type="banner"
-        alt={company.name}
-      />
+      {company.banner_url && (
+        <div className="w-full h-48 md:h-64 overflow-hidden bg-muted">
+          <img
+            src={company.banner_url}
+            alt={company.name}
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
 
       {/* Header Section */}
       <div className="bg-card border-b">
@@ -251,82 +206,38 @@ export default function CompanyProfile() {
             {/* Company Info */}
             <div className="flex items-start gap-4 flex-1">
               {/* Logo */}
-              <EditableImage
-                currentUrl={company.logo_url}
-                isEditMode={isEditMode}
-                onUpload={async (url) => {
-                  await updateMutation.mutateAsync({ logo_url: url });
-                }}
-                companyId={company.id}
-                type="logo"
-                alt={company.name}
-              />
+              {company.logo_url && (
+                <img
+                  src={company.logo_url}
+                  alt={company.name}
+                  className="w-20 h-20 rounded-lg object-cover border"
+                />
+              )}
               
               <div className="flex-1">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    {/* Name */}
-                    <EditableField
-                      value={company.name}
-                      isEditMode={isEditMode}
-                      onSave={async (name) => {
-                        await updateMutation.mutateAsync({ name });
-                      }}
-                      type="text"
-                      required
-                    >
-                      <h1 className="text-2xl font-bold flex items-center gap-2">
-                        {company.name}
-                        {company.verified && (
-                          <Badge variant="secondary" className="gap-1">
-                            <CheckCircle className="w-3 h-3" />
-                            מאומת
-                          </Badge>
-                        )}
-                      </h1>
-                    </EditableField>
+                    <h1 className="text-2xl font-bold flex items-center gap-2">
+                      {company.name}
+                      {company.verified && (
+                        <Badge variant="secondary" className="gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          מאומת
+                        </Badge>
+                      )}
+                    </h1>
                     
-                    {/* Tagline */}
-                    <EditableField
-                      value={company.tagline || ''}
-                      isEditMode={isEditMode}
-                      onSave={async (tagline) => {
-                        await updateMutation.mutateAsync({ tagline });
-                      }}
-                      type="text"
-                      placeholder="הוסף סלוגן..."
-                    >
-                      {company.tagline ? (
-                        <p className="text-lg text-muted-foreground mt-1">
-                          {company.tagline}
-                        </p>
-                      ) : (
-                        <p className="text-lg text-muted-foreground/50 italic mt-1">
-                          הוסף סלוגן...
-                        </p>
-                      )}
-                    </EditableField>
+                    {company.tagline && (
+                      <p className="text-lg text-muted-foreground mt-1">
+                        {company.tagline}
+                      </p>
+                    )}
 
-                    {/* Description */}
-                    <EditableField
-                      value={company.description || ''}
-                      isEditMode={isEditMode}
-                      onSave={async (description) => {
-                        await updateMutation.mutateAsync({ description });
-                      }}
-                      type="textarea"
-                      placeholder="הוסף תיאור קצר..."
-                    >
-                      {company.description ? (
-                        <p className="text-muted-foreground mt-2 max-w-2xl">
-                          {company.description}
-                        </p>
-                      ) : (
-                        <p className="text-muted-foreground/50 italic mt-2 max-w-2xl">
-                          הוסף תיאור קצר...
-                        </p>
-                      )}
-                    </EditableField>
+                    {company.description && (
+                      <p className="text-muted-foreground mt-2 max-w-2xl">
+                        {company.description}
+                      </p>
+                    )}
 
                     {/* Rating & Location */}
                     <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
@@ -349,149 +260,102 @@ export default function CompanyProfile() {
             </div>
 
             {/* Action Buttons */}
-            {!isEditMode && (
-              <div className="flex items-center gap-3 w-full md:w-auto">
-                <Button variant="outline" size="sm" onClick={handleShare} className="gap-2 flex-1 md:flex-none">
-                  <Share2 className="w-4 h-4" />
-                  שתף
-                </Button>
-                
-                <Button 
-                  className="gap-2 flex-1 md:flex-none"
-                  onClick={() => navigate(`/s/${company.slug}`)}
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  צפה כלקוח
-                </Button>
-              </div>
-            )}
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <Button variant="outline" size="sm" onClick={handleShare} className="gap-2 flex-1 md:flex-none">
+                <Share2 className="w-4 h-4" />
+                שתף
+              </Button>
+              
+              <Button 
+                className="gap-2 flex-1 md:flex-none"
+                onClick={() => navigate(`/s/${company.slug}`)}
+              >
+                <ExternalLink className="w-4 h-4" />
+                צפה כלקוח
+              </Button>
+            </div>
           </div>
 
           {/* Contact Info */}
           <div className="mt-6 pt-6 border-t">
             <div className="flex flex-wrap gap-6 text-sm">
-              <EditableField
-                value={company.phone || ''}
-                isEditMode={isEditMode}
-                onSave={async (phone) => {
-                  await updateMutation.mutateAsync({ phone });
-                }}
-                type="tel"
-                placeholder="הוסף טלפון..."
-              >
-                {company.phone ? (
-                  <a href={`tel:${company.phone}`} className="flex items-center gap-2 text-primary hover:underline">
-                    <Phone className="w-4 h-4" />
-                    {company.phone}
-                  </a>
-                ) : (
-                  <span className="flex items-center gap-2 text-muted-foreground/50">
-                    <Phone className="w-4 h-4" />
-                    הוסף טלפון...
-                  </span>
-                )}
-              </EditableField>
+              {company.phone && (
+                <a href={`tel:${company.phone}`} className="flex items-center gap-2 text-primary hover:underline">
+                  <Phone className="w-4 h-4" />
+                  {company.phone}
+                </a>
+              )}
 
-              <EditableField
-                value={company.email || ''}
-                isEditMode={isEditMode}
-                onSave={async (email) => {
-                  await updateMutation.mutateAsync({ email });
-                }}
-                type="email"
-                placeholder="הוסף אימייל..."
-              >
-                {company.email ? (
-                  <a href={`mailto:${company.email}`} className="flex items-center gap-2 text-primary hover:underline">
-                    <Mail className="w-4 h-4" />
-                    {company.email}
-                  </a>
-                ) : (
-                  <span className="flex items-center gap-2 text-muted-foreground/50">
-                    <Mail className="w-4 h-4" />
-                    הוסף אימייל...
-                  </span>
-                )}
-              </EditableField>
+              {company.email && (
+                <a href={`mailto:${company.email}`} className="flex items-center gap-2 text-primary hover:underline">
+                  <Mail className="w-4 h-4" />
+                  {company.email}
+                </a>
+              )}
 
-              <EditableField
-                value={company.website || ''}
-                isEditMode={isEditMode}
-                onSave={async (website) => {
-                  await updateMutation.mutateAsync({ website });
-                }}
-                type="url"
-                placeholder="הוסף אתר..."
-              >
-                {company.website ? (
-                  <a 
-                    href={company.website} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-primary hover:underline"
-                  >
-                    <Globe className="w-4 h-4" />
-                    אתר האינטרנט
-                  </a>
-                ) : (
-                  <span className="flex items-center gap-2 text-muted-foreground/50">
-                    <Globe className="w-4 h-4" />
-                    הוסף אתר...
-                  </span>
-                )}
-              </EditableField>
+              {company.website && (
+                <a 
+                  href={company.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-primary hover:underline"
+                >
+                  <Globe className="w-4 h-4" />
+                  אתר האינטרנט
+                </a>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* About Section */}
-      <div className="bg-background border-b">
-        <div className="container max-w-6xl mx-auto px-4 py-8">
-          <h2 className="text-2xl font-bold mb-4">אודות</h2>
-          <EditableField
-            value={company.about_text || ''}
-            isEditMode={isEditMode}
-            onSave={async (about_text) => {
-              await updateMutation.mutateAsync({ about_text });
-            }}
-            type="textarea"
-            placeholder="ספר ללקוחות על החברה שלך - מה מייחד אותך, הניסיון שלך, הפרויקטים שביצעת..."
-            className="max-w-none"
-          >
-            {company.about_text ? (
-              <p className="text-muted-foreground whitespace-pre-wrap max-w-4xl">
-                {company.about_text}
-              </p>
-            ) : (
-              <p className="text-muted-foreground/50 italic">
-                ספר ללקוחות על החברה שלך - מה מייחד אותך, הניסיון שלך, הפרויקטים שביצעת...
-              </p>
-            )}
-          </EditableField>
+      {company.about_text && (
+        <div className="bg-background border-b">
+          <div className="container max-w-6xl mx-auto px-4 py-8">
+            <h2 className="text-2xl font-bold mb-4">אודות</h2>
+            <p className="text-muted-foreground whitespace-pre-wrap max-w-4xl">
+              {company.about_text}
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Services Section */}
-      <EditableList
-        items={company.services || []}
-        isEditMode={isEditMode}
-        onUpdate={async (services) => {
-          await updateMutation.mutateAsync({ services });
-        }}
-        title="שירותים"
-        placeholder="הוסף שירות..."
-      />
+      {company.services && company.services.length > 0 && (
+        <div className="bg-muted/30 border-b">
+          <div className="container max-w-6xl mx-auto px-4 py-8">
+            <h2 className="text-2xl font-bold mb-4">שירותים</h2>
+            <div className="flex flex-wrap gap-2">
+              {company.services.map((service) => (
+                <Badge key={service} variant="secondary">
+                  {service}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Gallery Section */}
-      <EditableGallery
-        images={company.gallery || []}
-        isEditMode={isEditMode}
-        onUpdate={async (gallery) => {
-          await updateMutation.mutateAsync({ gallery });
-        }}
-        companyId={company.id}
-      />
+      {company.gallery && company.gallery.length > 0 && (
+        <div className="bg-background border-b">
+          <div className="container max-w-6xl mx-auto px-4 py-8">
+            <h2 className="text-2xl font-bold mb-4">גלריה</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {company.gallery.map((image, index) => (
+                <div key={index} className="aspect-square rounded-lg overflow-hidden bg-muted">
+                  <img
+                    src={image}
+                    alt={`Gallery ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Products Section */}
       <ProductsSection company={company} navigate={navigate} />
@@ -574,7 +438,6 @@ function ProductsSection({ company, navigate }: { company: CompanyData; navigate
                         <span className="font-bold text-primary">
                           ₪{product.price.toLocaleString()}
                         </span>
-                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                       </div>
                     )}
                   </CardContent>
