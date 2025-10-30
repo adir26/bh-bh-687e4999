@@ -8,7 +8,6 @@ export interface LeadScore {
   breakdown: {
     budget: number;
     urgency: number;
-    category: number;
     completeness: number;
     intent: number;
   };

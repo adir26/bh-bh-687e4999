@@ -22,7 +22,6 @@ interface LeadData {
 interface ScoreBreakdown {
   budget: number;
   urgency: number;
-  category: number;
   completeness: number;
   intent: number;
 }
@@ -50,7 +49,7 @@ serve(async (req) => {
     // Fetch lead data
     const { data: lead, error } = await supabase
       .from("leads")
-      .select("id, budget_range, start_date, end_date, address, contact_phone, contact_email, category_id, notes, project_size")
+      .select("id, budget_range, start_date, end_date, contact_phone, contact_email, notes")
       .eq("id", leadId)
       .single();
 
@@ -66,7 +65,6 @@ serve(async (req) => {
     const breakdown: ScoreBreakdown = {
       budget: 0,
       urgency: 0,
-      category: 0,
       completeness: 0,
       intent: 0,
     };
@@ -99,15 +97,12 @@ serve(async (req) => {
       }
     }
 
-    // Category scoring (0-15 points)
-    breakdown.category = lead.category_id ? 15 : 0;
+    // Category scoring removed - no category_id in leads table
 
-    // Completeness scoring (0-25 points)
+    // Completeness scoring (0-30 points)
     let completenessPoints = 0;
-    if (lead.contact_phone) completenessPoints += 8;
-    if (lead.contact_email) completenessPoints += 7;
-    if (lead.address) completenessPoints += 5;
-    if (lead.project_size) completenessPoints += 5;
+    if (lead.contact_phone) completenessPoints += 15;
+    if (lead.contact_email) completenessPoints += 15;
     breakdown.completeness = completenessPoints;
 
     // Intent scoring (0-10 points) - based on notes content
@@ -124,7 +119,7 @@ serve(async (req) => {
       0,
       Math.min(
         100,
-        breakdown.budget + breakdown.urgency + breakdown.category + breakdown.completeness + breakdown.intent
+        breakdown.budget + breakdown.urgency + breakdown.completeness + breakdown.intent
       )
     );
 

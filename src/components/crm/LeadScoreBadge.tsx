@@ -7,7 +7,6 @@ interface LeadScoreBadgeProps {
   breakdown?: {
     budget: number;
     urgency: number;
-    category: number;
     completeness: number;
     intent: number;
   };
@@ -111,10 +110,6 @@ export function LeadScoreBadge({
                 <div className="flex justify-between gap-4">
                   <span>דחיפות:</span>
                   <span className="font-mono">+{breakdown.urgency}</span>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <span>קטגוריה:</span>
-                  <span className="font-mono">+{breakdown.category}</span>
                 </div>
                 <div className="flex justify-between gap-4">
                   <span>שלמות מידע:</span>

@@ -20,7 +20,6 @@ export interface SupplierLead {
     breakdown: {
       budget: number;
       urgency: number;
-      category: number;
       completeness: number;
       intent: number;
     };
