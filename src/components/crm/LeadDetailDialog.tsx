@@ -218,6 +218,7 @@ function LeadDetailsForm({
     status: lead?.status || 'new',
     source_key: lead?.source_key || 'other',
     priority_key: lead?.priority_key || 'medium',
+    campaign_name: lead?.campaign_name || '',
     notes: lead?.notes || '',
   });
 
@@ -231,6 +232,7 @@ function LeadDetailsForm({
       status: lead.status || 'new',
       source_key: lead.source_key || 'other',
       priority_key: lead.priority_key || 'medium',
+      campaign_name: lead.campaign_name || '',
       notes: lead.notes || '',
     });
   }, [lead?.id, open]);
@@ -317,6 +319,16 @@ function LeadDetailsForm({
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="campaign_name">שם קמפיין</Label>
+        <Input
+          id="campaign_name"
+          value={formData.campaign_name}
+          onChange={(e) => setFormData({ ...formData, campaign_name: e.target.value })}
+          placeholder="שם הקמפיין (למשל: קמפיין קיץ 2024)"
+        />
       </div>
 
       <div className="space-y-2">

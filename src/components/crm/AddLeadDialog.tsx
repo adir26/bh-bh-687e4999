@@ -58,6 +58,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
     contact_email: '',
     source_key: 'other',
     priority_key: 'medium',
+    campaign_name: '',
     notes: '',
   });
 
@@ -89,6 +90,7 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
       contact_email: '',
       source_key: 'other',
       priority_key: 'medium',
+      campaign_name: '',
       notes: '',
     });
   };
@@ -191,6 +193,16 @@ export function AddLeadDialog({ open, onOpenChange }: AddLeadDialogProps) {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="campaign_name">שם קמפיין</Label>
+            <Input
+              id="campaign_name"
+              value={formData.campaign_name}
+              onChange={(e) => setFormData({ ...formData, campaign_name: e.target.value })}
+              placeholder="למשל: קמפיין קיץ 2024, Facebook Ads..."
+            />
           </div>
 
           <div className="space-y-2">

@@ -1501,6 +1501,7 @@ export type Database = {
       leads: {
         Row: {
           assigned_to: string | null
+          campaign_name: string | null
           client_id: string | null
           company_id: string | null
           contact_email: string | null
@@ -1532,6 +1533,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          campaign_name?: string | null
           client_id?: string | null
           company_id?: string | null
           contact_email?: string | null
@@ -1563,6 +1565,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          campaign_name?: string | null
           client_id?: string | null
           company_id?: string | null
           contact_email?: string | null

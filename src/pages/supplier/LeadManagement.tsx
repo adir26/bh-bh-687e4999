@@ -253,7 +253,13 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                     </Badge>
                   </div>
                 </CardHeader>
-                 <CardContent className="space-y-4">
+                  <CardContent className="space-y-4">
+                   {lead.campaign_name && (
+                     <div>
+                       <h4 className="font-medium text-sm text-muted-foreground mb-1">קמפיין:</h4>
+                       <p className="font-medium text-primary">{lead.campaign_name}</p>
+                     </div>
+                   )}
                    {lead.source_key && (
                      <div>
                        <h4 className="font-medium text-sm text-muted-foreground mb-1">מקור:</h4>
@@ -317,6 +323,7 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                        <th className="text-right p-4 font-medium">סטטוס</th>
                        <th className="text-right p-4 font-medium">טלפון</th>
                        <th className="text-right p-4 font-medium">מקור</th>
+                       <th className="text-right p-4 font-medium">קמפיין</th>
                        <th className="text-right p-4 font-medium">פעולות</th>
                     </tr>
                   </thead>
@@ -348,11 +355,20 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                              <span className="text-muted-foreground">לא זמין</span>
                            )}
                          </td>
-                         <td className="p-4 text-muted-foreground">
-                           {getSourceLabel(lead.source_key)}
-                         </td>
-                        <td className="p-4">
-                          <div className="flex gap-1">
+                          <td className="p-4 text-muted-foreground">
+                            {getSourceLabel(lead.source_key)}
+                          </td>
+                          <td className="p-4">
+                            {lead.campaign_name ? (
+                              <Badge variant="outline" className="font-normal">
+                                {lead.campaign_name}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                          </td>
+                         <td className="p-4">
+                           <div className="flex gap-1">
                             <Button 
                               variant="outline" 
                               size="sm"

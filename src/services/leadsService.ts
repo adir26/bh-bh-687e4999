@@ -11,6 +11,7 @@ export interface Lead {
   contact_phone: string | null;
   contact_email: string | null;
   source_key: string | null;
+  campaign_name: string | null;
   status: LeadStatus;
   priority_key: string | null;
   last_contact_date: string | null;
@@ -113,6 +114,7 @@ export const leadsService = {
     contact_email?: string;
     source_key?: string;
     priority_key?: string;
+    campaign_name?: string;
     notes?: string;
   }) {
     const { data: userData } = await supabase.auth.getUser();
@@ -129,6 +131,7 @@ export const leadsService = {
         contact_email: data.contact_email || null,
         source_key: data.source_key || 'other',
         priority_key: data.priority_key || 'medium',
+        campaign_name: data.campaign_name || null,
         notes: data.notes || null,
         status: 'new',
       } as any)
