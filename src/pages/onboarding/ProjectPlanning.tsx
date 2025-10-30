@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -22,6 +23,7 @@ import projectPlanningImage from '@/assets/project-planning.jpg';
 const projectPlanningSchema = z.object({
   projectTypes: z.array(z.string()).min(1, 'יש לבחור לפחות סוג פרויקט אחד'),
   otherProject: z.string().optional(),
+  budgetRange: z.string().optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional()
 });
@@ -48,6 +50,7 @@ export default function OnboardingProjectPlanning() {
     defaultValues: {
       projectTypes: [],
       otherProject: '',
+      budgetRange: undefined,
       startDate: undefined,
       endDate: undefined
     }
@@ -170,6 +173,64 @@ export default function OnboardingProjectPlanning() {
                   )}
                 />
               )}
+
+              {/* Budget Range */}
+              <FormField
+                control={form.control}
+                name="budgetRange"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-base font-medium text-foreground">
+                      מה התקציב המשוער לפרויקט?
+                    </FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="space-y-3"
+                      >
+                        <div className="flex items-center space-x-3 space-x-reverse">
+                          <RadioGroupItem value="0-50000" id="budget-1" />
+                          <Label 
+                            htmlFor="budget-1"
+                            className="text-sm font-normal cursor-pointer"
+                          >
+                            עד 50,000 ₪
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-3 space-x-reverse">
+                          <RadioGroupItem value="50000-150000" id="budget-2" />
+                          <Label 
+                            htmlFor="budget-2"
+                            className="text-sm font-normal cursor-pointer"
+                          >
+                            50,000–150,000 ₪
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-3 space-x-reverse">
+                          <RadioGroupItem value="150000-350000" id="budget-3" />
+                          <Label 
+                            htmlFor="budget-3"
+                            className="text-sm font-normal cursor-pointer"
+                          >
+                            150,000–350,000 ₪
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-3 space-x-reverse">
+                          <RadioGroupItem value="350000+" id="budget-4" />
+                          <Label 
+                            htmlFor="budget-4"
+                            className="text-sm font-normal cursor-pointer"
+                          >
+                            מעל 350,000 ₪
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Start Date */}
               <FormField

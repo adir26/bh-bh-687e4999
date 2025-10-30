@@ -13,10 +13,16 @@ export interface ClientOnboardingData {
     currentStage: string;
   };
   projectPlanning?: {
-    budget: string;
-    timeline: string;
-    priorityAreas: string[];
-    renovationType: string;
+    projectTypes?: string[];
+    otherProject?: string;
+    budgetRange?: string;
+    startDate?: string;
+    endDate?: string;
+    // Legacy fields for backward compatibility
+    budget?: string;
+    timeline?: string;
+    priorityAreas?: string[];
+    renovationType?: string;
   };
   documents?: {
     hasDocuments: boolean;
@@ -67,7 +73,7 @@ class OnboardingService {
         interests: data.interests || [],
         home_type: data.homeDetails?.homeType || '',
         property_size: data.homeDetails?.homeSize || '',
-        budget_range: data.projectPlanning?.budget || '',
+        budget_range: data.projectPlanning?.budgetRange || data.projectPlanning?.budget || '',
         project_timeline: data.projectPlanning?.timeline || '',
         preferences: {
           interests: data.interests,
