@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { ArrowRight, ChevronRight, Utensils, Zap, FileText, Lightbulb, Tag, Phone, MessageCircle, Mail } from 'lucide-react';
 import OnboardingProgress from '@/components/OnboardingProgress';
 import { useAuth } from '@/contexts/AuthContext';
@@ -81,6 +83,7 @@ export default function OnboardingInterests() {
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['hebrew']);
   const [userNotes, setUserNotes] = useState('');
+  const [agreeToMatchedSuppliers, setAgreeToMatchedSuppliers] = useState(false);
 
   const toggleInterest = (interestId: string) => {
     setSelectedInterests(prev => 
@@ -107,11 +110,17 @@ export default function OnboardingInterests() {
   };
 
   const handleFinish = async () => {
+    if (!agreeToMatchedSuppliers) {
+      toast.error('יש לאשר את התנאים להמשך');
+      return;
+    }
+
     const interestsData = {
       interests: selectedInterests,
       contactChannels: selectedChannels,
       languages: selectedLanguages,
-      notes: userNotes
+      notes: userNotes,
+      agreeToMatchedSuppliers
     };
     
     try {
@@ -303,6 +312,24 @@ export default function OnboardingInterests() {
               className="w-full p-4 rounded-xl bg-muted/50 border border-muted text-foreground placeholder:text-muted-foreground resize-none h-24 text-sm"
             />
           </div>
+
+          {/* Agreement Checkbox */}
+          <div className="mb-8">
+            <div className="flex items-start space-x-3 space-x-reverse p-4 rounded-xl bg-muted/30 border border-muted">
+              <Checkbox
+                id="agree-matched-suppliers"
+                checked={agreeToMatchedSuppliers}
+                onCheckedChange={(checked) => setAgreeToMatchedSuppliers(checked as boolean)}
+                className="mt-1"
+              />
+              <Label
+                htmlFor="agree-matched-suppliers"
+                className="text-sm font-normal cursor-pointer leading-relaxed"
+              >
+                אני מסכים/ה שנחבר אותי רק לספקים שמתאימים בדיוק לפרויקט שלי – בלי ספאם, בלי שטויות.
+              </Label>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -311,7 +338,8 @@ export default function OnboardingInterests() {
         <div className="max-w-md mx-auto">
           <Button 
             onClick={handleFinish}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium"
+            disabled={!agreeToMatchedSuppliers}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             סיום
             <ArrowRight className="w-5 h-5 mr-2" />

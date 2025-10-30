@@ -6,6 +6,7 @@ export interface ClientOnboardingData {
   contactChannels: string[];
   languages: string[];
   notes?: string;
+  agreeToMatchedSuppliers?: boolean;
   homeDetails?: {
     homeType: string;
     homeSize: string;
@@ -80,6 +81,7 @@ class OnboardingService {
           contactChannels: data.contactChannels,
           languages: data.languages,
           notes: data.notes,
+          agreeToMatchedSuppliers: data.agreeToMatchedSuppliers,
           homeDetails: data.homeDetails,
           projectPlanning: data.projectPlanning,
           documents: data.documents,
