@@ -1379,6 +1379,39 @@ export type Database = {
           },
         ]
       }
+      lead_assignments: {
+        Row: {
+          assigned_at: string | null
+          lead_id: string
+          supplier_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          lead_id: string
+          supplier_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          lead_id?: string
+          supplier_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_assignments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_assignments_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_automations: {
         Row: {
           created_at: string
@@ -1486,6 +1519,38 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_scores: {
+        Row: {
+          breakdown: Json
+          id: string
+          lead_id: string
+          score: number
+          updated_at: string
+        }
+        Insert: {
+          breakdown?: Json
+          id?: string
+          lead_id: string
+          score: number
+          updated_at?: string
+        }
+        Update: {
+          breakdown?: Json
+          id?: string
+          lead_id?: string
+          score?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_scores_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: true
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_source_dim: {
         Row: {
           channel: string
@@ -1507,14 +1572,17 @@ export type Database = {
       leads: {
         Row: {
           assigned_to: string | null
+          budget_range: string | null
           campaign_name: string | null
           client_id: string | null
           company_id: string | null
+          consent_to_share: boolean | null
           contact_email: string | null
           contact_method: string | null
           contact_phone: string | null
           converted_at: string | null
           created_at: string
+          end_date: string | null
           estimated_value: number | null
           expected_close_date: string | null
           first_response_at: string | null
@@ -1534,20 +1602,24 @@ export type Database = {
           snoozed_until: string | null
           source: string | null
           source_key: string
+          start_date: string | null
           status: string | null
           supplier_id: string | null
           updated_at: string
         }
         Insert: {
           assigned_to?: string | null
+          budget_range?: string | null
           campaign_name?: string | null
           client_id?: string | null
           company_id?: string | null
+          consent_to_share?: boolean | null
           contact_email?: string | null
           contact_method?: string | null
           contact_phone?: string | null
           converted_at?: string | null
           created_at?: string
+          end_date?: string | null
           estimated_value?: number | null
           expected_close_date?: string | null
           first_response_at?: string | null
@@ -1567,20 +1639,24 @@ export type Database = {
           snoozed_until?: string | null
           source?: string | null
           source_key?: string
+          start_date?: string | null
           status?: string | null
           supplier_id?: string | null
           updated_at?: string
         }
         Update: {
           assigned_to?: string | null
+          budget_range?: string | null
           campaign_name?: string | null
           client_id?: string | null
           company_id?: string | null
+          consent_to_share?: boolean | null
           contact_email?: string | null
           contact_method?: string | null
           contact_phone?: string | null
           converted_at?: string | null
           created_at?: string
+          end_date?: string | null
           estimated_value?: number | null
           expected_close_date?: string | null
           first_response_at?: string | null
@@ -1600,6 +1676,7 @@ export type Database = {
           snoozed_until?: string | null
           source?: string | null
           source_key?: string
+          start_date?: string | null
           status?: string | null
           supplier_id?: string | null
           updated_at?: string

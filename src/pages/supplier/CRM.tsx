@@ -17,6 +17,7 @@ import { SLABadge } from '@/components/crm/SLABadge';
 import { LeadAssignmentDropdown } from '@/components/crm/LeadAssignmentDropdown';
 import { SLAMetricsWidget } from '@/components/crm/SLAMetricsWidget';
 import { QuickActionsMenu } from '@/components/crm/QuickActionsMenu';
+import { LeadScoreBadge } from '@/components/crm/LeadScoreBadge';
 import { Phone, Mail, StickyNote, MessageCircle, FileText, ArrowUpDown, AlertCircle, Users, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
@@ -478,7 +479,15 @@ function LeadCard({
   return (
     <div id={lead.id} className="rounded-md border p-3 shadow-sm">
       <div className="flex items-start justify-between">
-        <div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <LeadScoreBadge 
+              score={lead.lead_score?.score ?? null}
+              breakdown={lead.lead_score?.breakdown}
+              hasConsent={lead.consent_to_share}
+              size="sm"
+            />
+          </div>
           <div className="font-medium">{lead.name || '—'}</div>
           <div className="mt-1 text-xs text-muted-foreground">
             {getSourceLabel(lead.source_key)}

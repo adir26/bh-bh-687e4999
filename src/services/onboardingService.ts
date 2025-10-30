@@ -12,6 +12,12 @@ export interface ClientOnboardingData {
     homeSize: string;
     rooms: number;
     currentStage: string;
+    fullName?: string;
+    street?: string;
+    city?: string;
+    apartmentSize?: string;
+    email?: string;
+    phone?: string;
   };
   projectPlanning?: {
     projectTypes?: string[];
@@ -165,6 +171,73 @@ class OnboardingService {
       if (analyticsError) {
         console.error('Error saving onboarding analytics:', analyticsError);
         // Don't fail the whole process for analytics
+      }
+
+      // Create lead record if user gave consent
+      if (data.agreeToMatchedSuppliers) {
+        console.log('🎯 [ONBOARDING] Creating lead record for matched suppliers');
+        
+        try {
+          // Generate lead number
+          const { data: leadNumber, error: leadNumberError } = await supabase
+            .rpc('generate_lead_number');
+          
+          if (leadNumberError) {
+            console.error('⚠️ [ONBOARDING] Failed to generate lead number:', leadNumberError);
+            throw leadNumberError;
+          }
+
+          const leadData = {
+            client_id: userId,
+            name: data.homeDetails?.fullName || null,
+            contact_email: null, // Will be populated later if needed
+            contact_phone: null, // Will be populated later if needed
+            status: 'new' as const,
+            source_key: 'onboarding',
+            priority_key: 'medium',
+            budget_range: data.projectPlanning?.budgetRange || null,
+            start_date: data.projectPlanning?.startDate || null,
+            end_date: data.projectPlanning?.endDate || null,
+            consent_to_share: true,
+            lead_number: leadNumber as string,
+            notes: [
+              data.notes,
+              data.projectPlanning?.projectTypes?.join(', '),
+              data.projectPlanning?.otherProject,
+            ].filter(Boolean).join('\n') || null,
+            address: data.homeDetails?.street || null,
+            project_size: data.homeDetails?.homeSize
+              ? `${data.homeDetails.homeSize}, ${data.homeDetails.rooms} חדרים`
+              : null,
+          };
+
+          const { data: newLead, error: leadError } = await supabase
+            .from('leads')
+            .insert([leadData])
+            .select()
+            .single();
+
+          if (leadError) {
+            console.error('⚠️ [ONBOARDING] Failed to create lead:', leadError);
+            // Don't fail the onboarding if lead creation fails
+          } else {
+            console.log('✅ [ONBOARDING] Lead created:', newLead.id);
+            
+            // Trigger score calculation
+            try {
+              await supabase.functions.invoke('compute-lead-score', {
+                body: { leadId: newLead.id },
+              });
+              console.log('✅ [ONBOARDING] Lead score computed');
+            } catch (scoreError) {
+              console.error('⚠️ [ONBOARDING] Failed to compute lead score:', scoreError);
+              // Don't fail the entire operation if scoring fails
+            }
+          }
+        } catch (leadCreationError) {
+          console.error('⚠️ [ONBOARDING] Lead creation process failed:', leadCreationError);
+          // Don't fail the onboarding
+        }
       }
 
       return { success: true };

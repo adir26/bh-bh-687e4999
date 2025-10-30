@@ -23,6 +23,20 @@ export interface Lead {
   first_response_at?: string | null;
   snoozed_until?: string | null;
   sla_risk?: boolean;
+  budget_range?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  consent_to_share?: boolean;
+  lead_score?: {
+    score: number;
+    breakdown: {
+      budget: number;
+      urgency: number;
+      category: number;
+      completeness: number;
+      intent: number;
+    };
+  } | null;
   // Legacy fields for backward compatibility (read-only)
   source?: string | null;
   priority?: string | null;
@@ -46,12 +60,16 @@ export const leadsService = {
         lead_activities!left(
           description,
           created_at
+        ),
+        lead_scores!left(
+          score,
+          breakdown
         )
       `)
       .order('created_at', { ascending: filters.sort === 'oldest' });
 
     if (supplierId) {
-      query = query.eq('supplier_id', supplierId);
+      query = query.eq('supplier_id', supplierId).eq('consent_to_share', true);
     }
 
     if (filters.status) {
@@ -80,9 +98,10 @@ export const leadsService = {
     const { data, error } = await query;
     if (error) throw error;
     
-    // Process data to extract last activity note
+    // Process data to extract last activity note and lead score
     const leads = (data || []).map((lead: any) => {
       const activities = lead.lead_activities || [];
+      const scores = lead.lead_scores || [];
       
       // Sort activities by created_at descending and get the most recent
       const sortedActivities = [...activities].sort((a, b) => 
@@ -90,12 +109,15 @@ export const leadsService = {
       );
       
       const lastActivity = sortedActivities[0];
+      const leadScore = scores[0] || null;
       
       return {
         ...lead,
         last_activity_note: lastActivity?.description || null,
         last_activity_date: lastActivity?.created_at || null,
+        lead_score: leadScore,
         lead_activities: undefined, // Remove the nested activities array
+        lead_scores: undefined, // Remove the nested scores array
       };
     });
     

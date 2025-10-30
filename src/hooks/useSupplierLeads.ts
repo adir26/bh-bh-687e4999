@@ -11,6 +11,20 @@ export interface SupplierLead {
   priority_key: string | null;
   client_id: string | null;
   created_at: string;
+  consent_to_share: boolean;
+  budget_range: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  lead_score?: {
+    score: number;
+    breakdown: {
+      budget: number;
+      urgency: number;
+      category: number;
+      completeness: number;
+      intent: number;
+    };
+  } | null;
 }
 
 export function useSupplierLeads(supplierId: string) {
@@ -29,14 +43,33 @@ export function useSupplierLeads(supplierId: string) {
           source_key,
           priority_key,
           client_id,
-          created_at
+          created_at,
+          consent_to_share,
+          budget_range,
+          start_date,
+          end_date,
+          lead_scores!inner (
+            score,
+            breakdown
+          )
         `)
         .eq('supplier_id', supplierId)
+        .eq('consent_to_share', true)
         .in('status', ['new', 'followup', 'no_answer', 'project_in_process'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (data || []) as SupplierLead[];
+      
+      // Transform the data to match our interface
+      const leads = (data || []).map(lead => ({
+        ...lead,
+        lead_score: Array.isArray(lead.lead_scores) && lead.lead_scores.length > 0
+          ? lead.lead_scores[0]
+          : null,
+        lead_scores: undefined, // Remove the array
+      }));
+      
+      return leads as SupplierLead[];
     },
     staleTime: 30 * 1000, // 30 seconds
   });
