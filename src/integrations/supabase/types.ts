@@ -3984,6 +3984,47 @@ export type Database = {
           },
         ]
       }
+      supplier_webhooks: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          secret_token: string
+          supplier_id: string
+          updated_at: string | null
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          secret_token: string
+          supplier_id: string
+          updated_at?: string | null
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          secret_token?: string
+          supplier_id?: string
+          updated_at?: string | null
+          webhook_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_webhooks_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_messages: {
         Row: {
           attachments: string[] | null
@@ -4327,6 +4368,57 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          request_ip: string | null
+          request_payload: Json | null
+          response_message: string | null
+          response_status: number | null
+          supplier_id: string
+          webhook_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          request_ip?: string | null
+          request_payload?: Json | null
+          response_message?: string | null
+          response_status?: number | null
+          supplier_id: string
+          webhook_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          request_ip?: string | null
+          request_payload?: Json | null
+          response_message?: string | null
+          response_status?: number | null
+          supplier_id?: string
+          webhook_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_logs_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       homepage_public: {
@@ -4486,6 +4578,7 @@ export type Database = {
       generate_order_number: { Args: never; Returns: string }
       generate_quote_number: { Args: never; Returns: string }
       generate_ticket_number: { Args: never; Returns: string }
+      generate_webhook_token: { Args: never; Returns: string }
       get_category_performance: {
         Args: { _category_id?: string }
         Returns: {
@@ -4530,6 +4623,17 @@ export type Database = {
           supplier_id: string
           title: string
           updated_at: string
+        }[]
+      }
+      get_or_create_supplier_webhook: {
+        Args: { p_supplier_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          is_active: boolean
+          secret_token: string
+          supplier_id: string
+          webhook_url: string
         }[]
       }
       get_popular_products: {
