@@ -91,24 +91,30 @@ Deno.serve(async (req) => {
     const payload: FacebookLeadPayload = await req.json();
     console.log('Received Facebook lead:', payload);
 
+    // Generate unique lead number
+    const leadNumber = `FB-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     // Insert lead into database
     const { data: leadData, error: leadError } = await supabase
       .from('leads')
       .insert({
         supplier_id: supplierId,
-        source: 'facebook',
+        source_key: 'facebook',
+        lead_number: leadNumber,
         name: payload.full_name || 'Unknown',
         contact_email: payload.email,
         contact_phone: payload.phone,
-        status: 'new',
-        priority: 'high',
+        status_key: 'new',
+        priority_key: 'high',
+        campaign_name: payload.campaign_name || null,
         metadata: {
           campaign_id: payload.campaign_id,
           campaign_name: payload.campaign_name,
           adset_name: payload.adset_name,
           ad_name: payload.ad_name,
           form_id: payload.form_id,
-          source: 'facebook_lead_ads'
+          source: 'facebook_lead_ads',
+          received_at: new Date().toISOString()
         }
       })
       .select()

@@ -1522,6 +1522,7 @@ export type Database = {
           last_contact_date: string | null
           lead_number: string
           lost_reason: string | null
+          metadata: Json | null
           name: string | null
           next_follow_up_date: string | null
           notes: string | null
@@ -1554,6 +1555,7 @@ export type Database = {
           last_contact_date?: string | null
           lead_number: string
           lost_reason?: string | null
+          metadata?: Json | null
           name?: string | null
           next_follow_up_date?: string | null
           notes?: string | null
@@ -1586,6 +1588,7 @@ export type Database = {
           last_contact_date?: string | null
           lead_number?: string
           lost_reason?: string | null
+          metadata?: Json | null
           name?: string | null
           next_follow_up_date?: string | null
           notes?: string | null
