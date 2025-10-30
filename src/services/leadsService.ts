@@ -16,6 +16,8 @@ export interface Lead {
   priority_key: string | null;
   last_contact_date: string | null;
   notes: string | null;
+  last_activity_note?: string | null;
+  last_activity_date?: string | null;
   created_at: string;
   updated_at: string;
   first_response_at?: string | null;
@@ -39,7 +41,13 @@ export const leadsService = {
   async listLeads(supplierId?: string, filters: LeadFilters = {}) {
     let query = supabase
       .from('leads')
-      .select('*')
+      .select(`
+        *,
+        lead_activities!left(
+          description,
+          created_at
+        )
+      `)
       .order('created_at', { ascending: filters.sort === 'oldest' });
 
     if (supplierId) {
@@ -71,7 +79,27 @@ export const leadsService = {
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data || []) as unknown as Lead[];
+    
+    // Process data to extract last activity note
+    const leads = (data || []).map((lead: any) => {
+      const activities = lead.lead_activities || [];
+      
+      // Sort activities by created_at descending and get the most recent
+      const sortedActivities = [...activities].sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      
+      const lastActivity = sortedActivities[0];
+      
+      return {
+        ...lead,
+        last_activity_note: lastActivity?.description || null,
+        last_activity_date: lastActivity?.created_at || null,
+        lead_activities: undefined, // Remove the nested activities array
+      };
+    });
+    
+    return leads as unknown as Lead[];
   },
 
   async updateLeadStatus(id: string, status: LeadStatus) {

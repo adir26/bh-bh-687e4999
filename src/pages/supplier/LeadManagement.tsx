@@ -266,12 +266,23 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                        <p className="font-medium">{getSourceLabel(lead.source_key)}</p>
                      </div>
                    )}
-                   {lead.notes && (
+                   {lead.last_activity_note && (
                      <div>
-                       <h4 className="font-medium text-sm text-muted-foreground mb-1">הערות:</h4>
+                       <h4 className="font-medium text-sm text-muted-foreground mb-1">הערה אחרונה:</h4>
                        <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">
-                         {lead.notes}
+                         {lead.last_activity_note}
                        </p>
+                       {lead.last_activity_date && (
+                         <p className="text-xs text-muted-foreground mt-1">
+                           {new Date(lead.last_activity_date).toLocaleDateString('he-IL', {
+                             day: '2-digit',
+                             month: '2-digit',
+                             year: 'numeric',
+                             hour: '2-digit',
+                             minute: '2-digit'
+                           })}
+                         </p>
+                       )}
                      </div>
                    )}
                   <div className="flex gap-2 pt-2">
