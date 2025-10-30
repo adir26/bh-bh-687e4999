@@ -6,6 +6,7 @@ export interface PublicSupplier {
   owner_id?: string;
   name: string;
   description?: string;
+  about_text?: string;
   tagline?: string;
   logo_url?: string;
   banner_url?: string;
@@ -47,6 +48,7 @@ export const usePublicSupplier = (slug: string) => {
           owner_id,
           name,
           description,
+          about_text,
           tagline,
           logo_url,
           banner_url,

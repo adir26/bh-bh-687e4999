@@ -770,6 +770,7 @@ export type Database = {
       }
       companies: {
         Row: {
+          about_text: string | null
           address: string | null
           area: string | null
           banner_url: string | null
@@ -804,6 +805,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          about_text?: string | null
           address?: string | null
           area?: string | null
           banner_url?: string | null
@@ -838,6 +840,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          about_text?: string | null
           address?: string | null
           area?: string | null
           banner_url?: string | null

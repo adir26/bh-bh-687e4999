@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePublicSupplier, usePublicSupplierProducts, useSupplierCategories } from '@/hooks/usePublicSupplier';
+import { useSupplierPhotos } from '@/hooks/useSupplierPhotos';
 import { supabase } from '@/integrations/supabase/client';
+import { getPublicImageUrl } from '@/utils/imageUrls';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -53,6 +55,7 @@ const PublicSupplierProfile: React.FC = () => {
     }
   );
   const { data: reviews = [], refetch: refetchReviews } = useCompanyReviews(supplier?.id || '');
+  const { data: inspirationPhotos = [] } = useSupplierPhotos(supplier?.id);
 
   // Get current user
   useEffect(() => {
@@ -282,19 +285,26 @@ const PublicSupplierProfile: React.FC = () => {
       </div>
 
       {/* About Section */}
-      {supplier.description && (
+      {(supplier.about_text || supplier.description) && (
         <div className="px-4 py-6 border-t">
-          <h3 className="text-lg font-bold mb-3">באונר</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            {supplier.description}
+          <h3 className="text-lg font-bold mb-3">אודות</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+            {supplier.about_text || supplier.description}
           </p>
         </div>
       )}
 
       {/* Products Section */}
       {productsData?.products && productsData.products.length > 0 && (
-        <div className="px-4 py-6 border-t">
-          <h3 className="text-lg font-bold mb-4">המוצרים שלנו</h3>
+        <div className="px-4 py-6 border-t bg-gradient-to-b from-primary/5 to-transparent">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold">קטלוג מוצרים</h3>
+            {productsData.totalCount > 0 && (
+              <Badge variant="secondary" className="gap-1">
+                {productsData.totalCount} מוצרים
+              </Badge>
+            )}
+          </div>
           
           {/* Product Tabs */}
           <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
@@ -319,9 +329,9 @@ const PublicSupplierProfile: React.FC = () => {
             ))}
           </div>
 
-          {/* Products Grid */}
-          <div className="grid grid-cols-2 gap-3">
-            {productsData.products.slice(0, 4).map((product) => (
+          {/* Products Grid - Show 6 products */}
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {productsData.products.slice(0, 6).map((product) => (
               <Link
                 key={product.id}
                 to={`/s/${supplier.slug}/p/${product.id}`}
@@ -351,31 +361,64 @@ const PublicSupplierProfile: React.FC = () => {
               </Link>
             ))}
           </div>
+
+          {/* View Full Catalog Button */}
+          {productsData.totalCount > 6 && (
+            <Button 
+              variant="outline" 
+              className="w-full gap-2"
+              onClick={() => navigate(`/s/${supplier.slug}/catalog`)}
+            >
+              צפה בקטלוג המלא
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       )}
 
-      {/* Gallery Section - תמונות השראה */}
-      {supplier.gallery && supplier.gallery.length > 0 && (
+      {/* Gallery Section - Merged Gallery + Inspiration Photos */}
+      {((supplier.gallery && supplier.gallery.length > 0) || inspirationPhotos.length > 0) && (
         <div className="px-4 py-6 border-t">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold">תמונות השראה</h3>
+            <h3 className="text-lg font-bold">גלריה ותמונות השראה</h3>
             <span className="text-sm text-muted-foreground">
-              {supplier.gallery.length} תמונות
+              {(supplier.gallery?.length || 0) + inspirationPhotos.length} תמונות
             </span>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            {supplier.gallery.map((imageUrl, index) => (
+            {/* Gallery Images */}
+            {supplier.gallery?.map((imageUrl, index) => (
               <div 
-                key={index} 
+                key={`gallery-${index}`} 
                 className="aspect-square rounded-lg overflow-hidden group cursor-pointer"
                 onClick={() => window.open(imageUrl, '_blank')}
               >
                 <img 
                   src={imageUrl} 
-                  alt={`תמונת השראה ${index + 1}`}
+                  alt={`תמונת גלריה ${index + 1}`}
                   className="w-full h-full object-cover transition-transform group-hover:scale-110"
                 />
               </div>
+            ))}
+            
+            {/* Inspiration Photos */}
+            {inspirationPhotos.map((photo) => (
+              <Link
+                key={`photo-${photo.id}`}
+                to={`/inspiration/${photo.id}`}
+                className="aspect-square rounded-lg overflow-hidden group cursor-pointer"
+              >
+                <img 
+                  src={getPublicImageUrl(photo.storage_path)} 
+                  alt={photo.title}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                />
+                {photo.title && (
+                  <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p className="text-white text-xs font-medium line-clamp-1">{photo.title}</p>
+                  </div>
+                )}
+              </Link>
             ))}
           </div>
         </div>

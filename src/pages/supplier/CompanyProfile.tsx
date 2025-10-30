@@ -25,6 +25,7 @@ interface CompanyData {
   name: string;
   slug: string;
   description: string | null;
+  about_text: string | null;
   tagline: string | null;
   logo_url: string | null;
   banner_url: string | null;
@@ -314,7 +315,7 @@ export default function CompanyProfile() {
                         await updateMutation.mutateAsync({ description });
                       }}
                       type="textarea"
-                      placeholder="הוסף תיאור..."
+                      placeholder="הוסף תיאור קצר..."
                     >
                       {company.description ? (
                         <p className="text-muted-foreground mt-2 max-w-2xl">
@@ -322,7 +323,7 @@ export default function CompanyProfile() {
                         </p>
                       ) : (
                         <p className="text-muted-foreground/50 italic mt-2 max-w-2xl">
-                          הוסף תיאור...
+                          הוסף תיאור קצר...
                         </p>
                       )}
                     </EditableField>
@@ -441,6 +442,33 @@ export default function CompanyProfile() {
               </EditableField>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* About Section */}
+      <div className="bg-background border-b">
+        <div className="container max-w-6xl mx-auto px-4 py-8">
+          <h2 className="text-2xl font-bold mb-4">אודות</h2>
+          <EditableField
+            value={company.about_text || ''}
+            isEditMode={isEditMode}
+            onSave={async (about_text) => {
+              await updateMutation.mutateAsync({ about_text });
+            }}
+            type="textarea"
+            placeholder="ספר ללקוחות על החברה שלך - מה מייחד אותך, הניסיון שלך, הפרויקטים שביצעת..."
+            className="max-w-none"
+          >
+            {company.about_text ? (
+              <p className="text-muted-foreground whitespace-pre-wrap max-w-4xl">
+                {company.about_text}
+              </p>
+            ) : (
+              <p className="text-muted-foreground/50 italic">
+                ספר ללקוחות על החברה שלך - מה מייחד אותך, הניסיון שלך, הפרויקטים שביצעת...
+              </p>
+            )}
+          </EditableField>
         </div>
       </div>
 
