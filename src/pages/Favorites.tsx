@@ -167,9 +167,11 @@ const Favorites = () => {
                                   </div>
                                   <div className="flex-1">
                                     <CardTitle className="text-lg text-right text-foreground font-semibold">
-                                      {favorite.supplier_data?.full_name || 'ספק'}
+                                      {favorite.supplier_data?.company_name || favorite.supplier_data?.full_name || 'ספק'}
                                     </CardTitle>
-                                    <p className="text-sm text-muted-foreground text-right mt-1">ספק</p>
+                                    <p className="text-sm text-muted-foreground text-right mt-1">
+                                      {favorite.supplier_data?.full_name || 'ספק'}
+                                    </p>
                                     <div className="flex items-center gap-1 mt-2 justify-end">
                                       <span className="text-sm text-muted-foreground">(0)</span>
                                       <span className="text-sm font-medium text-foreground">0.0</span>
@@ -185,7 +187,20 @@ const Favorites = () => {
                                     variant="outline" 
                                     size="sm" 
                                     className="flex-1 rounded-xl h-11"
-                                    onClick={() => window.open(`mailto:${favorite.supplier_data?.email}`, '_self')}
+                                    onClick={() => {
+                                      if (favorite.supplier_data?.phone) {
+                                        window.open(`tel:${favorite.supplier_data.phone}`, '_self');
+                                      } else if (favorite.supplier_data?.email) {
+                                        window.open(`mailto:${favorite.supplier_data.email}`, '_self');
+                                      } else {
+                                        toast({
+                                          title: "אין מידע ליצירת קשר",
+                                          description: "לא נמצא טלפון או אימייל עבור ספק זה",
+                                          variant: "destructive",
+                                        });
+                                      }
+                                    }}
+                                    disabled={!favorite.supplier_data?.phone && !favorite.supplier_data?.email}
                                   >
                                     <Phone className="w-4 h-4 ml-2" />
                                     צור קשר
@@ -196,8 +211,15 @@ const Favorites = () => {
                                     onClick={() => {
                                       if (favorite.supplier_data?.slug) {
                                         navigate(`/s/${favorite.supplier_data.slug}`);
+                                      } else {
+                                        toast({
+                                          title: "לא ניתן לצפות בפרופיל",
+                                          description: "הפרופיל של הספק אינו זמין כרגע",
+                                          variant: "destructive",
+                                        });
                                       }
                                     }}
+                                    disabled={!favorite.supplier_data?.slug}
                                   >
                                     צפה בפרופיל
                                   </Button>
