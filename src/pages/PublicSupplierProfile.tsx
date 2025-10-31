@@ -32,10 +32,12 @@ import {
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { ScheduleMeetingModal } from '@/components/modals/ScheduleMeetingModal';
+import { useQueryClient } from '@tanstack/react-query';
 
 const PublicSupplierProfile: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -108,6 +110,10 @@ const PublicSupplierProfile: React.FC = () => {
     try {
       const newState = await FavoritesService.toggle('supplier', supplier.id);
       setIsFavorited(newState);
+      
+      // Invalidate favorites query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['favorites', userId] });
+      
       toast({
         title: newState ? "הספק נשמר" : "הספק הוסר",
         description: newState ? "הספק נוסף למועדפים שלך" : "הספק הוסר מהמועדפים",

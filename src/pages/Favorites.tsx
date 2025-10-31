@@ -12,11 +12,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { OnboardingGuard } from '@/components/OnboardingGuard';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { usePageLoadTimer } from '@/hooks/usePageLoadTimer';
+import { useNavigate } from 'react-router-dom';
 
 const Favorites = () => {
   const [activeTab, setActiveTab] = useState('suppliers');
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   // Page load timer for performance tracking
   usePageLoadTimer('favorites');
@@ -188,7 +190,15 @@ const Favorites = () => {
                                     <Phone className="w-4 h-4 ml-2" />
                                     צור קשר
                                   </Button>
-                                  <Button size="sm" className="flex-1 rounded-xl h-11">
+                                  <Button 
+                                    size="sm" 
+                                    className="flex-1 rounded-xl h-11"
+                                    onClick={() => {
+                                      if (favorite.supplier_data?.slug) {
+                                        navigate(`/s/${favorite.supplier_data.slug}`);
+                                      }
+                                    }}
+                                  >
                                     צפה בפרופיל
                                   </Button>
                                 </div>

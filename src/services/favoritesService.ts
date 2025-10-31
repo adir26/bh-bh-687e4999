@@ -22,6 +22,7 @@ export interface FavoriteSupplier extends FavoriteItem {
     id: string;
     full_name?: string;
     email: string;
+    slug?: string;
   };
 }
 
@@ -157,14 +158,27 @@ export class FavoritesService {
 
     try {
       const supplierIds = suppliers.map(s => s.entity_id);
-      const { data } = await supabase
+      
+      // Get profiles data
+      const { data: profilesData } = await supabase
         .from('profiles')
         .select('id, full_name, email')
         .in('id', supplierIds);
 
-      if (data) {
+      // Get companies data for slug
+      const { data: companiesData } = await supabase
+        .from('companies')
+        .select('owner_id, slug')
+        .in('owner_id', supplierIds);
+
+      if (profilesData) {
         suppliers.forEach(supplier => {
-          supplier.supplier_data = data.find(p => p.id === supplier.entity_id);
+          const profile = profilesData.find(p => p.id === supplier.entity_id);
+          const company = companiesData?.find(c => c.owner_id === supplier.entity_id);
+          supplier.supplier_data = profile ? {
+            ...profile,
+            slug: company?.slug
+          } : undefined;
         });
       }
     } catch (error) {
