@@ -84,40 +84,54 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
     },
   });
 
-  // Delete lead mutation
-  const deleteLeadMutation = useMutation({
-    mutationFn: async () => {
-      console.log('🗑️ Starting delete for lead:', leadId);
-      if (!leadId) {
-        throw new Error('No lead ID provided');
+  // Simplified delete handler - no mutation, direct execution
+  const handleDeleteLead = async () => {
+    if (!leadId) return;
+
+    // 1. Close dialogs immediately for instant feedback
+    setDeleteDialogOpen(false);
+    onOpenChange(false);
+
+    // 2. Optimistically remove from all supplier-leads caches
+    queryClient.setQueriesData(
+      { 
+        predicate: (query) => 
+          Array.isArray(query.queryKey) && query.queryKey[0] === 'supplier-leads' 
+      },
+      (oldData: any) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.filter((lead: any) => lead.id !== leadId);
       }
-      const result = await leadsService.deleteLead(leadId);
-      console.log('✅ Delete successful:', result);
-      return result;
-    },
-    onSuccess: () => {
-      console.log('🔄 Invalidating queries...');
+    );
+
+    // 3. Delete in background
+    try {
+      await leadsService.deleteLead(leadId);
       
-      // Close dialogs first for immediate feedback
-      setDeleteDialogOpen(false);
-      onOpenChange(false);
-      
-      // Then invalidate queries to refresh the list
+      // 4. Invalidate all related queries on success
+      queryClient.invalidateQueries({ 
+        predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'supplier-leads' 
+      });
       queryClient.invalidateQueries({ queryKey: ['lead', leadId] });
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
-      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
       queryClient.invalidateQueries({ queryKey: ['lead-activities', leadId] });
       queryClient.invalidateQueries({ queryKey: ['lead-history', leadId] });
       
       showToast.success('הליד נמחק בהצלחה');
-      console.log('✅ Delete complete');
-    },
-    onError: (error: any) => {
-      console.error('❌ Delete lead error:', error);
-      const errorMessage = error?.message || 'שגיאה במחיקת הליד';
-      showToast.error(errorMessage);
-    },
-  });
+    } catch (error: any) {
+      // 5. On error, show message and refetch to restore correct state
+      const isRLSError = error?.message?.includes('row-level security');
+      showToast.error(
+        isRLSError 
+          ? 'אין לך הרשאה למחוק את הליד הזה' 
+          : 'שגיאה במחיקת הליד. נסה שוב.'
+      );
+      
+      // Refetch to restore lead if optimistic removal was wrong
+      queryClient.invalidateQueries({ 
+        predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'supplier-leads' 
+      });
+    }
+  };
 
   if (!lead && !isLoading) return null;
 
@@ -253,16 +267,14 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
           <Button
             variant="outline"
             onClick={() => setDeleteDialogOpen(false)}
-            disabled={deleteLeadMutation.isPending}
           >
             ביטול
           </Button>
           <Button
             variant="destructive"
-            onClick={() => deleteLeadMutation.mutate()}
-            disabled={deleteLeadMutation.isPending}
+            onClick={handleDeleteLead}
           >
-            {deleteLeadMutation.isPending ? 'מוחק...' : 'כן, מחק'}
+            כן, מחק
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
