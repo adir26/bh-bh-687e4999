@@ -86,14 +86,19 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
 
   // Delete lead mutation
   const deleteLeadMutation = useMutation({
-    mutationFn: () => leadsService.deleteLead(leadId!),
+    mutationFn: async () => {
+      if (!leadId) throw new Error('No lead ID');
+      return leadsService.deleteLead(leadId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
       showToast.success('הליד נמחק בהצלחה');
+      setDeleteDialogOpen(false);
       onOpenChange(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Delete lead error:', error);
       showToast.error('שגיאה במחיקת הליד');
     },
   });
@@ -231,10 +236,14 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
         <AlertDialogFooter>
           <AlertDialogCancel>ביטול</AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => deleteLeadMutation.mutate()}
+            onClick={(e) => {
+              e.preventDefault();
+              deleteLeadMutation.mutate();
+            }}
+            disabled={deleteLeadMutation.isPending}
             className="bg-destructive hover:bg-destructive/90"
           >
-            מחק ליד
+            {deleteLeadMutation.isPending ? 'מוחק...' : 'מחק ליד'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
