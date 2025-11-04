@@ -84,22 +84,58 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
     },
   });
 
-  // Delete lead mutation
+  // Delete lead mutation with optimistic update
   const deleteLeadMutation = useMutation({
     mutationFn: async () => {
+      console.log('🗑️ Starting delete for lead:', leadId);
       if (!leadId) throw new Error('No lead ID');
-      return leadsService.deleteLead(leadId);
+      const result = await leadsService.deleteLead(leadId);
+      console.log('✅ Delete successful');
+      return result;
+    },
+    onMutate: async () => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['leads'] });
+      await queryClient.cancelQueries({ queryKey: ['supplier-leads'] });
+      
+      // Snapshot the previous values
+      const previousLeads = queryClient.getQueryData(['leads']);
+      const previousSupplierLeads = queryClient.getQueryData(['supplier-leads']);
+      
+      // Optimistically remove the lead from the lists
+      queryClient.setQueryData(['leads'], (old: any) => 
+        old?.filter((lead: any) => lead.id !== leadId)
+      );
+      queryClient.setQueryData(['supplier-leads'], (old: any) => 
+        old?.filter((lead: any) => lead.id !== leadId)
+      );
+      
+      return { previousLeads, previousSupplierLeads };
+    },
+    onError: (error, variables, context) => {
+      console.error('❌ Delete lead error:', error);
+      
+      // Rollback to previous data on error
+      if (context?.previousLeads) {
+        queryClient.setQueryData(['leads'], context.previousLeads);
+      }
+      if (context?.previousSupplierLeads) {
+        queryClient.setQueryData(['supplier-leads'], context.previousSupplierLeads);
+      }
+      
+      showToast.error('שגיאה במחיקת הליד');
     },
     onSuccess: () => {
+      // Invalidate all related queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['lead', leadId] });
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['lead-activities', leadId] });
+      queryClient.invalidateQueries({ queryKey: ['lead-history', leadId] });
+      
       showToast.success('הליד נמחק בהצלחה');
       setDeleteDialogOpen(false);
       onOpenChange(false);
-    },
-    onError: (error) => {
-      console.error('Delete lead error:', error);
-      showToast.error('שגיאה במחיקת הליד');
     },
   });
 
