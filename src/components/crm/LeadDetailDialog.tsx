@@ -246,21 +246,24 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
         <AlertDialogHeader>
           <AlertDialogTitle>האם אתה בטוח?</AlertDialogTitle>
           <AlertDialogDescription>
-            פעולה זו תמחק את הליד לצמיתות. לא ניתן לשחזר את המידע לאחר המחיקה.
+            פעולה זו תמחק את הליד לצמיתות ותסיר אותו מרשימת הלידים.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>ביטול</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={(e) => {
-              e.preventDefault();
-              deleteLeadMutation.mutate();
-            }}
+        <AlertDialogFooter className="gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setDeleteDialogOpen(false)}
             disabled={deleteLeadMutation.isPending}
-            className="bg-destructive hover:bg-destructive/90"
           >
-            {deleteLeadMutation.isPending ? 'מוחק...' : 'מחק ליד'}
-          </AlertDialogAction>
+            ביטול
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => deleteLeadMutation.mutate()}
+            disabled={deleteLeadMutation.isPending}
+          >
+            {deleteLeadMutation.isPending ? 'מוחק...' : 'כן, מחק'}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
