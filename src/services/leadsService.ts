@@ -306,4 +306,14 @@ export const leadsService = {
     if (error) throw error;
     return data || [];
   },
+
+  // Delete lead
+  async deleteLead(leadId: string) {
+    const { error } = await supabase
+      .from('leads')
+      .delete()
+      .eq('id', leadId);
+
+    if (error) throw error;
+  }
 };

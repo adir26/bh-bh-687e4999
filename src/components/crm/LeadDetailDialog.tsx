@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { User, Phone, Mail, Calendar, Clock, FileText, CheckCircle2, Tag, History } from 'lucide-react';
+import { User, Phone, Mail, Calendar, Clock, FileText, CheckCircle2, Tag, History, Trash2 } from 'lucide-react';
 import { leadsService, Lead, LeadStatus } from '@/services/leadsService';
 import { showToast } from '@/utils/toast';
 import { format } from 'date-fns';
@@ -24,6 +25,7 @@ interface LeadDetailDialogProps {
 export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialogProps) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('details');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Reset to details tab when dialog opens
   useEffect(() => {
@@ -82,6 +84,20 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
     },
   });
 
+  // Delete lead mutation
+  const deleteLeadMutation = useMutation({
+    mutationFn: () => leadsService.deleteLead(leadId!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
+      showToast.success('הליד נמחק בהצלחה');
+      onOpenChange(false);
+    },
+    onError: () => {
+      showToast.error('שגיאה במחיקת הליד');
+    },
+  });
+
   if (!lead && !isLoading) return null;
 
   const statusLabels: Record<LeadStatus, string> = {
@@ -117,14 +133,25 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <User className="w-5 h-5" />
-            {lead?.name || 'פרטי ליד'}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2 text-xl">
+                <User className="w-5 h-5" />
+                {lead?.name || 'פרטי ליד'}
+              </DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setDeleteDialogOpen(true)}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-5">
@@ -192,6 +219,27 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
         </Tabs>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialogContent dir="rtl">
+        <AlertDialogHeader>
+          <AlertDialogTitle>האם אתה בטוח?</AlertDialogTitle>
+          <AlertDialogDescription>
+            פעולה זו תמחק את הליד לצמיתות. לא ניתן לשחזר את המידע לאחר המחיקה.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>ביטול</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => deleteLeadMutation.mutate()}
+            className="bg-destructive hover:bg-destructive/90"
+          >
+            מחק ליד
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
 
