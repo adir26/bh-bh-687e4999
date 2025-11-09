@@ -10,7 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { User, Phone, Mail, Calendar, Clock, FileText, CheckCircle2, Tag, History, Trash2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { User, Phone, Mail, Calendar, Clock, FileText, CheckCircle2, Tag, History, Trash2, CalendarIcon } from 'lucide-react';
 import { leadsService, Lead, LeadStatus } from '@/services/leadsService';
 import { showToast } from '@/utils/toast';
 import { format } from 'date-fns';
@@ -519,16 +521,36 @@ function TasksTab({
   activities: any[]; 
   onAddTask: (task: { title: string; description?: string; scheduledFor?: string }) => void;
 }) {
+  // Initialize with current date and time
+  const getDefaultDateTime = () => {
+    const now = new Date();
+    return now;
+  };
+
   const [taskForm, setTaskForm] = useState({
     title: '',
     description: '',
-    scheduledFor: '',
   });
+  const [taskDate, setTaskDate] = useState<Date>(getDefaultDateTime());
+  const [taskTime, setTaskTime] = useState(format(getDefaultDateTime(), 'HH:mm'));
 
   const handleAdd = () => {
     if (!taskForm.title.trim()) return;
-    onAddTask(taskForm);
-    setTaskForm({ title: '', description: '', scheduledFor: '' });
+    
+    // Combine date and time
+    const [hours, minutes] = taskTime.split(':');
+    const scheduledDate = new Date(taskDate);
+    scheduledDate.setHours(parseInt(hours), parseInt(minutes));
+    
+    onAddTask({
+      ...taskForm,
+      scheduledFor: scheduledDate.toISOString(),
+    });
+    
+    // Reset form with new default date/time
+    setTaskForm({ title: '', description: '' });
+    setTaskDate(getDefaultDateTime());
+    setTaskTime(format(getDefaultDateTime(), 'HH:mm'));
   };
 
   return (
@@ -546,11 +568,40 @@ function TasksTab({
           placeholder="תיאור המשימה (אופציונלי)"
           rows={2}
         />
-        <Input
-          type="datetime-local"
-          value={taskForm.scheduledFor}
-          onChange={(e) => setTaskForm({ ...taskForm, scheduledFor: e.target.value })}
-        />
+        
+        <div className="space-y-2">
+          <Label>תאריך ושעה</Label>
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex-1 justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="ml-2 h-4 w-4" />
+                  {format(taskDate, 'dd/MM/yyyy', { locale: he })}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={taskDate}
+                  onSelect={(date) => date && setTaskDate(date)}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <Input
+              type="time"
+              value={taskTime}
+              onChange={(e) => setTaskTime(e.target.value)}
+              className="w-32"
+            />
+          </div>
+        </div>
+        
         <Button onClick={handleAdd} className="w-full">
           <CheckCircle2 className="w-4 h-4 ml-2" />
           הוסף משימה
@@ -600,16 +651,36 @@ function MeetingsTab({
   activities: any[]; 
   onAddMeeting: (meeting: { title: string; description?: string; scheduledFor: string }) => void;
 }) {
+  // Initialize with current date and time
+  const getDefaultDateTime = () => {
+    const now = new Date();
+    return now;
+  };
+
   const [meetingForm, setMeetingForm] = useState({
     title: '',
     description: '',
-    scheduledFor: '',
   });
+  const [meetingDate, setMeetingDate] = useState<Date>(getDefaultDateTime());
+  const [meetingTime, setMeetingTime] = useState(format(getDefaultDateTime(), 'HH:mm'));
 
   const handleAdd = () => {
-    if (!meetingForm.title.trim() || !meetingForm.scheduledFor) return;
-    onAddMeeting(meetingForm);
-    setMeetingForm({ title: '', description: '', scheduledFor: '' });
+    if (!meetingForm.title.trim()) return;
+    
+    // Combine date and time
+    const [hours, minutes] = meetingTime.split(':');
+    const scheduledDate = new Date(meetingDate);
+    scheduledDate.setHours(parseInt(hours), parseInt(minutes));
+    
+    onAddMeeting({
+      ...meetingForm,
+      scheduledFor: scheduledDate.toISOString(),
+    });
+    
+    // Reset form with new default date/time
+    setMeetingForm({ title: '', description: '' });
+    setMeetingDate(getDefaultDateTime());
+    setMeetingTime(format(getDefaultDateTime(), 'HH:mm'));
   };
 
   return (
@@ -627,12 +698,40 @@ function MeetingsTab({
           placeholder="פרטים נוספים (אופציונלי)"
           rows={2}
         />
-        <Input
-          type="datetime-local"
-          value={meetingForm.scheduledFor}
-          onChange={(e) => setMeetingForm({ ...meetingForm, scheduledFor: e.target.value })}
-          required
-        />
+        
+        <div className="space-y-2">
+          <Label>תאריך ושעה</Label>
+          <div className="flex gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex-1 justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="ml-2 h-4 w-4" />
+                  {format(meetingDate, 'dd/MM/yyyy', { locale: he })}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={meetingDate}
+                  onSelect={(date) => date && setMeetingDate(date)}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <Input
+              type="time"
+              value={meetingTime}
+              onChange={(e) => setMeetingTime(e.target.value)}
+              className="w-32"
+            />
+          </div>
+        </div>
+        
         <Button onClick={handleAdd} className="w-full">
           <Calendar className="w-4 h-4 ml-2" />
           קבע פגישה
