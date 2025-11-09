@@ -194,21 +194,10 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <DialogTitle className="flex items-center gap-2 text-xl">
-                <User className="w-5 h-5" />
-                {lead?.name || 'פרטי ליד'}
-              </DialogTitle>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setDeleteDialogOpen(true)}
-                className="gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                מחק ליד
-              </Button>
-            </div>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <User className="w-5 h-5" />
+              {lead?.name || 'פרטי ליד'}
+            </DialogTitle>
           </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -230,6 +219,29 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
               priorityLabels={priorityLabels}
               open={open}
             />
+            
+            {/* Delete Lead Section - Moved to bottom for safety */}
+            <Card className="border-destructive/50 bg-destructive/5">
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-destructive mb-1">אזור מסוכן</h4>
+                    <p className="text-sm text-muted-foreground">
+                      מחיקת הליד תסיר לצמיתות את כל המידע, ההיסטוריה והפעילויות הקשורות אליו.
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="gap-2 shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    מחק ליד
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Notes Tab */}
