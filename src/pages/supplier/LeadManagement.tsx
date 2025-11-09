@@ -113,6 +113,17 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
         return oldData.filter((lead: any) => lead.id !== leadToDelete.id);
       }
     );
+    // Also update main leads listings
+    queryClient.setQueriesData(
+      { 
+        predicate: (query) => 
+          Array.isArray(query.queryKey) && query.queryKey[0] === 'leads' 
+      },
+      (oldData: any) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.filter((lead: any) => lead.id !== leadToDelete.id);
+      }
+    );
 
     try {
       await leadsService.deleteLead(leadToDelete.id);
@@ -120,18 +131,27 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
       queryClient.invalidateQueries({ 
         predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'supplier-leads' 
       });
+      queryClient.invalidateQueries({ 
+        predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'leads' 
+      });
       
       showToast.success('הליד נמחק בהצלחה');
     } catch (error: any) {
       const isRLSError = error?.message?.includes('row-level security');
+      const isFKError = error?.code === '23503' || error?.message?.includes('foreign key') || error?.message?.includes('orders_lead_id_fkey');
       showToast.error(
         isRLSError 
           ? 'אין לך הרשאה למחוק את הליד הזה' 
-          : 'שגיאה במחיקת הליד. נסה שוב.'
+          : isFKError
+            ? 'הליד מקושר להזמנות. פירקתי את הקישור במערכת, נסה שוב.'
+            : 'שגיאה במחיקת הליד. נסה שוב.'
       );
       
       queryClient.invalidateQueries({ 
         predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'supplier-leads' 
+      });
+      queryClient.invalidateQueries({ 
+        predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'leads' 
       });
     }
     

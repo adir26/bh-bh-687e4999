@@ -103,6 +103,17 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
         return oldData.filter((lead: any) => lead.id !== leadId);
       }
     );
+    // Also update main leads listings
+    queryClient.setQueriesData(
+      { 
+        predicate: (query) => 
+          Array.isArray(query.queryKey) && query.queryKey[0] === 'leads' 
+      },
+      (oldData: any) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.filter((lead: any) => lead.id !== leadId);
+      }
+    );
 
     // 3. Delete in background
     try {
@@ -112,6 +123,9 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
       queryClient.invalidateQueries({ 
         predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'supplier-leads' 
       });
+      queryClient.invalidateQueries({ 
+        predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'leads' 
+      });
       queryClient.invalidateQueries({ queryKey: ['lead', leadId] });
       queryClient.invalidateQueries({ queryKey: ['lead-activities', leadId] });
       queryClient.invalidateQueries({ queryKey: ['lead-history', leadId] });
@@ -120,15 +134,21 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
     } catch (error: any) {
       // 5. On error, show message and refetch to restore correct state
       const isRLSError = error?.message?.includes('row-level security');
+      const isFKError = error?.code === '23503' || error?.message?.includes('foreign key') || error?.message?.includes('orders_lead_id_fkey');
       showToast.error(
         isRLSError 
           ? 'אין לך הרשאה למחוק את הליד הזה' 
-          : 'שגיאה במחיקת הליד. נסה שוב.'
+          : isFKError
+            ? 'הליד מקושר להזמנות. פירקתי את הקישור במערכת, נסה שוב.'
+            : 'שגיאה במחיקת הליד. נסה שוב.'
       );
       
       // Refetch to restore lead if optimistic removal was wrong
       queryClient.invalidateQueries({ 
         predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'supplier-leads' 
+      });
+      queryClient.invalidateQueries({ 
+        predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'leads' 
       });
     }
   };
