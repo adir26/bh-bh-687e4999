@@ -178,12 +178,13 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
                 {lead?.name || 'פרטי ליד'}
               </DialogTitle>
               <Button
-                variant="ghost"
+                variant="destructive"
                 size="sm"
                 onClick={() => setDeleteDialogOpen(true)}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                className="gap-2"
               >
                 <Trash2 className="w-4 h-4" />
+                מחק ליד
               </Button>
             </div>
           </DialogHeader>

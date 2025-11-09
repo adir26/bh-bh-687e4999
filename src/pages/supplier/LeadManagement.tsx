@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin, User, AlertCircle, Users, Plus } from 'lucide-react';
+import { ArrowLeft, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin, User, AlertCircle, Users, Plus, Trash2 } from 'lucide-react';
 import { SearchInput } from '@/components/ui/search-input';
 import { showToast } from '@/utils/toast';
 import { leadsService, Lead, LeadStatus } from '@/services/leadsService';
@@ -16,6 +16,8 @@ import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AddLeadDialog } from '@/components/crm/AddLeadDialog';
 import { LeadDetailDialog } from '@/components/crm/LeadDetailDialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, setStatusFilter, searchTerm, setSearchTerm }: {
   leads: Lead[];
@@ -27,8 +29,11 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
   setSearchTerm: (s: string) => void;
 }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [addLeadDialogOpen, setAddLeadDialogOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [leadToDelete, setLeadToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const handleCall = (phone: string) => {
     if (!phone) {
@@ -84,6 +89,53 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
     };
     
     return labels[sourceKey] || sourceKey;
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, lead: Lead) => {
+    e.stopPropagation();
+    setLeadToDelete({ id: lead.id, name: lead.name || 'לקוח ללא שם' });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!leadToDelete) return;
+
+    setDeleteDialogOpen(false);
+
+    // Optimistic update - remove from cache
+    queryClient.setQueriesData(
+      { 
+        predicate: (query) => 
+          Array.isArray(query.queryKey) && query.queryKey[0] === 'supplier-leads' 
+      },
+      (oldData: any) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.filter((lead: any) => lead.id !== leadToDelete.id);
+      }
+    );
+
+    try {
+      await leadsService.deleteLead(leadToDelete.id);
+      
+      queryClient.invalidateQueries({ 
+        predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'supplier-leads' 
+      });
+      
+      showToast.success('הליד נמחק בהצלחה');
+    } catch (error: any) {
+      const isRLSError = error?.message?.includes('row-level security');
+      showToast.error(
+        isRLSError 
+          ? 'אין לך הרשאה למחוק את הליד הזה' 
+          : 'שגיאה במחיקת הליד. נסה שוב.'
+      );
+      
+      queryClient.invalidateQueries({ 
+        predicate: (q) => Array.isArray(q.queryKey) && q.queryKey[0] === 'supplier-leads' 
+      });
+    }
+    
+    setLeadToDelete(null);
   };
 
   
@@ -285,12 +337,15 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                        )}
                      </div>
                    )}
-                  <div className="flex gap-2 pt-2">
+                   <div className="flex gap-2 pt-2">
                     <Button 
                       variant="blue" 
                       size="sm" 
                       className="flex-1"
-                      onClick={() => navigate('/supplier/quotes')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/supplier/quotes');
+                      }}
                     >
                       <FileText className="w-4 h-4 ml-1" />
                       שלח הצעת מחיר
@@ -298,7 +353,10 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                      <Button 
                        variant="outline" 
                        size="sm"
-                       onClick={() => handleCall(lead.contact_phone)}
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         handleCall(lead.contact_phone);
+                       }}
                        disabled={!lead.contact_phone}
                      >
                        <Phone className="w-4 h-4" />
@@ -306,16 +364,19 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => showToast.comingSoon('צ\'אט עם לקוח')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        showToast.comingSoon('צ\'אט עם לקוח');
+                      }}
                     >
                       <MessageSquare className="w-4 h-4" />
                     </Button>
                     <Button 
-                      variant="outline" 
+                      variant="destructive" 
                       size="sm"
-                      onClick={() => showToast.info('הליד סומן כלא רלוונטי')}
+                      onClick={(e) => handleDeleteClick(e, lead)}
                     >
-                      <X className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </CardContent>
@@ -383,14 +444,20 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => navigate('/supplier/quotes')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate('/supplier/quotes');
+                              }}
                             >
                               <FileText className="w-3 h-3" />
                             </Button>
                              <Button 
                                variant="outline" 
                                size="sm"
-                               onClick={() => handleCall(lead.contact_phone)}
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 handleCall(lead.contact_phone);
+                               }}
                                disabled={!lead.contact_phone}
                              >
                                <Phone className="w-3 h-3" />
@@ -398,12 +465,22 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => showToast.comingSoon('צ\'אט עם לקוח')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                showToast.comingSoon('צ\'אט עם לקוח');
+                              }}
                             >
                               <MessageSquare className="w-3 h-3" />
                             </Button>
-                          </div>
-                        </td>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={(e) => handleDeleteClick(e, lead)}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                           </div>
+                         </td>
                       </tr>
                     ))}
                   </tbody>
@@ -420,6 +497,28 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
         open={!!selectedLeadId} 
         onOpenChange={(open) => !open && setSelectedLeadId(null)} 
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>האם למחוק את הליד?</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם את/ה בטוח/ה שאת/ה רוצה למחוק את הליד של <strong>{leadToDelete?.name}</strong>?
+              <br />
+              פעולה זו לא ניתנת לביטול.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              כן, מחק
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
