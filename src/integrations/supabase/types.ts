@@ -1299,6 +1299,62 @@ export type Database = {
           },
         ]
       }
+      inspection_reports: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_recurring: boolean | null
+          notes: string | null
+          pdf_url: string | null
+          project_id: string | null
+          report_type: string
+          status: string
+          supplier_id: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          notes?: string | null
+          pdf_url?: string | null
+          project_id?: string | null
+          report_type: string
+          status?: string
+          supplier_id: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_recurring?: boolean | null
+          notes?: string | null
+          pdf_url?: string | null
+          project_id?: string | null
+          report_type?: string
+          status?: string
+          supplier_id?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_reports_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_daily: {
         Row: {
           d: string
