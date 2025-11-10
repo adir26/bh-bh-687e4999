@@ -1466,6 +1466,7 @@ export type Database = {
           report_sent_at: string | null
           report_sent_via: string | null
           report_type: string
+          signature_data: string | null
           status: string
           supplier_id: string
           template: string | null
@@ -1500,6 +1501,7 @@ export type Database = {
           report_sent_at?: string | null
           report_sent_via?: string | null
           report_type: string
+          signature_data?: string | null
           status?: string
           supplier_id: string
           template?: string | null
@@ -1534,6 +1536,7 @@ export type Database = {
           report_sent_at?: string | null
           report_sent_via?: string | null
           report_type?: string
+          signature_data?: string | null
           status?: string
           supplier_id?: string
           template?: string | null
