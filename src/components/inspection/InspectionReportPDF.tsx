@@ -182,9 +182,11 @@ interface InspectionReportPDFProps {
   findings: any[];
   costs: any[];
   signature?: string; // base64 signature image
+  template?: string;
+  logoUrl?: string;
 }
 
-export const InspectionReportPDF = ({ report, findings, costs, signature }: InspectionReportPDFProps) => {
+export const InspectionReportPDF = ({ report, findings, costs, signature, template = 'classic', logoUrl }: InspectionReportPDFProps) => {
   const formatCurrency = (amount: number) => {
     return `₪${amount.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
@@ -192,6 +194,45 @@ export const InspectionReportPDF = ({ report, findings, costs, signature }: Insp
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('he-IL');
   };
+
+  // Get theme colors based on template
+  const getThemeColors = () => {
+    switch (template) {
+      case 'modern':
+        return { primary: '#8b5cf6', secondary: '#a78bfa', accent: '#6d28d9', light: '#f3e8ff' };
+      case 'elegant':
+        return { primary: '#059669', secondary: '#34d399', accent: '#047857', light: '#d1fae5' };
+      case 'premium':
+        return { primary: '#dc2626', secondary: '#f87171', accent: '#991b1b', light: '#fee2e2' };
+      default: // classic
+        return { primary: '#2563eb', secondary: '#64748b', accent: '#1e40af', light: '#eff6ff' };
+    }
+  };
+
+  const colors = getThemeColors();
+
+  // Dynamic styles based on template
+  const dynamicStyles = StyleSheet.create({
+    headerBorder: {
+      borderBottomColor: colors.primary,
+    },
+    titleColor: {
+      color: colors.accent,
+    },
+    findingBg: {
+      backgroundColor: colors.light,
+      borderRightColor: colors.primary,
+    },
+    summaryBg: {
+      backgroundColor: colors.light,
+    },
+    accentText: {
+      color: colors.accent,
+    },
+    primaryBorder: {
+      borderTopColor: colors.primary,
+    },
+  });
 
   // Group costs by finding
   const costsByFinding = costs.reduce((acc, cost) => {
@@ -209,9 +250,19 @@ export const InspectionReportPDF = ({ report, findings, costs, signature }: Insp
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>דוח בדיקה מקצועי</Text>
-          <Text style={styles.subtitle}>תאריך: {formatDate(report.created_at)}</Text>
+        <View style={[styles.header, dynamicStyles.headerBorder]}>
+          <View style={{ flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.title, dynamicStyles.titleColor]}>דוח בדיקה מקצועי</Text>
+              <Text style={styles.subtitle}>תאריך: {formatDate(report.created_at)}</Text>
+            </View>
+            {logoUrl && (
+              <Image 
+                src={logoUrl} 
+                style={{ width: 80, height: 60, objectFit: 'contain', marginLeft: 15 }} 
+              />
+            )}
+          </View>
         </View>
 
         {/* Report Details */}
@@ -244,7 +295,7 @@ export const InspectionReportPDF = ({ report, findings, costs, signature }: Insp
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>ממצאים ({findings.length})</Text>
             {findings.map((finding, index) => (
-              <View key={finding.id} style={styles.finding}>
+              <View key={finding.id} style={[styles.finding, dynamicStyles.findingBg]}>
                 <Text style={styles.findingTitle}>
                   {index + 1}. {finding.title}
                 </Text>
@@ -284,15 +335,15 @@ export const InspectionReportPDF = ({ report, findings, costs, signature }: Insp
 
         {/* Cost Summary */}
         {costs.length > 0 && (
-          <View style={styles.summary}>
+          <View style={[styles.summary, dynamicStyles.summaryBg]}>
             <Text style={styles.sectionTitle}>סיכום עלויות</Text>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>סה"כ פריטים:</Text>
               <Text style={styles.summaryValue}>{costs.length}</Text>
             </View>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>סה"כ עלות משוערת:</Text>
-              <Text style={styles.totalValue}>{formatCurrency(totalCost)}</Text>
+            <View style={[styles.totalRow, dynamicStyles.primaryBorder]}>
+              <Text style={[styles.totalLabel, dynamicStyles.accentText]}>סה"כ עלות משוערת:</Text>
+              <Text style={[styles.totalValue, dynamicStyles.accentText]}>{formatCurrency(totalCost)}</Text>
             </View>
           </View>
         )}

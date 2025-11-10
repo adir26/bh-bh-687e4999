@@ -53,6 +53,8 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
           findings={findings}
           costs={costs}
           signature={signatureData || undefined}
+          template={report.template || 'classic'}
+          logoUrl={report.logo_url || undefined}
         />
       );
       const blob = await pdfDoc.toBlob();

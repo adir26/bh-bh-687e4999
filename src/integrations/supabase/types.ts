@@ -1463,6 +1463,7 @@ export type Database = {
           report_type: string
           status: string
           supplier_id: string
+          template: string | null
           template_id: string | null
           updated_at: string
           version: number
@@ -1491,6 +1492,7 @@ export type Database = {
           report_type: string
           status?: string
           supplier_id: string
+          template?: string | null
           template_id?: string | null
           updated_at?: string
           version?: number
@@ -1519,6 +1521,7 @@ export type Database = {
           report_type?: string
           status?: string
           supplier_id?: string
+          template?: string | null
           template_id?: string | null
           updated_at?: string
           version?: number
