@@ -47,14 +47,16 @@ export default function NewReport() {
     setLoading(true);
 
     try {
+      const insertData: any = {
+        report_type: typeId,
+        status: 'draft',
+        supplier_id: user?.id,
+        created_by: user?.id,
+      };
+
       const { data, error } = await supabase
         .from('inspection_reports')
-        .insert({
-          report_type: typeId,
-          status: 'draft',
-          supplier_id: user?.id,
-          created_by: user?.id,
-        })
+        .insert(insertData)
         .select()
         .single();
 
