@@ -78,6 +78,7 @@ import SupplierCRM from "./pages/supplier/CRM";
 import QuoteView from "./pages/QuoteView";
 import Support from "./pages/Support";
 import InspectionDashboard from "./pages/inspection/Dashboard";
+import NewReport from "./pages/inspection/NewReport";
 import SupportChat from "./pages/SupportChat";
 import ComplaintForm from "./pages/ComplaintForm";
 import ComplaintDetails from "./pages/ComplaintDetails";
@@ -386,7 +387,7 @@ const App = () => {
                 } />
                 <Route path="/inspection/new" element={
                   <OnboardingGuard role="supplier">
-                    <div className="p-8 text-center">עמוד יצירת דוח חדש - בשלב הבא</div>
+                    <NewReport />
                   </OnboardingGuard>
                 } />
                 <Route path="/inspection/:id" element={
