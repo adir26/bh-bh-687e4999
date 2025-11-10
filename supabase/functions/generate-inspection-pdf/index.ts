@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { PDFDocument, rgb } from 'https://esm.sh/pdf-lib@1.17.1';
+import { PDFDocument, rgb, PDFFont, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -116,12 +116,56 @@ async function handler(req: Request): Promise<Response> {
     // Create PDF
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]); // A4 size
+    const { width, height } = page.getSize();
 
-    // Embed Hebrew-supporting fonts from local files
-    const regularFontBytes = await Deno.readFile(new URL('./NotoSansHebrew-Regular.ttf', import.meta.url));
-    const boldFontBytes = await Deno.readFile(new URL('./NotoSansHebrew-Bold.ttf', import.meta.url));
-    const font = await pdfDoc.embedFont(regularFontBytes, { subset: true });
-    const boldFont = await pdfDoc.embedFont(boldFontBytes, { subset: true });
+    // Load Hebrew fonts from Storage URLs (environment variables)
+    let font: PDFFont;
+    let boldFont: PDFFont;
+    
+    try {
+      const REG_URL = Deno.env.get('PDF_FONT_HE_REGULAR_URL');
+      const BOLD_URL = Deno.env.get('PDF_FONT_HE_BOLD_URL');
+
+      if (REG_URL && BOLD_URL) {
+        console.log('Loading Hebrew fonts from URLs...');
+        const [regRes, boldRes] = await Promise.all([fetch(REG_URL), fetch(BOLD_URL)]);
+        
+        if (regRes.ok && boldRes.ok) {
+          const regBytes = new Uint8Array(await regRes.arrayBuffer());
+          const boldBytes = new Uint8Array(await boldRes.arrayBuffer());
+          font = await pdfDoc.embedFont(regBytes);
+          boldFont = await pdfDoc.embedFont(boldBytes);
+          console.log('Hebrew fonts loaded successfully');
+        } else {
+          throw new Error(`Failed to fetch fonts: ${regRes.status}, ${boldRes.status}`);
+        }
+      } else {
+        throw new Error('PDF_FONT_HE_REGULAR_URL or PDF_FONT_HE_BOLD_URL not set');
+      }
+    } catch (fontError) {
+      console.warn('Failed to load Hebrew fonts, falling back to Helvetica:', fontError);
+      font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      
+      await supabase.from('pdf_events').insert({
+        report_id: reportId,
+        context: 'inspection',
+        event_type: 'font_load_error',
+        meta: { error: String(fontError) }
+      }).catch(console.error);
+    }
+
+    // Helper function for right-aligned Hebrew text
+    const drawRightAligned = (text: string, y: number, size: number, useFont: PDFFont = font, color = rgb(0, 0, 0)) => {
+      const textWidth = useFont.widthOfTextAtSize(text, size);
+      page.drawText(text, {
+        x: width - textWidth - 24,
+        y,
+        size,
+        font: useFont,
+        color,
+      });
+    };
 
     const colors = TEMPLATE_COLORS[template as keyof typeof TEMPLATE_COLORS] || TEMPLATE_COLORS.classic;
     let yPosition = 800;
@@ -199,58 +243,29 @@ async function handler(req: Request): Promise<Response> {
       }
     }
 
-    // Title on the right (Hebrew)
-    page.drawText('דוח בדק בית', {
-      x: 450,
-      y: yPosition,
-      size: 24,
-      font: boldFont,
-      color: rgb(...colors.primary),
-    });
+    // Title on the right (Hebrew) - using right alignment
+    drawRightAligned('דוח בדק בית', yPosition, 24, boldFont, rgb(...colors.primary));
     yPosition -= 30;
 
-    page.drawText(`תבנית: ${template}`, {
-      x: 450,
-      y: yPosition,
-      size: 10,
-      font,
-      color: rgb(...colors.secondary),
-    });
+    drawRightAligned(`תבנית: ${template}`, yPosition, 10, font, rgb(...colors.secondary));
     yPosition -= 15;
 
     const reportDate = new Date(report.created_at).toLocaleDateString('he-IL');
-    page.drawText(`תאריך: ${reportDate}`, {
-      x: 450,
-      y: yPosition,
-      size: 10,
-      font,
-    });
+    drawRightAligned(`תאריך: ${reportDate}`, yPosition, 10);
     yPosition -= 40;
 
     // Report details section
-    page.drawText('פרטי הדוח', {
-      x: 450,
-      y: yPosition,
-      size: 14,
-      font: boldFont,
-      color: rgb(...colors.primary),
-    });
+    drawRightAligned('פרטי הדוח', yPosition, 14, boldFont, rgb(...colors.primary));
     yPosition -= 20;
 
-    page.drawText(`סוג: ${String(report.report_type)}`, { x: 450, y: yPosition, size: 10, font });
+    drawRightAligned(`סוג: ${String(report.report_type)}`, yPosition, 10);
     yPosition -= 15;
-    page.drawText(`סטטוס: ${String(report.status)}`, { x: 450, y: yPosition, size: 10, font });
+    drawRightAligned(`סטטוס: ${String(report.status)}`, yPosition, 10);
     yPosition -= 30;
 
     // Findings section
     if (findings.length > 0) {
-      page.drawText('ממצאים', {
-        x: 450,
-        y: yPosition,
-        size: 14,
-        font: boldFont,
-        color: rgb(...colors.primary),
-      });
+      drawRightAligned('ממצאים', yPosition, 14, boldFont, rgb(...colors.primary));
       yPosition -= 20;
 
       for (const finding of findings as InspectionItem[]) {
@@ -318,32 +333,16 @@ async function handler(req: Request): Promise<Response> {
     // Cost summary
     yPosition -= 20;
     const totalCost = (costs as InspectionCost[]).reduce((sum: number, c) => sum + Number(c.amount || 0), 0);
-    page.drawText('סיכום עלויות', {
-      x: 450,
-      y: yPosition,
-      size: 14,
-      font: boldFont,
-      color: rgb(...colors.primary),
-    });
+    drawRightAligned('סיכום עלויות', yPosition, 14, boldFont, rgb(...colors.primary));
     yPosition -= 20;
-    page.drawText(`סה"כ משוער: ₪${totalCost.toLocaleString()}`, {
-      x: 450,
-      y: yPosition,
-      size: 12,
-      font: boldFont,
-    });
+    drawRightAligned(`סה"כ משוער: ₪${totalCost.toLocaleString()}`, yPosition, 12, boldFont);
 
     // Signature
     if (includeSignature && (report as InspectionReport).signature_data) {
       yPosition -= 40;
-      page.drawText('חתימה דיגיטלית', {
-        x: 450,
-        y: yPosition,
-        size: 12,
-        font: boldFont,
-      });
+      drawRightAligned('חתימה דיגיטלית', yPosition, 12, boldFont);
       yPosition -= 15;
-      page.drawText('[חתימה]', { x: 450, y: yPosition, size: 10, font, color: rgb(0.5, 0.5, 0.5) });
+      drawRightAligned('[חתימה]', yPosition, 10, font, rgb(0.5, 0.5, 0.5));
     }
 
     // Footer
