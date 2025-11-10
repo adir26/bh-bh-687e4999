@@ -34,7 +34,7 @@ export default function ReportWorkspace() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: report, isLoading } = useQuery({
+  const { data: report, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['inspection-report', id],
     queryFn: async ({ signal }) => {
       const query = supabase
@@ -70,28 +70,7 @@ export default function ReportWorkspace() {
     },
   });
 
-  if (isLoading) {
-    return (
-      <PageBoundary>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </PageBoundary>
-    );
-  }
 
-  if (!report) {
-    return (
-      <PageBoundary>
-        <div className="container max-w-4xl mx-auto p-8 text-center">
-          <h1 className="text-2xl font-bold mb-4">דוח לא נמצא</h1>
-          <Button onClick={() => navigate('/inspection/dashboard')}>
-            חזרה לדשבורד
-          </Button>
-        </div>
-      </PageBoundary>
-    );
-  }
 
   const reportTypeLabels: Record<string, string> = {
     home_inspection: 'בדק בית',
@@ -106,69 +85,78 @@ export default function ReportWorkspace() {
   };
 
   return (
-    <PageBoundary>
-      <div className="container max-w-7xl mx-auto p-4 md:p-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/inspection/dashboard')}
-              className="mb-2"
-            >
-              <ArrowRight className="ml-2 h-4 w-4" />
-              חזרה לדשבורד
-            </Button>
-            <h1 className="text-2xl md:text-3xl font-bold">
-              {reportTypeLabels[report.report_type] || report.report_type} - גרסה {report.version}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              דוח #{report.id.substring(0, 8)}
-            </p>
-          </div>
+    <PageBoundary isLoading={isLoading} isError={isError} error={error as any} onRetry={() => refetch()}>
+      {!report ? (
+        <div className="container max-w-4xl mx-auto p-8 text-center">
+          <h1 className="text-2xl font-bold mb-4">דוח לא נמצא</h1>
+          <Button onClick={() => navigate('/inspection/dashboard')}>
+            חזרה לדשבורד
+          </Button>
         </div>
+      ) : (
+        <div className="container max-w-7xl mx-auto p-4 md:p-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <Button
+                variant="ghost"
+                onClick={() => navigate('/inspection/dashboard')}
+                className="mb-2"
+              >
+                <ArrowRight className="ml-2 h-4 w-4" />
+                חזרה לדשבורד
+              </Button>
+              <h1 className="text-2xl md:text-3xl font-bold">
+                {reportTypeLabels[report.report_type] || report.report_type} - גרסה {report.version}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                דוח #{report.id.substring(0, 8)}
+              </p>
+            </div>
+          </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="details" dir="rtl" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-6">
-            <TabsTrigger value="details">פרטים</TabsTrigger>
-            <TabsTrigger value="findings">ממצאים</TabsTrigger>
-            <TabsTrigger value="media">מדיה</TabsTrigger>
-            <TabsTrigger value="costs">עלויות</TabsTrigger>
-            <TabsTrigger value="template">תבנית</TabsTrigger>
-            <TabsTrigger value="signatures">חתימות & PDF</TabsTrigger>
-            <TabsTrigger value="sharing">שיתוף</TabsTrigger>
-          </TabsList>
+          {/* Tabs */}
+          <Tabs defaultValue="details" dir="rtl" className="w-full">
+            <TabsList className="grid w-full grid-cols-7 mb-6">
+              <TabsTrigger value="details">פרטים</TabsTrigger>
+              <TabsTrigger value="findings">ממצאים</TabsTrigger>
+              <TabsTrigger value="media">מדיה</TabsTrigger>
+              <TabsTrigger value="costs">עלויות</TabsTrigger>
+              <TabsTrigger value="template">תבנית</TabsTrigger>
+              <TabsTrigger value="signatures">חתימות & PDF</TabsTrigger>
+              <TabsTrigger value="sharing">שיתוף</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="details">
-            <ReportDetailsTab report={report} onUpdate={updateReport.mutate} />
-          </TabsContent>
+            <TabsContent value="details">
+              <ReportDetailsTab report={report} onUpdate={updateReport.mutate} />
+            </TabsContent>
 
-          <TabsContent value="findings">
-            <ReportFindingsTab reportId={report.id} />
-          </TabsContent>
+            <TabsContent value="findings">
+              <ReportFindingsTab reportId={report.id} />
+            </TabsContent>
 
-          <TabsContent value="media">
-            <ReportMediaTab reportId={report.id} />
-          </TabsContent>
+            <TabsContent value="media">
+              <ReportMediaTab reportId={report.id} />
+            </TabsContent>
 
-          <TabsContent value="costs">
-            <ReportCostsTab reportId={report.id} />
-          </TabsContent>
+            <TabsContent value="costs">
+              <ReportCostsTab reportId={report.id} />
+            </TabsContent>
 
-          <TabsContent value="template">
-            <ReportTemplateTab report={report} onUpdate={updateReport.mutate} />
-          </TabsContent>
+            <TabsContent value="template">
+              <ReportTemplateTab report={report} onUpdate={updateReport.mutate} />
+            </TabsContent>
 
-          <TabsContent value="signatures">
-            <ReportSignaturesTab report={report} onUpdate={updateReport.mutate} />
-          </TabsContent>
+            <TabsContent value="signatures">
+              <ReportSignaturesTab report={report} onUpdate={updateReport.mutate} />
+            </TabsContent>
 
-          <TabsContent value="sharing">
-            <ReportSharingTab report={report} />
-          </TabsContent>
-        </Tabs>
-      </div>
+            <TabsContent value="sharing">
+              <ReportSharingTab report={report} />
+            </TabsContent>
+          </Tabs>
+        </div>
+      )}
     </PageBoundary>
   );
 }

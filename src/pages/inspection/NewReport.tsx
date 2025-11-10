@@ -72,7 +72,7 @@ export default function NewReport() {
   };
 
   return (
-    <PageBoundary>
+    <PageBoundary isLoading={false}>
       <div className="container max-w-7xl mx-auto p-4 md:p-8">
         {/* Header */}
         <div className="mb-8">
