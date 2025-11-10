@@ -113,11 +113,25 @@ export const getPostAuthRoute = (opts: {
   const destination = routeAfterLogin(profile);
 
   // Honor return path only if onboarding is complete and path is not auth/onboarding
+  // Also allow supplier-specific routes like /inspection
   if (onboarding_completed && fromPath && 
       !fromPath.startsWith('/auth') && 
       !fromPath.startsWith('/onboarding')) {
-    console.log('[AUTH ROUTING] Onboarding completed, returning to original path:', fromPath);
-    return fromPath;
+    // For suppliers, allow inspection routes
+    if (role === 'supplier' && (fromPath.startsWith('/supplier') || fromPath.startsWith('/inspection'))) {
+      console.log('[AUTH ROUTING] Onboarding completed, returning to supplier path:', fromPath);
+      return fromPath;
+    }
+    // For clients, allow their routes
+    if (role === 'client' && !fromPath.startsWith('/supplier') && !fromPath.startsWith('/inspection')) {
+      console.log('[AUTH ROUTING] Onboarding completed, returning to client path:', fromPath);
+      return fromPath;
+    }
+    // For admin, allow admin routes
+    if (role === 'admin' && fromPath.startsWith('/admin')) {
+      console.log('[AUTH ROUTING] Onboarding completed, returning to admin path:', fromPath);
+      return fromPath;
+    }
   }
 
   return destination;
@@ -147,7 +161,8 @@ export const requiresCompletedOnboarding = (path: string, role?: UserRole): bool
   }
 
   // Role-specific dashboard routes require completed onboarding
-  if (path.startsWith('/supplier') || path.startsWith('/admin/dashboard')) {
+  // Include inspection routes for suppliers
+  if (path.startsWith('/supplier') || path.startsWith('/inspection') || path.startsWith('/admin/dashboard')) {
     return true;
   }
 

@@ -1442,7 +1442,7 @@ export type Database = {
         Row: {
           address: string | null
           brand_color: string | null
-          client_id: string
+          client_id: string | null
           client_signature_url: string | null
           created_at: string
           created_by: string | null
@@ -1470,7 +1470,7 @@ export type Database = {
         Insert: {
           address?: string | null
           brand_color?: string | null
-          client_id: string
+          client_id?: string | null
           client_signature_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -1498,7 +1498,7 @@ export type Database = {
         Update: {
           address?: string | null
           brand_color?: string | null
-          client_id?: string
+          client_id?: string | null
           client_signature_url?: string | null
           created_at?: string
           created_by?: string | null
