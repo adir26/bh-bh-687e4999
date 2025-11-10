@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCreateInspectionItem, useUpdateInspectionItem } from '@/hooks/useInspectionItems';
 import { useStandardsLibrary } from '@/hooks/useStandardsLibrary';
 import { useItemCosts, useDeleteInspectionCost, useCreateInspectionCost } from '@/hooks/useInspectionCosts';
+import { useInspectionMedia, useUploadInspectionMedia, useDeleteInspectionMedia } from '@/hooks/useInspectionMedia';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
-import { Check, ChevronsUpDown, DollarSign, Trash2 } from 'lucide-react';
+import { Check, ChevronsUpDown, DollarSign, Trash2, Image, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FindingFormSheetProps {
@@ -71,6 +72,33 @@ export default function FindingFormSheet({ reportId, item, open, onClose }: Find
   const [showAddCost, setShowAddCost] = useState(false);
 
   const totalCost = costs.reduce((sum, cost) => sum + (cost.total || 0), 0);
+
+  // Media management (only for existing items)
+  const { data: media = [], isLoading: mediaLoading } = useInspectionMedia(reportId, item?.id);
+  const uploadMedia = useUploadInspectionMedia();
+  const deleteMedia = useDeleteInspectionMedia();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || !item?.id) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.type.startsWith('image/')) {
+        await uploadMedia.mutateAsync({
+          file,
+          reportId,
+          itemId: item.id,
+          type: 'photo',
+        });
+      }
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   useEffect(() => {
     if (item) {
@@ -285,6 +313,70 @@ export default function FindingFormSheet({ reportId, item, open, onClose }: Find
                 <p className="text-xs italic">"{formData.standard_quote}"</p>
               )}
             </div>
+          )}
+
+          {/* Media Section (only for existing items) */}
+          {item?.id && (
+            <>
+              <Separator className="my-4" />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2">
+                    <Image className="h-4 w-4" />
+                    תמונות מצורפות
+                  </Label>
+                  <span className="text-sm text-muted-foreground">
+                    {media.filter(m => m.type === 'photo').length} תמונות
+                  </span>
+                </div>
+
+                {mediaLoading ? (
+                  <p className="text-sm text-muted-foreground">טוען תמונות...</p>
+                ) : media.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-2">
+                    {media.filter(m => m.type === 'photo').map((item) => (
+                      <div key={item.id} className="relative group aspect-square rounded-lg overflow-hidden border">
+                        <img
+                          src={item.url}
+                          alt={item.caption || 'תמונה'}
+                          className="w-full h-full object-cover"
+                        />
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => deleteMedia.mutate({ id: item.id, reportId, url: item.url })}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">אין תמונות מצורפות</p>
+                )}
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadMedia.isPending}
+                  className="w-full"
+                >
+                  <Upload className="ml-2 h-4 w-4" />
+                  {uploadMedia.isPending ? 'מעלה...' : 'העלה תמונות'}
+                </Button>
+              </div>
+            </>
           )}
 
           {/* Costs Section (only for existing items) */}
