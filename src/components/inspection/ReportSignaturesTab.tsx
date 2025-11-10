@@ -19,11 +19,12 @@ interface ReportSignaturesTabProps {
 
 export default function ReportSignaturesTab({ report, onUpdate }: ReportSignaturesTabProps) {
   const sigCanvas = useRef<SignatureCanvas>(null);
-  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const [signatureData, setSignatureData] = useState<string | null>(report.signature_data || null);
   const [recipientEmail, setRecipientEmail] = useState('');
   const [recipientName, setRecipientName] = useState(report.client_name || '');
   const [isSending, setIsSending] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isSavingSignature, setIsSavingSignature] = useState(false);
 
   const { data: findings = [] } = useInspectionItems(report.id);
   const { data: costs = [] } = useInspectionCosts(report.id);
@@ -33,14 +34,36 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
     setSignatureData(null);
   };
 
-  const saveSignature = () => {
+  const saveSignature = async () => {
     if (sigCanvas.current?.isEmpty()) {
       toast.error('אנא חתום לפני השמירה');
       return;
     }
+    
+    setIsSavingSignature(true);
     const dataUrl = sigCanvas.current?.toDataURL('image/png');
-    setSignatureData(dataUrl || null);
-    toast.success('חתימה נשמרה בהצלחה');
+    
+    try {
+      // Save signature to database
+      const { error } = await supabase
+        .from('inspection_reports')
+        .update({ 
+          signature_data: dataUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', report.id);
+
+      if (error) throw error;
+      
+      setSignatureData(dataUrl);
+      toast.success('חתימה נשמרה בהצלחה במערכת');
+      onUpdate({ signature_data: dataUrl });
+    } catch (error: any) {
+      console.error('Error saving signature:', error);
+      toast.error('שגיאה בשמירת החתימה: ' + error.message);
+    } finally {
+      setIsSavingSignature(false);
+    }
   };
 
   const generatePdfBlob = async (includeSignature = false, upload = false) => {
@@ -198,11 +221,11 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
                 />
               </div>
               <div className="flex gap-2">
-                <Button onClick={saveSignature} className="flex-1">
+                <Button onClick={saveSignature} disabled={isSavingSignature} className="flex-1">
                   <Signature className="h-4 w-4 ml-2" />
-                  שמור חתימה
+                  {isSavingSignature ? 'שומר...' : 'שמור חתימה'}
                 </Button>
-                <Button onClick={clearSignature} variant="outline">
+                <Button onClick={clearSignature} variant="outline" disabled={isSavingSignature}>
                   <X className="h-4 w-4 ml-2" />
                   נקה
                 </Button>
