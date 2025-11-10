@@ -14,7 +14,7 @@ import { PageBoundary } from '@/components/system/PageBoundary';
 import { withTimeout } from '@/lib/withTimeout';
 const quickActions = [
   { title: 'עריכת פרופיל חברה', icon: Edit, path: '/supplier/profile' },
-  { title: 'דוחות בדק-בית', icon: ClipboardCheck, path: '/inspection/dashboard' },
+  { title: 'דוחות', icon: ClipboardCheck, path: '/inspection/dashboard' },
   { title: 'הצעות מחיר', icon: FileText, path: '/supplier/quotes' },
   { title: 'ניהול הזמנות', icon: Package2, path: '/supplier/orders' },
   { title: 'נהל לידים', icon: Users, path: '/supplier/leads' },
