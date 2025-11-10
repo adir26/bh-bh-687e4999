@@ -79,6 +79,7 @@ import QuoteView from "./pages/QuoteView";
 import Support from "./pages/Support";
 import InspectionDashboard from "./pages/inspection/Dashboard";
 import NewReport from "./pages/inspection/NewReport";
+import ReportWorkspace from "./pages/inspection/ReportWorkspace";
 import SupportChat from "./pages/SupportChat";
 import ComplaintForm from "./pages/ComplaintForm";
 import ComplaintDetails from "./pages/ComplaintDetails";
@@ -392,7 +393,7 @@ const App = () => {
                 } />
                 <Route path="/inspection/:id" element={
                   <OnboardingGuard role="supplier">
-                    <div className="p-8 text-center">עמוד דוח חי - בשלב הבא</div>
+                    <ReportWorkspace />
                   </OnboardingGuard>
                 } />
                 

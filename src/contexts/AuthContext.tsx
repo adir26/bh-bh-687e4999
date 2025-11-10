@@ -164,6 +164,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return;
         }
 
+        // Skip redirect for supplier-specific paths (inspection, supplier routes)
+        const userRole = (profile as Profile)?.role;
+        if (userRole === 'supplier' && (currentPath.startsWith('/inspection') || currentPath.startsWith('/supplier'))) {
+          console.log('[AUTH] Supplier on valid supplier path, skipping redirect');
+          return;
+        }
+
+        // Skip redirect for client-specific paths
+        if (userRole === 'client' && !currentPath.startsWith('/supplier') && !currentPath.startsWith('/inspection') && !currentPath.startsWith('/admin')) {
+          console.log('[AUTH] Client on valid client path, skipping redirect');
+          return;
+        }
+
         // Handle guest-to-authenticated transition
         if (wasGuest) {
           console.log('[AUTH] Guest-to-authenticated transition detected');
