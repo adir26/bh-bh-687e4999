@@ -369,11 +369,33 @@ async function handler(req: Request): Promise<Response> {
           .from('inspection-reports')
           .getPublicUrl(fileName);
 
-        return new Response(JSON.stringify({ url: urlData.publicUrl, bytes: Array.from(pdfBytes) }), {
+        // Update report with PDF path
+        await supabase
+          .from('inspection_reports')
+          .update({ final_pdf_path: fileName })
+          .eq('id', reportId);
+
+        // Log analytics event
+        await supabase.from('pdf_events').insert({
+          report_id: reportId,
+          context: 'inspection',
+          event_type: 'generate',
+          meta: { upload: true, path: fileName }
+        });
+
+        return new Response(JSON.stringify({ ok: true, url: urlData.publicUrl }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
+
+    // Log analytics event
+    await supabase.from('pdf_events').insert({
+      report_id: reportId,
+      context: 'inspection',
+      event_type: 'generate',
+      meta: { upload: false }
+    });
 
     return new Response(pdfBytes, {
       headers: {
@@ -384,6 +406,20 @@ async function handler(req: Request): Promise<Response> {
     });
   } catch (error) {
     console.error('Error generating inspection PDF:', error);
+    
+    // Log error event
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      
+      await supabase.from('pdf_events').insert({
+        context: 'inspection',
+        event_type: 'error',
+        meta: { message: String((error as Error).message || error) }
+      });
+    } catch {}
+    
     return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

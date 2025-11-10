@@ -1446,6 +1446,7 @@ export type Database = {
           client_signature_url: string | null
           created_at: string
           created_by: string | null
+          final_pdf_path: string | null
           id: string
           inspection_date: string | null
           inspector_company: string | null
@@ -1479,6 +1480,7 @@ export type Database = {
           client_signature_url?: string | null
           created_at?: string
           created_by?: string | null
+          final_pdf_path?: string | null
           id?: string
           inspection_date?: string | null
           inspector_company?: string | null
@@ -1512,6 +1514,7 @@ export type Database = {
           client_signature_url?: string | null
           created_at?: string
           created_by?: string | null
+          final_pdf_path?: string | null
           id?: string
           inspection_date?: string | null
           inspector_company?: string | null
@@ -2939,6 +2942,41 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdf_events: {
+        Row: {
+          context: string
+          created_at: string | null
+          event_type: string
+          id: string
+          meta: Json | null
+          report_id: string | null
+        }
+        Insert: {
+          context: string
+          created_at?: string | null
+          event_type: string
+          id?: string
+          meta?: Json | null
+          report_id?: string | null
+        }
+        Update: {
+          context?: string
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          meta?: Json | null
+          report_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdf_events_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_reports"
             referencedColumns: ["id"]
           },
         ]
