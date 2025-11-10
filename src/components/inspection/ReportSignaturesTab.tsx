@@ -6,12 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { FileText, Download, Send, Signature, X } from 'lucide-react';
 import SignatureCanvas from 'react-signature-canvas';
-import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
-import { InspectionReportPDF } from './InspectionReportPDF';
 import { useInspectionItems } from '@/hooks/useInspectionItems';
 import { useInspectionCosts } from '@/hooks/useInspectionCosts';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { createPdfBlob } from '@/utils/pdf';
 
 interface ReportSignaturesTabProps {
   report: any;
@@ -44,21 +43,26 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
     toast.success('חתימה נשמרה בהצלחה');
   };
 
-  const generatePdfBlob = async () => {
+  const generatePdfBlob = async (includeSignature = false, upload = false) => {
     setIsGeneratingPdf(true);
     try {
-      const pdfDoc = pdf(
-        <InspectionReportPDF
-          report={report}
-          findings={findings}
-          costs={costs}
-          signature={signatureData || undefined}
-          template={report.template || 'classic'}
-          logoUrl={report.logo_url || undefined}
-        />
-      );
-      const blob = await pdfDoc.toBlob();
-      return blob;
+      const { data, error } = await supabase.functions.invoke('generate-inspection-pdf', {
+        body: {
+          reportId: report.id,
+          template: report.template || 'classic',
+          includeSignature,
+          upload,
+        },
+      });
+
+      if (error) throw error;
+
+      // If upload was requested, data will contain both URL and bytes
+      if (upload && data.url) {
+        return { blob: createPdfBlob(data.bytes), url: data.url };
+      }
+
+      return { blob: createPdfBlob(data), url: null };
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error('שגיאה ביצירת PDF');
@@ -66,29 +70,6 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
     } finally {
       setIsGeneratingPdf(false);
     }
-  };
-
-  const uploadPdfToStorage = async (blob: Blob) => {
-    const fileName = `inspection-report-${report.id}-${Date.now()}.pdf`;
-    const filePath = `${report.supplier_id}/${fileName}`;
-
-    const { data, error } = await supabase.storage
-      .from('inspection-reports')
-      .upload(filePath, blob, {
-        contentType: 'application/pdf',
-        upsert: false,
-      });
-
-    if (error) {
-      console.error('Error uploading PDF:', error);
-      throw error;
-    }
-
-    const { data: urlData } = supabase.storage
-      .from('inspection-reports')
-      .getPublicUrl(filePath);
-
-    return urlData.publicUrl;
   };
 
   const sendReportByEmail = async () => {
@@ -104,11 +85,12 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
 
     setIsSending(true);
     try {
-      // Generate PDF
-      const pdfBlob = await generatePdfBlob();
-      
-      // Upload to storage
-      const pdfUrl = await uploadPdfToStorage(pdfBlob);
+      // Generate PDF with signature and upload directly
+      const { url: pdfUrl } = await generatePdfBlob(!!signatureData, true);
+
+      if (!pdfUrl) {
+        throw new Error('Failed to generate PDF URL');
+      }
 
       // Update report with PDF URL
       const { error: updateError } = await supabase
@@ -116,7 +98,7 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
         .update({ 
           pdf_url: pdfUrl,
           signature_data: signatureData,
-          status: 'completed'
+          status: 'sent'
         })
         .eq('id', report.id);
 
@@ -135,7 +117,7 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
       if (emailError) throw emailError;
 
       toast.success('הדוח נשלח בהצלחה באימייל!');
-      onUpdate({ pdf_url: pdfUrl, status: 'completed' });
+      onUpdate({ pdf_url: pdfUrl, status: 'sent' });
     } catch (error: any) {
       console.error('Error sending report:', error);
       toast.error(error.message || 'שגיאה בשליחת הדוח');
@@ -146,8 +128,8 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
 
   const downloadPdf = async () => {
     try {
-      const pdfBlob = await generatePdfBlob();
-      const url = URL.createObjectURL(pdfBlob);
+      const { blob } = await generatePdfBlob(!!signatureData, false);
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `inspection-report-${report.id}.pdf`;

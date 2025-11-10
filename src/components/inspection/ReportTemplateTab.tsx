@@ -6,12 +6,10 @@ import { Palette, Upload, Check, Eye, Download, FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { pdf } from '@react-pdf/renderer';
-import { InspectionReportPDF } from './InspectionReportPDF';
 import { InspectionReportPreview } from './InspectionReportPreview';
 import { useInspectionItems } from '@/hooks/useInspectionItems';
 import { useInspectionCosts } from '@/hooks/useInspectionCosts';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { createPdfBlob } from '@/utils/pdf';
 
 interface ReportTemplateTabProps {
   report: any;
@@ -62,17 +60,17 @@ export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTa
   const handleDownloadPDF = async () => {
     setIsGenerating(true);
     try {
-      const doc = (
-        <InspectionReportPDF
-          report={report}
-          findings={findings}
-          costs={costs}
-          template={currentTemplate}
-          logoUrl={report.logo_url}
-        />
-      );
+      const { data, error } = await supabase.functions.invoke('generate-inspection-pdf', {
+        body: {
+          reportId: report.id,
+          template: currentTemplate,
+          includeSignature: false,
+        },
+      });
 
-      const blob = await pdf(doc).toBlob();
+      if (error) throw error;
+
+      const blob = createPdfBlob(data);
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -92,17 +90,17 @@ export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTa
   const handleOpenPDF = async () => {
     setIsGenerating(true);
     try {
-      const doc = (
-        <InspectionReportPDF
-          report={report}
-          findings={findings}
-          costs={costs}
-          template={currentTemplate}
-          logoUrl={report.logo_url}
-        />
-      );
+      const { data, error } = await supabase.functions.invoke('generate-inspection-pdf', {
+        body: {
+          reportId: report.id,
+          template: currentTemplate,
+          includeSignature: false,
+        },
+      });
 
-      const blob = await pdf(doc).toBlob();
+      if (error) throw error;
+
+      const blob = createPdfBlob(data);
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       

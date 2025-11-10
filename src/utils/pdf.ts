@@ -1,5 +1,11 @@
 const decodeBase64ToArrayBuffer = (base64: string): ArrayBuffer => {
-  const binaryString = atob(base64);
+  // Handle data URI format (e.g., "data:application/pdf;base64,...")
+  let cleanBase64 = base64;
+  if (base64.includes('base64,')) {
+    cleanBase64 = base64.split('base64,')[1];
+  }
+  
+  const binaryString = atob(cleanBase64);
   const length = binaryString.length;
   const bytes = new Uint8Array(length);
 
@@ -52,6 +58,13 @@ export const createPdfBlob = (data: unknown): Blob => {
 
   if (!arrayBuffer.byteLength) {
     throw new Error('קובץ ה-PDF שהתקבל ריק');
+  }
+
+  // Optional validation: Check for PDF signature
+  const uint8 = new Uint8Array(arrayBuffer);
+  const pdfSignature = String.fromCharCode(uint8[0], uint8[1], uint8[2], uint8[3]);
+  if (pdfSignature !== '%PDF') {
+    console.warn('Warning: File does not start with PDF signature');
   }
 
   return new Blob([arrayBuffer], { type: 'application/pdf' });
