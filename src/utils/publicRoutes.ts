@@ -46,6 +46,9 @@ export const isPublicRoute = (pathname: string): boolean => {
     /^\/category\/[^/]+\/suppliers$/,        // /category/:category/suppliers
     /^\/inspiration\/photo\/[^/]+$/,         // /inspiration/photo/:id
     /^\/quote\/share\/[^/]+$/,               // /quote/share/:token public quote view
+    /^\/public\/inspection\/[^/]+$/,         // /public/inspection/:id public inspection reports
+    /^\/boards\/[^/]+$/,                     // /boards/:token public mood boards
+    /^\/proposal\/signature\/[^/]+$/,        // /proposal/signature/:token public proposal signatures
   ];
   
   return dynamicPatterns.some(pattern => pattern.test(pathname));
