@@ -147,12 +147,13 @@ async function handler(req: Request): Promise<Response> {
       font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
       
-      await supabase.from('pdf_events').insert({
+      const { error: evErr } = await supabase.from('pdf_events').insert({
         report_id: reportId,
         context: 'inspection',
         event_type: 'font_load_error',
         meta: { error: String(fontError) }
-      }).catch(console.error);
+      });
+      if (evErr) console.warn('pdf_events insert failed:', evErr);
     }
 
     // Helper function for right-aligned Hebrew text
@@ -375,12 +376,13 @@ async function handler(req: Request): Promise<Response> {
           .eq('id', reportId);
 
         // Log analytics event
-        await supabase.from('pdf_events').insert({
+        const { error: evErr } = await supabase.from('pdf_events').insert({
           report_id: reportId,
           context: 'inspection',
           event_type: 'generate',
           meta: { upload: true, path: fileName }
         });
+        if (evErr) console.warn('pdf_events insert failed:', evErr);
 
         return new Response(JSON.stringify({ ok: true, url: urlData.publicUrl }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -389,12 +391,13 @@ async function handler(req: Request): Promise<Response> {
     }
 
     // Log analytics event
-    await supabase.from('pdf_events').insert({
+    const { error: evErr } = await supabase.from('pdf_events').insert({
       report_id: reportId,
       context: 'inspection',
       event_type: 'generate',
       meta: { upload: false }
     });
+    if (evErr) console.warn('pdf_events insert failed:', evErr);
 
     return new Response(pdfBytes, {
       headers: {
@@ -412,12 +415,15 @@ async function handler(req: Request): Promise<Response> {
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const supabase = createClient(supabaseUrl, supabaseKey);
       
-      await supabase.from('pdf_events').insert({
+      const { error: logErr } = await supabase.from('pdf_events').insert({
         context: 'inspection',
         event_type: 'error',
         meta: { message: String((error as Error).message || error) }
       });
-    } catch {}
+      if (logErr) console.warn('failed to log pdf_events error:', logErr);
+    } catch (_) {
+      // Don't block client response if logging fails
+    }
     
     return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
