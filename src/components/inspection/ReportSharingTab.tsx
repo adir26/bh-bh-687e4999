@@ -17,8 +17,8 @@ interface ReportSharingTabProps {
 export default function ReportSharingTab({ report }: ReportSharingTabProps) {
   const [copied, setCopied] = useState(false);
   
-  // Generate public share URL using current domain
-  const shareUrl = `${window.location.origin}/public/inspection/${report.id}`;
+  // Generate public share URL using custom domain
+  const shareUrl = `https://bh-bonimpo.com/public/inspection/${report.id}`;
 
   const handleCopyLink = async () => {
     try {
