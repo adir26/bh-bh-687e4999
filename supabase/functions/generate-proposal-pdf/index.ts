@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { PDFDocument, rgb, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1';
+import { PDFDocument, rgb } from 'https://esm.sh/pdf-lib@1.17.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -47,8 +47,12 @@ async function handler(req: Request): Promise<Response> {
     // Create PDF
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]); // A4 size
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    // Embed Hebrew-supporting fonts
+    const regularFontBytes = await Deno.readFile(new URL('./NotoSansHebrew-Regular.ttf', import.meta.url));
+    const boldFontBytes = await Deno.readFile(new URL('./NotoSansHebrew-Bold.ttf', import.meta.url));
+    const font = await pdfDoc.embedFont(regularFontBytes, { subset: true });
+    const boldFont = await pdfDoc.embedFont(boldFontBytes, { subset: true });
 
     let yPosition = 800;
 
@@ -63,8 +67,8 @@ async function handler(req: Request): Promise<Response> {
     yPosition -= 40;
 
     // Quote number
-    if (proposal.quotes) {
-      page.drawText(`מספר הצעה: ${proposal.quotes.quote_number || proposal.quotes.id}`, {
+    if ((proposal as any).quotes) {
+      page.drawText(`מספר הצעה: ${((proposal as any).quotes.quote_number || (proposal as any).quotes.id)}`, {
         x: 450,
         y: yPosition,
         size: 12,
@@ -74,7 +78,7 @@ async function handler(req: Request): Promise<Response> {
     }
 
     // Date
-    const date = new Date(proposal.created_at).toLocaleDateString('he-IL');
+    const date = new Date((proposal as any).created_at).toLocaleDateString('he-IL');
     page.drawText(`תאריך: ${date}`, {
       x: 450,
       y: yPosition,
@@ -84,8 +88,8 @@ async function handler(req: Request): Promise<Response> {
     yPosition -= 40;
 
     // Content from HTML (basic text extraction)
-    if (proposal.html_content) {
-      const textContent = proposal.html_content
+    if ((proposal as any).html_content) {
+      const textContent = String((proposal as any).html_content)
         .replace(/<[^>]*>/g, ' ')
         .replace(/\s+/g, ' ')
         .trim()
@@ -106,7 +110,7 @@ async function handler(req: Request): Promise<Response> {
 
     // Status
     yPosition -= 20;
-    page.drawText(`סטטוס: ${proposal.status}`, {
+    page.drawText(`סטטוס: ${String((proposal as any).status)}`, {
       x: 450,
       y: yPosition,
       size: 10,
@@ -129,7 +133,7 @@ async function handler(req: Request): Promise<Response> {
     await supabase.from('proposal_events').insert({
       proposal_id: proposalId,
       event_type: 'pdf_generated',
-      actor_id: proposal.quotes?.supplier_id,
+      actor_id: (proposal as any).quotes?.supplier_id,
     });
 
     return new Response(pdfBytes, {
@@ -141,7 +145,7 @@ async function handler(req: Request): Promise<Response> {
     });
   } catch (error) {
     console.error('Error generating proposal PDF:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { PDFDocument, rgb, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1';
+import { PDFDocument, rgb } from 'https://esm.sh/pdf-lib@1.17.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -47,10 +47,10 @@ interface InspectionCost {
 }
 
 const TEMPLATE_COLORS = {
-  classic: { primary: [0.2, 0.4, 0.8], secondary: [0.5, 0.5, 0.5] },
-  modern: { primary: [0.1, 0.6, 0.9], secondary: [0.3, 0.3, 0.3] },
-  elegant: { primary: [0.4, 0.2, 0.6], secondary: [0.6, 0.6, 0.6] },
-  premium: { primary: [0.8, 0.6, 0.2], secondary: [0.4, 0.4, 0.4] },
+  classic: { primary: [0.2, 0.4, 0.8] as [number, number, number], secondary: [0.5, 0.5, 0.5] as [number, number, number] },
+  modern: { primary: [0.1, 0.6, 0.9] as [number, number, number], secondary: [0.3, 0.3, 0.3] as [number, number, number] },
+  elegant: { primary: [0.4, 0.2, 0.6] as [number, number, number], secondary: [0.6, 0.6, 0.6] as [number, number, number] },
+  premium: { primary: [0.8, 0.6, 0.2] as [number, number, number], secondary: [0.4, 0.4, 0.4] as [number, number, number] },
 };
 
 const SEVERITY_COLORS: Record<string, [number, number, number]> = {
@@ -116,8 +116,12 @@ async function handler(req: Request): Promise<Response> {
     // Create PDF
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]); // A4 size
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    // Embed Hebrew-supporting fonts from local files
+    const regularFontBytes = await Deno.readFile(new URL('./NotoSansHebrew-Regular.ttf', import.meta.url));
+    const boldFontBytes = await Deno.readFile(new URL('./NotoSansHebrew-Bold.ttf', import.meta.url));
+    const font = await pdfDoc.embedFont(regularFontBytes, { subset: true });
+    const boldFont = await pdfDoc.embedFont(boldFontBytes, { subset: true });
 
     const colors = TEMPLATE_COLORS[template as keyof typeof TEMPLATE_COLORS] || TEMPLATE_COLORS.classic;
     let yPosition = 800;
@@ -145,7 +149,7 @@ async function handler(req: Request): Promise<Response> {
         if (contentType.includes('png')) {
           logoImage = await pdfDoc.embedPng(logoBytes);
         } else if (contentType.includes('jpg') || contentType.includes('jpeg')) {
-          logoImage = await pdfDoc.embedJpg(logoBytes);
+          logoImage = await pdfDoc.embedJpg(logoBytes as ArrayBuffer);
         }
 
         if (logoImage) {
@@ -175,27 +179,27 @@ async function handler(req: Request): Promise<Response> {
       inspectorY -= 15;
 
       if (report.inspector_name) {
-        page.drawText(report.inspector_name, { x: 50, y: inspectorY, size: 9, font });
+        page.drawText(String(report.inspector_name), { x: 50, y: inspectorY, size: 9, font });
         inspectorY -= 12;
       }
       if (report.inspector_company) {
-        page.drawText(report.inspector_company, { x: 50, y: inspectorY, size: 8, font, color: rgb(0.4, 0.4, 0.4) });
+        page.drawText(String(report.inspector_company), { x: 50, y: inspectorY, size: 8, font, color: rgb(0.4, 0.4, 0.4) });
         inspectorY -= 12;
       }
       if (report.inspector_license) {
-        page.drawText(`רישיון: ${report.inspector_license}`, { x: 50, y: inspectorY, size: 8, font });
+        page.drawText(`רישיון: ${String(report.inspector_license)}`, { x: 50, y: inspectorY, size: 8, font });
         inspectorY -= 12;
       }
       if (report.inspector_phone) {
-        page.drawText(`טלפון: ${report.inspector_phone}`, { x: 50, y: inspectorY, size: 8, font });
+        page.drawText(`טלפון: ${String(report.inspector_phone)}`, { x: 50, y: inspectorY, size: 8, font });
         inspectorY -= 12;
       }
       if (report.inspector_email) {
-        page.drawText(report.inspector_email, { x: 50, y: inspectorY, size: 8, font });
+        page.drawText(String(report.inspector_email), { x: 50, y: inspectorY, size: 8, font });
       }
     }
 
-    // Title on the right (RTL)
+    // Title on the right (Hebrew)
     page.drawText('דוח בדק בית', {
       x: 450,
       y: yPosition,
@@ -233,9 +237,9 @@ async function handler(req: Request): Promise<Response> {
     });
     yPosition -= 20;
 
-    page.drawText(`סוג: ${report.report_type}`, { x: 450, y: yPosition, size: 10, font });
+    page.drawText(`סוג: ${String(report.report_type)}`, { x: 450, y: yPosition, size: 10, font });
     yPosition -= 15;
-    page.drawText(`סטטוס: ${report.status}`, { x: 450, y: yPosition, size: 10, font });
+    page.drawText(`סטטוס: ${String(report.status)}`, { x: 450, y: yPosition, size: 10, font });
     yPosition -= 30;
 
     // Findings section
@@ -249,11 +253,11 @@ async function handler(req: Request): Promise<Response> {
       });
       yPosition -= 20;
 
-      for (const finding of findings) {
-        if (yPosition < 100) break; // Prevent overflow (would need new page)
+      for (const finding of findings as InspectionItem[]) {
+        if (yPosition < 100) break; // Prevent overflow (add pagination if needed)
 
-        const severityColor = SEVERITY_COLORS[finding.severity] || [0.5, 0.5, 0.5];
-        const severityLabel = SEVERITY_LABELS[finding.severity] || finding.severity;
+        const severityColor = SEVERITY_COLORS[(finding as any).severity] || [0.5, 0.5, 0.5];
+        const severityLabel = SEVERITY_LABELS[(finding as any).severity] || (finding as any).severity;
 
         // Draw severity badge
         page.drawRectangle({
@@ -263,7 +267,7 @@ async function handler(req: Request): Promise<Response> {
           height: 12,
           color: rgb(...severityColor),
         });
-        page.drawText(severityLabel, {
+        page.drawText(String(severityLabel), {
           x: 505,
           y: yPosition,
           size: 8,
@@ -272,7 +276,7 @@ async function handler(req: Request): Promise<Response> {
         });
 
         // Finding title
-        page.drawText(finding.title, {
+        page.drawText(String((finding as any).title), {
           x: 450,
           y: yPosition,
           size: 10,
@@ -280,22 +284,23 @@ async function handler(req: Request): Promise<Response> {
         });
         yPosition -= 12;
 
-        if (finding.description) {
-          const desc = finding.description.substring(0, 60) + (finding.description.length > 60 ? '...' : '');
+        if ((finding as any).description) {
+          const descSrc = String((finding as any).description);
+          const desc = descSrc.substring(0, 60) + (descSrc.length > 60 ? '...' : '');
           page.drawText(desc, { x: 450, y: yPosition, size: 8, font, color: rgb(0.3, 0.3, 0.3) });
           yPosition -= 12;
         }
 
-        if (finding.location) {
-          page.drawText(`מיקום: ${finding.location}`, { x: 450, y: yPosition, size: 8, font });
+        if ((finding as any).location) {
+          page.drawText(`מיקום: ${String((finding as any).location)}`, { x: 450, y: yPosition, size: 8, font });
           yPosition -= 15;
         }
 
         // Associated costs
-        const findingCosts = costs.filter((c: InspectionCost) => c.item_id === finding.id);
+        const findingCosts = (costs as InspectionCost[]).filter((c) => c.item_id === (finding as any).id);
         if (findingCosts.length > 0) {
           for (const cost of findingCosts) {
-            page.drawText(`${cost.description}: ₪${cost.amount.toLocaleString()}`, {
+            page.drawText(`${String(cost.description)}: ₪${Number(cost.amount).toLocaleString()}`, {
               x: 460,
               y: yPosition,
               size: 8,
@@ -312,7 +317,7 @@ async function handler(req: Request): Promise<Response> {
 
     // Cost summary
     yPosition -= 20;
-    const totalCost = costs.reduce((sum: number, c: InspectionCost) => sum + c.amount, 0);
+    const totalCost = (costs as InspectionCost[]).reduce((sum: number, c) => sum + Number(c.amount || 0), 0);
     page.drawText('סיכום עלויות', {
       x: 450,
       y: yPosition,
@@ -329,7 +334,7 @@ async function handler(req: Request): Promise<Response> {
     });
 
     // Signature
-    if (includeSignature && report.signature_data) {
+    if (includeSignature && (report as InspectionReport).signature_data) {
       yPosition -= 40;
       page.drawText('חתימה דיגיטלית', {
         x: 450,
@@ -338,7 +343,6 @@ async function handler(req: Request): Promise<Response> {
         font: boldFont,
       });
       yPosition -= 15;
-      // Note: Embedding signature image would require additional processing
       page.drawText('[חתימה]', { x: 450, y: yPosition, size: 10, font, color: rgb(0.5, 0.5, 0.5) });
     }
 
@@ -380,7 +384,7 @@ async function handler(req: Request): Promise<Response> {
     });
   } catch (error) {
     console.error('Error generating inspection PDF:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
