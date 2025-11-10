@@ -2,11 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Palette, Upload, Check, Eye } from 'lucide-react';
+import { Palette, Upload, Check, Eye, Download } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { PDFViewer } from '@react-pdf/renderer';
+import { pdf } from '@react-pdf/renderer';
 import { InspectionReportPDF } from './InspectionReportPDF';
 import { useInspectionItems } from '@/hooks/useInspectionItems';
 import { useInspectionCosts } from '@/hooks/useInspectionCosts';
@@ -49,12 +49,38 @@ const templates = [
 
 export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTabProps) {
   const [uploading, setUploading] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const currentTemplate = report.template || 'classic';
 
   // Load findings and costs for preview
   const { data: findings = [] } = useInspectionItems(report.id);
   const { data: costs = [] } = useInspectionCosts(report.id);
+
+  const handlePreviewPDF = async () => {
+    setIsGenerating(true);
+    try {
+      const doc = (
+        <InspectionReportPDF
+          report={report}
+          findings={findings}
+          costs={costs}
+          template={currentTemplate}
+          logoUrl={report.logo_url}
+        />
+      );
+
+      const blob = await pdf(doc).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      
+      toast.success('התצוגה המקדימה נפתחה בחלון חדש');
+    } catch (error) {
+      console.error('Error generating preview:', error);
+      toast.error('שגיאה ביצירת תצוגה מקדימה');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const handleTemplateSelect = (templateId: string) => {
     onUpdate({ template: templateId });
@@ -121,11 +147,21 @@ export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTa
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowPreview(!showPreview)}
+              onClick={handlePreviewPDF}
+              disabled={isGenerating}
               className="gap-2"
             >
-              <Eye className="h-4 w-4" />
-              {showPreview ? 'הסתר תצוגה מקדימה' : 'הצג תצוגה מקדימה'}
+              {isGenerating ? (
+                <>
+                  <Download className="h-4 w-4 animate-spin" />
+                  מייצר...
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4" />
+                  תצוגה מקדימה
+                </>
+              )}
             </Button>
           </div>
           <CardDescription>בחר את סגנון העיצוב של הדוח שיישלח ללקוח</CardDescription>
@@ -155,28 +191,6 @@ export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTa
           </div>
         </CardContent>
       </Card>
-
-      {showPreview && (
-        <Card>
-          <CardHeader>
-            <CardTitle>תצוגה מקדימה של הדוח</CardTitle>
-            <CardDescription>כך ייראה הדוח שיישלח ללקוח</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="w-full h-[600px] border rounded-lg overflow-hidden">
-              <PDFViewer width="100%" height="100%" showToolbar={false}>
-                <InspectionReportPDF
-                  report={report}
-                  findings={findings}
-                  costs={costs}
-                  template={currentTemplate}
-                  logoUrl={report.logo_url}
-                />
-              </PDFViewer>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <Card>
         <CardHeader>
