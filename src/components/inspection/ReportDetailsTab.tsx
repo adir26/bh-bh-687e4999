@@ -40,70 +40,77 @@ export default function ReportDetailsTab({ report, onUpdate }: ReportDetailsTabP
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>פרטי דוח</CardTitle>
-          <CardDescription>הזינו את הפרטים הבסיסיים של הדוח</CardDescription>
+      <Card className="border-none shadow-lg bg-card/50 backdrop-blur-sm">
+        <CardHeader className="border-b border-border/50 bg-gradient-to-r from-primary/10 to-accent/10">
+          <CardTitle className="text-xl md:text-2xl">פרטי דוח</CardTitle>
+          <CardDescription className="text-base">הזינו את הפרטים הבסיסיים של הדוח</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="project_name">שם פרויקט</Label>
+        <CardContent className="space-y-6 pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="project_name" className="text-base font-medium">שם פרויקט</Label>
               <Input
                 id="project_name"
                 value={formData.project_name}
                 onChange={(e) => handleChange('project_name', e.target.value)}
                 placeholder="הזינו שם פרויקט"
+                className="h-12 text-base"
               />
             </div>
 
-            <div>
-              <Label htmlFor="inspector_name">שם הבודק</Label>
+            <div className="space-y-2">
+              <Label htmlFor="inspector_name" className="text-base font-medium">שם הבודק</Label>
               <Input
                 id="inspector_name"
                 value={formData.inspector_name}
                 onChange={(e) => handleChange('inspector_name', e.target.value)}
                 placeholder="הזינו שם הבודק"
+                className="h-12 text-base"
               />
             </div>
 
-            <div>
-              <Label htmlFor="address">כתובת</Label>
+            <div className="space-y-2">
+              <Label htmlFor="address" className="text-base font-medium">כתובת</Label>
               <Input
                 id="address"
                 value={formData.address}
                 onChange={(e) => handleChange('address', e.target.value)}
                 placeholder="הזינו כתובת"
+                className="h-12 text-base"
               />
             </div>
 
-            <div>
-              <Label htmlFor="inspection_date">תאריך בדיקה</Label>
+            <div className="space-y-2">
+              <Label htmlFor="inspection_date" className="text-base font-medium">תאריך בדיקה</Label>
               <Input
                 id="inspection_date"
                 type="date"
                 value={formData.inspection_date}
                 onChange={(e) => handleChange('inspection_date', e.target.value)}
+                className="h-12 text-base"
               />
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="notes">הערות</Label>
+          <div className="space-y-2">
+            <Label htmlFor="notes" className="text-base font-medium">הערות</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => handleChange('notes', e.target.value)}
               placeholder="הערות כלליות על הדוח"
-              rows={4}
+              rows={5}
+              className="text-base resize-none"
             />
           </div>
 
           {hasChanges && (
-            <Button onClick={handleSave} className="w-full md:w-auto">
-              <Save className="ml-2 h-4 w-4" />
-              שמור שינויים
-            </Button>
+            <div className="pt-4 border-t border-border/50">
+              <Button onClick={handleSave} size="lg" className="w-full md:w-auto shadow-lg">
+                <Save className="ml-2 h-5 w-5" />
+                שמור שינויים
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>

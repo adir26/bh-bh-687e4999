@@ -40,15 +40,20 @@ export default function AddCostForm({ items }: AddCostFormProps) {
   const calculatedTotal = formData.quantity * formData.unit_price;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>הוסף עלות חדשה</CardTitle>
+    <Card className="border-none shadow-lg bg-gradient-to-br from-primary/5 to-accent/5 backdrop-blur-sm">
+      <CardHeader className="border-b border-border/50">
+        <CardTitle className="text-xl md:text-2xl flex items-center gap-2">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Plus className="h-5 w-5 text-primary" />
+          </div>
+          הוסף עלות חדשה
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="item_id">ממצא *</Label>
+      <CardContent className="pt-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="item_id" className="text-base font-medium">ממצא *</Label>
               <Select
                 value={formData.item_id}
                 onValueChange={(value) => setFormData({ ...formData, item_id: value })}
@@ -67,8 +72,8 @@ export default function AddCostForm({ items }: AddCostFormProps) {
               </Select>
             </div>
 
-            <div>
-              <Label htmlFor="quantity">כמות *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="quantity" className="text-base font-medium">כמות *</Label>
               <Input
                 id="quantity"
                 type="number"
@@ -79,22 +84,24 @@ export default function AddCostForm({ items }: AddCostFormProps) {
                 min="0"
                 step="0.01"
                 required
+                className="h-12 text-base"
               />
             </div>
 
-            <div>
-              <Label htmlFor="unit">יחידת מידה</Label>
+            <div className="space-y-2">
+              <Label htmlFor="unit" className="text-base font-medium">יחידת מידה</Label>
               <Input
                 id="unit"
                 type="text"
                 value={formData.unit}
                 onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                 placeholder="יחידה, מ״ר, יום עבודה..."
+                className="h-12 text-base"
               />
             </div>
 
-            <div>
-              <Label htmlFor="unit_price">מחיר ליחידה (₪) *</Label>
+            <div className="space-y-2">
+              <Label htmlFor="unit_price" className="text-base font-medium">מחיר ליחידה (₪) *</Label>
               <Input
                 id="unit_price"
                 type="number"
@@ -105,18 +112,24 @@ export default function AddCostForm({ items }: AddCostFormProps) {
                 min="0"
                 step="0.01"
                 required
+                className="h-12 text-base"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t">
-            <div>
-              <p className="text-sm text-muted-foreground">סה״כ לעלות זו:</p>
-              <p className="text-2xl font-bold">₪{calculatedTotal.toFixed(2)}</p>
+          <div className="flex items-center justify-between pt-6 border-t border-border/50 bg-muted/20 -mx-6 -mb-6 px-6 py-4 rounded-b-xl">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">סה״כ לעלות זו:</p>
+              <p className="text-3xl font-bold text-primary">₪{calculatedTotal.toFixed(2)}</p>
             </div>
 
-            <Button type="submit" disabled={!formData.item_id || createCost.isPending}>
-              <Plus className="ml-2 h-4 w-4" />
+            <Button 
+              type="submit" 
+              disabled={!formData.item_id || createCost.isPending}
+              size="lg"
+              className="shadow-lg"
+            >
+              <Plus className="ml-2 h-5 w-5" />
               הוסף עלות
             </Button>
           </div>

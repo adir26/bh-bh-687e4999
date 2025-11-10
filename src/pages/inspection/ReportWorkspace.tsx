@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { supaSelect, supaUpdate } from '@/lib/supaFetch';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, Save, FileText } from 'lucide-react';
@@ -94,38 +95,54 @@ export default function ReportWorkspace() {
           </Button>
         </div>
       ) : (
-        <div className="container max-w-7xl mx-auto p-4 md:p-8">
+        <div className="container max-w-7xl mx-auto p-4 md:p-8 space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary to-primary/80 p-6 md:p-8 text-primary-foreground shadow-xl">
+            <div className="relative z-10">
               <Button
                 variant="ghost"
                 onClick={() => navigate('/inspection/dashboard')}
-                className="mb-2"
+                className="mb-4 text-primary-foreground hover:bg-primary-foreground/20"
               >
                 <ArrowRight className="ml-2 h-4 w-4" />
                 חזרה לדשבורד
               </Button>
-              <h1 className="text-2xl md:text-3xl font-bold">
-                {reportTypeLabels[report.report_type] || report.report_type} - גרסה {report.version}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                דוח #{report.id.substring(0, 8)}
-              </p>
+              <div className="flex items-start gap-4 flex-wrap">
+                <div className="p-3 rounded-xl bg-primary-foreground/20 backdrop-blur-sm">
+                  <FileText className="h-8 w-8" />
+                </div>
+                <div className="flex-1">
+                  <h1 className="text-2xl md:text-4xl font-bold mb-2">
+                    {reportTypeLabels[report.report_type] || report.report_type}
+                  </h1>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Badge className="bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30">
+                      גרסה {report.version}
+                    </Badge>
+                    <p className="text-sm text-primary-foreground/80">
+                      דוח #{report.id.substring(0, 8)}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary-foreground/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary-foreground/10 rounded-full blur-2xl" />
           </div>
 
           {/* Tabs */}
           <Tabs defaultValue="details" dir="rtl" className="w-full">
-            <TabsList className="grid w-full grid-cols-7 mb-6">
-              <TabsTrigger value="details">פרטים</TabsTrigger>
-              <TabsTrigger value="findings">ממצאים</TabsTrigger>
-              <TabsTrigger value="media">מדיה</TabsTrigger>
-              <TabsTrigger value="costs">עלויות</TabsTrigger>
-              <TabsTrigger value="template">תבנית</TabsTrigger>
-              <TabsTrigger value="signatures">חתימות & PDF</TabsTrigger>
-              <TabsTrigger value="sharing">שיתוף</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto scrollbar-hide mb-6">
+              <TabsList className="inline-flex w-full min-w-max bg-muted/50 p-1 rounded-xl">
+                <TabsTrigger value="details" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">פרטים</TabsTrigger>
+                <TabsTrigger value="findings" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">ממצאים</TabsTrigger>
+                <TabsTrigger value="media" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">מדיה</TabsTrigger>
+                <TabsTrigger value="costs" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">עלויות</TabsTrigger>
+                <TabsTrigger value="template" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">תבנית</TabsTrigger>
+                <TabsTrigger value="signatures" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">חתימות & PDF</TabsTrigger>
+                <TabsTrigger value="sharing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">שיתוף</TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="details">
               <ReportDetailsTab report={report} onUpdate={updateReport.mutate} />

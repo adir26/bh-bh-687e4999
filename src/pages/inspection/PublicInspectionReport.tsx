@@ -76,56 +76,76 @@ export default function PublicInspectionReport() {
           </Card>
         </div>
       ) : (
-        <div className="min-h-screen bg-background">
-          <div className="container max-w-4xl mx-auto p-4 md:p-8">
+        <div className="min-h-screen bg-gradient-to-b from-primary/5 via-background to-background">
+          <div className="container max-w-4xl mx-auto p-4 md:p-8 space-y-6">
             {/* Header */}
-            <div className="mb-8 text-center">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <FileText className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold">
-                  {reportTypeLabels[report.report_type] || report.report_type}
-                </h1>
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary/80 p-6 md:p-8 text-primary-foreground shadow-lg">
+              <div className="relative z-10">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="p-3 rounded-xl bg-primary-foreground/20 backdrop-blur-sm">
+                    <FileText className="h-8 w-8" />
+                  </div>
+                  <h1 className="text-2xl md:text-4xl font-bold">
+                    {reportTypeLabels[report.report_type] || report.report_type}
+                  </h1>
+                </div>
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <Badge 
+                    variant={report.status === 'final' || report.status === 'sent' ? 'default' : 'secondary'}
+                    className="bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30"
+                  >
+                    {statusLabels[report.status]}
+                  </Badge>
+                  <span className="text-sm text-primary-foreground/90 font-medium">גרסה {report.version}</span>
+                </div>
               </div>
-              <div className="flex items-center justify-center gap-2">
-                <Badge variant={report.status === 'final' || report.status === 'sent' ? 'default' : 'secondary'}>
-                  {statusLabels[report.status]}
-                </Badge>
-                <span className="text-sm text-muted-foreground">גרסה {report.version}</span>
-              </div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary-foreground/10 rounded-full blur-3xl" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary-foreground/10 rounded-full blur-2xl" />
             </div>
 
             {/* Report Details */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>פרטי הדוח</CardTitle>
+            <Card className="border-none shadow-lg bg-card/50 backdrop-blur-sm">
+              <CardHeader className="border-b border-border/50">
+                <CardTitle className="text-xl md:text-2xl flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <FileText className="h-5 w-5 text-primary" />
+                  </div>
+                  פרטי הדוח
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6 pt-6">
                 {report.project_name && (
-                  <div className="flex items-start gap-3">
-                    <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <div className="text-sm text-muted-foreground">שם הפרויקט</div>
-                      <div className="font-medium">{report.project_name}</div>
+                  <div className="flex items-start gap-4 p-4 rounded-xl bg-accent/30 border border-accent/20 hover:bg-accent/40 transition-colors">
+                    <div className="p-2 rounded-lg bg-accent/50">
+                      <FileText className="h-5 w-5 text-accent-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-1">שם הפרויקט</div>
+                      <div className="font-semibold text-lg">{report.project_name}</div>
                     </div>
                   </div>
                 )}
 
                 {report.address && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <div className="text-sm text-muted-foreground">כתובת</div>
-                      <div className="font-medium">{report.address}</div>
+                  <div className="flex items-start gap-4 p-4 rounded-xl bg-secondary/30 border border-secondary/20 hover:bg-secondary/40 transition-colors">
+                    <div className="p-2 rounded-lg bg-secondary/50">
+                      <MapPin className="h-5 w-5 text-secondary-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-1">כתובת</div>
+                      <div className="font-semibold text-lg">{report.address}</div>
                     </div>
                   </div>
                 )}
 
                 {report.inspection_date && (
-                  <div className="flex items-start gap-3">
-                    <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <div className="text-sm text-muted-foreground">תאריך בדיקה</div>
-                      <div className="font-medium">
+                  <div className="flex items-start gap-4 p-4 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors">
+                    <div className="p-2 rounded-lg bg-primary/20">
+                      <Calendar className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-1">תאריך בדיקה</div>
+                      <div className="font-semibold text-lg">
                         {format(new Date(report.inspection_date), 'dd MMMM yyyy', { locale: he })}
                       </div>
                     </div>
@@ -133,19 +153,21 @@ export default function PublicInspectionReport() {
                 )}
 
                 {report.inspector_name && (
-                  <div className="flex items-start gap-3">
-                    <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <div className="text-sm text-muted-foreground">בודק</div>
-                      <div className="font-medium">{report.inspector_name}</div>
+                  <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-muted hover:bg-muted/70 transition-colors">
+                    <div className="p-2 rounded-lg bg-muted">
+                      <User className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs font-medium text-muted-foreground mb-1">בודק</div>
+                      <div className="font-semibold text-lg">{report.inspector_name}</div>
                     </div>
                   </div>
                 )}
 
                 {report.notes && (
-                  <div className="pt-4 border-t">
-                    <div className="text-sm text-muted-foreground mb-2">הערות</div>
-                    <div className="text-sm">{report.notes}</div>
+                  <div className="p-4 rounded-xl bg-muted/30 border border-muted">
+                    <div className="text-xs font-medium text-muted-foreground mb-2">הערות</div>
+                    <div className="text-sm leading-relaxed">{report.notes}</div>
                   </div>
                 )}
               </CardContent>
@@ -153,13 +175,16 @@ export default function PublicInspectionReport() {
 
             {/* Download Section */}
             {report.pdf_url && (
-              <Card>
+              <Card className="border-none shadow-lg bg-gradient-to-br from-primary to-primary/90 text-primary-foreground">
                 <CardHeader>
-                  <CardTitle>הורדת הדוח</CardTitle>
+                  <CardTitle className="text-xl md:text-2xl flex items-center gap-2">
+                    <Download className="h-6 w-6" />
+                    הורדת הדוח
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Button
-                    className="w-full"
+                    className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg"
                     size="lg"
                     onClick={() => window.open(report.pdf_url, '_blank')}
                   >
@@ -171,18 +196,26 @@ export default function PublicInspectionReport() {
             )}
 
             {!report.pdf_url && (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  קובץ PDF של הדוח עדיין לא זמין.
-                  <br />
-                  אנא פנו לבודק לקבלת הדוח.
+              <Card className="border-none shadow-lg bg-muted/30 backdrop-blur-sm">
+                <CardContent className="py-8 text-center">
+                  <div className="inline-flex p-4 rounded-full bg-muted mb-4">
+                    <FileText className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground font-medium">
+                    קובץ PDF של הדוח עדיין לא זמין.
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    אנא פנו לבודק לקבלת הדוח.
+                  </p>
                 </CardContent>
               </Card>
             )}
 
             {/* Footer */}
-            <div className="mt-8 text-center text-sm text-muted-foreground">
-              <p>דוח זה נוצר באמצעות מערכת ניהול דוחות בדיקה</p>
+            <div className="mt-8 p-6 rounded-xl bg-muted/20 backdrop-blur-sm text-center">
+              <p className="text-sm text-muted-foreground">
+                דוח זה נוצר באמצעות מערכת ניהול דוחות בדיקה מתקדמת
+              </p>
             </div>
           </div>
         </div>
