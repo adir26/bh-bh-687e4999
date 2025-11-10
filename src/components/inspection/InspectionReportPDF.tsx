@@ -15,19 +15,39 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik',
     fontSize: 10,
     direction: 'rtl',
+    position: 'relative',
+  },
+  watermark: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%) rotate(-45deg)',
+    fontSize: 80,
+    color: '#f1f5f9',
+    opacity: 0.1,
+    zIndex: -1,
   },
   header: {
     marginBottom: 20,
-    paddingBottom: 15,
-    borderBottomWidth: 2,
-    borderBottomColor: '#2563eb',
+    paddingBottom: 20,
+    borderBottomWidth: 3,
+  },
+  headerGradient: {
+    padding: 20,
+    marginBottom: 20,
+    borderRadius: 8,
+  },
+  logoContainer: {
+    width: 100,
+    height: 80,
+    objectFit: 'contain',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 700,
-    color: '#1e40af',
     marginBottom: 8,
     textAlign: 'right',
+    letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 11,
@@ -35,120 +55,140 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   section: {
-    marginTop: 15,
-    marginBottom: 10,
+    marginTop: 20,
+    marginBottom: 15,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 700,
-    color: '#1e293b',
-    marginBottom: 8,
+    marginBottom: 10,
     textAlign: 'right',
-    backgroundColor: '#f1f5f9',
-    padding: 6,
+    padding: 8,
+    borderRadius: 4,
+  },
+  infoGrid: {
+    flexDirection: 'row-reverse',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  infoCard: {
+    flex: 1,
+    minWidth: '45%',
+    padding: 10,
+    backgroundColor: '#f8fafc',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
   },
   infoRow: {
     flexDirection: 'row-reverse',
-    justifyContent: 'space-between',
     marginBottom: 5,
     textAlign: 'right',
   },
   label: {
     fontWeight: 700,
     color: '#475569',
+    marginLeft: 8,
   },
   value: {
     color: '#1e293b',
+    flex: 1,
   },
   finding: {
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: '#fef2f2',
+    marginBottom: 15,
+    padding: 12,
+    borderRadius: 8,
+    borderRightWidth: 4,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+  },
+  findingHeader: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  severityBadge: {
+    padding: 4,
+    paddingHorizontal: 8,
     borderRadius: 4,
-    borderRightWidth: 3,
-    borderRightColor: '#ef4444',
+    fontSize: 8,
+    fontWeight: 700,
+    color: '#fff',
   },
   findingTitle: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
-    color: '#991b1b',
-    marginBottom: 4,
+    marginBottom: 6,
     textAlign: 'right',
+    flex: 1,
   },
   findingDescription: {
     fontSize: 10,
-    color: '#450a0a',
-    marginBottom: 4,
+    marginBottom: 6,
     textAlign: 'right',
-    lineHeight: 1.4,
+    lineHeight: 1.5,
   },
   findingMeta: {
     fontSize: 9,
-    color: '#7f1d1d',
     textAlign: 'right',
+    marginTop: 4,
   },
   costTable: {
-    marginTop: 8,
+    marginTop: 10,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderRadius: 6,
+    overflow: 'hidden',
   },
   costTableHeader: {
     flexDirection: 'row-reverse',
-    backgroundColor: '#f1f5f9',
-    padding: 6,
+    padding: 8,
     fontWeight: 700,
     fontSize: 9,
   },
   costTableRow: {
     flexDirection: 'row-reverse',
-    padding: 6,
+    padding: 8,
     fontSize: 9,
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
   },
   costCol1: { width: '40%', textAlign: 'right' },
   costCol2: { width: '15%', textAlign: 'center' },
   costCol3: { width: '15%', textAlign: 'center' },
   costCol4: { width: '15%', textAlign: 'center' },
-  costCol5: { width: '15%', textAlign: 'left' },
+  costCol5: { width: '15%', textAlign: 'left', fontWeight: 700 },
   summary: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: '#eff6ff',
-    borderRadius: 4,
+    marginTop: 25,
+    padding: 20,
+    borderRadius: 8,
+    borderWidth: 2,
   },
   summaryRow: {
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
-    marginBottom: 6,
+    marginBottom: 8,
     textAlign: 'right',
+    fontSize: 11,
   },
   summaryLabel: {
-    fontSize: 11,
     fontWeight: 700,
-    color: '#1e40af',
   },
   summaryValue: {
-    fontSize: 11,
-    color: '#1e293b',
+    fontWeight: 700,
   },
   totalRow: {
     flexDirection: 'row-reverse',
     justifyContent: 'space-between',
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 2,
-    borderTopColor: '#2563eb',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 3,
   },
   totalLabel: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: 700,
-    color: '#1e40af',
   },
   totalValue: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: 700,
-    color: '#1e40af',
   },
   footer: {
     position: 'absolute',
@@ -164,16 +204,27 @@ const styles = StyleSheet.create({
   },
   signatureSection: {
     marginTop: 30,
-    padding: 15,
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    borderRadius: 4,
+    padding: 20,
+    borderWidth: 2,
+    borderRadius: 8,
+    backgroundColor: '#fafafa',
   },
   signatureImage: {
     width: 200,
     height: 80,
     marginTop: 10,
     alignSelf: 'flex-end',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 4,
+  },
+  badge: {
+    padding: 4,
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    fontSize: 8,
+    fontWeight: 700,
+    alignSelf: 'flex-start',
   },
 });
 
@@ -199,13 +250,41 @@ export const InspectionReportPDF = ({ report, findings, costs, signature, templa
   const getThemeColors = () => {
     switch (template) {
       case 'modern':
-        return { primary: '#8b5cf6', secondary: '#a78bfa', accent: '#6d28d9', light: '#f3e8ff' };
+        return { 
+          primary: '#8b5cf6', 
+          secondary: '#a78bfa', 
+          accent: '#6d28d9', 
+          light: '#f3e8ff',
+          gradient: ['#8b5cf6', '#a78bfa'],
+          finding: '#faf5ff',
+        };
       case 'elegant':
-        return { primary: '#059669', secondary: '#34d399', accent: '#047857', light: '#d1fae5' };
+        return { 
+          primary: '#059669', 
+          secondary: '#34d399', 
+          accent: '#047857', 
+          light: '#d1fae5',
+          gradient: ['#059669', '#34d399'],
+          finding: '#ecfdf5',
+        };
       case 'premium':
-        return { primary: '#dc2626', secondary: '#f87171', accent: '#991b1b', light: '#fee2e2' };
+        return { 
+          primary: '#dc2626', 
+          secondary: '#f87171', 
+          accent: '#991b1b', 
+          light: '#fee2e2',
+          gradient: ['#dc2626', '#f87171'],
+          finding: '#fef2f2',
+        };
       default: // classic
-        return { primary: '#2563eb', secondary: '#64748b', accent: '#1e40af', light: '#eff6ff' };
+        return { 
+          primary: '#2563eb', 
+          secondary: '#64748b', 
+          accent: '#1e40af', 
+          light: '#eff6ff',
+          gradient: ['#2563eb', '#3b82f6'],
+          finding: '#eff6ff',
+        };
     }
   };
 
@@ -213,18 +292,35 @@ export const InspectionReportPDF = ({ report, findings, costs, signature, templa
 
   // Dynamic styles based on template
   const dynamicStyles = StyleSheet.create({
+    headerGradient: {
+      backgroundColor: colors.light,
+      borderBottomWidth: 3,
+      borderBottomColor: colors.primary,
+    },
     headerBorder: {
       borderBottomColor: colors.primary,
     },
     titleColor: {
       color: colors.accent,
     },
-    findingBg: {
+    sectionTitleBg: {
       backgroundColor: colors.light,
+      color: colors.accent,
+    },
+    findingBg: {
+      backgroundColor: colors.finding,
       borderRightColor: colors.primary,
+    },
+    costTableHeader: {
+      backgroundColor: colors.light,
+      borderColor: colors.secondary,
+    },
+    costTableBorder: {
+      borderColor: colors.secondary,
     },
     summaryBg: {
       backgroundColor: colors.light,
+      borderColor: colors.primary,
     },
     accentText: {
       color: colors.accent,
@@ -246,71 +342,119 @@ export const InspectionReportPDF = ({ report, findings, costs, signature, templa
   // Calculate total cost
   const totalCost = costs.reduce((sum, cost) => sum + (cost.total_price || 0), 0);
 
+  // Get severity badge color
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical': return '#dc2626';
+      case 'high': return '#ea580c';
+      case 'medium': return '#f59e0b';
+      case 'low': return '#84cc16';
+      default: return '#64748b';
+    }
+  };
+
+  const getSeverityLabel = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'קריטי';
+      case 'high': return 'גבוה';
+      case 'medium': return 'בינוני';
+      case 'low': return 'נמוך';
+      default: return severity;
+    }
+  };
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* Watermark for Premium */}
+        {template === 'premium' && (
+          <Text style={styles.watermark}>PREMIUM</Text>
+        )}
+
         {/* Header */}
-        <View style={[styles.header, dynamicStyles.headerBorder]}>
+        <View style={[styles.headerGradient, dynamicStyles.headerGradient]}>
           <View style={{ flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' }}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.title, dynamicStyles.titleColor]}>דוח בדיקה מקצועי</Text>
               <Text style={styles.subtitle}>תאריך: {formatDate(report.created_at)}</Text>
+              <Text style={[styles.badge, { backgroundColor: colors.primary, color: '#fff', marginTop: 8 }]}>
+                {template === 'premium' ? 'תבנית פרימיום' : 
+                 template === 'modern' ? 'תבנית מודרנית' :
+                 template === 'elegant' ? 'תבנית אלגנטית' : 'תבנית קלאסית'}
+              </Text>
             </View>
             {logoUrl && (
-              <Image 
-                src={logoUrl} 
-                style={{ width: 80, height: 60, objectFit: 'contain', marginLeft: 15 }} 
-              />
+              <View style={{ marginLeft: 15 }}>
+                <Image 
+                  src={logoUrl} 
+                  style={styles.logoContainer}
+                />
+              </View>
             )}
           </View>
         </View>
 
         {/* Report Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>פרטי הדוח</Text>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>כותרת:</Text>
-            <Text style={styles.value}>{report.title || 'ללא כותרת'}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>סטטוס:</Text>
-            <Text style={styles.value}>{report.status === 'draft' ? 'טיוטה' : report.status === 'final' ? 'סופי' : 'הושלם'}</Text>
-          </View>
-          {report.property_address && (
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>כתובת נכס:</Text>
-              <Text style={styles.value}>{report.property_address}</Text>
+          <Text style={[styles.sectionTitle, dynamicStyles.sectionTitleBg]}>פרטי הדוח</Text>
+          <View style={styles.infoGrid}>
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>כותרת:</Text>
+                <Text style={styles.value}>{report.title || 'ללא כותרת'}</Text>
+              </View>
             </View>
-          )}
-          {report.client_name && (
-            <View style={styles.infoRow}>
-              <Text style={styles.label}>שם לקוח:</Text>
-              <Text style={styles.value}>{report.client_name}</Text>
+            <View style={styles.infoCard}>
+              <View style={styles.infoRow}>
+                <Text style={styles.label}>סטטוס:</Text>
+                <Text style={styles.value}>{report.status === 'draft' ? 'טיוטה' : report.status === 'final' ? 'סופי' : 'הושלם'}</Text>
+              </View>
             </View>
-          )}
+            {report.property_address && (
+              <View style={styles.infoCard}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>כתובת נכס:</Text>
+                  <Text style={styles.value}>{report.property_address}</Text>
+                </View>
+              </View>
+            )}
+            {report.client_name && (
+              <View style={styles.infoCard}>
+                <View style={styles.infoRow}>
+                  <Text style={styles.label}>שם לקוח:</Text>
+                  <Text style={styles.value}>{report.client_name}</Text>
+                </View>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Findings */}
         {findings.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>ממצאים ({findings.length})</Text>
+            <Text style={[styles.sectionTitle, dynamicStyles.sectionTitleBg]}>ממצאים ({findings.length})</Text>
             {findings.map((finding, index) => (
               <View key={finding.id} style={[styles.finding, dynamicStyles.findingBg]}>
-                <Text style={styles.findingTitle}>
-                  {index + 1}. {finding.title}
-                </Text>
+                <View style={styles.findingHeader}>
+                  <Text style={styles.findingTitle}>
+                    {index + 1}. {finding.title}
+                  </Text>
+                  <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(finding.severity) }]}>
+                    <Text style={{ color: '#fff' }}>{getSeverityLabel(finding.severity)}</Text>
+                  </View>
+                </View>
                 {finding.description && (
                   <Text style={styles.findingDescription}>{finding.description}</Text>
                 )}
                 <Text style={styles.findingMeta}>
-                  חומרה: {finding.severity === 'critical' ? 'קריטי' : finding.severity === 'high' ? 'גבוה' : finding.severity === 'medium' ? 'בינוני' : 'נמוך'} | 
-                  מיקום: {finding.location || 'לא צוין'}
+                  📍 מיקום: {finding.location || 'לא צוין'}
+                  {finding.room && ` | 🏠 חדר: ${finding.room}`}
                 </Text>
 
                 {/* Costs for this finding */}
                 {costsByFinding[finding.id] && costsByFinding[finding.id].length > 0 && (
-                  <View style={styles.costTable}>
-                    <View style={styles.costTableHeader}>
+                  <View style={[styles.costTable, dynamicStyles.costTableBorder]}>
+                    <View style={[styles.costTableHeader, dynamicStyles.costTableHeader]}>
                       <Text style={styles.costCol1}>תיאור</Text>
                       <Text style={styles.costCol2}>כמות</Text>
                       <Text style={styles.costCol3}>יחידה</Text>
@@ -318,7 +462,7 @@ export const InspectionReportPDF = ({ report, findings, costs, signature, templa
                       <Text style={styles.costCol5}>סה"כ</Text>
                     </View>
                     {costsByFinding[finding.id].map((cost) => (
-                      <View key={cost.id} style={styles.costTableRow}>
+                      <View key={cost.id} style={[styles.costTableRow, dynamicStyles.costTableBorder]}>
                         <Text style={styles.costCol1}>{cost.description}</Text>
                         <Text style={styles.costCol2}>{cost.quantity}</Text>
                         <Text style={styles.costCol3}>{cost.unit}</Text>
@@ -336,10 +480,14 @@ export const InspectionReportPDF = ({ report, findings, costs, signature, templa
         {/* Cost Summary */}
         {costs.length > 0 && (
           <View style={[styles.summary, dynamicStyles.summaryBg]}>
-            <Text style={styles.sectionTitle}>סיכום עלויות</Text>
+            <Text style={[styles.sectionTitle, dynamicStyles.sectionTitleBg]}>סיכום עלויות</Text>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>סה"כ פריטים:</Text>
-              <Text style={styles.summaryValue}>{costs.length}</Text>
+              <Text style={[styles.summaryLabel, dynamicStyles.accentText]}>מספר ממצאים:</Text>
+              <Text style={[styles.summaryValue, dynamicStyles.accentText]}>{findings.length}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={[styles.summaryLabel, dynamicStyles.accentText]}>סה"כ פריטי עלות:</Text>
+              <Text style={[styles.summaryValue, dynamicStyles.accentText]}>{costs.length}</Text>
             </View>
             <View style={[styles.totalRow, dynamicStyles.primaryBorder]}>
               <Text style={[styles.totalLabel, dynamicStyles.accentText]}>סה"כ עלות משוערת:</Text>
@@ -350,11 +498,11 @@ export const InspectionReportPDF = ({ report, findings, costs, signature, templa
 
         {/* Signature */}
         {signature && (
-          <View style={styles.signatureSection}>
-            <Text style={[styles.sectionTitle, { backgroundColor: 'transparent' }]}>חתימה</Text>
+          <View style={[styles.signatureSection, { borderColor: colors.primary }]}>
+            <Text style={[styles.sectionTitle, dynamicStyles.sectionTitleBg]}>חתימה דיגיטלית</Text>
             <Image src={signature} style={styles.signatureImage} />
-            <Text style={[styles.subtitle, { marginTop: 5 }]}>
-              נחתם בתאריך: {formatDate(new Date().toISOString())}
+            <Text style={[styles.subtitle, { marginTop: 10, textAlign: 'right' }]}>
+              ✓ נחתם בתאריך: {formatDate(new Date().toISOString())}
             </Text>
           </View>
         )}

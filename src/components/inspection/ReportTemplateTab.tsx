@@ -2,14 +2,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Palette, Upload, Check, Eye, Download } from 'lucide-react';
+import { Palette, Upload, Check, Eye, Download, FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { pdf } from '@react-pdf/renderer';
 import { InspectionReportPDF } from './InspectionReportPDF';
+import { InspectionReportPreview } from './InspectionReportPreview';
 import { useInspectionItems } from '@/hooks/useInspectionItems';
 import { useInspectionCosts } from '@/hooks/useInspectionCosts';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ReportTemplateTabProps {
   report: any;
@@ -50,13 +52,44 @@ const templates = [
 export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTabProps) {
   const [uploading, setUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [viewMode, setViewMode] = useState<'preview' | 'pdf'>('preview');
   const currentTemplate = report.template || 'classic';
 
   // Load findings and costs for preview
   const { data: findings = [] } = useInspectionItems(report.id);
   const { data: costs = [] } = useInspectionCosts(report.id);
 
-  const handlePreviewPDF = async () => {
+  const handleDownloadPDF = async () => {
+    setIsGenerating(true);
+    try {
+      const doc = (
+        <InspectionReportPDF
+          report={report}
+          findings={findings}
+          costs={costs}
+          template={currentTemplate}
+          logoUrl={report.logo_url}
+        />
+      );
+
+      const blob = await pdf(doc).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `דוח-בדיקה-${report.id.slice(0, 8)}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      toast.success('הדוח הורד בהצלחה');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('שגיאה בהורדת הדוח');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleOpenPDF = async () => {
     setIsGenerating(true);
     try {
       const doc = (
@@ -73,10 +106,10 @@ export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTa
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
       
-      toast.success('התצוגה המקדימה נפתחה בחלון חדש');
+      toast.success('הדוח נפתח בחלון חדש');
     } catch (error) {
-      console.error('Error generating preview:', error);
-      toast.error('שגיאה ביצירת תצוגה מקדימה');
+      console.error('Error generating PDF:', error);
+      toast.error('שגיאה בפתיחת הדוח');
     } finally {
       setIsGenerating(false);
     }
@@ -139,30 +172,9 @@ export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTa
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
-              <CardTitle>בחירת תבנית עיצוב</CardTitle>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePreviewPDF}
-              disabled={isGenerating}
-              className="gap-2"
-            >
-              {isGenerating ? (
-                <>
-                  <Download className="h-4 w-4 animate-spin" />
-                  מייצר...
-                </>
-              ) : (
-                <>
-                  <Eye className="h-4 w-4" />
-                  תצוגה מקדימה
-                </>
-              )}
-            </Button>
+          <div className="flex items-center gap-2">
+            <Palette className="h-5 w-5" />
+            <CardTitle>בחירת תבנית עיצוב</CardTitle>
           </div>
           <CardDescription>בחר את סגנון העיצוב של הדוח שיישלח ללקוח</CardDescription>
         </CardHeader>
@@ -188,6 +200,28 @@ export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTa
                 <p className="text-sm text-muted-foreground text-right">{template.description}</p>
               </button>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Live Preview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            תצוגה מקדימה
+          </CardTitle>
+          <CardDescription>כך ייראה הדוח שיישלח ללקוח</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="bg-muted/30 p-6 rounded-lg">
+            <InspectionReportPreview
+              report={report}
+              findings={findings}
+              costs={costs}
+              template={currentTemplate}
+              logoUrl={report.logo_url}
+            />
           </div>
         </CardContent>
       </Card>
