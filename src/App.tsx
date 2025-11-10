@@ -73,6 +73,7 @@ import OrderBudget from "@/pages/supplier/OrderBudget";
 import { MoodBoards } from "@/pages/supplier/MoodBoards";
 import { MoodBoardEditor } from "@/pages/supplier/MoodBoardEditor";
 import { PublicMoodBoard } from "@/pages/PublicMoodBoard";
+import PublicInspectionReport from "./pages/inspection/PublicInspectionReport";
 import ProposalSignature from "./pages/ProposalSignature";
 import SupplierCRM from "./pages/supplier/CRM";
 import QuoteView from "./pages/QuoteView";
@@ -565,6 +566,7 @@ const App = () => {
                 <Route path="/s/:slug/p/:productId" element={<PublicRouteWrapper><PublicProductView /></PublicRouteWrapper>} />
                 <Route path="/s/:slug/orders/:orderId/selections/:groupId?" element={<PublicRouteWrapper><SelectionApproval /></PublicRouteWrapper>} />
                 <Route path="/boards/:token" element={<PublicRouteWrapper><PublicMoodBoard /></PublicRouteWrapper>} />
+                <Route path="/public/inspection/:id" element={<PublicRouteWrapper><PublicInspectionReport /></PublicRouteWrapper>} />
                 
                 {/* Inspiration routes - public */}
                 <Route path="/inspiration" element={<PublicRouteWrapper><Inspiration /></PublicRouteWrapper>} />
