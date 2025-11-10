@@ -1448,7 +1448,11 @@ export type Database = {
           created_by: string | null
           id: string
           inspection_date: string | null
+          inspector_company: string | null
+          inspector_email: string | null
+          inspector_license: string | null
           inspector_name: string | null
+          inspector_phone: string | null
           inspector_signature_url: string | null
           intro_text: string | null
           is_recurring: boolean | null
@@ -1477,7 +1481,11 @@ export type Database = {
           created_by?: string | null
           id?: string
           inspection_date?: string | null
+          inspector_company?: string | null
+          inspector_email?: string | null
+          inspector_license?: string | null
           inspector_name?: string | null
+          inspector_phone?: string | null
           inspector_signature_url?: string | null
           intro_text?: string | null
           is_recurring?: boolean | null
@@ -1506,7 +1514,11 @@ export type Database = {
           created_by?: string | null
           id?: string
           inspection_date?: string | null
+          inspector_company?: string | null
+          inspector_email?: string | null
+          inspector_license?: string | null
           inspector_name?: string | null
+          inspector_phone?: string | null
           inspector_signature_url?: string | null
           intro_text?: string | null
           is_recurring?: boolean | null

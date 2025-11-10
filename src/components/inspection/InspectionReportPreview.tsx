@@ -112,7 +112,7 @@ export const InspectionReportPreview: React.FC<InspectionReportPreviewProps> = (
       <CardContent className="p-8 space-y-6">
         {/* Header */}
         <div className={`${theme.headerBg} ${theme.headerBorder} border-b-4 p-6 rounded-t-lg`}>
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start gap-6">
             <div className="flex-1">
               <h1 className={`text-4xl font-bold ${theme.primaryColor} mb-2`}>
                 דוח בדיקה מקצועי
@@ -126,15 +126,46 @@ export const InspectionReportPreview: React.FC<InspectionReportPreviewProps> = (
                  template === 'elegant' ? 'תבנית אלגנטית' : 'תבנית קלאסית'}
               </Badge>
             </div>
-            {logoUrl && (
-              <div className="mr-6">
-                <img 
-                  src={logoUrl} 
-                  alt="Company Logo" 
-                  className="h-20 w-auto object-contain"
-                />
-              </div>
-            )}
+            
+            {/* Inspector info and logo on the left */}
+            <div className="flex flex-col items-start gap-3">
+              {logoUrl && (
+                <div className="mr-6">
+                  <img 
+                    src={logoUrl} 
+                    alt="Company Logo" 
+                    className="h-20 w-auto object-contain"
+                  />
+                </div>
+              )}
+              {report.inspector_name && (
+                <div className="text-right space-y-1">
+                  <p className={`font-bold text-base ${theme.accentColor}`}>
+                    {report.inspector_name}
+                  </p>
+                  {report.inspector_company && (
+                    <p className="text-sm text-muted-foreground">
+                      {report.inspector_company}
+                    </p>
+                  )}
+                  {report.inspector_license && (
+                    <p className="text-xs text-muted-foreground">
+                      רישיון: {report.inspector_license}
+                    </p>
+                  )}
+                  {report.inspector_phone && (
+                    <p className="text-xs text-muted-foreground">
+                      ☎ {report.inspector_phone}
+                    </p>
+                  )}
+                  {report.inspector_email && (
+                    <p className="text-xs text-muted-foreground">
+                      ✉ {report.inspector_email}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

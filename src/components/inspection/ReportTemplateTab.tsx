@@ -144,13 +144,13 @@ export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTa
       const filePath = `inspection-logos/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('inspection_reports')
+        .from('inspection-reports')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('inspection_reports')
+        .from('inspection-reports')
         .getPublicUrl(filePath);
 
       onUpdate({ logo_url: publicUrl });

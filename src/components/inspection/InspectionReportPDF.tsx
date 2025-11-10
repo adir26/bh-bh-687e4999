@@ -373,7 +373,7 @@ export const InspectionReportPDF = ({ report, findings, costs, signature, templa
 
         {/* Header */}
         <View style={[styles.headerGradient, dynamicStyles.headerGradient]}>
-          <View style={{ flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View style={{ flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.title, dynamicStyles.titleColor]}>דוח בדיקה מקצועי</Text>
               <Text style={styles.subtitle}>תאריך: {formatDate(report.created_at)}</Text>
@@ -383,14 +383,43 @@ export const InspectionReportPDF = ({ report, findings, costs, signature, templa
                  template === 'elegant' ? 'תבנית אלגנטית' : 'תבנית קלאסית'}
               </Text>
             </View>
-            {logoUrl && (
-              <View style={{ marginLeft: 15 }}>
+            
+            {/* Inspector info and logo on the left */}
+            <View style={{ marginLeft: 15, alignItems: 'flex-start' }}>
+              {logoUrl && (
                 <Image 
                   src={logoUrl} 
                   style={styles.logoContainer}
                 />
-              </View>
-            )}
+              )}
+              {report.inspector_name && (
+                <View style={{ marginTop: 10, alignItems: 'flex-start' }}>
+                  <Text style={{ fontSize: 10, fontWeight: 700, color: colors.accent, marginBottom: 4 }}>
+                    {report.inspector_name}
+                  </Text>
+                  {report.inspector_company && (
+                    <Text style={{ fontSize: 8, color: '#64748b', marginBottom: 2 }}>
+                      {report.inspector_company}
+                    </Text>
+                  )}
+                  {report.inspector_license && (
+                    <Text style={{ fontSize: 8, color: '#64748b', marginBottom: 2 }}>
+                      רישיון: {report.inspector_license}
+                    </Text>
+                  )}
+                  {report.inspector_phone && (
+                    <Text style={{ fontSize: 8, color: '#64748b', marginBottom: 2 }}>
+                      ☎ {report.inspector_phone}
+                    </Text>
+                  )}
+                  {report.inspector_email && (
+                    <Text style={{ fontSize: 8, color: '#64748b' }}>
+                      ✉ {report.inspector_email}
+                    </Text>
+                  )}
+                </View>
+              )}
+            </View>
           </View>
         </View>
 
