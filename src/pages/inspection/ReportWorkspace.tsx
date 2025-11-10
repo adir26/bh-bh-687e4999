@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
-import { ArrowRight, Save, FileText } from 'lucide-react';
+import { ArrowRight, Save, FileText, CheckCircle } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { toast } from 'sonner';
 import ReportDetailsTab from '@/components/inspection/ReportDetailsTab';
@@ -71,6 +71,13 @@ export default function ReportWorkspace() {
     },
   });
 
+  const handleMarkAsFinal = () => {
+    updateReport.mutate({ 
+      status: 'final',
+      version: report!.version + 1
+    });
+  };
+
 
 
   const reportTypeLabels: Record<string, string> = {
@@ -116,6 +123,16 @@ export default function ReportWorkspace() {
                     {reportTypeLabels[report.report_type] || report.report_type}
                   </h1>
                   <div className="flex items-center gap-3 flex-wrap">
+                    <Badge className={`${
+                      report.status === 'final' || report.status === 'sent' 
+                        ? 'bg-green-500/20 text-green-100 border-green-400/30' 
+                        : 'bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30'
+                    }`}>
+                      {report.status === 'draft' && 'טיוטה'}
+                      {report.status === 'in_progress' && 'בתהליך'}
+                      {report.status === 'final' && 'סופי'}
+                      {report.status === 'sent' && 'נשלח'}
+                    </Badge>
                     <Badge className="bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30">
                       גרסה {report.version}
                     </Badge>
@@ -124,6 +141,17 @@ export default function ReportWorkspace() {
                     </p>
                   </div>
                 </div>
+                {report.status === 'draft' && (
+                  <Button
+                    onClick={handleMarkAsFinal}
+                    disabled={updateReport.isPending}
+                    size="lg"
+                    className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg font-bold"
+                  >
+                    <CheckCircle className="ml-2 h-5 w-5" />
+                    סמן כסופי
+                  </Button>
+                )}
               </div>
             </div>
             <div className="absolute top-0 right-0 w-64 h-64 bg-primary-foreground/10 rounded-full blur-3xl" />
