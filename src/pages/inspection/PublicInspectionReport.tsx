@@ -36,19 +36,24 @@ export default function PublicInspectionReport() {
 
       if (findingsRes.error) throw findingsRes.error;
 
-      // Fetch costs - cast to any to avoid TS error
-      const costsRes = await (supabase as any)
-        .from('inspection_costs')
-        .select('*')
-        .eq('report_id', id);
+      // Fetch costs for all findings in this report
+      const findingIds = (findingsRes.data || []).map(f => f.id);
+      let mappedCosts: any[] = [];
+      
+      if (findingIds.length > 0) {
+        const costsRes = await supabase
+          .from('inspection_costs')
+          .select('*')
+          .in('item_id', findingIds);
 
-      if (costsRes.error) throw costsRes.error;
+        if (costsRes.error) throw costsRes.error;
 
-      // Map costs to match expected format
-      const mappedCosts = (costsRes.data || []).map((cost: any) => ({
-        ...cost,
-        total_price: cost.total || cost.total_price,
-      }));
+        // Map costs to match expected format
+        mappedCosts = (costsRes.data || []).map((cost: any) => ({
+          ...cost,
+          total_price: cost.total || cost.total_price,
+        }));
+      }
 
       return {
         report: reportRes.data,
