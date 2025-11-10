@@ -1299,49 +1299,227 @@ export type Database = {
           },
         ]
       }
+      inspection_costs: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          quantity: number
+          total: number | null
+          unit: string
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          quantity?: number
+          total?: number | null
+          unit?: string
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          quantity?: number
+          total?: number | null
+          unit?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_costs_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          report_id: string
+          severity: string | null
+          standard_clause: string | null
+          standard_code: string | null
+          standard_quote: string | null
+          status_check: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          report_id: string
+          severity?: string | null
+          standard_clause?: string | null
+          standard_code?: string | null
+          standard_quote?: string | null
+          status_check?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          report_id?: string
+          severity?: string | null
+          standard_clause?: string | null
+          standard_code?: string | null
+          standard_quote?: string | null
+          status_check?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_items_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_media: {
+        Row: {
+          caption: string | null
+          created_at: string
+          id: string
+          item_id: string | null
+          report_id: string
+          type: string
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          report_id: string
+          type: string
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          report_id?: string
+          type?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_media_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_media_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspection_reports: {
         Row: {
+          address: string | null
+          brand_color: string | null
           client_id: string
+          client_signature_url: string | null
           created_at: string
           created_by: string | null
           id: string
+          inspection_date: string | null
+          inspector_name: string | null
+          inspector_signature_url: string | null
+          intro_text: string | null
           is_recurring: boolean | null
+          logo_url: string | null
           notes: string | null
+          outro_text: string | null
           pdf_url: string | null
           project_id: string | null
+          project_name: string | null
+          report_sent_at: string | null
+          report_sent_via: string | null
           report_type: string
           status: string
           supplier_id: string
+          template_id: string | null
           updated_at: string
           version: number
         }
         Insert: {
+          address?: string | null
+          brand_color?: string | null
           client_id: string
+          client_signature_url?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
+          inspection_date?: string | null
+          inspector_name?: string | null
+          inspector_signature_url?: string | null
+          intro_text?: string | null
           is_recurring?: boolean | null
+          logo_url?: string | null
           notes?: string | null
+          outro_text?: string | null
           pdf_url?: string | null
           project_id?: string | null
+          project_name?: string | null
+          report_sent_at?: string | null
+          report_sent_via?: string | null
           report_type: string
           status?: string
           supplier_id: string
+          template_id?: string | null
           updated_at?: string
           version?: number
         }
         Update: {
+          address?: string | null
+          brand_color?: string | null
           client_id?: string
+          client_signature_url?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
+          inspection_date?: string | null
+          inspector_name?: string | null
+          inspector_signature_url?: string | null
+          intro_text?: string | null
           is_recurring?: boolean | null
+          logo_url?: string | null
           notes?: string | null
+          outro_text?: string | null
           pdf_url?: string | null
           project_id?: string | null
+          project_name?: string | null
+          report_sent_at?: string | null
+          report_sent_via?: string | null
           report_type?: string
           status?: string
           supplier_id?: string
+          template_id?: string | null
           updated_at?: string
           version?: number
         }
@@ -1353,7 +1531,56 @@ export type Database = {
             referencedRelation: "projects"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "inspection_reports_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_templates"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      inspection_templates: {
+        Row: {
+          brand_color: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          intro_text: string | null
+          layout_json: Json | null
+          logo_url: string | null
+          name: string
+          outro_text: string | null
+          report_type: string
+          updated_at: string
+        }
+        Insert: {
+          brand_color?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          intro_text?: string | null
+          layout_json?: Json | null
+          logo_url?: string | null
+          name: string
+          outro_text?: string | null
+          report_type: string
+          updated_at?: string
+        }
+        Update: {
+          brand_color?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          intro_text?: string | null
+          layout_json?: Json | null
+          logo_url?: string | null
+          name?: string
+          outro_text?: string | null
+          report_type?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       kpi_daily: {
         Row: {
@@ -4068,6 +4295,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      standards_library: {
+        Row: {
+          category: string
+          created_at: string
+          default_severity: string | null
+          description: string | null
+          domain: string
+          id: string
+          standard_clause: string | null
+          standard_code: string | null
+          standard_quote: string | null
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          default_severity?: string | null
+          description?: string | null
+          domain: string
+          id?: string
+          standard_clause?: string | null
+          standard_code?: string | null
+          standard_quote?: string | null
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          default_severity?: string | null
+          description?: string | null
+          domain?: string
+          id?: string
+          standard_clause?: string | null
+          standard_code?: string | null
+          standard_quote?: string | null
+          title?: string
+        }
+        Relationships: []
       }
       supplier_verifications: {
         Row: {
