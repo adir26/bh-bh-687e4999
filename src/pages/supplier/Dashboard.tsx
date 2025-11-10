@@ -9,11 +9,12 @@ import { supplierService } from '@/services/supabaseService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { showToast } from '@/utils/toast';
-import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye, FileText, Package2, Package, Briefcase, Settings } from 'lucide-react';
+import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye, FileText, Package2, Package, Briefcase, Settings, ClipboardCheck } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { withTimeout } from '@/lib/withTimeout';
 const quickActions = [
   { title: 'עריכת פרופיל חברה', icon: Edit, path: '/supplier/profile' },
+  { title: 'דוחות בדק-בית', icon: ClipboardCheck, path: '/inspection/dashboard' },
   { title: 'הצעות מחיר', icon: FileText, path: '/supplier/quotes' },
   { title: 'ניהול הזמנות', icon: Package2, path: '/supplier/orders' },
   { title: 'נהל לידים', icon: Users, path: '/supplier/leads' },
