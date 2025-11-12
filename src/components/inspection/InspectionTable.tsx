@@ -13,19 +13,35 @@ import {
   Copy, 
   FileText, 
   Share2,
-  MoreVertical 
+  MoreVertical,
+  Trash2
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { InspectionReport } from '@/hooks/useInspectionReports';
 import { EmptyState } from '@/components/ui/empty-state';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { showToast } from '@/utils/toast';
+import { useState } from 'react';
 
 interface InspectionTableProps {
   reports: InspectionReport[];
@@ -53,6 +69,30 @@ const reportTypeLabels: Record<string, string> = {
 
 export function InspectionTable({ reports, loading }: InspectionTableProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<string | null>(null);
+
+  const deleteMutation = useMutation({
+    mutationFn: async (reportId: string) => {
+      const { error } = await supabase
+        .from('inspection_reports')
+        .delete()
+        .eq('id', reportId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inspection-reports'] });
+      queryClient.invalidateQueries({ queryKey: ['inspection-kpis'] });
+      showToast.success('הדוח נמחק בהצלחה');
+      setDeleteDialogOpen(false);
+      setReportToDelete(null);
+    },
+    onError: (error: any) => {
+      showToast.error(error.message || 'שגיאה במחיקת הדוח');
+    },
+  });
 
   if (!loading && reports.length === 0) {
     return (
@@ -88,7 +128,39 @@ export function InspectionTable({ reports, loading }: InspectionTableProps) {
     // TODO: Implement in next phase
   };
 
+  const handleDeleteClick = (reportId: string) => {
+    setReportToDelete(reportId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (reportToDelete) {
+      deleteMutation.mutate(reportToDelete);
+    }
+  };
+
   return (
+    <>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>מחיקת דוח</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם אתה בטוח שברצונך למחוק דוח זה? פעולה זו אינה ניתנת לביטול.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>ביטול</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'מוחק...' : 'מחק'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     <div className="border rounded-lg overflow-hidden">
       <Table>
         <TableHeader>
@@ -159,6 +231,14 @@ export function InspectionTable({ reports, loading }: InspectionTableProps) {
                         <Share2 className="h-4 w-4 ml-2" />
                         שתף דוח
                       </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => handleDeleteClick(report.id)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 ml-2" />
+                        מחק דוח
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -168,5 +248,6 @@ export function InspectionTable({ reports, loading }: InspectionTableProps) {
         </TableBody>
       </Table>
     </div>
+    </>
   );
 }
