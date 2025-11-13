@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateInspectionItem, useUpdateInspectionItem } from '@/hooks/useInspectionItems';
 import { useStandardsLibrary } from '@/hooks/useStandardsLibrary';
-import { useInspectionFindings, useInspectionFindingCategories } from '@/hooks/useInspectionFindings';
+import { useInspectionFindings, useInspectionFindingCategories, useInspectionFindingSubCategories } from '@/hooks/useInspectionFindings';
 import { useItemCosts, useDeleteInspectionCost, useCreateInspectionCost } from '@/hooks/useInspectionCosts';
 import { useInspectionMedia, useUploadInspectionMedia, useDeleteInspectionMedia } from '@/hooks/useInspectionMedia';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -277,13 +277,13 @@ export default function FindingFormSheet({ reportId, item, open, onClose }: Find
                                 <Check
                                   className={cn(
                                     'ml-2 h-4 w-4',
-                                    formData.title === finding.finding ? 'opacity-100' : 'opacity-0'
+                                    formData.title === finding.finding_name ? 'opacity-100' : 'opacity-0'
                                   )}
                                 />
                                 <div className="flex-1">
-                                  <div className="font-medium">{finding.finding}</div>
-                                  <div className="text-xs text-muted-foreground line-clamp-1">
-                                    {finding.description}
+                                <div className="font-medium">{finding.finding_name}</div>
+                                <div className="text-xs text-muted-foreground line-clamp-1">
+                                  {finding.finding_description}
                                   </div>
                                 </div>
                               </CommandItem>
