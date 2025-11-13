@@ -444,198 +444,334 @@ export default function FindingFormSheet({ reportId, item, open, onClose }: Find
             </div>
           )}
 
-          {/* Media Section (only for existing items) */}
-          {item?.id && (
-            <>
-              <Separator className="my-4" />
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="flex items-center gap-2">
-                    <Image className="h-4 w-4" />
-                    תמונות מצורפות
-                  </Label>
-                  <span className="text-sm text-muted-foreground">
-                    {existingMedia.filter(m => m.type === 'photo').length} תמונות
-                  </span>
-                </div>
-
-                {mediaLoading ? (
-                  <p className="text-sm text-muted-foreground">טוען תמונות...</p>
-                ) : existingMedia.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-2">
-                    {existingMedia.filter(m => m.type === 'photo').map((item) => (
-                      <div key={item.id} className="relative group aspect-square rounded-lg overflow-hidden border">
-                        <img
-                          src={item.url}
-                          alt={item.caption || 'תמונה'}
-                          className="w-full h-full object-cover"
-                        />
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => deleteMedia.mutate({ id: item.id, reportId, url: item.url })}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">אין תמונות מצורפות</p>
-                )}
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileSelect}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadMedia.isPending}
-                  className="w-full"
-                >
-                  <Upload className="ml-2 h-4 w-4" />
-                  {uploadMedia.isPending ? 'מעלה...' : 'העלה תמונות'}
-                </Button>
+          {/* Media Section */}
+          <>
+            <Separator className="my-4" />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  <Image className="h-4 w-4" />
+                  תמונות ווידאו
+                </Label>
+                <span className="text-sm text-muted-foreground">
+                  {item?.id 
+                    ? `${existingMedia.filter(m => m.type === 'photo').length} תמונות`
+                    : `${newMediaFiles.length} קבצים`
+                  }
+                </span>
               </div>
-            </>
-          )}
 
-          {/* Costs Section (only for existing items) */}
-          {item?.id && (
-            <>
-              <Separator className="my-4" />
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
-                    עלויות משוערות
-                  </Label>
-                  {costs.length > 0 && (
-                    <span className="text-sm font-medium">
-                      סה"כ: ₪{totalCost.toLocaleString()}
-                    </span>
+              {item?.id ? (
+                // Existing item - show uploaded media
+                <>
+                  {mediaLoading ? (
+                    <p className="text-sm text-muted-foreground">טוען תמונות...</p>
+                  ) : existingMedia.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {existingMedia.filter(m => m.type === 'photo').map((mediaItem) => (
+                        <div key={mediaItem.id} className="relative group aspect-square rounded-lg overflow-hidden border">
+                          <img
+                            src={mediaItem.url}
+                            alt={mediaItem.caption || 'תמונה'}
+                            className="w-full h-full object-cover"
+                          />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => deleteMedia.mutate({ id: mediaItem.id, reportId, url: mediaItem.url })}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">אין תמונות מצורפות</p>
                   )}
-                </div>
-
-                {costsLoading ? (
-                  <p className="text-sm text-muted-foreground">טוען עלויות...</p>
-                ) : existingCosts.length > 0 ? (
-                  <div className="space-y-2">
-                    {existingCosts.map((cost) => (
-                      <div key={cost.id} className="flex items-center gap-2 p-2 border rounded-lg bg-background">
-                        <div className="flex-1 grid grid-cols-4 gap-2 text-sm">
-                          <span className="font-medium">{cost.quantity} {cost.unit}</span>
-                          <span>₪{cost.unit_price}</span>
-                          <span className="font-semibold">₪{cost.total}</span>
+                </>
+              ) : (
+                // New item - show files to upload
+                <>
+                  {newMediaFiles.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {newMediaFiles.map((file, index) => (
+                        <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border">
+                          {file.type.startsWith('video/') ? (
+                            <div className="w-full h-full bg-muted flex items-center justify-center">
+                              <div className="text-4xl">🎥</div>
+                            </div>
+                          ) : (
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={file.name}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handleRemoveNewMedia(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                          <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-[10px] text-white">
+                            {(file.size / 1024 / 1024).toFixed(1)}MB
+                          </div>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deleteCost.mutate({ id: cost.id, itemId: item.id })}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">אין עלויות. הוסף עלות כדי להעריך את עלות התיקון.</p>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 border-2 border-dashed rounded-lg">
+                      <p className="text-sm text-muted-foreground">
+                        לא נבחרו קבצים
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        הקבצים יועלו לאחר שמירת הממצא
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadMedia.isPending}
+                className="w-full"
+              >
+                <Upload className="ml-2 h-4 w-4" />
+                {uploadMedia.isPending ? 'מעלה...' : 'העלה קבצים'}
+              </Button>
+            </div>
+          </>
+
+          {/* Costs Section */}
+          <>
+            <Separator className="my-4" />
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  עלויות משוערות
+                </Label>
+                {costs.length > 0 && (
+                  <span className="text-sm font-medium">
+                    סה"כ: ₪{totalCost.toLocaleString()}
+                  </span>
                 )}
+              </div>
 
-                {showAddCost ? (
-                  <div className="border rounded-lg p-3 bg-muted/20 space-y-3">
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        const formData = new FormData(e.currentTarget);
-                        const quantity = parseFloat(formData.get('quantity') as string) || 0;
-                        const unit = formData.get('unit') as string;
-                        const unit_price = parseFloat(formData.get('unit_price') as string) || 0;
-                        
-                        if (quantity && unit_price) {
-                          createCost.mutate(
-                            { item_id: item.id, quantity, unit, unit_price },
-                            { onSuccess: () => setShowAddCost(false) }
-                          );
-                        }
-                      }}
-                      className="space-y-3"
-                    >
-                      <div className="grid grid-cols-3 gap-2">
-                        <div>
-                          <Label htmlFor="quantity" className="text-xs">כמות</Label>
-                          <Input
-                            id="quantity"
-                            name="quantity"
-                            type="number"
-                            defaultValue={1}
-                            min="0"
-                            step="0.01"
-                            className="h-8"
-                            required
-                          />
+              {item?.id ? (
+                // Existing item - show saved costs
+                <>
+                  {costsLoading ? (
+                    <p className="text-sm text-muted-foreground">טוען עלויות...</p>
+                  ) : existingCosts.length > 0 ? (
+                    <div className="space-y-2">
+                      {existingCosts.map((cost) => (
+                        <div key={cost.id} className="flex items-center gap-2 p-2 border rounded-lg bg-background">
+                          <div className="flex-1 grid grid-cols-4 gap-2 text-sm">
+                            <span className="font-medium">{cost.quantity} {cost.unit}</span>
+                            <span>₪{cost.unit_price}</span>
+                            <span className="font-semibold">₪{cost.total}</span>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => deleteCost.mutate({ id: cost.id, itemId: item.id })}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
-                        <div>
-                          <Label htmlFor="unit" className="text-xs">יחידה</Label>
-                          <Input
-                            id="unit"
-                            name="unit"
-                            defaultValue="יחידה"
-                            className="h-8"
-                            placeholder="יחידה, מ״ר..."
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="unit_price" className="text-xs">מחיר</Label>
-                          <Input
-                            id="unit_price"
-                            name="unit_price"
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            className="h-8"
-                            placeholder="₪"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button type="submit" size="sm" className="flex-1">
-                          שמור עלות
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowAddCost(false)}
-                        >
-                          ביטול
-                        </Button>
-                      </div>
-                    </form>
-                  </div>
-                ) : (
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">אין עלויות</p>
+                  )}
+
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowAddCost(true)}
+                    onClick={() => setShowAddCost(!showAddCost)}
+                    className="w-full"
+                  >
+                    {showAddCost ? 'ביטול' : '+ הוסף עלות'}
+                  </Button>
+
+                  {showAddCost && (
+                    <div className="border rounded-lg p-3 bg-muted/20">
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const formData = new FormData(e.currentTarget);
+                          const quantity = parseFloat(formData.get('quantity') as string) || 0;
+                          const unit = formData.get('unit') as string || 'יחידה';
+                          const unit_price = parseFloat(formData.get('unit_price') as string) || 0;
+                          
+                          if (quantity && unit_price) {
+                            createCost.mutate(
+                              { item_id: item.id, quantity, unit, unit_price },
+                              { onSuccess: () => setShowAddCost(false) }
+                            );
+                          }
+                        }}
+                        className="space-y-3"
+                      >
+                        <div className="grid grid-cols-3 gap-2">
+                          <div>
+                            <Label htmlFor="quantity" className="text-xs">כמות</Label>
+                            <Input
+                              id="quantity"
+                              name="quantity"
+                              type="number"
+                              defaultValue={1}
+                              min="0"
+                              step="0.01"
+                              className="h-8"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="unit" className="text-xs">יחידה</Label>
+                            <Input
+                              id="unit"
+                              name="unit"
+                              defaultValue="יחידה"
+                              className="h-8"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="unit_price" className="text-xs">מחיר ליח׳</Label>
+                            <Input
+                              id="unit_price"
+                              name="unit_price"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              className="h-8"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <Button type="submit" size="sm" className="w-full" disabled={createCost.isPending}>
+                          {createCost.isPending ? 'שומר...' : 'שמור עלות'}
+                        </Button>
+                      </form>
+                    </div>
+                  )}
+                </>
+              ) : (
+                // New item - show temporary costs
+                <>
+                  {newCosts.length > 0 ? (
+                    <div className="space-y-2">
+                      {newCosts.map((cost, index) => (
+                        <div key={index} className="border rounded-lg p-3 bg-muted/20">
+                          <div className="grid grid-cols-12 gap-2 items-end">
+                            <div className="col-span-3">
+                              <Label className="text-xs">כמות</Label>
+                              <Input
+                                type="number"
+                                value={cost.quantity}
+                                onChange={(e) =>
+                                  handleNewCostChange(index, 'quantity', parseFloat(e.target.value) || 0)
+                                }
+                                min="0"
+                                step="0.01"
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="col-span-3">
+                              <Label className="text-xs">יחידה</Label>
+                              <Select
+                                value={cost.unit}
+                                onValueChange={(value) => handleNewCostChange(index, 'unit', value)}
+                              >
+                                <SelectTrigger className="h-8">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="יחידה">יחידה</SelectItem>
+                                  <SelectItem value="מ״ר">מ״ר</SelectItem>
+                                  <SelectItem value="מ״א">מ״א</SelectItem>
+                                  <SelectItem value="שעות עבודה">שעות עבודה</SelectItem>
+                                  <SelectItem value="קומפלט">קומפלט</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="col-span-3">
+                              <Label className="text-xs">מחיר ליח׳</Label>
+                              <Input
+                                type="number"
+                                value={cost.unit_price}
+                                onChange={(e) =>
+                                  handleNewCostChange(index, 'unit_price', parseFloat(e.target.value) || 0)
+                                }
+                                min="0"
+                                step="0.01"
+                                className="h-8"
+                              />
+                            </div>
+                            <div className="col-span-2">
+                              <Label className="text-xs">סה״כ</Label>
+                              <Input
+                                type="number"
+                                value={cost.total.toFixed(2)}
+                                readOnly
+                                className="bg-muted h-8"
+                              />
+                            </div>
+                            <div className="col-span-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveNewCost(index)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 border-2 border-dashed rounded-lg">
+                      <p className="text-sm text-muted-foreground">לא הוגדרו עלויות</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        העלויות יישמרו לאחר שמירת הממצא
+                      </p>
+                    </div>
+                  )}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddNewCost}
                     className="w-full"
                   >
                     + הוסף עלות
                   </Button>
-                )}
-              </div>
-            </>
-          )}
+                </>
+              )}
+            </div>
+          </>
 
           {/* Actions */}
           <div className="flex gap-2 pt-4">
