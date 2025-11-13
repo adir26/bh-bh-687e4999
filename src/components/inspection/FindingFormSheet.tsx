@@ -63,39 +63,80 @@ export default function FindingFormSheet({ reportId, item, open, onClose }: Find
   const createItem = useCreateInspectionItem();
   const updateItem = useUpdateInspectionItem();
   
-  // Costs management (only for existing items)
-  const { data: costs = [], isLoading: costsLoading } = useItemCosts(item?.id || '');
+  // Costs management
+  const { data: existingCosts = [], isLoading: costsLoading } = useItemCosts(item?.id || '');
   const deleteCost = useDeleteInspectionCost();
   const createCost = useCreateInspectionCost();
   const [showAddCost, setShowAddCost] = useState(false);
+  
+  // New costs for new items
+  const [newCosts, setNewCosts] = useState<Array<{
+    quantity: number;
+    unit: string;
+    unit_price: number;
+    total: number;
+  }>>([]);
 
+  const costs = item?.id ? existingCosts : newCosts;
   const totalCost = costs.reduce((sum, cost) => sum + (cost.total || 0), 0);
 
-  // Media management (only for existing items)
-  const { data: media = [], isLoading: mediaLoading } = useInspectionMedia(reportId, item?.id);
+  // Media management
+  const { data: existingMedia = [], isLoading: mediaLoading } = useInspectionMedia(reportId, item?.id);
   const uploadMedia = useUploadInspectionMedia();
   const deleteMedia = useDeleteInspectionMedia();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // New media files for new items
+  const [newMediaFiles, setNewMediaFiles] = useState<File[]>([]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || !item?.id) return;
+    if (!files) return;
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.type.startsWith('image/')) {
-        await uploadMedia.mutateAsync({
-          file,
-          reportId,
-          itemId: item.id,
-          type: 'photo',
-        });
+    if (item?.id) {
+      // Existing item - upload immediately
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+          await uploadMedia.mutateAsync({
+            file,
+            reportId,
+            itemId: item.id,
+            type: file.type.startsWith('video/') ? 'video' : 'photo',
+          });
+        }
       }
+    } else {
+      // New item - store files to upload after creation
+      setNewMediaFiles([...newMediaFiles, ...Array.from(files)]);
     }
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleRemoveNewMedia = (index: number) => {
+    setNewMediaFiles(newMediaFiles.filter((_, i) => i !== index));
+  };
+
+  const handleAddNewCost = () => {
+    setNewCosts([...newCosts, { quantity: 1, unit: 'יחידה', unit_price: 0, total: 0 }]);
+  };
+
+  const handleRemoveNewCost = (index: number) => {
+    setNewCosts(newCosts.filter((_, i) => i !== index));
+  };
+
+  const handleNewCostChange = (index: number, field: string, value: any) => {
+    const updated = [...newCosts];
+    updated[index] = { ...updated[index], [field]: value };
+    
+    if (field === 'quantity' || field === 'unit_price') {
+      updated[index].total = updated[index].quantity * updated[index].unit_price;
+    }
+    
+    setNewCosts(updated);
   };
 
   useEffect(() => {
@@ -414,15 +455,15 @@ export default function FindingFormSheet({ reportId, item, open, onClose }: Find
                     תמונות מצורפות
                   </Label>
                   <span className="text-sm text-muted-foreground">
-                    {media.filter(m => m.type === 'photo').length} תמונות
+                    {existingMedia.filter(m => m.type === 'photo').length} תמונות
                   </span>
                 </div>
 
                 {mediaLoading ? (
                   <p className="text-sm text-muted-foreground">טוען תמונות...</p>
-                ) : media.length > 0 ? (
+                ) : existingMedia.length > 0 ? (
                   <div className="grid grid-cols-3 gap-2">
-                    {media.filter(m => m.type === 'photo').map((item) => (
+                    {existingMedia.filter(m => m.type === 'photo').map((item) => (
                       <div key={item.id} className="relative group aspect-square rounded-lg overflow-hidden border">
                         <img
                           src={item.url}
@@ -486,9 +527,9 @@ export default function FindingFormSheet({ reportId, item, open, onClose }: Find
 
                 {costsLoading ? (
                   <p className="text-sm text-muted-foreground">טוען עלויות...</p>
-                ) : costs.length > 0 ? (
+                ) : existingCosts.length > 0 ? (
                   <div className="space-y-2">
-                    {costs.map((cost) => (
+                    {existingCosts.map((cost) => (
                       <div key={cost.id} className="flex items-center gap-2 p-2 border rounded-lg bg-background">
                         <div className="flex-1 grid grid-cols-4 gap-2 text-sm">
                           <span className="font-medium">{cost.quantity} {cost.unit}</span>
