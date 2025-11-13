@@ -55,5 +55,7 @@ export function useInspectionFindingCategories() {
       const uniqueCategories = [...new Set(data.map(d => d.category))];
       return uniqueCategories;
     },
+    staleTime: 0,
+    refetchOnMount: true,
   });
 }
