@@ -1337,6 +1337,30 @@ export type Database = {
           },
         ]
       }
+      inspection_findings: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          finding: string
+          id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          finding: string
+          id?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          finding?: string
+          id?: string
+        }
+        Relationships: []
+      }
       inspection_items: {
         Row: {
           category: string

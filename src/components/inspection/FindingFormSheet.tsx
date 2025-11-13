@@ -8,12 +8,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateInspectionItem, useUpdateInspectionItem } from '@/hooks/useInspectionItems';
 import { useStandardsLibrary } from '@/hooks/useStandardsLibrary';
+import { useInspectionFindings, useInspectionFindingCategories } from '@/hooks/useInspectionFindings';
 import { useItemCosts, useDeleteInspectionCost, useCreateInspectionCost } from '@/hooks/useInspectionCosts';
 import { useInspectionMedia, useUploadInspectionMedia, useDeleteInspectionMedia } from '@/hooks/useInspectionMedia';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
-import { Check, ChevronsUpDown, DollarSign, Trash2, Image, Upload, X } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Check, ChevronsUpDown, DollarSign, Trash2, Image, Upload, X, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FindingFormSheetProps {
@@ -22,18 +24,6 @@ interface FindingFormSheetProps {
   open: boolean;
   onClose: () => void;
 }
-
-const categories = [
-  'קירות',
-  'רצפה',
-  'תקרה',
-  'אינסטלציה',
-  'חשמל',
-  'דלתות וחלונות',
-  'מערכות',
-  'גימורים',
-  'אחר',
-];
 
 export default function FindingFormSheet({ reportId, item, open, onClose }: FindingFormSheetProps) {
   const [formData, setFormData] = useState<{
@@ -58,10 +48,18 @@ export default function FindingFormSheet({ reportId, item, open, onClose }: Find
     standard_quote: '',
   });
 
+  const [findingSearch, setFindingSearch] = useState('');
+  const [findingOpen, setFindingOpen] = useState(false);
   const [standardSearch, setStandardSearch] = useState('');
   const [standardOpen, setStandardOpen] = useState(false);
 
+  // Findings library
+  const { data: findingCategories = [] } = useInspectionFindingCategories();
+  const { data: findings = [] } = useInspectionFindings(formData.category, findingSearch);
+  
+  // Standards library
   const { data: standards = [] } = useStandardsLibrary(standardSearch);
+  
   const createItem = useCreateInspectionItem();
   const updateItem = useUpdateInspectionItem();
   
@@ -139,6 +137,16 @@ export default function FindingFormSheet({ reportId, item, open, onClose }: Find
     onClose();
   };
 
+  const handleFindingSelect = (finding: any) => {
+    setFormData({
+      ...formData,
+      title: finding.finding,
+      description: finding.description || '',
+      category: finding.category,
+    });
+    setFindingOpen(false);
+  };
+
   const handleStandardSelect = (standard: any) => {
     setFormData({
       ...formData,
@@ -164,78 +172,158 @@ export default function FindingFormSheet({ reportId, item, open, onClose }: Find
         </SheetHeader>
 
         <div className="space-y-4 mt-6">
-          {/* Category */}
-          <div>
-            <Label>קטגוריה</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="בחר קטגוריה" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Tabs for Finding Library vs Standards */}
+          <Tabs defaultValue="findings" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="findings" className="gap-2">
+                <BookOpen className="h-4 w-4" />
+                ספריית ממצאים
+              </TabsTrigger>
+              <TabsTrigger value="standards">תקנים</TabsTrigger>
+            </TabsList>
 
-          {/* Standard Autocomplete */}
-          <div>
-            <Label>ממצא (חיפוש בתקנים)</Label>
-            <Popover open={standardOpen} onOpenChange={setStandardOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" className="w-full justify-between">
-                  {formData.title || 'חפש תקן או הזן ידנית'}
-                  <ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-full p-0">
-                <Command>
-                  <CommandInput
-                    placeholder="חפש תקן..."
-                    value={standardSearch}
-                    onValueChange={setStandardSearch}
-                  />
-                  <CommandList>
-                    <CommandEmpty>לא נמצאו תקנים</CommandEmpty>
-                    <CommandGroup>
-                      {standards.slice(0, 10).map((standard) => (
-                        <CommandItem
-                          key={standard.id}
-                          onSelect={() => handleStandardSelect(standard)}
-                        >
-                          <Check
-                            className={cn(
-                              'ml-2 h-4 w-4',
-                              formData.standard_code === standard.standard_code ? 'opacity-100' : 'opacity-0'
-                            )}
-                          />
-                          <div>
-                            <div className="font-medium">{standard.title}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {standard.standard_code} - {standard.category}
-                            </div>
-                          </div>
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+            {/* Findings Library Tab */}
+            <TabsContent value="findings" className="space-y-4">
+              {/* Category Selection */}
+              <div>
+                <Label>קטגוריה</Label>
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, category: value });
+                    setFindingSearch(''); // Reset search when category changes
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="בחר קטגוריה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {findingCategories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Title (manual input) */}
-          <div>
-            <Label>כותרת ממצא</Label>
-            <Input
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="הזן כותרת"
-            />
-          </div>
+              {/* Finding Selection */}
+              {formData.category && (
+                <div>
+                  <Label>בחר ממצא מהספרייה</Label>
+                  <Popover open={findingOpen} onOpenChange={setFindingOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" role="combobox" className="w-full justify-between">
+                        {formData.title || 'בחר ממצא או הזן ידנית'}
+                        <ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command>
+                        <CommandInput
+                          placeholder="חפש ממצא..."
+                          value={findingSearch}
+                          onValueChange={setFindingSearch}
+                        />
+                        <CommandList>
+                          <CommandEmpty>לא נמצאו ממצאים</CommandEmpty>
+                          <CommandGroup>
+                            {findings.map((finding) => (
+                              <CommandItem
+                                key={finding.id}
+                                onSelect={() => handleFindingSelect(finding)}
+                              >
+                                <Check
+                                  className={cn(
+                                    'ml-2 h-4 w-4',
+                                    formData.title === finding.finding ? 'opacity-100' : 'opacity-0'
+                                  )}
+                                />
+                                <div className="flex-1">
+                                  <div className="font-medium">{finding.finding}</div>
+                                  <div className="text-xs text-muted-foreground line-clamp-1">
+                                    {finding.description}
+                                  </div>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+
+              {/* Manual Title Input */}
+              <div>
+                <Label>כותרת ממצא (ידני)</Label>
+                <Input
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="הזן כותרת"
+                />
+              </div>
+            </TabsContent>
+
+            {/* Standards Tab */}
+            <TabsContent value="standards" className="space-y-4">
+              <div>
+                <Label>חיפוש בתקנים</Label>
+                <Popover open={standardOpen} onOpenChange={setStandardOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" role="combobox" className="w-full justify-between">
+                      {formData.title || 'חפש תקן או הזן ידנית'}
+                      <ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-full p-0" align="start">
+                    <Command>
+                      <CommandInput
+                        placeholder="חפש תקן..."
+                        value={standardSearch}
+                        onValueChange={setStandardSearch}
+                      />
+                      <CommandList>
+                        <CommandEmpty>לא נמצאו תקנים</CommandEmpty>
+                        <CommandGroup>
+                          {standards.slice(0, 10).map((standard) => (
+                            <CommandItem
+                              key={standard.id}
+                              onSelect={() => handleStandardSelect(standard)}
+                            >
+                              <Check
+                                className={cn(
+                                  'ml-2 h-4 w-4',
+                                  formData.standard_code === standard.standard_code ? 'opacity-100' : 'opacity-0'
+                                )}
+                              />
+                              <div>
+                                <div className="font-medium">{standard.title}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {standard.standard_code} - {standard.category}
+                                </div>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              {/* Manual Title Input for Standards */}
+              <div>
+                <Label>כותרת ממצא</Label>
+                <Input
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="הזן כותרת"
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
 
           {/* Location */}
           <div>
