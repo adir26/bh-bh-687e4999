@@ -11,6 +11,11 @@ interface ParsedLead {
   email?: string;
   source?: string;
   campaign?: string;
+  secondary_phone?: string;
+  whatsapp_phone?: string;
+  channel?: string;
+  stage?: string;
+  form_name?: string;
 }
 
 interface ValidationError {
@@ -120,6 +125,7 @@ Deno.serve(async (req) => {
       const leadsToInsert: ParsedLead[] = [];
 
       for (const lead of validLeads) {
+        // Check for duplicates using normalized phone
         const { data: existing } = await supabaseClient
           .from('leads')
           .select('id')
@@ -144,8 +150,13 @@ Deno.serve(async (req) => {
           name: lead.name,
           contact_phone: lead.phone,
           contact_email: lead.email || null,
-          source: lead.source || 'import',
-          campaign: lead.campaign || null,
+          source: lead.source || 'facebook',
+          campaign: lead.form_name || lead.campaign || null,
+          secondary_phone: lead.secondary_phone || null,
+          whatsapp_phone: lead.whatsapp_phone || null,
+          channel: lead.channel || null,
+          stage: lead.stage || 'new',
+          form_name: lead.form_name || null,
           status: 'new',
           created_via: 'import',
         }));
@@ -248,7 +259,7 @@ function parseCSV(content: string, fieldMapping: Record<string, string>): Parsed
 
     for (const [headerIndex, systemField] of Object.entries(mapping)) {
       const value = values[parseInt(headerIndex)]?.trim();
-      if (value) {
+      if (value && systemField !== 'ignore') {
         lead[systemField as keyof ParsedLead] = value;
       }
     }
@@ -300,11 +311,15 @@ function parseXML(content: string, fieldMapping: Record<string, string>): Parsed
       return match ? match[1].trim() : undefined;
     };
 
-    lead.name = extractValue('name') || extractValue('full_name') || extractValue('fullname');
-    lead.phone = extractValue('phone') || extractValue('telephone') || extractValue('mobile');
-    lead.email = extractValue('email') || extractValue('mail');
-    lead.source = extractValue('source');
-    lead.campaign = extractValue('campaign');
+    lead.name = extractValue('name') || extractValue('full_name') || extractValue('fullname') || extractValue('שם');
+    lead.phone = extractValue('phone') || extractValue('telephone') || extractValue('mobile') || extractValue('טלפון');
+    lead.email = extractValue('email') || extractValue('mail') || extractValue('דוא"ל');
+    lead.source = extractValue('source') || extractValue('מקור');
+    lead.form_name = extractValue('form_name') || extractValue('campaign') || extractValue('טופס');
+    lead.secondary_phone = extractValue('secondary_phone') || extractValue('מספר הטלפון המשני');
+    lead.whatsapp_phone = extractValue('whatsapp_phone') || extractValue('מספר הטלפון ב-whatsapp');
+    lead.channel = extractValue('channel') || extractValue('ערוץ');
+    lead.stage = extractValue('stage') || extractValue('שלב');
 
     if (lead.name && lead.phone) {
       leads.push(lead as ParsedLead);
@@ -312,6 +327,37 @@ function parseXML(content: string, fieldMapping: Record<string, string>): Parsed
   }
 
   return leads;
+}
+
+function normalizeIsraeliPhone(phone: string): string | null {
+  // Clean phone: remove spaces, hyphens, parentheses
+  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+  
+  // Remove leading + or 00
+  cleaned = cleaned.replace(/^(\+|00)/, '');
+  
+  // Ensure it starts with 972
+  if (cleaned.startsWith('05')) {
+    // Convert 05X to 9725X
+    cleaned = '972' + cleaned.substring(1);
+  } else if (!cleaned.startsWith('972')) {
+    // Try to add 972 prefix if it looks like Israeli number
+    if (cleaned.length === 9 || cleaned.length === 10) {
+      cleaned = '972' + cleaned;
+    }
+  }
+  
+  // Validate length (should be 12 digits: 972 + 9 digits)
+  if (cleaned.length < 11 || cleaned.length > 13) {
+    return null;
+  }
+  
+  // Validate it's all digits
+  if (!/^\d+$/.test(cleaned)) {
+    return null;
+  }
+  
+  return cleaned;
 }
 
 function createFieldMapping(headers: string[], userMapping: Record<string, string>): Record<number, string> {
@@ -326,31 +372,95 @@ function createFieldMapping(headers: string[], userMapping: Record<string, strin
       return;
     }
 
-    // Auto-detect common variations
+    // Facebook Hebrew field mapping (exact matches first)
+    // שם - Name
     if (
+      normalizedHeader === 'שם' ||
+      normalizedHeader === 'שם מלא' ||
       normalizedHeader.includes('name') ||
-      normalizedHeader.includes('שם') ||
-      normalizedHeader === 'full_name' ||
-      normalizedHeader === 'שם מלא'
+      normalizedHeader === 'full_name'
     ) {
       mapping[index] = 'name';
-    } else if (
-      normalizedHeader.includes('phone') ||
-      normalizedHeader.includes('tel') ||
-      normalizedHeader.includes('טלפון') ||
+    }
+    // טלפון - Primary phone
+    else if (
+      normalizedHeader === 'טלפון' ||
+      normalizedHeader === 'מספר הטלפון' ||
+      normalizedHeader === 'phone' ||
+      normalizedHeader === 'telephone' ||
       normalizedHeader.includes('נייד')
     ) {
       mapping[index] = 'phone';
-    } else if (
+    }
+    // מספר הטלפון המשני - Secondary phone
+    else if (
+      normalizedHeader === 'מספר הטלפון המשני' ||
+      normalizedHeader === 'טלפון משני' ||
+      normalizedHeader === 'secondary phone' ||
+      normalizedHeader === 'secondary_phone'
+    ) {
+      mapping[index] = 'secondary_phone';
+    }
+    // מספר הטלפון ב-WhatsApp - WhatsApp phone
+    else if (
+      normalizedHeader === 'מספר הטלפון ב-whatsapp' ||
+      normalizedHeader === 'whatsapp' ||
+      normalizedHeader === 'whatsapp phone' ||
+      normalizedHeader === 'whatsapp_phone'
+    ) {
+      mapping[index] = 'whatsapp_phone';
+    }
+    // דוא"ל - Email
+    else if (
+      normalizedHeader === 'דוא"ל' ||
+      normalizedHeader === 'אימייל' ||
       normalizedHeader.includes('email') ||
       normalizedHeader.includes('mail') ||
       normalizedHeader.includes('מייל')
     ) {
       mapping[index] = 'email';
-    } else if (normalizedHeader.includes('source') || normalizedHeader.includes('מקור')) {
+    }
+    // מקור - Source
+    else if (
+      normalizedHeader === 'מקור' ||
+      normalizedHeader === 'source'
+    ) {
       mapping[index] = 'source';
-    } else if (normalizedHeader.includes('campaign') || normalizedHeader.includes('קמפיין')) {
-      mapping[index] = 'campaign';
+    }
+    // טופס - Form name (use as campaign)
+    else if (
+      normalizedHeader === 'טופס' ||
+      normalizedHeader === 'form' ||
+      normalizedHeader === 'form_name' ||
+      normalizedHeader === 'campaign' ||
+      normalizedHeader === 'קמפיין'
+    ) {
+      mapping[index] = 'form_name';
+    }
+    // ערוץ - Channel
+    else if (
+      normalizedHeader === 'ערוץ' ||
+      normalizedHeader === 'channel'
+    ) {
+      mapping[index] = 'channel';
+    }
+    // שלב - Stage
+    else if (
+      normalizedHeader === 'שלב' ||
+      normalizedHeader === 'stage'
+    ) {
+      mapping[index] = 'stage';
+    }
+    // Ignore Facebook internal fields
+    else if (
+      normalizedHeader === 'נוצר' ||
+      normalizedHeader === 'בעלים' ||
+      normalizedHeader === 'תוויות' ||
+      normalizedHeader === 'created' ||
+      normalizedHeader === 'owner' ||
+      normalizedHeader === 'tags'
+    ) {
+      mapping[index] = 'ignore';
     }
   });
 
@@ -373,7 +483,7 @@ function validateLead(
     });
   }
 
-  // Required: phone
+  // Required: phone with Israeli normalization
   if (!lead.phone || lead.phone.trim().length === 0) {
     errors.push({
       row: rowNumber,
@@ -382,17 +492,39 @@ function validateLead(
       data: lead,
     });
   } else {
-    // Clean and validate phone
-    const cleanPhone = lead.phone.replace(/\D/g, '');
-    if (cleanPhone.length < 9 || cleanPhone.length > 15) {
+    // Normalize Israeli phone
+    const normalized = normalizeIsraeliPhone(lead.phone);
+    if (!normalized) {
       errors.push({
         row: rowNumber,
         field: 'phone',
-        message: 'מספר טלפון לא תקין',
+        message: 'מספר טלפון לא תקין (נדרש פורמט ישראלי)',
         data: lead,
       });
     } else {
-      lead.phone = cleanPhone;
+      lead.phone = normalized;
+    }
+  }
+  
+  // Optional: normalize secondary phone
+  if (lead.secondary_phone) {
+    const normalized = normalizeIsraeliPhone(lead.secondary_phone);
+    if (normalized) {
+      lead.secondary_phone = normalized;
+    } else {
+      // Invalid secondary phone - clear it
+      lead.secondary_phone = undefined;
+    }
+  }
+  
+  // Optional: normalize WhatsApp phone
+  if (lead.whatsapp_phone) {
+    const normalized = normalizeIsraeliPhone(lead.whatsapp_phone);
+    if (normalized) {
+      lead.whatsapp_phone = normalized;
+    } else {
+      // Invalid WhatsApp phone - clear it
+      lead.whatsapp_phone = undefined;
     }
   }
 
