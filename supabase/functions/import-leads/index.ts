@@ -57,6 +57,8 @@ Deno.serve(async (req) => {
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const fieldMapping = JSON.parse(formData.get('fieldMapping') as string || '{}');
+    
+    console.log('Field mapping received from frontend:', JSON.stringify(fieldMapping));
 
     if (!file) {
       return new Response(JSON.stringify({ error: 'No file provided' }), {
@@ -92,6 +94,8 @@ Deno.serve(async (req) => {
 
     try {
       const fileContent = await file.text();
+      console.log(`File content length: ${fileContent.length} characters`);
+      
       let parsedLeads: ParsedLead[] = [];
 
       // Parse file based on type
@@ -102,6 +106,9 @@ Deno.serve(async (req) => {
       }
 
       console.log(`Parsed ${parsedLeads.length} leads from file`);
+      if (parsedLeads.length > 0) {
+        console.log('First parsed lead (sample):', JSON.stringify(parsedLeads[0]));
+      }
 
       // Validate and categorize leads
       const validLeads: ParsedLead[] = [];
@@ -145,8 +152,24 @@ Deno.serve(async (req) => {
       // Insert leads
       let insertedCount = 0;
       if (leadsToInsert.length > 0) {
-        const leadsData = leadsToInsert.map((lead) => ({
+        console.log('Generating lead numbers...');
+        
+        // Generate lead numbers for all leads
+        const leadNumbers: string[] = [];
+        for (let i = 0; i < leadsToInsert.length; i++) {
+          const { data: leadNumber, error: leadNumError } = await supabaseClient.rpc('generate_lead_number');
+          if (leadNumError) {
+            console.warn('Failed to generate lead number, using fallback:', leadNumError);
+            leadNumbers.push(`IMP-${Date.now()}-${i}`);
+          } else {
+            leadNumbers.push(leadNumber);
+          }
+        }
+        console.log(`Generated ${leadNumbers.length} lead numbers`);
+        
+        const leadsData = leadsToInsert.map((lead, index) => ({
           supplier_id: user.id,
+          lead_number: leadNumbers[index],
           name: lead.name,
           contact_phone: lead.phone,
           contact_email: lead.email || null,
@@ -171,6 +194,7 @@ Deno.serve(async (req) => {
         }
 
         insertedCount = count || leadsToInsert.length;
+        console.log(`Successfully inserted ${insertedCount} leads`);
       }
 
       // Update import record
@@ -235,18 +259,30 @@ Deno.serve(async (req) => {
 });
 
 function parseCSV(content: string, fieldMapping: Record<string, string>): ParsedLead[] {
-  const lines = content.trim().split('\n');
-  if (lines.length < 2) return [];
+  // Remove BOM if exists
+  let cleanContent = content.replace(/^\uFEFF/, '');
+  const lines = cleanContent.trim().split(/\r?\n/).filter(line => line.trim());
+  
+  if (lines.length < 2) {
+    console.log('CSV file has less than 2 lines');
+    return [];
+  }
 
   // Detect separator
   const firstLine = lines[0];
-  const separator = firstLine.includes(';') ? ';' : ',';
+  const commaCount = (firstLine.match(/,/g) || []).length;
+  const semicolonCount = (firstLine.match(/;/g) || []).length;
+  const separator = semicolonCount > commaCount ? ';' : ',';
+  
+  console.log(`CSV separator detected: "${separator}"`);
 
   // Parse headers
-  const headers = firstLine.split(separator).map((h) => h.trim().replace(/^["']|["']$/g, ''));
+  const headers = parseCSVLine(firstLine, separator);
+  console.log('CSV headers detected:', headers);
 
   // Create mapping
   const mapping = createFieldMapping(headers, fieldMapping);
+  console.log('Field mapping created:', JSON.stringify(mapping));
 
   const leads: ParsedLead[] = [];
 
@@ -366,9 +402,10 @@ function createFieldMapping(headers: string[], userMapping: Record<string, strin
   headers.forEach((header, index) => {
     const normalizedHeader = header.toLowerCase().trim();
 
-    // Check user mapping first
-    if (userMapping[header]) {
-      mapping[index] = userMapping[header];
+    // Check user mapping first (index-based from frontend)
+    if (userMapping[index.toString()]) {
+      mapping[index] = userMapping[index.toString()];
+      console.log(`User mapping applied for index ${index}: ${mapping[index]}`);
       return;
     }
 
