@@ -1956,6 +1956,7 @@ export type Database = {
           budget_range: string | null
           campaign: string | null
           campaign_name: string | null
+          channel: string | null
           client_id: string | null
           company_id: string | null
           consent_to_share: boolean | null
@@ -1969,6 +1970,7 @@ export type Database = {
           estimated_value: number | null
           expected_close_date: string | null
           first_response_at: string | null
+          form_name: string | null
           id: string
           last_contact_date: string | null
           lead_number: string
@@ -1981,20 +1983,24 @@ export type Database = {
           priority_key: string
           probability: number | null
           project_id: string | null
+          secondary_phone: string | null
           sla_risk: boolean | null
           snoozed_until: string | null
           source: string | null
           source_key: string
+          stage: string | null
           start_date: string | null
           status: string | null
           supplier_id: string | null
           updated_at: string
+          whatsapp_phone: string | null
         }
         Insert: {
           assigned_to?: string | null
           budget_range?: string | null
           campaign?: string | null
           campaign_name?: string | null
+          channel?: string | null
           client_id?: string | null
           company_id?: string | null
           consent_to_share?: boolean | null
@@ -2008,6 +2014,7 @@ export type Database = {
           estimated_value?: number | null
           expected_close_date?: string | null
           first_response_at?: string | null
+          form_name?: string | null
           id?: string
           last_contact_date?: string | null
           lead_number: string
@@ -2020,20 +2027,24 @@ export type Database = {
           priority_key?: string
           probability?: number | null
           project_id?: string | null
+          secondary_phone?: string | null
           sla_risk?: boolean | null
           snoozed_until?: string | null
           source?: string | null
           source_key?: string
+          stage?: string | null
           start_date?: string | null
           status?: string | null
           supplier_id?: string | null
           updated_at?: string
+          whatsapp_phone?: string | null
         }
         Update: {
           assigned_to?: string | null
           budget_range?: string | null
           campaign?: string | null
           campaign_name?: string | null
+          channel?: string | null
           client_id?: string | null
           company_id?: string | null
           consent_to_share?: boolean | null
@@ -2047,6 +2058,7 @@ export type Database = {
           estimated_value?: number | null
           expected_close_date?: string | null
           first_response_at?: string | null
+          form_name?: string | null
           id?: string
           last_contact_date?: string | null
           lead_number?: string
@@ -2059,14 +2071,17 @@ export type Database = {
           priority_key?: string
           probability?: number | null
           project_id?: string | null
+          secondary_phone?: string | null
           sla_risk?: boolean | null
           snoozed_until?: string | null
           source?: string | null
           source_key?: string
+          stage?: string | null
           start_date?: string | null
           status?: string | null
           supplier_id?: string | null
           updated_at?: string
+          whatsapp_phone?: string | null
         }
         Relationships: [
           {

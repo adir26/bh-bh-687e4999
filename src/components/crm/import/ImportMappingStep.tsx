@@ -27,10 +27,14 @@ interface ImportMappingStepProps {
 
 const SYSTEM_FIELDS = [
   { value: 'name', label: 'שם מלא', required: true },
-  { value: 'phone', label: 'טלפון', required: true },
-  { value: 'email', label: 'מייל', required: false },
+  { value: 'phone', label: 'טלפון ראשי', required: true },
+  { value: 'secondary_phone', label: 'טלפון משני', required: false },
+  { value: 'whatsapp_phone', label: 'טלפון WhatsApp', required: false },
+  { value: 'email', label: 'דוא"ל', required: false },
   { value: 'source', label: 'מקור', required: false },
-  { value: 'campaign', label: 'קמפיין', required: false },
+  { value: 'form_name', label: 'שם טופס / קמפיין', required: false },
+  { value: 'channel', label: 'ערוץ', required: false },
+  { value: 'stage', label: 'שלב', required: false },
   { value: 'ignore', label: 'התעלם', required: false },
 ];
 
@@ -43,37 +47,64 @@ export function ImportMappingStep({
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<string[]>([]);
 
-  // Auto-detect mapping on mount
+  // Auto-detect mapping on mount (Facebook Hebrew fields)
   useEffect(() => {
     const autoMapping: Record<string, string> = {};
 
     headers.forEach((header, index) => {
       const normalized = header.toLowerCase().trim();
 
-      if (
-        normalized.includes('name') ||
-        normalized.includes('שם') ||
-        normalized === 'full_name' ||
-        normalized === 'שם מלא'
-      ) {
+      // Facebook Hebrew exact matches
+      if (normalized === 'שם' || normalized === 'שם מלא' || normalized.includes('name')) {
         autoMapping[index.toString()] = 'name';
       } else if (
-        normalized.includes('phone') ||
-        normalized.includes('tel') ||
-        normalized.includes('טלפון') ||
+        normalized === 'טלפון' ||
+        normalized === 'מספר הטלפון' ||
+        normalized === 'phone' ||
         normalized.includes('נייד')
       ) {
         autoMapping[index.toString()] = 'phone';
       } else if (
+        normalized === 'מספר הטלפון המשני' ||
+        normalized === 'טלפון משני' ||
+        normalized === 'secondary phone'
+      ) {
+        autoMapping[index.toString()] = 'secondary_phone';
+      } else if (
+        normalized === 'מספר הטלפון ב-whatsapp' ||
+        normalized === 'whatsapp phone' ||
+        normalized === 'whatsapp'
+      ) {
+        autoMapping[index.toString()] = 'whatsapp_phone';
+      } else if (
+        normalized === 'דוא"ל' ||
+        normalized === 'אימייל' ||
         normalized.includes('email') ||
-        normalized.includes('mail') ||
-        normalized.includes('מייל')
+        normalized.includes('mail')
       ) {
         autoMapping[index.toString()] = 'email';
-      } else if (normalized.includes('source') || normalized.includes('מקור')) {
+      } else if (normalized === 'מקור' || normalized === 'source') {
         autoMapping[index.toString()] = 'source';
-      } else if (normalized.includes('campaign') || normalized.includes('קמפיין')) {
-        autoMapping[index.toString()] = 'campaign';
+      } else if (
+        normalized === 'טופס' ||
+        normalized === 'form' ||
+        normalized === 'campaign' ||
+        normalized === 'קמפיין'
+      ) {
+        autoMapping[index.toString()] = 'form_name';
+      } else if (normalized === 'ערוץ' || normalized === 'channel') {
+        autoMapping[index.toString()] = 'channel';
+      } else if (normalized === 'שלב' || normalized === 'stage') {
+        autoMapping[index.toString()] = 'stage';
+      } else if (
+        normalized === 'נוצר' ||
+        normalized === 'בעלים' ||
+        normalized === 'תוויות' ||
+        normalized === 'created' ||
+        normalized === 'owner' ||
+        normalized === 'tags'
+      ) {
+        autoMapping[index.toString()] = 'ignore';
       }
     });
 
