@@ -18,7 +18,7 @@ import { LeadAssignmentDropdown } from '@/components/crm/LeadAssignmentDropdown'
 import { SLAMetricsWidget } from '@/components/crm/SLAMetricsWidget';
 import { QuickActionsMenu } from '@/components/crm/QuickActionsMenu';
 import { LeadScoreBadge } from '@/components/crm/LeadScoreBadge';
-import { Phone, Mail, StickyNote, MessageCircle, FileText, ArrowUpDown, AlertCircle, Users, Plus } from 'lucide-react';
+import { Phone, Mail, StickyNote, MessageCircle, FileText, ArrowUpDown, AlertCircle, Users, Plus, Upload, History } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +26,8 @@ import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AddLeadDialog } from '@/components/crm/AddLeadDialog';
 import { LeadDetailDialog } from '@/components/crm/LeadDetailDialog';
+import { LeadImportWizard } from '@/components/crm/LeadImportWizard';
+import { ImportHistoryTable } from '@/components/crm/ImportHistoryTable';
 
 const STATUSES: LeadStatus[] = ['new', 'no_answer', 'followup', 'no_answer_x5', 'not_relevant', 'error', 'denies_contact', 'project_in_process', 'project_completed'];
 
@@ -125,6 +127,8 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
   const queryClient = useQueryClient();
   const [addLeadDialogOpen, setAddLeadDialogOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+  const [importWizardOpen, setImportWizardOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'leads' | 'history'>('leads');
 
   const leadsByStatus = useMemo(() => {
     const map: Record<LeadStatus, Lead[]> = { 
@@ -340,10 +344,16 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
             <h1 className="text-2xl font-semibold">ניהול לידים - CRM</h1>
             <p className="text-sm text-muted-foreground">נהל את הלידים שלך: גרור בין שלבים, לחץ לפרטים מלאים</p>
           </div>
-          <Button variant="blue" onClick={() => setAddLeadDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            הוסף ליד
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportWizardOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" />
+              ייבוא מקובץ
+            </Button>
+            <Button variant="blue" onClick={() => setAddLeadDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              הוסף ליד
+            </Button>
+          </div>
         </div>
         <SLAMetricsWidget supplierId={user?.id} />
       </header>
@@ -354,8 +364,50 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
         open={!!selectedLeadId} 
         onOpenChange={(open) => !open && setSelectedLeadId(null)} 
       />
+      <LeadImportWizard
+        open={importWizardOpen}
+        onOpenChange={setImportWizardOpen}
+        onComplete={() => {
+          queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
+          toast({ title: 'הייבוא הושלם בהצלחה' });
+        }}
+      />
 
-      <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      {/* Tabs for Leads vs Import History */}
+      <div className="border-b">
+        <div className="flex gap-4">
+          <button
+            className={`px-4 py-2 border-b-2 transition-colors ${
+              activeTab === 'leads'
+                ? 'border-primary text-primary font-medium'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+            onClick={() => setActiveTab('leads')}
+          >
+            <Users className="w-4 h-4 inline ml-2" />
+            לידים
+          </button>
+          <button
+            className={`px-4 py-2 border-b-2 transition-colors ${
+              activeTab === 'history'
+                ? 'border-primary text-primary font-medium'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+            onClick={() => setActiveTab('history')}
+          >
+            <History className="w-4 h-4 inline ml-2" />
+            היסטוריית ייבואים
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'history' ? (
+        <div className="py-6">
+          <ImportHistoryTable />
+        </div>
+      ) : (
+        <>
+          <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-1 items-center gap-2">
           <Input placeholder="Search by name, email, phone" value={search} onChange={(e) => setSearch(e.target.value)} />
           <Button variant="ghost" onClick={() => setSort(sort === 'newest' ? 'oldest' : 'newest')}>
@@ -410,6 +462,8 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
         <Kanban />
       ) : (
         <List />
+      )}
+        </>
       )}
     </main>
   );

@@ -1826,6 +1826,59 @@ export type Database = {
           },
         ]
       }
+      lead_imports: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          duplicate_rows: number
+          error_message: string | null
+          error_rows: number
+          file_name: string
+          file_type: string
+          id: string
+          imported_rows: number
+          status: string
+          supplier_id: string
+          total_rows: number
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          duplicate_rows?: number
+          error_message?: string | null
+          error_rows?: number
+          file_name: string
+          file_type: string
+          id?: string
+          imported_rows?: number
+          status?: string
+          supplier_id: string
+          total_rows?: number
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          duplicate_rows?: number
+          error_message?: string | null
+          error_rows?: number
+          file_name?: string
+          file_type?: string
+          id?: string
+          imported_rows?: number
+          status?: string
+          supplier_id?: string
+          total_rows?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_imports_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_priority_dim: {
         Row: {
           active: boolean
@@ -1901,6 +1954,7 @@ export type Database = {
         Row: {
           assigned_to: string | null
           budget_range: string | null
+          campaign: string | null
           campaign_name: string | null
           client_id: string | null
           company_id: string | null
@@ -1910,6 +1964,7 @@ export type Database = {
           contact_phone: string | null
           converted_at: string | null
           created_at: string
+          created_via: string | null
           end_date: string | null
           estimated_value: number | null
           expected_close_date: string | null
@@ -1938,6 +1993,7 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           budget_range?: string | null
+          campaign?: string | null
           campaign_name?: string | null
           client_id?: string | null
           company_id?: string | null
@@ -1947,6 +2003,7 @@ export type Database = {
           contact_phone?: string | null
           converted_at?: string | null
           created_at?: string
+          created_via?: string | null
           end_date?: string | null
           estimated_value?: number | null
           expected_close_date?: string | null
@@ -1975,6 +2032,7 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           budget_range?: string | null
+          campaign?: string | null
           campaign_name?: string | null
           client_id?: string | null
           company_id?: string | null
@@ -1984,6 +2042,7 @@ export type Database = {
           contact_phone?: string | null
           converted_at?: string | null
           created_at?: string
+          created_via?: string | null
           end_date?: string | null
           estimated_value?: number | null
           expected_close_date?: string | null
