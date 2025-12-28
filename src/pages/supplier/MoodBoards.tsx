@@ -97,8 +97,8 @@ export function MoodBoards() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container mx-auto p-6 pt-[max(env(safe-area-inset-top),24px)]">
+      <div className="flex items-center justify-between mb-6 sticky top-0 z-10 bg-background py-2">
         <div>
           <h1 className="text-2xl font-bold">לוחות רגש</h1>
           <p className="text-muted-foreground">נהל לוחות רגש ושתף אותם עם לקוחות</p>

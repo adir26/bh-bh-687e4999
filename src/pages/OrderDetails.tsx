@@ -103,9 +103,9 @@ function OrderDetailsContent() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
+    <div className="container mx-auto px-4 py-6 pt-[max(env(safe-area-inset-top),24px)] space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 sticky top-0 z-10 bg-background py-2">
         <Button
           variant="ghost"
           size="sm"
