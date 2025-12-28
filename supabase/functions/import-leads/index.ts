@@ -220,25 +220,28 @@ Deno.serve(async (req) => {
 
       // Insert leads
       let insertedCount = 0;
-      if (leadsToInsert.length > 0) {
-        console.log('Generating lead numbers...');
+      // Insert leads one by one with unique lead numbers
+      let insertedCount = 0;
+      const insertErrors: string[] = [];
+      
+      for (let i = 0; i < leadsToInsert.length; i++) {
+        const lead = leadsToInsert[i];
         
-        // Generate lead numbers for all leads
-        const leadNumbers: string[] = [];
-        for (let i = 0; i < leadsToInsert.length; i++) {
-          const { data: leadNumber, error: leadNumError } = await supabaseClient.rpc('generate_lead_number');
-          if (leadNumError) {
-            console.warn('Failed to generate lead number, using fallback:', leadNumError);
-            leadNumbers.push(`IMP-${Date.now()}-${i}`);
-          } else {
-            leadNumbers.push(leadNumber);
-          }
+        // Generate unique lead number using RPC or fallback
+        let leadNumber: string;
+        const { data: generatedNumber, error: leadNumError } = await supabaseClient.rpc('generate_lead_number');
+        
+        if (leadNumError || !generatedNumber) {
+          // Fallback: use timestamp + random + index to ensure uniqueness
+          leadNumber = `IMP-${Date.now()}-${Math.random().toString(36).substring(2, 8)}-${i}`;
+          console.warn('Using fallback lead number:', leadNumber);
+        } else {
+          leadNumber = generatedNumber;
         }
-        console.log('Generated', leadNumbers.length, 'lead numbers');
         
-        const leadsData = leadsToInsert.map((lead, index) => ({
+        const leadData = {
           supplier_id: user.id,
-          lead_number: leadNumbers[index],
+          lead_number: leadNumber,
           name: lead.name || null,
           contact_phone: lead.phone || lead.contact_phone || null,
           contact_email: lead.email || lead.contact_email || null,
@@ -251,28 +254,28 @@ Deno.serve(async (req) => {
           form_name: lead.form_name || null,
           status: 'new',
           created_via: 'import',
-        }));
+        };
 
-        console.log('Inserting leads...');
-        console.log('Sample lead data:', JSON.stringify(leadsData[0]));
-
-        const { error: insertError, data: insertedData } = await supabaseClient
+        const { error: insertError } = await supabaseClient
           .from('leads')
-          .insert(leadsData)
-          .select('id');
+          .insert(leadData);
 
         if (insertError) {
-          console.error('Failed to insert leads:', insertError);
-          throw new Error(`Failed to insert leads: ${insertError.message}`);
+          console.error(`Failed to insert lead ${i}:`, insertError.message);
+          insertErrors.push(`Row ${i + 1}: ${insertError.message}`);
+        } else {
+          insertedCount++;
         }
-
-        insertedCount = insertedData?.length || leadsToInsert.length;
-        console.log('Successfully inserted', insertedCount, 'leads');
+      }
+      
+      console.log('Successfully inserted', insertedCount, 'leads');
+      if (insertErrors.length > 0) {
+        console.log('Insert errors:', insertErrors.length);
       }
 
       // Calculate error rows (rows that didn't pass parsing + validation errors)
       const skippedInParsing = totalDataRows - parsedLeads.length;
-      const totalErrorRows = skippedInParsing + errors.length;
+      const totalErrorRows = skippedInParsing + errors.length + insertErrors.length;
 
       console.log('=== FINAL COUNTS ===');
       console.log('Total data rows:', totalDataRows);
