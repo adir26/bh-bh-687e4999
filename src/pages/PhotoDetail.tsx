@@ -176,7 +176,7 @@ export default function PhotoDetail() {
     >
     <div className="min-h-screen bg-background pb-32">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border p-4">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border p-4 pt-[max(env(safe-area-inset-top),12px)]">
         <div className="container mx-auto flex items-center justify-between">
           <Link to="/inspiration" aria-label="חזור לגלריה">
             <Button variant="ghost" size="sm">
