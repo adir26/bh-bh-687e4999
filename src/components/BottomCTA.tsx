@@ -9,6 +9,7 @@ interface BottomCTAProps {
   href?: string;
   onButtonClick?: () => void;
   show?: boolean;
+  className?: string;
 }
 
 export const BottomCTA: React.FC<BottomCTAProps> = ({ 
