@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Rubik:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -32,9 +32,7 @@
   background: hsl(var(--muted-foreground) / 0.5);
 }
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Premium Design System - All colors MUST be HSL */
 
 @layer base {
   :root {
@@ -44,102 +42,120 @@ All colors MUST be HSL.
     --sal: env(safe-area-inset-left, 0px);
     --sar: env(safe-area-inset-right, 0px);
     
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Premium Color Palette - WCAG AA Compliant */
+    --background: 210 40% 98%; /* #F8FAFC - Light grayish-blue */
+    --foreground: 215 25% 17%; /* #1E293B - Dark text */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%; /* Pure white */
+    --card-foreground: 215 25% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 25% 17%;
 
-    --primary: 214 100% 50%;
+    /* Primary: Deep professional blue #1E3A8A */
+    --primary: 224 76% 33%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary: Modern light blue #3B82F6 */
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%; /* #64748B */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent/Success: #10B981 */
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 224 76% 33%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-foreground: 240 5% 26%;
+    --sidebar-primary: 224 76% 33%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 6% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 224 76% 33%;
 
-    /* New button colors */
-    --button-primary: 214 100% 50%;
-    --button-primary-hover: 214 100% 45%;
+    /* Premium button colors */
+    --button-primary: 224 76% 33%;
+    --button-primary-hover: 224 76% 28%;
     --button-primary-foreground: 0 0% 100%;
-    --button-secondary: 214 100% 97%;
-    --button-secondary-hover: 214 100% 94%;
-    --button-secondary-foreground: 214 100% 40%;
+    --button-secondary: 217 91% 60%;
+    --button-secondary-hover: 217 91% 55%;
+    --button-secondary-foreground: 0 0% 100%;
+    
+    /* Gradient colors */
+    --gradient-start: 224 76% 33%;
+    --gradient-end: 217 91% 60%;
     
     /* Search highlight colors */
     --highlight: 54 100% 62%;
-    --highlight-foreground: 240 10% 3.9%;
+    --highlight-foreground: 240 10% 4%;
+    
+    /* Success color */
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222 84% 5%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222 84% 5%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 84% 5%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217 33% 18%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 217 33% 18%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 217 91% 60%;
+    
+    --sidebar-background: 240 6% 10%;
+    --sidebar-foreground: 240 5% 96%;
+    --sidebar-primary: 224 76% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 240 5% 96%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 217 91% 60%;
 
-    /* Dark mode button colors */
-    --button-primary: 214 100% 55%;
-    --button-primary-hover: 214 100% 60%;
+    --button-primary: 217 91% 55%;
+    --button-primary-hover: 217 91% 60%;
     --button-primary-foreground: 0 0% 100%;
-    --button-secondary: 214 100% 10%;
-    --button-secondary-hover: 214 100% 15%;
-    --button-secondary-foreground: 214 100% 60%;
+    --button-secondary: 217 33% 15%;
+    --button-secondary-hover: 217 33% 20%;
+    --button-secondary-foreground: 217 91% 60%;
+    
+    --gradient-start: 224 76% 40%;
+    --gradient-end: 217 91% 65%;
+    
+    --success: 160 84% 45%;
+    --success-foreground: 0 0% 100%;
   }
 
   /* Focus styles for accessibility and keyboard navigation */
@@ -149,103 +165,112 @@ All colors MUST be HSL.
   }
 }
 
-/* Typography Design System - Assistant Font */
+/* Premium Typography System */
 @layer base {
-  /* Headings */
+  /* Premium Headings - Assistant Bold */
   h1, .text-h1 {
     font-family: 'Assistant', 'Arial', sans-serif;
     font-weight: 700;
-    font-size: 2rem; /* 32px */
-    line-height: 1.25;
+    font-size: 4rem; /* 64px desktop */
+    line-height: 1.1;
+    letter-spacing: -0.02em;
   }
   
   h2, .text-h2 {
     font-family: 'Assistant', 'Arial', sans-serif;
     font-weight: 600;
-    font-size: 1.75rem; /* 28px */
-    line-height: 1.3;
+    font-size: 3rem; /* 48px */
+    line-height: 1.15;
+    letter-spacing: -0.01em;
   }
   
   h3, .text-h3 {
     font-family: 'Assistant', 'Arial', sans-serif;
     font-weight: 600;
-    font-size: 1.5rem; /* 24px */
-    line-height: 1.35;
+    font-size: 2rem; /* 32px */
+    line-height: 1.25;
   }
   
-  /* Body text */
-  .text-body {
+  h4, .text-h4 {
     font-family: 'Assistant', 'Arial', sans-serif;
+    font-weight: 600;
+    font-size: 1.5rem; /* 24px */
+    line-height: 1.3;
+  }
+  
+  /* Body text - Rubik Regular */
+  .text-body {
+    font-family: 'Rubik', 'Arial', sans-serif;
+    font-weight: 400;
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.6;
+  }
+  
+  .text-body-sm {
+    font-family: 'Rubik', 'Arial', sans-serif;
     font-weight: 400;
     font-size: 1rem; /* 16px */
     line-height: 1.5;
   }
   
-  /* Small body text */
-  .text-body-sm {
-    font-family: 'Assistant', 'Arial', sans-serif;
+  .text-caption {
+    font-family: 'Rubik', 'Arial', sans-serif;
     font-weight: 400;
     font-size: 0.875rem; /* 14px */
-    line-height: 1.5;
+    line-height: 1.4;
   }
   
-  /* Subheadings and labels */
+  /* Labels and buttons */
   .text-label {
     font-family: 'Assistant', 'Arial', sans-serif;
     font-weight: 500;
-    font-size: 0.875rem; /* 14px */
+    font-size: 0.875rem;
     line-height: 1.4;
   }
   
-  .text-label-sm {
-    font-family: 'Assistant', 'Arial', sans-serif;
-    font-weight: 500;
-    font-size: 0.75rem; /* 12px */
-    line-height: 1.4;
-  }
-  
-  /* Buttons and CTAs */
   .text-button {
     font-family: 'Assistant', 'Arial', sans-serif;
     font-weight: 600;
-    font-size: 1rem; /* 16px */
+    font-size: 1rem;
     line-height: 1.25;
   }
   
-  .text-button-sm {
+  .text-button-lg {
     font-family: 'Assistant', 'Arial', sans-serif;
     font-weight: 600;
-    font-size: 0.875rem; /* 14px */
+    font-size: 1.125rem;
     line-height: 1.25;
   }
   
-  /* Navigation and tabs */
   .text-nav {
     font-family: 'Assistant', 'Arial', sans-serif;
     font-weight: 500;
-    font-size: 0.9375rem; /* 15px */
+    font-size: 0.9375rem;
     line-height: 1.3;
   }
   
-  .text-nav-sm {
-    font-family: 'Assistant', 'Arial', sans-serif;
-    font-weight: 500;
-    font-size: 0.8125rem; /* 13px */
-    line-height: 1.3;
-  }
-  
-  /* Mobile responsive adjustments */
-  @media (max-width: 640px) {
+  /* Mobile responsive typography */
+  @media (max-width: 768px) {
     h1, .text-h1 {
-      font-size: 1.75rem; /* 28px on mobile */
+      font-size: 2.5rem; /* 40px mobile */
+      line-height: 1.15;
     }
     
     h2, .text-h2 {
-      font-size: 1.5rem; /* 24px on mobile */
+      font-size: 2rem; /* 32px mobile */
+      line-height: 1.2;
     }
     
     h3, .text-h3 {
-      font-size: 1.25rem; /* 20px on mobile */
+      font-size: 1.5rem; /* 24px mobile */
+    }
+    
+    h4, .text-h4 {
+      font-size: 1.25rem; /* 20px mobile */
+    }
+    
+    .text-body {
+      font-size: 1rem; /* 16px mobile */
     }
   }
 }
@@ -257,21 +282,16 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    /* Hebrew font family with RTL support */
-    font-family: 'Heebo', 'Arial', sans-serif;
-    /* Improve text rendering on mobile */
+    font-family: 'Rubik', 'Heebo', 'Arial', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Prevent zoom on focus for iOS */
     font-size: 16px;
-    /* RTL support */
     direction: ltr;
   }
 
-  /* Admin panel RTL styling */
   .admin-rtl {
     direction: rtl;
-    font-family: 'Heebo', 'Arial', sans-serif;
+    font-family: 'Rubik', 'Heebo', 'Arial', sans-serif;
   }
 
   .admin-rtl * {
@@ -282,18 +302,82 @@ All colors MUST be HSL.
     transform: scaleX(-1);
   }
 
-  /* Prevent zoom on input focus for iOS */
   input, select, textarea {
     font-size: 16px;
   }
 
-  /* Better touch scrolling */
   * {
     -webkit-overflow-scrolling: touch;
   }
 }
 
 @layer utilities {
+  /* Premium Gradient Utilities */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
+  }
+  
+  .gradient-primary-hover {
+    background: linear-gradient(135deg, hsl(var(--gradient-start) / 0.9) 0%, hsl(var(--gradient-end) / 0.9) 100%);
+  }
+  
+  .gradient-dark-overlay {
+    background: linear-gradient(to top, hsl(0 0% 0% / 0.7) 0%, hsl(0 0% 0% / 0.3) 50%, transparent 100%);
+  }
+  
+  .gradient-hero-overlay {
+    background: linear-gradient(to top, hsl(0 0% 0% / 0.6) 0%, hsl(0 0% 0% / 0.2) 100%);
+  }
+
+  /* Premium Shadow Utilities */
+  .shadow-premium {
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.1), 0 1px 2px hsl(0 0% 0% / 0.06);
+  }
+  
+  .shadow-premium-md {
+    box-shadow: 0 4px 6px -1px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.06);
+  }
+  
+  .shadow-premium-lg {
+    box-shadow: 0 10px 15px -3px hsl(0 0% 0% / 0.1), 0 4px 6px -2px hsl(0 0% 0% / 0.05);
+  }
+  
+  .shadow-glow-primary {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 4px 16px hsl(0 0% 0% / 0.1);
+  }
+
+  /* Premium Card Styles */
+  .card-premium {
+    @apply bg-card rounded-2xl shadow-premium border border-border/50 transition-all duration-300;
+  }
+  
+  .card-premium:hover {
+    @apply shadow-premium-lg -translate-y-1;
+  }
+
+  /* Premium Button Effects */
+  .btn-premium {
+    @apply relative overflow-hidden transition-all duration-300;
+  }
+  
+  .btn-premium::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 0%, hsl(0 0% 100% / 0.1) 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .btn-premium:hover::after {
+    opacity: 1;
+  }
+  
+  .btn-premium:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
+  }
+
   /* Safe area utilities for mobile devices with minimum fallbacks */
   .pb-safe {
     padding-bottom: max(var(--sab), 1rem);
@@ -311,7 +395,6 @@ All colors MUST be HSL.
     padding-right: max(var(--sar), 1rem);
   }
   
-  /* Safe area with specific minimum padding for headers */
   .pt-safe-header {
     padding-top: max(var(--sat), 16px);
   }
@@ -332,13 +415,10 @@ All colors MUST be HSL.
     padding-top: max(var(--sat), 24px);
   }
 
-  /* Enhanced mobile navigation spacing - prevents bottom nav overlap */
   .pb-nav-safe {
-    /* Bottom spacing that accounts for iOS safe area + bottom nav (~64px) + measured footer height */
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 64px + var(--footer-h, 0px));
   }
 
-  /* Enhanced mobile touch utilities */
   .active\:scale-95:active {
     transform: scale(0.95);
   }
@@ -347,13 +427,11 @@ All colors MUST be HSL.
     transform: scale(0.98);
   }
 
-  /* Better touch targets */
   .touch-target {
     min-height: 44px;
     min-width: 44px;
   }
 
-  /* Mobile-optimized text sizes */
   .text-mobile-xs {
     font-size: 0.75rem;
     line-height: 1rem;
@@ -369,7 +447,6 @@ All colors MUST be HSL.
     line-height: 1.5rem;
   }
 
-  /* Mobile-first spacing */
   .mobile-padding {
     @apply px-4 py-3 sm:px-6 sm:py-4;
   }
@@ -378,57 +455,47 @@ All colors MUST be HSL.
     @apply mx-4 my-3 sm:mx-6 sm:my-4;
   }
 
-  /* Enhanced scrolling */
   .smooth-scroll {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Mobile modal utilities */
   .mobile-modal {
     @apply fixed inset-0 z-50 bg-background/95 backdrop-blur-sm;
   }
 
-  /* Improved focus states for keyboard navigation */
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
   }
 
-  /* Better mobile grid layouts */
   .mobile-grid {
     @apply grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4;
   }
   
-  /* Responsive auto-fit grid for content adaptation */
   .mobile-auto-grid {
     @apply grid gap-3 xs:gap-4 sm:gap-5 lg:gap-6;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 
-  /* Mobile-optimized buttons */
   .mobile-button {
     @apply touch-target rounded-xl font-medium transition-all duration-200 active:scale-95;
   }
 
-  /* Better mobile cards */
   .mobile-card {
-    @apply rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200 hover:shadow-md;
+    @apply rounded-2xl border bg-card text-card-foreground shadow-premium transition-all duration-200 hover:shadow-premium-lg;
   }
 
-  /* Responsive text wrapping */
   .text-wrap-balance {
     text-wrap: balance;
   }
 
-  /* Mobile-friendly hover states (only on devices that support hover) */
   @media (hover: hover) {
     .hover-lift:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px -8px hsl(0 0% 0% / 0.12), 0 8px 16px -8px hsl(0 0% 0% / 0.08);
     }
   }
 
-  /* Prevent text selection on UI elements */
   .no-select {
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -436,12 +503,10 @@ All colors MUST be HSL.
     user-select: none;
   }
 
-  /* Better mobile animations */
   .mobile-transition {
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Bottom navigation styles */
   .bottom-nav {
     @apply fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t border-border md:hidden;
     height: calc(70px + env(safe-area-inset-bottom));
@@ -466,7 +531,6 @@ All colors MUST be HSL.
     @apply text-muted-foreground hover:text-foreground hover:bg-muted/50;
   }
 
-  /* Input minimum sizes for mobile */
   .min-h-input {
     min-height: 44px;
   }
@@ -475,7 +539,6 @@ All colors MUST be HSL.
     min-height: 44px;
   }
 
-  /* RTL-specific utilities */
   .admin-rtl .text-right {
     text-align: right;
   }
@@ -495,36 +558,80 @@ All colors MUST be HSL.
   }
 }
 
+/* Animations */
+@layer utilities {
+  /* Fade in on scroll animation */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  
+  .animate-fade-in-up-delay-1 {
+    animation: fadeInUp 0.6s ease-out 0.1s forwards;
+    opacity: 0;
+  }
+  
+  .animate-fade-in-up-delay-2 {
+    animation: fadeInUp 0.6s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+  
+  .animate-fade-in-up-delay-3 {
+    animation: fadeInUp 0.6s ease-out 0.3s forwards;
+    opacity: 0;
+  }
+  
+  .animate-count-up {
+    animation: countUp 1.5s ease-out forwards;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out forwards;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes countUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
 /* Mobile-specific overrides */
 @media (max-width: 640px) {
   .mobile-full {
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
+    width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
   }
 }
 
-/* Reduce motion for users who prefer it */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .border {
-    border-width: 2px;
-  }
-}
-
-/* Dark mode media query support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-  }
+/* RTL-specific fixes */
+[dir="rtl"] .space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
 }

@@ -25,20 +25,19 @@ export default {
 			'lg': '1024px',
 			'xl': '1280px',
 			'2xl': '1536px',
-			// Mobile-first breakpoints
 			'mobile': {'max': '639px'},
 			'tablet': {'min': '640px', 'max': '1023px'},
 			'ipad': {'min': '768px', 'max': '1024px'},
 			'desktop': {'min': '1024px'},
-			// Touch device specific
 			'touch': {'raw': '(hover: none) and (pointer: coarse)'},
 			'no-touch': {'raw': '(hover: hover) and (pointer: fine)'},
 		},
     extend: {
       fontFamily: {
-        sans: ['Heebo', 'system-ui', 'sans-serif'],
-        hebrew: ['Rubik', 'Heebo', 'Arial', 'sans-serif'],
-        proposal: ['Rubik', 'Heebo', 'system-ui', 'sans-serif'],
+        sans: ['Assistant', 'Rubik', 'system-ui', 'sans-serif'],
+        hebrew: ['Rubik', 'Assistant', 'Arial', 'sans-serif'],
+        assistant: ['Assistant', 'Arial', 'sans-serif'],
+        rubik: ['Rubik', 'Arial', 'sans-serif'],
       },
       colors: {
 				border: 'hsl(var(--border))',
@@ -95,6 +94,10 @@ export default {
 				highlight: {
 					DEFAULT: 'hsl(var(--highlight))',
 					foreground: 'hsl(var(--highlight-foreground))'
+				},
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
 				}
 			},
 			spacing: {
@@ -102,34 +105,28 @@ export default {
 				'safe-bottom': 'env(safe-area-inset-bottom)',
 				'safe-left': 'env(safe-area-inset-left)',
 				'safe-right': 'env(safe-area-inset-right)',
-				// Mobile-optimized spacing
 				'18': '4.5rem',
 				'88': '22rem',
 				'104': '26rem',
 				'112': '28rem',
 				'128': '32rem',
 			},
-			fontFamily: {
-				'assistant': ['Assistant', 'Arial', 'sans-serif'],
-				'sans': ['Assistant', 'Arial', 'sans-serif'],
-			},
 			fontSize: {
 				'2xs': ['0.625rem', '0.75rem'],
 				'mobile-xs': ['0.75rem', '1rem'],
 				'mobile-sm': ['0.875rem', '1.25rem'],
 				'mobile-base': ['1rem', '1.5rem'],
-				// Typography system font sizes
-				'h1': ['2rem', '1.25'],      // 32px
-				'h2': ['1.75rem', '1.3'],    // 28px
-				'h3': ['1.5rem', '1.35'],    // 24px
-				'body': ['1rem', '1.5'],     // 16px
-				'body-sm': ['0.875rem', '1.5'], // 14px
-				'label': ['0.875rem', '1.4'],   // 14px
-				'label-sm': ['0.75rem', '1.4'], // 12px
-				'button': ['1rem', '1.25'],     // 16px
-				'button-sm': ['0.875rem', '1.25'], // 14px
-				'nav': ['0.9375rem', '1.3'],    // 15px
-				'nav-sm': ['0.8125rem', '1.3'], // 13px
+				'h1': ['4rem', '1.1'],
+				'h2': ['3rem', '1.15'],
+				'h3': ['2rem', '1.25'],
+				'h4': ['1.5rem', '1.3'],
+				'body': ['1.125rem', '1.6'],
+				'body-sm': ['1rem', '1.5'],
+				'caption': ['0.875rem', '1.4'],
+				'label': ['0.875rem', '1.4'],
+				'button': ['1rem', '1.25'],
+				'button-lg': ['1.125rem', '1.25'],
+				'nav': ['0.9375rem', '1.3'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -159,56 +156,33 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
 				},
 				'fadeIn': {
-					'0%': {
-						opacity: '0',
-						transform: 'translateY(10px)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'translateY(0)'
-					}
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
 				},
 				'slideUp': {
-					'0%': {
-						transform: 'translateY(100%)'
-					},
-					'100%': {
-						transform: 'translateY(0)'
-					}
+					'0%': { transform: 'translateY(100%)' },
+					'100%': { transform: 'translateY(0)' }
 				},
 				'bounceGentle': {
-					'0%': {
-						transform: 'scale(0.95)',
-						opacity: '0'
-					},
-					'50%': {
-						transform: 'scale(1.02)'
-					},
-					'100%': {
-						transform: 'scale(1)',
-						opacity: '1'
-					}
+					'0%': { transform: 'scale(0.95)', opacity: '0' },
+					'50%': { transform: 'scale(1.02)' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
 				}
 			},
 			boxShadow: {
-				'mobile': '0 2px 8px -2px rgba(0, 0, 0, 0.1), 0 1px 4px -1px rgba(0, 0, 0, 0.06)',
-				'mobile-lg': '0 4px 16px -4px rgba(0, 0, 0, 0.1), 0 2px 8px -2px rgba(0, 0, 0, 0.06)',
+				'mobile': '0 2px 8px -2px rgba(0, 0, 0, 0.1)',
+				'mobile-lg': '0 4px 16px -4px rgba(0, 0, 0, 0.1)',
+				'premium': '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+				'premium-md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+				'premium-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
 			},
 			backdropBlur: {
 				'xs': '2px',
@@ -218,21 +192,17 @@ export default {
 	plugins: [
 		require("tailwindcss-animate"),
 		safeAreaPlugin,
-		// Custom plugin for mobile utilities
 		function({ addUtilities, theme, addComponents }: any) {
 			addUtilities({
 				'.scrollbar-hide': {
 					'-ms-overflow-style': 'none',
 					'scrollbar-width': 'none',
-					'&::-webkit-scrollbar': {
-						display: 'none'
-					}
+					'&::-webkit-scrollbar': { display: 'none' }
 				},
 				'.tap-highlight-transparent': {
 					'-webkit-tap-highlight-color': 'transparent'
 				}
 			})
-			
 			addComponents({
 				'.mobile-container': {
 					width: '100%',
@@ -241,10 +211,6 @@ export default {
 					marginRight: 'auto',
 					paddingLeft: theme('spacing.4'),
 					paddingRight: theme('spacing.4'),
-					'@screen sm': {
-						paddingLeft: theme('spacing.6'),
-						paddingRight: theme('spacing.6'),
-					}
 				}
 			})
 		}

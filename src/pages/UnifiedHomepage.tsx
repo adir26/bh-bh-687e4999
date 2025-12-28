@@ -8,19 +8,21 @@ import { useHomepagePublicContent } from '@/hooks/useHomepageCMS';
 import { useFeaturedSuppliers } from '@/hooks/useFeaturedSuppliers';
 import { useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/Header';
-import { HeroSection } from '@/components/HeroSection';
-import { AdBanner } from '@/components/AdBanner';
 import { SectionTitle } from '@/components/SectionTitle';
 import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';
 import { QuickSelection } from '@/components/QuickSelection';
 import { CategorySection } from '@/components/CategorySection';
 import { SupplierSection } from '@/components/SupplierSection';
-import { BottomCTA } from '@/components/BottomCTA';
 import { OnboardingStatusBanner } from '@/components/OnboardingStatusBanner';
 import { SearchInput } from '@/components/ui/search-input';
 import { PopularCategories } from '@/components/PopularCategories';
 import { GuestBanner } from '@/components/GuestBanner';
 import { LoginModal } from '@/components/modals/LoginModal';
+import { PremiumHero } from '@/components/home/PremiumHero';
+import { TrustSection } from '@/components/home/TrustSection';
+import { FeaturesGrid } from '@/components/home/FeaturesGrid';
+import { CTASection } from '@/components/home/CTASection';
+import { PremiumFooter } from '@/components/home/PremiumFooter';
 import { Supplier } from '@/data/suppliers';
 import { showToast } from '@/utils/toast';
 
@@ -30,17 +32,11 @@ import kitchenAccessoriesImg from '@/assets/kitchen-accessories.jpg';
 import kitchenModernImg from '@/assets/kitchen-modern.jpg';
 import kitchenHardwareImg from '@/assets/kitchen-hardware.jpg';
 import kitchenInstallationImg from '@/assets/kitchen-installation.jpg';
-import furnitureImg from '@/assets/furniture.jpg';
-import airConditioningImg from '@/assets/air-conditioning.jpg';
-import renovationImg from '@/assets/renovation.jpg';
-import mortgageAdvisorImg from '@/assets/mortgage-advisor.jpg';
-import movingServicesImg from '@/assets/moving-services.jpg';
-import homeLoansImg from '@/assets/home-loans.jpg';
 
 const UnifiedHomepage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isGuestMode, showLoginModal, setShowLoginModal, attemptedAction, setAttemptedAction } = useGuestMode();
+  const { isGuestMode, showLoginModal, setShowLoginModal, setAttemptedAction } = useGuestMode();
   const [searchQuery, setSearchQuery] = useState('');
   const { logEvent } = useAppEvents();
   const queryClient = useQueryClient();
@@ -72,18 +68,11 @@ const UnifiedHomepage = () => {
   // Fetch full supplier details from database
   const { data: featuredSuppliers = [], isLoading: isFeaturedLoading } = useFeaturedSuppliers(featuredSupplierIds);
 
-  // Polling for real-time updates in development
-  useEffect(() => {
-    const isDev = import.meta.env.DEV;
-    if (!isDev) return;
-    
-    const interval = setInterval(() => {
-      queryClient.invalidateQueries({ queryKey: ['featured-suppliers'] });
-      queryClient.invalidateQueries({ queryKey: ['homepage-public-content'] });
-    }, 30000);
-    
-    return () => clearInterval(interval);
-  }, [queryClient]);
+  // Get suppliers from database for each category
+  const { data: kitchenSuppliers = [] } = useCategorySuppliers('kitchens');
+  const { data: furnitureSuppliers = [] } = useCategorySuppliers('furniture');
+  const { data: airConditioningSuppliers = [] } = useCategorySuppliers('air-conditioning');
+  const { data: renovationSuppliers = [] } = useCategorySuppliers('renovation');
 
   // Quick selection data
   const quickSelectionItems = [
@@ -129,33 +118,6 @@ const UnifiedHomepage = () => {
     { id: '2', title: 'הצעות מיוחדות', subtitle: 'מבצעים', image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=480&h=480&fit=crop' },
     { id: '3', title: 'הנחות לזמן מוגבל', subtitle: 'מבצעים', image: 'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=480&h=480&fit=crop' }
   ];
-
-  // Local deals data
-  const localDeals = [
-    { id: '1', title: 'מבצעים מקומיים', subtitle: 'מבצעים מקומיים', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop' },
-    { id: '2', title: 'הצעות בקרבת מקום', subtitle: 'מבצעים מקומיים', image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=480&h=480&fit=crop' },
-    { id: '3', title: 'מבצעי קהילה', subtitle: 'מבצעים מקומיים', image: 'https://images.unsplash.com/photo-1607083206325-cad9886eacb8?w=480&h=480&fit=crop' }
-  ];
-
-  // Hot now items data
-  const hotNowItems = [
-    { id: '1', title: 'מוצרים חמים ביותר', subtitle: 'חם עכשיו', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop' },
-    { id: '2', title: 'קטגוריות מחופשות', subtitle: 'חם עכשיו', image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop' },
-    { id: '3', title: 'ספקים פופולרים', subtitle: 'חם עכשיו', image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=480&h=480&fit=crop' }
-  ];
-
-  // Trending items data
-  const trendingItems = [
-    { id: '1', title: 'חמים באזור שלך', subtitle: 'פופולרי עכשיו', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop' },
-    { id: '2', title: 'מבצעים מיוחדים', subtitle: 'פופולרי עכשיו', image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop' },
-    { id: '3', title: 'המבוקשים ביותר', subtitle: 'פופולרי עכשיו', image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=480&h=480&fit=crop' }
-  ];
-
-  // Get suppliers from database for each category
-  const { data: kitchenSuppliers = [] } = useCategorySuppliers('kitchens');
-  const { data: furnitureSuppliers = [] } = useCategorySuppliers('furniture');
-  const { data: airConditioningSuppliers = [] } = useCategorySuppliers('air-conditioning');
-  const { data: renovationSuppliers = [] } = useCategorySuppliers('renovation');
 
   // Event handlers
   const handleQuickSelectionClick = (item: any) => {
@@ -205,7 +167,15 @@ const UnifiedHomepage = () => {
     navigate(`/category/${category}/suppliers`);
   };
 
-  const handleHeroCTA = () => {
+  const handleHeroSearch = () => {
+    navigate('/search');
+  };
+
+  const handleHeroInspiration = () => {
+    navigate('/inspiration');
+  };
+
+  const handleCTAClick = () => {
     if (isGuest) {
       setAttemptedAction('start_project');
       setShowLoginModal(true);
@@ -214,16 +184,12 @@ const UnifiedHomepage = () => {
     }
   };
 
-  const handleAdClick = () => {
-    showToast.comingSoon('פרטי המבצע');
-  };
-
-  const handleBottomCTA = () => {
-    if (isGuest) {
+  const handleFeatureClick = (href: string) => {
+    if (isGuest && href === '/auth') {
       setAttemptedAction('start_project');
       setShowLoginModal(true);
     } else {
-      navigate('/onboarding/welcome');
+      navigate(href);
     }
   };
 
@@ -239,28 +205,41 @@ const UnifiedHomepage = () => {
     }
   };
 
-  // Dynamic content based on auth state
   const userName = user?.user_metadata?.full_name?.split(' ')[0] || 'אורח';
-  const ctaText = isGuest ? 'הצטרפו חינם' : 'בואו נתחיל';
-  const ctaHref = isGuest ? '/auth' : '/onboarding/welcome';
 
   return (
-    <div className="flex w-full min-h-screen flex-col items-start bg-background">
+    <div className="flex w-full min-h-screen flex-col bg-background">
       {/* Guest Banner - Only for guests */}
       {isGuest && <GuestBanner />}
       
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl flex flex-col items-start w-full bg-muted/30 pb-nav-safe">
-        <div className="flex flex-col items-start w-full">
-          <Header userName={isGuest ? undefined : userName} />
-          
-          {/* Onboarding Status Banner - Only for authenticated users */}
-          {!isGuest && <OnboardingStatusBanner />}
-          
-          {/* Hero Section */}
-          <HeroSection href={ctaHref} onCTAClick={handleHeroCTA} showCTA={isGuest} />
-        
+      {/* Header */}
+      <Header userName={isGuest ? undefined : userName} />
+      
+      {/* Onboarding Status Banner - Only for authenticated users */}
+      {!isGuest && (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <OnboardingStatusBanner />
+        </div>
+      )}
+      
+      {/* Premium Hero Section */}
+      <PremiumHero
+        onSearchClick={handleHeroSearch}
+        onInspirationClick={handleHeroInspiration}
+        isGuest={isGuest}
+      />
+      
+      {/* Trust Section */}
+      <TrustSection />
+      
+      {/* Features Grid */}
+      <FeaturesGrid onFeatureClick={handleFeatureClick} />
+      
+      {/* Main Content */}
+      <main className="bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Search Section */}
-          <div className="w-full px-0 py-4">
+          <div className="w-full max-w-2xl mx-auto mb-12">
             <SearchInput
               type="text"
               placeholder="חפש ספקים, שירותים ומוצרים..."
@@ -268,12 +247,12 @@ const UnifiedHomepage = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleSearchKeyDown}
               onClear={() => setSearchQuery('')}
-              className="text-right rounded-xl"
+              className="text-right rounded-xl shadow-premium-md"
               dir="rtl"
             />
           </div>
 
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitle title="בחירה מהירה" />
             <QuickSelection 
               items={quickSelectionItems}
@@ -282,7 +261,7 @@ const UnifiedHomepage = () => {
           </div>
 
           {/* Popular Categories Section */}
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitleWithButton 
               title="קטגוריות נפוצות"
               buttonText="כל הקטגוריות"
@@ -291,7 +270,7 @@ const UnifiedHomepage = () => {
             <PopularCategories />
           </div>
 
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitleWithButton 
               title="מטבחים" 
               buttonText="לכל הספקים"
@@ -304,7 +283,7 @@ const UnifiedHomepage = () => {
             />
           </div>
 
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitle title="בלעדי לבונים-פה" />
             <CategorySection 
               items={exclusiveDeals} 
@@ -313,7 +292,7 @@ const UnifiedHomepage = () => {
           </div>
 
           {/* Featured Suppliers from CMS */}
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitleWithButton 
               title="ספקים מובילים"
               buttonText="לכל הספקים"
@@ -322,7 +301,7 @@ const UnifiedHomepage = () => {
             {isFeaturedLoading ? (
               <div className="flex gap-4 overflow-x-auto pb-4">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-64 h-32 bg-muted/50 animate-pulse rounded-lg" />
+                  <div key={i} className="flex-shrink-0 w-64 h-32 bg-muted/50 animate-pulse rounded-2xl" />
                 ))}
               </div>
             ) : featuredSuppliers.length > 0 ? (
@@ -331,13 +310,13 @@ const UnifiedHomepage = () => {
                 onSupplierClick={handleSupplierClick}
               />
             ) : (
-              <div className="p-8 text-center text-muted-foreground border rounded-lg">
+              <div className="p-8 text-center text-muted-foreground border rounded-2xl">
                 אין ספקים מובילים להצגה כרגע
               </div>
             )}
           </div>
 
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitleWithButton 
               title="ריהוט" 
               buttonText="לכל הספקים"
@@ -354,10 +333,7 @@ const UnifiedHomepage = () => {
             />
           </div>
 
-          {/* Ad Banner */}
-          <AdBanner onAdClick={handleAdClick} />
-
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitleWithButton 
               title="מיזוג אוויר" 
               buttonText="לכל הספקים"
@@ -374,7 +350,7 @@ const UnifiedHomepage = () => {
             />
           </div>
 
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitleWithButton 
               title="שיפוצים" 
               buttonText="לכל הספקים"
@@ -391,7 +367,7 @@ const UnifiedHomepage = () => {
             />
           </div>
 
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitleWithButton 
               title="יועצי משכנתאות וביטוח" 
               buttonText="לכל היועצים"
@@ -412,7 +388,7 @@ const UnifiedHomepage = () => {
             />
           </div>
 
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitleWithButton 
               title="הובלות" 
               buttonText="לכל חברות ההובלה"
@@ -423,8 +399,7 @@ const UnifiedHomepage = () => {
                 id: supplier.id,
                 title: supplier.name,
                 subtitle: supplier.tagline,
-                image: supplier.logo,
-                size: 'medium' as const
+                image: supplier.logo
               }))}
               onItemClick={(item) => {
                 const supplier = movingServicesData.find(s => s.id === item.id);
@@ -433,10 +408,10 @@ const UnifiedHomepage = () => {
             />
           </div>
 
-          <div className="w-full">
+          <div className="w-full mb-12" dir="rtl">
             <SectionTitleWithButton 
-              title="הלוואות" 
-              buttonText="לכל ספקי ההלוואות"
+              title="הלוואות לדיור" 
+              buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('home-loans')}
             />
             <CategorySection 
@@ -444,8 +419,7 @@ const UnifiedHomepage = () => {
                 id: supplier.id,
                 title: supplier.name,
                 subtitle: supplier.tagline,
-                image: supplier.logo,
-                size: 'medium' as const
+                image: supplier.logo
               }))}
               onItemClick={(item) => {
                 const supplier = homeLoansData.find(s => s.id === item.id);
@@ -453,59 +427,19 @@ const UnifiedHomepage = () => {
               }}
             />
           </div>
-
-          <div className="w-full">
-            <SectionTitleWithButton 
-              title="מבצעים בסביבה" 
-              buttonText="לכל המבצעים"
-              onButtonClick={() => navigate('/local-deals')}
-            />
-            <CategorySection 
-              items={localDeals} 
-              onItemClick={handleCategoryClick}
-            />
-          </div>
-
-          <div className="w-full">
-            <SectionTitleWithButton 
-              title="חם עכשיו" 
-              buttonText="לכל הפרויקטים"
-              onButtonClick={() => navigate('/hot-now')}
-            />
-            <CategorySection 
-              items={hotNowItems} 
-              onItemClick={handleCategoryClick}
-            />
-          </div>
-
-          <div className="w-full">
-            <SectionTitleWithButton 
-              title="פופולרי עכשיו" 
-              buttonText="לכל הספקים"
-              onButtonClick={() => navigate('/popular-now')}
-            />
-            <CategorySection 
-              items={trendingItems} 
-              onItemClick={handleCategoryClick}
-            />
-          </div>
-          
-          {/* Bottom CTA */}
-          <BottomCTA 
-            title={isGuest ? "מוכנים להתחיל?" : "מוכנים להתחיל את הפרויקט שלכם?"}
-            buttonText={ctaText}
-            href={ctaHref}
-            onButtonClick={handleBottomCTA}
-            show={true}
-          />
         </div>
       </main>
+      
+      {/* CTA Section */}
+      <CTASection isGuest={isGuest} onCTAClick={handleCTAClick} />
+      
+      {/* Premium Footer */}
+      <PremiumFooter />
 
-      {/* Login Modal for Guest Actions */}
-      <LoginModal 
+      {/* Login Modal */}
+      <LoginModal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
-        attemptedAction={attemptedAction}
       />
     </div>
   );
