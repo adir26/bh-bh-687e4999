@@ -18,7 +18,7 @@ export const useGuestMode = (): GuestModeState => {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [attemptedAction, setAttemptedAction] = useState<string | null>(null);
   
-  // Use Zustand store instead of sessionStorage
+  // Use Zustand store for all state
   const guestMode = useAuthStore((state) => state.guestMode);
   const appMode = useAuthStore((state) => state.appMode);
   const returnPath = useAuthStore((state) => state.returnPath);
@@ -36,13 +36,13 @@ export const useGuestMode = (): GuestModeState => {
 
   // Store guest mode state in Zustand for navigation persistence
   useEffect(() => {
-    if (isGuestMode) {
+    if (urlGuestMode && !guestMode) {
       setGuestModeStore(true);
-      if (isAppMode) {
-        setAppModeStore('ios');
-      }
     }
-  }, [isGuestMode, isAppMode, setGuestModeStore, setAppModeStore]);
+    if (isAppMode && appMode !== 'ios') {
+      setAppModeStore('ios');
+    }
+  }, [urlGuestMode, isAppMode, guestMode, appMode, setGuestModeStore, setAppModeStore]);
 
   // Handle deep-link actions for guests
   useEffect(() => {
@@ -60,8 +60,11 @@ export const useGuestMode = (): GuestModeState => {
     isAppMode,
     showLoginModal,
     setShowLoginModal,
-    attemptedAction,
-    setAttemptedAction,
+    attemptedAction: attemptedAction || pendingAction,
+    setAttemptedAction: (action) => {
+      setAttemptedAction(action);
+      setPendingActionStore(action);
+    },
     returnPath: returnPath || null,
     setReturnPath: setReturnPathStore
   };
