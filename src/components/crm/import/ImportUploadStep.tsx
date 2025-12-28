@@ -98,7 +98,9 @@ export function ImportUploadStep({ onFileSelected }: ImportUploadStepProps) {
   };
 
   const downloadTemplate = () => {
-    const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
+    // Add UTF-8 BOM for proper Hebrew display in Excel
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
