@@ -35,7 +35,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Use service role for bypassing RLS
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -43,18 +42,13 @@ Deno.serve(async (req) => {
     console.log('Supabase URL:', supabaseUrl ? 'SET' : 'NOT SET');
     console.log('Service Role Key:', supabaseServiceKey ? 'SET' : 'NOT SET');
     
-    // Create client with user auth for getting the user
     const authClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: {
         headers: { Authorization: req.headers.get('Authorization')! },
       },
     });
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await authClient.auth.getUser();
+    const { data: { user }, error: authError } = await authClient.auth.getUser();
 
     if (authError || !user) {
       console.error('Auth error:', authError);
@@ -66,7 +60,6 @@ Deno.serve(async (req) => {
 
     console.log('Authenticated user:', user.id);
 
-    // Use service role client for DB operations (bypasses RLS)
     const supabaseClient = supabaseServiceKey 
       ? createClient(supabaseUrl, supabaseServiceKey)
       : authClient;
@@ -75,16 +68,15 @@ Deno.serve(async (req) => {
     const file = formData.get('file') as File;
     const fieldMappingRaw = formData.get('fieldMapping') as string || '{}';
     
-    console.log('=== FORM DATA RECEIVED ===');
-    console.log('File exists:', file != null);
+    console.log('=== FILE RECEIVED ===');
+    console.log('File received, size:', file?.size, 'bytes');
     console.log('File name:', file?.name);
-    console.log('File size:', file?.size);
     console.log('Field mapping raw:', fieldMappingRaw);
     
     let fieldMapping: Record<string, string> = {};
     try {
       fieldMapping = JSON.parse(fieldMappingRaw);
-      console.log('Field mapping parsed:', JSON.stringify(fieldMapping));
+      console.log('Mapping:', JSON.stringify(fieldMapping));
     } catch (e) {
       console.error('Failed to parse fieldMapping:', e);
     }
@@ -126,18 +118,18 @@ Deno.serve(async (req) => {
 
     try {
       const fileContent = await file.text();
-      console.log('=== FILE CONTENT ===');
       console.log('File content length:', fileContent.length, 'characters');
-      console.log('First 500 characters:', fileContent.slice(0, 500));
+      console.log('First 300 chars:', fileContent.slice(0, 300));
       
       let parsedLeads: ParsedLead[] = [];
       let totalDataRows = 0;
+      let headers: string[] = [];
 
-      // Parse file based on type
       if (fileType === 'csv') {
         const result = parseCSV(fileContent, fieldMapping);
         parsedLeads = result.leads;
         totalDataRows = result.totalDataRows;
+        headers = result.headers;
       } else {
         const result = parseXML(fileContent, fieldMapping);
         parsedLeads = result.leads;
@@ -145,16 +137,13 @@ Deno.serve(async (req) => {
       }
 
       console.log('=== PARSING RESULTS ===');
-      console.log('Total data rows in file:', totalDataRows);
-      console.log('Parsed leads (passed filter):', parsedLeads.length);
+      console.log('Parsed', parsedLeads.length, 'rows, headers:', JSON.stringify(headers));
       
       if (parsedLeads.length > 0) {
-        console.log('First parsed lead (sample):', JSON.stringify(parsedLeads[0]));
-      } else {
-        console.log('WARNING: No leads passed the minimal filter!');
+        console.log('First parsed lead:', JSON.stringify(parsedLeads[0]));
       }
 
-      // Validate and categorize leads
+      // Validate leads
       const validLeads: ParsedLead[] = [];
       const errors: ValidationError[] = [];
 
@@ -169,12 +158,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      console.log('=== VALIDATION RESULTS ===');
-      console.log('Valid leads:', validLeads.length);
-      console.log('Validation errors:', errors.length);
-      if (errors.length > 0) {
-        console.log('Sample errors:', JSON.stringify(errors.slice(0, 3)));
-      }
+      console.log('Valid leads found:', validLeads.length, 'out of', parsedLeads.length);
 
       // Check for duplicates
       const duplicates: string[] = [];
@@ -184,7 +168,6 @@ Deno.serve(async (req) => {
         const phoneToCheck = lead.phone || lead.contact_phone;
         const emailToCheck = lead.email || lead.contact_email;
         
-        // Build OR condition for duplicates
         const conditions: string[] = [];
         if (phoneToCheck) {
           conditions.push(`contact_phone.eq.${phoneToCheck}`);
@@ -194,12 +177,10 @@ Deno.serve(async (req) => {
         }
         
         if (conditions.length === 0) {
-          // No phone or email to check for duplicates, just add it
           leadsToInsert.push(lead);
           continue;
         }
 
-        // Check for duplicates using normalized phone or email
         const { data: existing } = await supabaseClient
           .from('leads')
           .select('id')
@@ -214,25 +195,22 @@ Deno.serve(async (req) => {
         }
       }
 
-      console.log('=== DUPLICATE CHECK ===');
       console.log('Duplicates found:', duplicates.length);
       console.log('Leads to insert:', leadsToInsert.length);
 
-      // Insert leads
-      let insertedCount = 0;
-      // Insert leads one by one with unique lead numbers
+      // Insert leads one by one
       let insertedCount = 0;
       const insertErrors: string[] = [];
       
       for (let i = 0; i < leadsToInsert.length; i++) {
         const lead = leadsToInsert[i];
+        console.log('Inserting lead #' + (i + 1));
         
-        // Generate unique lead number using RPC or fallback
+        // Generate unique lead number
         let leadNumber: string;
         const { data: generatedNumber, error: leadNumError } = await supabaseClient.rpc('generate_lead_number');
         
         if (leadNumError || !generatedNumber) {
-          // Fallback: use timestamp + random + index to ensure uniqueness
           leadNumber = `IMP-${Date.now()}-${Math.random().toString(36).substring(2, 8)}-${i}`;
           console.warn('Using fallback lead number:', leadNumber);
         } else {
@@ -261,29 +239,23 @@ Deno.serve(async (req) => {
           .insert(leadData);
 
         if (insertError) {
-          console.error(`Failed to insert lead ${i}:`, insertError.message);
+          console.error(`Failed to insert lead ${i + 1}:`, insertError.message);
           insertErrors.push(`Row ${i + 1}: ${insertError.message}`);
         } else {
           insertedCount++;
         }
       }
       
-      console.log('Successfully inserted', insertedCount, 'leads');
-      if (insertErrors.length > 0) {
-        console.log('Insert errors:', insertErrors.length);
-      }
+      console.log('Inserted', insertedCount, 'leads successfully');
 
-      // Calculate error rows (rows that didn't pass parsing + validation errors)
       const skippedInParsing = totalDataRows - parsedLeads.length;
       const totalErrorRows = skippedInParsing + errors.length + insertErrors.length;
 
-      console.log('=== FINAL COUNTS ===');
-      console.log('Total data rows:', totalDataRows);
-      console.log('Skipped in parsing:', skippedInParsing);
-      console.log('Validation errors:', errors.length);
-      console.log('Total error rows:', totalErrorRows);
-      console.log('Duplicates:', duplicates.length);
+      console.log('=== FINAL SUMMARY ===');
+      console.log('Total rows:', totalDataRows);
       console.log('Inserted:', insertedCount);
+      console.log('Duplicates:', duplicates.length);
+      console.log('Errors:', totalErrorRows);
 
       // Update import record
       await supabaseClient
@@ -298,8 +270,6 @@ Deno.serve(async (req) => {
         })
         .eq('id', importRecord.id);
 
-      console.log('Import record updated successfully');
-
       return new Response(
         JSON.stringify({
           success: true,
@@ -308,17 +278,13 @@ Deno.serve(async (req) => {
           imported_rows: insertedCount,
           duplicate_rows: duplicates.length,
           error_rows: totalErrorRows,
-          errors: errors.slice(0, 20), // Return first 20 errors
+          errors: errors.slice(0, 20),
         }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } catch (processingError) {
-      console.error('=== PROCESSING ERROR ===');
-      console.error('Error:', processingError);
+      console.error('=== PROCESSING ERROR ===', processingError);
 
-      // Update import record with error
       await supabaseClient
         .from('lead_imports')
         .update({
@@ -329,20 +295,12 @@ Deno.serve(async (req) => {
         .eq('id', importRecord.id);
 
       return new Response(
-        JSON.stringify({
-          success: false,
-          error: processingError.message,
-          importId: importRecord.id,
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
+        JSON.stringify({ success: false, error: processingError.message, importId: importRecord.id }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
   } catch (error) {
-    console.error('=== IMPORT ERROR ===');
-    console.error('Error:', error);
+    console.error('=== IMPORT ERROR ===', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -350,48 +308,37 @@ Deno.serve(async (req) => {
   }
 });
 
-function parseCSV(content: string, userMapping: Record<string, string>): { leads: ParsedLead[], totalDataRows: number } {
+function parseCSV(content: string, userMapping: Record<string, string>): { leads: ParsedLead[], totalDataRows: number, headers: string[] } {
   console.log('=== PARSING CSV ===');
   
-  // Remove BOM if exists
-  let cleanContent = content.replace(/^\uFEFF/, '');
+  const cleanContent = content.replace(/^\uFEFF/, '');
   const lines = cleanContent.trim().split(/\r?\n/).filter(line => line.trim());
   
-  console.log('Total lines in file:', lines.length);
+  console.log('Total lines:', lines.length);
   
   if (lines.length < 2) {
-    console.log('CSV file has less than 2 lines (no data rows)');
-    return { leads: [], totalDataRows: 0 };
+    return { leads: [], totalDataRows: 0, headers: [] };
   }
 
-  // Detect separator
   const firstLine = lines[0];
   const commaCount = (firstLine.match(/,/g) || []).length;
   const semicolonCount = (firstLine.match(/;/g) || []).length;
   const separator = semicolonCount > commaCount ? ';' : ',';
   
-  console.log('Separator detected:', separator);
-  console.log('Comma count:', commaCount, 'Semicolon count:', semicolonCount);
+  console.log('Separator:', separator);
 
-  // Parse headers
   const headers = parseCSVLine(firstLine, separator);
-  console.log('Headers detected:', headers);
-  console.log('Number of headers:', headers.length);
+  console.log('Headers:', JSON.stringify(headers));
 
-  // Create mapping - user mapping takes priority
   const mapping = createFieldMapping(headers, userMapping);
-  console.log('Final field mapping:', JSON.stringify(mapping));
+  console.log('Field mapping:', JSON.stringify(mapping));
 
   const leads: ParsedLead[] = [];
-  const totalDataRows = lines.length - 1; // Exclude header row
-  let skippedRows = 0;
+  const totalDataRows = lines.length - 1;
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
-    if (!line) {
-      skippedRows++;
-      continue;
-    }
+    if (!line) continue;
 
     const values = parseCSVLine(line, separator);
     const lead: Partial<ParsedLead> = {};
@@ -400,7 +347,6 @@ function parseCSV(content: string, userMapping: Record<string, string>): { leads
       const idx = parseInt(headerIndex);
       const value = values[idx]?.trim();
       if (value && systemField !== 'ignore') {
-        // Map to the correct field names
         if (systemField === 'phone') {
           lead.phone = value;
           lead.contact_phone = value;
@@ -413,25 +359,17 @@ function parseCSV(content: string, userMapping: Record<string, string>): { leads
       }
     }
 
-    // RELAXED FILTER: Accept if has at least one of: name, phone, or email
     const hasName = !!(lead.name && lead.name.trim().length > 0);
     const hasPhone = !!(lead.phone || lead.contact_phone);
     const hasEmail = !!(lead.email || lead.contact_email);
 
     if (hasName || hasPhone || hasEmail) {
       leads.push(lead as ParsedLead);
-    } else {
-      skippedRows++;
-      if (i <= 5) {
-        console.log(`Row ${i} skipped - no name/phone/email. Values:`, values);
-      }
     }
   }
 
-  console.log('Leads parsed:', leads.length);
-  console.log('Rows skipped (missing data):', skippedRows);
-
-  return { leads, totalDataRows };
+  console.log('Parsed leads:', leads.length);
+  return { leads, totalDataRows, headers };
 }
 
 function parseCSVLine(line: string, separator: string): string[] {
@@ -441,7 +379,6 @@ function parseCSVLine(line: string, separator: string): string[] {
 
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
-
     if (char === '"' || char === "'") {
       inQuotes = !inQuotes;
     } else if (char === separator && !inQuotes) {
@@ -460,37 +397,33 @@ function parseXML(content: string, userMapping: Record<string, string>): { leads
   console.log('=== PARSING XML ===');
   
   const leads: ParsedLead[] = [];
-  
-  // Simple XML parsing for <lead> tags
   const leadMatches = [...content.matchAll(/<lead[^>]*>([\s\S]*?)<\/lead>/gi)];
   const totalDataRows = leadMatches.length;
   
-  console.log('Total <lead> tags found:', totalDataRows);
+  console.log('Total <lead> tags:', totalDataRows);
 
   for (const match of leadMatches) {
     const leadXml = match[1];
     const lead: Partial<ParsedLead> = {};
 
-    // Extract values
     const extractValue = (tag: string): string | undefined => {
       const regex = new RegExp(`<${tag}[^>]*>([^<]*)<\/${tag}>`, 'i');
-      const match = leadXml.match(regex);
-      return match ? match[1].trim() : undefined;
+      const m = leadXml.match(regex);
+      return m ? m[1].trim() : undefined;
     };
 
-    lead.name = extractValue('name') || extractValue('full_name') || extractValue('fullname') || extractValue('שם');
-    lead.phone = extractValue('phone') || extractValue('telephone') || extractValue('mobile') || extractValue('טלפון');
+    lead.name = extractValue('name') || extractValue('full_name') || extractValue('שם');
+    lead.phone = extractValue('phone') || extractValue('telephone') || extractValue('טלפון');
     lead.contact_phone = lead.phone;
     lead.email = extractValue('email') || extractValue('mail') || extractValue('דוא"ל');
     lead.contact_email = lead.email;
     lead.source = extractValue('source') || extractValue('מקור');
     lead.form_name = extractValue('form_name') || extractValue('campaign') || extractValue('טופס');
-    lead.secondary_phone = extractValue('secondary_phone') || extractValue('מספר הטלפון המשני');
-    lead.whatsapp_phone = extractValue('whatsapp_phone') || extractValue('מספר הטלפון ב-whatsapp');
-    lead.channel = extractValue('channel') || extractValue('ערוץ');
-    lead.stage = extractValue('stage') || extractValue('שלב');
+    lead.secondary_phone = extractValue('secondary_phone');
+    lead.whatsapp_phone = extractValue('whatsapp_phone');
+    lead.channel = extractValue('channel');
+    lead.stage = extractValue('stage');
 
-    // RELAXED FILTER: Accept if has at least one of: name, phone, or email
     const hasName = !!(lead.name && lead.name.trim().length > 0);
     const hasPhone = !!(lead.phone || lead.contact_phone);
     const hasEmail = !!(lead.email || lead.contact_email);
@@ -500,235 +433,88 @@ function parseXML(content: string, userMapping: Record<string, string>): { leads
     }
   }
 
-  console.log('Leads parsed from XML:', leads.length);
-
+  console.log('Parsed XML leads:', leads.length);
   return { leads, totalDataRows };
 }
 
-function normalizeIsraeliPhone(phone: string): string | null {
-  if (!phone) return null;
+function normalizeIsraeliPhone(phone: string): string {
+  let cleaned = phone.replace(/[\s\-\(\)\.]/g, '');
   
-  // Clean phone: remove spaces, hyphens, parentheses
-  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
-  
-  // Remove leading + or 00
-  cleaned = cleaned.replace(/^(\+|00)/, '');
-  
-  // Ensure it starts with 972
-  if (cleaned.startsWith('05')) {
-    // Convert 05X to 9725X
-    cleaned = '972' + cleaned.substring(1);
-  } else if (!cleaned.startsWith('972')) {
-    // Try to add 972 prefix if it looks like Israeli number
-    if (cleaned.length === 9 || cleaned.length === 10) {
-      cleaned = '972' + cleaned;
-    }
+  if (cleaned.startsWith('+972')) {
+    cleaned = '0' + cleaned.substring(4);
+  } else if (cleaned.startsWith('972')) {
+    cleaned = '0' + cleaned.substring(3);
   }
   
-  // Validate length (should be 12 digits: 972 + 9 digits)
-  if (cleaned.length < 11 || cleaned.length > 13) {
-    return null;
+  if (/^0[0-9]{8,9}$/.test(cleaned)) {
+    return cleaned;
   }
   
-  // Validate it's all digits
-  if (!/^\d+$/.test(cleaned)) {
-    return null;
-  }
-  
-  return cleaned;
+  return phone;
 }
 
 function createFieldMapping(headers: string[], userMapping: Record<string, string>): Record<number, string> {
-  console.log('=== CREATING FIELD MAPPING ===');
-  console.log('Headers:', headers);
-  console.log('User mapping from frontend:', JSON.stringify(userMapping));
-  
   const mapping: Record<number, string> = {};
+  
+  const autoDetect: Record<string, string[]> = {
+    name: ['name', 'full_name', 'fullname', 'שם', 'שם מלא', 'שם הלקוח', 'שם לקוח'],
+    phone: ['phone', 'telephone', 'mobile', 'tel', 'טלפון', 'מספר טלפון', 'נייד', 'פלאפון'],
+    email: ['email', 'mail', 'e-mail', 'דואל', 'דוא"ל', 'אימייל', 'מייל'],
+    source: ['source', 'מקור', 'מקור ליד'],
+    campaign: ['campaign', 'קמפיין'],
+    form_name: ['form_name', 'form', 'טופס', 'שם טופס'],
+    secondary_phone: ['secondary_phone', 'phone2', 'מספר משני'],
+    whatsapp_phone: ['whatsapp', 'whatsapp_phone', 'וואטסאפ'],
+    channel: ['channel', 'ערוץ'],
+    stage: ['stage', 'שלב'],
+  };
 
-  // STEP 1: Apply user mapping FIRST (takes absolute priority)
-  for (const [indexStr, systemField] of Object.entries(userMapping)) {
-    const index = parseInt(indexStr);
-    if (!isNaN(index) && index >= 0 && index < headers.length && systemField) {
-      mapping[index] = systemField;
-      console.log(`User mapping applied: index ${index} (${headers[index]}) -> ${systemField}`);
+  for (let i = 0; i < headers.length; i++) {
+    const header = headers[i].toLowerCase().trim();
+    
+    // Check user mapping first
+    if (userMapping[header]) {
+      mapping[i] = userMapping[header];
+      continue;
+    }
+    
+    // Auto-detect
+    for (const [field, patterns] of Object.entries(autoDetect)) {
+      if (patterns.some(p => header.includes(p.toLowerCase()))) {
+        mapping[i] = field;
+        break;
+      }
     }
   }
 
-  // STEP 2: Auto-detect for columns NOT already mapped by user
-  headers.forEach((header, index) => {
-    // Skip if user already mapped this column
-    if (mapping[index] !== undefined) {
-      return;
-    }
-    
-    const normalizedHeader = header.toLowerCase().trim();
-
-    // Facebook Hebrew field mapping (exact matches first)
-    // שם - Name
-    if (
-      normalizedHeader === 'שם' ||
-      normalizedHeader === 'שם מלא' ||
-      normalizedHeader.includes('name') ||
-      normalizedHeader === 'full_name' ||
-      normalizedHeader === 'fullname'
-    ) {
-      mapping[index] = 'name';
-    }
-    // טלפון - Primary phone
-    else if (
-      normalizedHeader === 'טלפון' ||
-      normalizedHeader === 'מספר הטלפון' ||
-      normalizedHeader === 'phone' ||
-      normalizedHeader === 'telephone' ||
-      normalizedHeader === 'mobile' ||
-      normalizedHeader.includes('נייד')
-    ) {
-      mapping[index] = 'phone';
-    }
-    // מספר הטלפון המשני - Secondary phone
-    else if (
-      normalizedHeader === 'מספר הטלפון המשני' ||
-      normalizedHeader === 'טלפון משני' ||
-      normalizedHeader === 'secondary phone' ||
-      normalizedHeader === 'secondary_phone'
-    ) {
-      mapping[index] = 'secondary_phone';
-    }
-    // מספר הטלפון ב-WhatsApp - WhatsApp phone
-    else if (
-      normalizedHeader === 'מספר הטלפון ב-whatsapp' ||
-      normalizedHeader === 'whatsapp' ||
-      normalizedHeader === 'whatsapp phone' ||
-      normalizedHeader === 'whatsapp_phone'
-    ) {
-      mapping[index] = 'whatsapp_phone';
-    }
-    // דוא"ל - Email
-    else if (
-      normalizedHeader === 'דוא"ל' ||
-      normalizedHeader === 'אימייל' ||
-      normalizedHeader.includes('email') ||
-      normalizedHeader.includes('mail') ||
-      normalizedHeader.includes('מייל')
-    ) {
-      mapping[index] = 'email';
-    }
-    // מקור - Source
-    else if (
-      normalizedHeader === 'מקור' ||
-      normalizedHeader === 'source'
-    ) {
-      mapping[index] = 'source';
-    }
-    // טופס - Form name (use as campaign)
-    else if (
-      normalizedHeader === 'טופס' ||
-      normalizedHeader === 'form' ||
-      normalizedHeader === 'form_name' ||
-      normalizedHeader === 'campaign' ||
-      normalizedHeader === 'קמפיין'
-    ) {
-      mapping[index] = 'form_name';
-    }
-    // ערוץ - Channel
-    else if (
-      normalizedHeader === 'ערוץ' ||
-      normalizedHeader === 'channel'
-    ) {
-      mapping[index] = 'channel';
-    }
-    // שלב - Stage
-    else if (
-      normalizedHeader === 'שלב' ||
-      normalizedHeader === 'stage'
-    ) {
-      mapping[index] = 'stage';
-    }
-    // Ignore Facebook internal fields
-    else if (
-      normalizedHeader === 'נוצר' ||
-      normalizedHeader === 'בעלים' ||
-      normalizedHeader === 'תוויות' ||
-      normalizedHeader === 'created' ||
-      normalizedHeader === 'owner' ||
-      normalizedHeader === 'tags' ||
-      normalizedHeader === 'id'
-    ) {
-      mapping[index] = 'ignore';
-    }
-    // Default: ignore unmapped columns
-    else {
-      mapping[index] = 'ignore';
-      console.log(`Column ${index} (${header}) not recognized, set to ignore`);
-    }
-  });
-
-  console.log('Final mapping:', JSON.stringify(mapping));
   return mapping;
 }
 
-function validateLead(
-  lead: ParsedLead,
-  rowNumber: number
-): { valid: boolean; errors: ValidationError[] } {
+function validateLead(lead: ParsedLead, rowNumber: number): { valid: boolean; errors: ValidationError[] } {
   const errors: ValidationError[] = [];
 
   const hasName = !!(lead.name && lead.name.trim().length > 0);
   const hasPhone = !!(lead.phone || lead.contact_phone);
   const hasEmail = !!(lead.email || lead.contact_email);
 
-  // Must have at least one contact method (relaxed validation)
   if (!hasName && !hasPhone && !hasEmail) {
     errors.push({
       row: rowNumber,
       field: 'contact',
-      message: 'חסר מידע מזהה (שם, טלפון או מייל)',
+      message: 'חייב להיות לפחות שם, טלפון, או אימייל',
       data: lead,
     });
-    return { valid: false, errors };
   }
 
-  // Normalize phone if present
-  if (hasPhone) {
-    const phoneToNormalize = lead.phone || lead.contact_phone || '';
-    const normalized = normalizeIsraeliPhone(phoneToNormalize);
-    if (normalized) {
-      lead.phone = normalized;
-      lead.contact_phone = normalized;
-    } else if (phoneToNormalize.length > 0) {
-      // Phone exists but invalid - log warning but don't reject
-      console.warn(`Row ${rowNumber}: Phone ${phoneToNormalize} could not be normalized, keeping as-is`);
-    }
+  // Normalize phone if exists
+  if (lead.phone) {
+    lead.phone = normalizeIsraeliPhone(lead.phone);
+    lead.contact_phone = lead.phone;
   }
-  
-  // Optional: normalize secondary phone
-  if (lead.secondary_phone) {
-    const normalized = normalizeIsraeliPhone(lead.secondary_phone);
-    if (normalized) {
-      lead.secondary_phone = normalized;
-    }
-  }
-  
-  // Optional: normalize WhatsApp phone
-  if (lead.whatsapp_phone) {
-    const normalized = normalizeIsraeliPhone(lead.whatsapp_phone);
-    if (normalized) {
-      lead.whatsapp_phone = normalized;
-    }
+  if (lead.contact_phone && !lead.phone) {
+    lead.contact_phone = normalizeIsraeliPhone(lead.contact_phone);
+    lead.phone = lead.contact_phone;
   }
 
-  // Optional: email validation (warn but don't reject)
-  if (hasEmail) {
-    const emailToCheck = lead.email || lead.contact_email || '';
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailToCheck)) {
-      console.warn(`Row ${rowNumber}: Email ${emailToCheck} is not valid format`);
-      // Don't reject, just warn
-    }
-  }
-
-  return {
-    valid: true,
-    errors,
-  };
+  return { valid: errors.length === 0, errors };
 }
