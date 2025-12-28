@@ -38,6 +38,12 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* Safe area inset variables with fallbacks */
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -288,21 +294,42 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
-  /* Safe area utilities for mobile devices */
+  /* Safe area utilities for mobile devices with minimum fallbacks */
   .pb-safe {
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
+    padding-bottom: max(var(--sab), 1rem);
   }
   
   .pt-safe {
-    padding-top: max(env(safe-area-inset-top), 1rem);
+    padding-top: max(var(--sat), 1rem);
   }
   
   .pl-safe {
-    padding-left: max(env(safe-area-inset-left), 1rem);
+    padding-left: max(var(--sal), 1rem);
   }
   
   .pr-safe {
-    padding-right: max(env(safe-area-inset-right), 1rem);
+    padding-right: max(var(--sar), 1rem);
+  }
+  
+  /* Safe area with specific minimum padding for headers */
+  .pt-safe-header {
+    padding-top: max(var(--sat), 16px);
+  }
+  
+  .pt-safe-12 {
+    padding-top: max(var(--sat), 12px);
+  }
+  
+  .pt-safe-16 {
+    padding-top: max(var(--sat), 16px);
+  }
+  
+  .pt-safe-20 {
+    padding-top: max(var(--sat), 20px);
+  }
+  
+  .pt-safe-24 {
+    padding-top: max(var(--sat), 24px);
   }
 
   /* Enhanced mobile navigation spacing - prevents bottom nav overlap */
