@@ -103,7 +103,7 @@ const PublicHomepage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[100svh] bg-background">
+    <div className="min-h-[100svh] bg-background pt-safe-header">
       {/* Guest mode indicator banner */}
       {isGuestMode && <GuestModeIndicator />}
       
