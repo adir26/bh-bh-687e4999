@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { LogIn, UserPlus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/stores/authStore';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -16,13 +17,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   attemptedAction 
 }) => {
   const navigate = useNavigate();
+  const setReturnPath = useAuthStore((state) => state.setReturnPath);
+  const setPendingAction = useAuthStore((state) => state.setPendingAction);
 
   const handleSignIn = () => {
     // Store the attempted action and current location for post-auth redirect
     if (attemptedAction) {
-      sessionStorage.setItem('pendingAction', attemptedAction);
+      setPendingAction(attemptedAction);
     }
-    sessionStorage.setItem('returnPath', window.location.pathname);
+    setReturnPath(window.location.pathname);
     
     navigate('/auth');
     onClose();
@@ -31,9 +34,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const handleCreateAccount = () => {
     // Store the attempted action and current location for post-auth redirect
     if (attemptedAction) {
-      sessionStorage.setItem('pendingAction', attemptedAction);
+      setPendingAction(attemptedAction);
     }
-    sessionStorage.setItem('returnPath', window.location.pathname);
+    setReturnPath(window.location.pathname);
     
     navigate('/auth?mode=signup');
     onClose();
@@ -55,6 +58,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         return 'להעלות תמונה';
       case 'create_ideabook':
         return 'ליצור ספר רעיונות';
+      case 'start_project':
+        return 'להתחיל פרויקט';
       default:
         return 'לבצע פעולה זו';
     }

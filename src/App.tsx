@@ -14,7 +14,7 @@ import { SupplierBottomNavigation } from "@/components/SupplierBottomNavigation"
 import { TabletNavigation } from "@/components/TabletNavigation";
 import { queryClient } from "./lib/queryClient";
 import QueryDebugOverlay from "./dev/QueryDebugOverlay";
-import Index from "./pages/Index";
+import UnifiedHomepage from "./pages/UnifiedHomepage";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Search from "./pages/Search";
@@ -118,8 +118,7 @@ import IdeabookDetail from "./pages/IdeabookDetail";
 import MyPhotos from "./pages/supplier/MyPhotos";
 
 import PublicProductView from "./pages/PublicProductView";
-import PublicHomepage from "./pages/PublicHomepage";
-import Welcome from "./pages/Welcome";
+// PublicHomepage and Welcome removed - using UnifiedHomepage instead
 import AllCategories from "./pages/AllCategories";
 import { SiteFooter } from "./components/SiteFooter";
 import { useGuestMode } from "./hooks/useGuestMode";
@@ -175,10 +174,10 @@ const PublicRouteWrapper: React.FC<{ children: React.ReactNode }> = ({ children 
   return <Navigate to="/auth" state={{ from: location }} replace />;
 };
 
-// Wrapper for homepage that handles guest mode vs authenticated mode vs new visitors
+// Unified homepage wrapper - always shows full content, handles guest vs authenticated internally
 const HomeWrapper: React.FC = () => {
-  const { isGuestMode } = useGuestMode();
   const { user, loading } = useAuth();
+  const { isGuestMode } = useGuestMode();
   
   // Show loading while auth state is being determined
   if (loading) {
@@ -192,32 +191,20 @@ const HomeWrapper: React.FC = () => {
     );
   }
   
-  // If in guest mode, show public homepage
-  if (isGuestMode) {
-    return <PublicHomepage />;
-  }
-  
-  // If authenticated user, show protected homepage
-  if (user) {
+  // For authenticated users (not guests), wrap with protections
+  if (user && !isGuestMode) {
     return (
       <ProtectedRoute allowedRoles={['client', 'supplier', 'admin']}>
         <OnboardingGuard>
-          <Index />
+          <UnifiedHomepage />
         </OnboardingGuard>
       </ProtectedRoute>
     );
   }
   
-  // For new visitors (not authenticated, not in guest mode), show welcome page
-  // Check if user has previously chosen a path (to avoid showing welcome every time)
-  const hasSeenWelcome = sessionStorage.getItem('hasSeenWelcome');
-  if (!hasSeenWelcome) {
-    sessionStorage.setItem('hasSeenWelcome', 'true');
-    return <Welcome />;
-  }
-  
-  // Default: redirect to auth for returning users
-  return <Navigate to="/auth" replace />;
+  // For guests and unauthenticated users, show unified homepage directly
+  // UnifiedHomepage handles guest UI internally (banner, login modals, etc.)
+  return <UnifiedHomepage />;
 };
 
 const App = () => {
@@ -242,7 +229,7 @@ const App = () => {
                 <Routes>
                 {/* Home page - supports guest mode and welcome for new visitors */}
                 <Route path="/" element={<HomeWrapper />} />
-                <Route path="/welcome" element={<Welcome />} />
+                <Route path="/welcome" element={<Navigate to="/" replace />} />
                 <Route path="/app-exclusive" element={<AppExclusive />} />
                 <Route path="/auth" element={
                   <RedirectIfAuthenticated>

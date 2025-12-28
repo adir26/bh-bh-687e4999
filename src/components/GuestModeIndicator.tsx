@@ -2,26 +2,32 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { LogIn, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useAuthStore } from '@/stores/authStore';
+
 export const GuestModeIndicator: React.FC = () => {
   const navigate = useNavigate();
-  const [isVisible, setIsVisible] = useState(true);
+  const guestBannerDismissed = useAuthStore((state) => state.guestBannerDismissed);
+  const setGuestBannerDismissed = useAuthStore((state) => state.setGuestBannerDismissed);
+  const setReturnPath = useAuthStore((state) => state.setReturnPath);
+  const setPendingAction = useAuthStore((state) => state.setPendingAction);
+
   const handleSignIn = () => {
-    sessionStorage.setItem('returnPath', window.location.pathname);
-    sessionStorage.setItem('attemptedAction', 'guest_upgrade');
+    setReturnPath(window.location.pathname);
+    setPendingAction('guest_upgrade');
     navigate('/auth');
   };
+
   const handleDismiss = () => {
-    setIsVisible(false);
-    // Store dismissal in sessionStorage so it doesn't show again this session
-    sessionStorage.setItem('guestBannerDismissed', 'true');
+    setGuestBannerDismissed(true);
   };
 
-  // Don't show if previously dismissed this session
-  if (!isVisible || sessionStorage.getItem('guestBannerDismissed') === 'true') {
+  // Don't show if previously dismissed
+  if (guestBannerDismissed) {
     return null;
   }
-  return <div className="bg-primary/10 border-b border-primary/20 px-4 py-3">
+
+  return (
+    <div className="bg-primary/10 border-b border-primary/20 px-4 py-3">
       <div className="container mx-auto flex items-center justify-between max-w-4xl">
         <div className="flex items-center gap-3">
           <div className="text-sm text-primary/80">
@@ -41,5 +47,6 @@ export const GuestModeIndicator: React.FC = () => {
           </Button>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
