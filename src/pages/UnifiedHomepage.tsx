@@ -456,7 +456,7 @@ const UnifiedHomepage = () => {
           </div>
           
           {/* Bottom CTA */}
-          <BottomCTA title={isGuest ? "מוכנים להתחיל?" : "מוכנים להתחיל את הפרויקט שלכם?"} buttonText={ctaText} href={ctaHref} onButtonClick={handleBottomCTA} show={true} className="bg-secondary-foreground" />
+          <BottomCTA title={isGuest ? "מוכנים להתחיל?" : "מוכנים להתחיל את הפרויקט שלכם?"} buttonText={ctaText} href={ctaHref} onButtonClick={handleBottomCTA} show={true} />
         </div>
       </main>
 
