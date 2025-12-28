@@ -25,8 +25,8 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
   };
 
   return (
-    <div className="w-full bg-button-secondary py-4 px-4 pb-nav-safe text-center relative z-[70]">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">
+    <div className="w-full mx-4 mb-6 rounded-2xl bg-gradient-to-br from-primary/5 via-secondary/10 to-accent/5 py-8 px-6 pb-nav-safe text-center relative z-[70] border border-border/50 shadow-sm">
+      <h2 className="text-xl font-bold text-foreground mb-5">
         {title}
       </h2>
       <Link 
@@ -37,7 +37,7 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
         <Button 
           variant="blue"
           size="lg"
-          className="px-8 py-2 min-h-touch pointer-events-auto touch-manipulation inline-flex items-center gap-2"
+          className="px-10 py-3 min-h-touch pointer-events-auto touch-manipulation inline-flex items-center gap-2 rounded-xl shadow-md hover:shadow-lg transition-shadow"
           style={{ touchAction: 'manipulation' }}
           data-testid="start-now-bottom"
         >
