@@ -1,5 +1,5 @@
-
 import type { Config } from "tailwindcss";
+import safeAreaPlugin from './tailwind-safe-area-plugin';
 
 export default {
 	darkMode: ["class"],
@@ -217,6 +217,7 @@ export default {
 	},
 	plugins: [
 		require("tailwindcss-animate"),
+		safeAreaPlugin,
 		// Custom plugin for mobile utilities
 		function({ addUtilities, theme, addComponents }: any) {
 			addUtilities({
