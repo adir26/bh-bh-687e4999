@@ -32,9 +32,19 @@ export interface ImportHistory {
 
 export const leadImportService = {
   async importFile(file: File, fieldMapping: Record<string, string>): Promise<ImportResult> {
+    // Validate mapping before sending
+    const mappedFields = Object.values(fieldMapping).filter(f => f !== 'ignore');
+    const hasContactField = ['name', 'phone', 'email'].some(f => mappedFields.includes(f));
+    
+    if (!hasContactField) {
+      throw new Error('יש למפות לפחות שדה אחד: שם, טלפון או מייל');
+    }
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('fieldMapping', JSON.stringify(fieldMapping));
+
+    console.log('Sending import request with mapping:', fieldMapping);
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
@@ -52,12 +62,25 @@ export const leadImportService = {
       }
     );
 
+    const responseData = await response.json();
+    console.log('Import response:', responseData);
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Import failed');
+      const errorMessage = responseData.error || 'Import failed';
+      console.error('Import failed:', errorMessage);
+      throw new Error(errorMessage);
     }
 
-    return await response.json();
+    // Check for edge case where import "succeeded" but no rows were processed
+    if (responseData.success && responseData.total_rows === 0) {
+      return {
+        ...responseData,
+        success: true,
+        error: 'לא נמצאו שורות נתונים בקובץ. ודא שהקובץ מכיל נתונים ושהפורמט תקין.',
+      };
+    }
+
+    return responseData;
   },
 
   async getImportHistory(): Promise<ImportHistory[]> {
@@ -91,15 +114,21 @@ function parseCSVPreview(content: string): {
   preview: string[][];
   totalRows: number;
 } {
-  const lines = content.trim().split('\n');
+  // Remove BOM if exists
+  const cleanContent = content.replace(/^\uFEFF/, '');
+  const lines = cleanContent.trim().split(/\r?\n/).filter(line => line.trim());
+  
   if (lines.length === 0) {
     return { headers: [], preview: [], totalRows: 0 };
   }
 
-  const separator = lines[0].includes(';') ? ';' : ',';
-  const headers = lines[0]
-    .split(separator)
-    .map((h) => h.trim().replace(/^["']|["']$/g, ''));
+  // Detect separator
+  const firstLine = lines[0];
+  const commaCount = (firstLine.match(/,/g) || []).length;
+  const semicolonCount = (firstLine.match(/;/g) || []).length;
+  const separator = semicolonCount > commaCount ? ';' : ',';
+  
+  const headers = parseCSVLine(firstLine, separator);
 
   const preview: string[][] = [];
   for (let i = 1; i < Math.min(6, lines.length); i++) {
@@ -113,7 +142,7 @@ function parseCSVPreview(content: string): {
   return {
     headers,
     preview,
-    totalRows: lines.length - 1,
+    totalRows: lines.length - 1, // Exclude header
   };
 }
 

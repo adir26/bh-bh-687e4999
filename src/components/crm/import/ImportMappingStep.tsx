@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Table,
@@ -26,17 +26,20 @@ interface ImportMappingStepProps {
 }
 
 const SYSTEM_FIELDS = [
-  { value: 'name', label: 'שם מלא', required: true },
-  { value: 'phone', label: 'טלפון ראשי', required: true },
+  { value: 'name', label: 'שם מלא', required: false, contact: true },
+  { value: 'phone', label: 'טלפון ראשי', required: false, contact: true },
+  { value: 'email', label: 'דוא"ל', required: false, contact: true },
   { value: 'secondary_phone', label: 'טלפון משני', required: false },
   { value: 'whatsapp_phone', label: 'טלפון WhatsApp', required: false },
-  { value: 'email', label: 'דוא"ל', required: false },
   { value: 'source', label: 'מקור', required: false },
   { value: 'form_name', label: 'שם טופס / קמפיין', required: false },
   { value: 'channel', label: 'ערוץ', required: false },
   { value: 'stage', label: 'שלב', required: false },
   { value: 'ignore', label: 'התעלם', required: false },
 ];
+
+// Contact fields - at least one required
+const CONTACT_FIELDS = ['name', 'phone', 'email'];
 
 export function ImportMappingStep({
   headers,
@@ -55,19 +58,22 @@ export function ImportMappingStep({
       const normalized = header.toLowerCase().trim();
 
       // Facebook Hebrew exact matches
-      if (normalized === 'שם' || normalized === 'שם מלא' || normalized.includes('name')) {
+      if (normalized === 'שם' || normalized === 'שם מלא' || normalized.includes('name') || normalized === 'full_name') {
         autoMapping[index.toString()] = 'name';
       } else if (
         normalized === 'טלפון' ||
         normalized === 'מספר הטלפון' ||
         normalized === 'phone' ||
+        normalized === 'telephone' ||
+        normalized === 'mobile' ||
         normalized.includes('נייד')
       ) {
         autoMapping[index.toString()] = 'phone';
       } else if (
         normalized === 'מספר הטלפון המשני' ||
         normalized === 'טלפון משני' ||
-        normalized === 'secondary phone'
+        normalized === 'secondary phone' ||
+        normalized === 'secondary_phone'
       ) {
         autoMapping[index.toString()] = 'secondary_phone';
       } else if (
@@ -80,7 +86,8 @@ export function ImportMappingStep({
         normalized === 'דוא"ל' ||
         normalized === 'אימייל' ||
         normalized.includes('email') ||
-        normalized.includes('mail')
+        normalized.includes('mail') ||
+        normalized.includes('מייל')
       ) {
         autoMapping[index.toString()] = 'email';
       } else if (normalized === 'מקור' || normalized === 'source') {
@@ -88,6 +95,7 @@ export function ImportMappingStep({
       } else if (
         normalized === 'טופס' ||
         normalized === 'form' ||
+        normalized === 'form_name' ||
         normalized === 'campaign' ||
         normalized === 'קמפיין'
       ) {
@@ -102,7 +110,8 @@ export function ImportMappingStep({
         normalized === 'תוויות' ||
         normalized === 'created' ||
         normalized === 'owner' ||
-        normalized === 'tags'
+        normalized === 'tags' ||
+        normalized === 'id'
       ) {
         autoMapping[index.toString()] = 'ignore';
       }
@@ -116,26 +125,21 @@ export function ImportMappingStep({
       ...prev,
       [headerIndex]: systemField,
     }));
+    // Clear errors when user makes changes
+    setErrors([]);
   };
 
   const validateMapping = (): boolean => {
     const newErrors: string[] = [];
-    const reversedMapping = Object.entries(mapping).reduce(
-      (acc, [header, field]) => {
-        if (field !== 'ignore') {
-          acc[field] = header;
-        }
-        return acc;
-      },
-      {} as Record<string, string>
-    );
-
-    // Check required fields
-    const requiredFields = SYSTEM_FIELDS.filter((f) => f.required);
-    for (const field of requiredFields) {
-      if (!reversedMapping[field.value]) {
-        newErrors.push(`שדה חובה "${field.label}" לא מופה`);
-      }
+    
+    // Get mapped fields (excluding 'ignore')
+    const mappedFields = Object.values(mapping).filter(f => f !== 'ignore');
+    
+    // Check if at least one contact field is mapped
+    const hasContactField = CONTACT_FIELDS.some(field => mappedFields.includes(field));
+    
+    if (!hasContactField) {
+      newErrors.push('יש למפות לפחות שדה אחד מהבאים: שם מלא, טלפון או דוא"ל');
     }
 
     setErrors(newErrors);
@@ -148,6 +152,11 @@ export function ImportMappingStep({
     }
   };
 
+  // Check which contact fields are mapped
+  const mappedContactFields = CONTACT_FIELDS.filter(field => 
+    Object.values(mapping).includes(field)
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -155,6 +164,34 @@ export function ImportMappingStep({
         <p className="text-sm text-muted-foreground">
           מפה כל עמודה בקובץ לשדה במערכת. זיהוי אוטומטי בוצע, אך ניתן לשנות ידנית.
         </p>
+      </div>
+
+      {/* Contact fields status */}
+      <div className="bg-muted/50 rounded-lg p-4">
+        <div className="flex items-center gap-2 mb-2">
+          {mappedContactFields.length > 0 ? (
+            <CheckCircle2 className="w-4 h-4 text-green-600" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-yellow-600" />
+          )}
+          <span className="text-sm font-medium">
+            שדות מזהים (נדרש לפחות אחד):
+          </span>
+        </div>
+        <div className="flex gap-4 text-sm">
+          {CONTACT_FIELDS.map(field => {
+            const isMapped = mappedContactFields.includes(field);
+            const fieldLabel = SYSTEM_FIELDS.find(f => f.value === field)?.label;
+            return (
+              <span 
+                key={field}
+                className={isMapped ? 'text-green-600' : 'text-muted-foreground'}
+              >
+                {isMapped ? '✓' : '○'} {fieldLabel}
+              </span>
+            );
+          })}
+        </div>
       </div>
 
       {errors.length > 0 && (
@@ -200,8 +237,8 @@ export function ImportMappingStep({
                       {SYSTEM_FIELDS.map((field) => (
                         <SelectItem key={field.value} value={field.value}>
                           {field.label}
-                          {field.required && (
-                            <span className="text-destructive mr-1">*</span>
+                          {field.contact && (
+                            <span className="text-primary mr-1">*</span>
                           )}
                         </SelectItem>
                       ))}

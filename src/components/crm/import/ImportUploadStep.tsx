@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Upload, FileText, AlertCircle } from "lucide-react";
+import { Upload, FileText, AlertCircle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { leadImportService } from "@/services/leadImportService";
@@ -13,6 +13,11 @@ interface ImportUploadStepProps {
     totalRows: number
   ) => void;
 }
+
+// CSV template content
+const CSV_TEMPLATE = `שם מלא,טלפון,דוא"ל,מקור,קמפיין
+ישראל ישראלי,0501234567,israel@example.com,פייסבוק,קמפיין קיץ 2024
+שרה כהן,0521234567,sara@example.com,גוגל,קמפיין חורף`;
 
 export function ImportUploadStep({ onFileSelected }: ImportUploadStepProps) {
   const [dragActive, setDragActive] = useState(false);
@@ -92,8 +97,29 @@ export function ImportUploadStep({ onFileSelected }: ImportUploadStepProps) {
     }
   };
 
+  const downloadTemplate = () => {
+    const blob = new Blob([CSV_TEMPLATE], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'leads_template.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('תבנית CSV הורדה בהצלחה');
+  };
+
   return (
     <div className="space-y-6">
+      {/* Download Template Button */}
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={downloadTemplate}>
+          <Download className="w-4 h-4 ml-2" />
+          הורד תבנית CSV לדוגמה
+        </Button>
+      </div>
+
       <div
         className={`relative border-2 border-dashed rounded-lg p-12 text-center transition-colors ${
           dragActive
@@ -158,8 +184,8 @@ export function ImportUploadStep({ onFileSelected }: ImportUploadStepProps) {
         <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
           <li>עבור CSV: השורה הראשונה חייבת להכיל כותרות עמודות</li>
           <li>עבור XML: מבנה בסיסי עם תגיות {`<lead>`}</li>
-          <li>שדות חובה: שם מלא, טלפון</li>
-          <li>שדות אופציונליים: מייל, מקור, קמפיין</li>
+          <li><strong>שדות חובה: לפחות אחד מהבאים - שם, טלפון או מייל</strong></li>
+          <li>שדות אופציונליים: מקור, קמפיין, טלפון משני, WhatsApp</li>
           <li>קידוד: UTF-8 (תמיכה בעברית)</li>
         </ul>
       </div>
