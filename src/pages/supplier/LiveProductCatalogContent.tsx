@@ -333,7 +333,7 @@ export default function LiveProductCatalogContent() {
     >
       <div className="min-h-screen bg-background" dir="rtl">
         {/* Header */}
-        <div className="bg-white border-b border-border sticky top-0 z-10">
+        <div className="bg-white border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
           <div className="mobile-container px-4 xs:px-5 sm:px-6 py-3 xs:py-4">
             <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 xs:gap-4">
               <h1 className="text-lg xs:text-xl sm:text-2xl font-bold">קטלוג מוצרים ושירותים</h1>

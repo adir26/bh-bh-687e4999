@@ -44,7 +44,7 @@ const PageHeader = React.forwardRef<HTMLDivElement, PageHeaderProps>(
         <div
           ref={ref}
           className={cn(
-            "sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b pt-safe",
+            "sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b pt-[max(env(safe-area-inset-top),12px)]",
             className
           )}
           {...props}

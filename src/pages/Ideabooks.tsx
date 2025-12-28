@@ -132,7 +132,7 @@ export default function Ideabooks() {
     >
     <div className="min-h-screen bg-background pb-32">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border pt-[max(env(safe-area-inset-top),12px)]">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>

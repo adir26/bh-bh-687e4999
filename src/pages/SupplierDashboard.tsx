@@ -128,7 +128,7 @@ export default function SupplierDashboard() {
   return (
     <div className="min-h-screen bg-background pb-safe" dir="rtl">
       {/* Header */}
-      <div className="mobile-padding border-b border-border pt-safe">
+      <div className="mobile-padding border-b border-border pt-[max(env(safe-area-inset-top),12px)]">
         <div className="mobile-container flex justify-between items-center">
           <h1 className="text-lg xs:text-xl font-bold">לוח בקרה - ספק</h1>
           <Button
