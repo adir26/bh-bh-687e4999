@@ -109,7 +109,7 @@ const Favorites = () => {
         <div className="min-h-screen bg-background" dir="rtl">
           <div className="max-w-md mx-auto bg-background pb-nav-safe">
             {/* Header */}
-            <div className="bg-background border-b border-border px-6 py-6">
+            <div className="bg-background border-b border-border px-6 py-6 pt-[max(env(safe-area-inset-top),24px)]">
               <h1 className="text-2xl font-bold text-foreground text-right">המועדפים שלי</h1>
             </div>
 

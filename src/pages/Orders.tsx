@@ -119,7 +119,7 @@ const Orders = () => {
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-nav-safe">
       {/* Header */}
-      <div className="bg-white px-6 py-6 rounded-b-3xl shadow-sm">
+      <div className="bg-white px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10">
         <div className="text-right">
           <h1 className="text-2xl font-bold text-gray-900 mb-1">ההזמנות שלי</h1>
           {activeOrdersCount > 0 && (

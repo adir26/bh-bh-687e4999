@@ -337,8 +337,8 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
   );
 
   return (
-    <main className="mx-auto max-w-7xl space-y-4 p-4">
-      <header className="space-y-4">
+    <main className="mx-auto max-w-7xl space-y-4 p-4 pt-[max(env(safe-area-inset-top),16px)]">
+      <header className="space-y-4 sticky top-0 z-10 bg-background py-2">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold">ניהול לידים - CRM</h1>

@@ -90,8 +90,8 @@ export default function OrderBudget() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto p-6 pt-[max(env(safe-area-inset-top),24px)] space-y-6">
+      <div className="flex items-center justify-between sticky top-0 z-10 bg-background py-2">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-4 w-4 mr-2" />

@@ -59,9 +59,9 @@ export default function MyPhotos() {
   };
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-8 px-4 pt-[max(env(safe-area-inset-top),32px)]">
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between sticky top-0 z-10 bg-background py-2">
           <div>
             <h1 className="text-3xl font-bold">התמונות שלי</h1>
             <p className="text-muted-foreground mt-2">

@@ -222,7 +222,7 @@ const PublicSupplierProfile: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile Header Bar */}
-      <div className="sticky top-0 z-10 bg-card border-b px-4 py-3 flex items-center justify-between">
+      <div className="sticky top-0 z-10 bg-card border-b px-4 py-3 pt-[max(env(safe-area-inset-top),12px)] flex items-center justify-between">
         <Button 
           variant="ghost" 
           size="icon"

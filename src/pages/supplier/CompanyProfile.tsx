@@ -178,7 +178,7 @@ export default function CompanyProfile() {
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header with Edit Button */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b pt-[max(env(safe-area-inset-top),12px)]">
         <div className="container max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-semibold">פרופיל החברה</h1>

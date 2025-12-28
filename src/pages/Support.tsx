@@ -77,7 +77,7 @@ const Support = () => {
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-nav-safe" dir="rtl">
       {/* Header */}
-      <div className="bg-white px-6 py-6 rounded-b-3xl shadow-sm">
+      <div className="bg-white px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"

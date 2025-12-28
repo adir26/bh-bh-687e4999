@@ -163,7 +163,7 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
-      <div className="bg-white border-b border-border sticky top-0 z-10">
+      <div className="bg-white border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
