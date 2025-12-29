@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,6 +37,7 @@ interface LocalQuoteItem {
 export default function QuoteBuilder() {
   usePageLoadTimer('QuoteBuilder');
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { profile } = useAuth();
   const [searchParams] = useSearchParams();
   const leadId = searchParams.get('leadId');
@@ -480,19 +481,30 @@ export default function QuoteBuilder() {
       return;
     }
 
-    // Must have a valid client UUID (not a lead) to send
-    if (!selectedClientId || !isValidUUID(selectedClientId)) {
-      showToast.error('נא לבחור לקוח עם פרופיל (לא ליד) לשליחת הצעת מחיר');
+    // Must have a client or lead selected
+    if (!selectedClientValue) {
+      showToast.error('נא לבחור לקוח או ליד');
       return;
     }
+
     try {
       const savedQuote = await handleSaveDraft();
       if (!savedQuote) {
         showToast.error('שגיאה בשמירת הצעת המחיר');
         return;
       }
-      await quotesService.sendQuote(savedQuote.id, selectedClientId);
-      showToast.success('הצעת המחיר נשלחה בהצלחה');
+
+      // Update status to sent
+      await quotesService.updateQuote(savedQuote.id, { status: 'sent' });
+
+      // Generate share link
+      const link = await quotesService.generateShareLink(savedQuote.id);
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(link);
+      showToast.success('ההצעה נשלחה! הקישור הועתק ללוח');
+      
+      await queryClient.invalidateQueries({ queryKey: ['supplier-quotes'] });
       navigate('/supplier/quotes');
     } catch (error: any) {
       console.error('Error sending quote:', error);
@@ -531,11 +543,10 @@ export default function QuoteBuilder() {
         if (!currentQuote) return;
       }
       
-      // Update status to sent
+      // Update status to sent (no sent_at field in schema)
       const updated = await quotesService.updateQuote(currentQuote.id, {
-        status: 'sent' as any,
-        sent_at: new Date().toISOString() as any,
-      } as any);
+        status: 'sent',
+      });
       
       setQuote(updated);
       const isLead = selectedClientValue.startsWith('lead:');
@@ -572,11 +583,22 @@ export default function QuoteBuilder() {
 
   const handleDeleteQuote = async () => {
     if (!quote) return;
+    
+    // Check if quote can be deleted (only draft or rejected)
+    if (quote.status === 'sent' || quote.status === 'accepted') {
+      showToast.error('לא ניתן למחוק הצעת מחיר שנשלחה או אושרה');
+      setShowDeleteDialog(false);
+      return;
+    }
+    
     try {
       await quotesService.deleteQuote(quote.id);
+      await queryClient.invalidateQueries({ queryKey: ['supplier-quotes'] });
+      showToast.success('הצעת המחיר נמחקה בהצלחה');
       navigate('/supplier/quotes');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete quote:', error);
+      showToast.error(error.message || 'שגיאה במחיקת הצעת המחיר');
     }
   };
 
