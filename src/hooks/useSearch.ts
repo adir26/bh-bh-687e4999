@@ -1,12 +1,25 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { searchableCategories, searchableServices, getPopularSearches, type SearchableItem } from '@/data/searchData';
 import { useSearchableCompanies } from './useSearchableCompanies';
+import { useSearchableCategories } from './useSearchableCategories';
 
 const RECENT_SEARCHES_KEY = 'recent_searches';
 const MAX_RECENT_SEARCHES = 8;
 
+export interface SearchableItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  image: string;
+  type: 'category' | 'supplier';
+  category?: string;
+  location?: string;
+  rating?: number;
+  keywords: string[];
+  route?: string;
+}
+
 export interface SearchFilters {
-  type?: 'category' | 'supplier' | 'service';
+  type?: 'category' | 'supplier';
   category?: string;
   location?: string;
   minRating?: number;
@@ -20,15 +33,16 @@ export function useSearch() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('all');
   
-  // Fetch dynamic suppliers from Supabase
+  // Fetch dynamic data from Supabase
   const { data: dynamicCompanies = [], isLoading: isLoadingCompanies } = useSearchableCompanies();
+  const { data: dynamicCategories = [], isLoading: isLoadingCategories } = useSearchableCategories();
   
   // Convert dynamic companies to searchable items
   const searchableSuppliers = useMemo<SearchableItem[]>(() => {
     return dynamicCompanies.map(company => ({
       id: company.id,
       title: company.name,
-      subtitle: company.tagline || '',
+      subtitle: company.tagline || company.company_categories?.[0]?.category?.name || '',
       image: company.logo_url || '/placeholder.svg',
       type: 'supplier' as const,
       category: company.company_categories?.[0]?.category?.slug,
@@ -45,13 +59,30 @@ export function useSearch() {
       route: `/s/${company.slug}`
     }));
   }, [dynamicCompanies]);
+
+  // Convert dynamic categories to searchable items
+  const searchableCategories = useMemo<SearchableItem[]>(() => {
+    return dynamicCategories.map(category => ({
+      id: category.id,
+      title: category.name,
+      subtitle: 'קטגוריה',
+      image: '/placeholder.svg', // Categories don't have images in DB
+      type: 'category' as const,
+      category: category.slug,
+      keywords: [
+        category.name,
+        category.description || '',
+        category.slug
+      ].filter(Boolean),
+      route: `/category/${category.slug}`
+    }));
+  }, [dynamicCategories]);
   
-  // Combine all searchable items
+  // Combine all searchable items (only real DB data)
   const allSearchableItems = useMemo<SearchableItem[]>(() => [
     ...searchableCategories,
-    ...searchableSuppliers,
-    ...searchableServices
-  ], [searchableSuppliers]);
+    ...searchableSuppliers
+  ], [searchableCategories, searchableSuppliers]);
 
   // Load recent searches from localStorage
   useEffect(() => {
@@ -182,8 +213,10 @@ export function useSearch() {
     saveRecentSearches([]);
   }, [saveRecentSearches]);
 
-  // Get popular searches
-  const popularSearches = getPopularSearches();
+  // Popular searches based on real categories
+  const popularSearches = useMemo(() => {
+    return dynamicCategories.slice(0, 8).map(cat => cat.name);
+  }, [dynamicCategories]);
 
   // Update selected filter and apply corresponding filters
   const updateSelectedFilter = useCallback((filterType: string) => {
@@ -194,10 +227,7 @@ export function useSearch() {
       case 'suppliers':
         newFilters.type = 'supplier';
         break;
-      case 'services':
-        newFilters.type = 'service';
-        break;
-      case 'products':
+      case 'categories':
         newFilters.type = 'category';
         break;
       default:
@@ -212,7 +242,7 @@ export function useSearch() {
     results,
     recentSearches,
     popularSearches,
-    isLoading: isLoading || isLoadingCompanies,
+    isLoading: isLoading || isLoadingCompanies || isLoadingCategories,
     filters,
     selectedFilter,
     updateQuery,
