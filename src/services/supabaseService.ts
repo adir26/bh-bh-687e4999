@@ -57,6 +57,12 @@ export interface Order {
   completed_at?: string;
   created_at: string;
   updated_at: string;
+  // Joined fields
+  supplier_company?: {
+    id: string;
+    name: string;
+    logo_url?: string;
+  } | null;
 }
 
 export interface Message {
@@ -231,17 +237,16 @@ export const ordersService = {
 
   async getByUserId(userId: string) {
     try {
-      const { data, error } = await supabase
+      // Get orders first
+      const { data: ordersData, error } = await supabase
         .from('orders')
         .select('*')
         .or(`client_id.eq.${userId},supplier_id.eq.${userId}`)
         .order('created_at', { ascending: false });
       
       if (error) {
-        // Enhanced error logging and handling
         console.error('Supabase orders query error:', error);
         
-        // Handle specific error codes
         if (error.code === '42P01' || error.message?.includes('does not exist')) {
           console.log('Orders table does not exist, returning empty array');
           return [];
@@ -254,7 +259,40 @@ export const ordersService = {
         throw error;
       }
       
-      return (data as Order[]) || [];
+      if (!ordersData || ordersData.length === 0) {
+        return [];
+      }
+      
+      // Get unique supplier IDs
+      const supplierIds = [...new Set(ordersData.map(o => o.supplier_id).filter(Boolean))];
+      
+      // Fetch companies for these suppliers (companies.owner_id = supplier_id)
+      let companiesMap: Record<string, { id: string; name: string; logo_url?: string }> = {};
+      
+      if (supplierIds.length > 0) {
+        const { data: companiesData } = await supabase
+          .from('companies')
+          .select('id, name, logo_url, owner_id')
+          .in('owner_id', supplierIds);
+        
+        if (companiesData) {
+          companiesData.forEach(company => {
+            companiesMap[company.owner_id] = {
+              id: company.id,
+              name: company.name,
+              logo_url: company.logo_url || undefined
+            };
+          });
+        }
+      }
+      
+      // Merge company data into orders
+      const ordersWithCompany = ordersData.map(order => ({
+        ...order,
+        supplier_company: order.supplier_id ? companiesMap[order.supplier_id] || null : null
+      }));
+      
+      return ordersWithCompany as Order[];
     } catch (error) {
       console.error('Error in ordersService.getByUserId:', error);
       throw error;

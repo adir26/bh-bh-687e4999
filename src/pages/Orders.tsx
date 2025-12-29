@@ -30,7 +30,7 @@ const Orders = () => {
         const transformedOrders: Order[] = userOrders.map(order => ({
           id: order.id,
           invoiceNumber: order.id.substring(0, 8),
-          supplierName: 'ספק', // We'll need to join with companies table later
+          supplierName: order.supplier_company?.name || 'ספק לא ידוע',
           serviceName: order.title,
           status: order.status === 'pending' ? 'order_received' : 
                  order.status === 'confirmed' ? 'in_production' :
