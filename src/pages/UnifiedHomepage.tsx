@@ -17,7 +17,7 @@ import { CategorySection } from '@/components/CategorySection';
 import { SupplierSection } from '@/components/SupplierSection';
 import { BottomCTA } from '@/components/BottomCTA';
 import { OnboardingStatusBanner } from '@/components/OnboardingStatusBanner';
-import { SearchInput } from '@/components/ui/search-input';
+import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 import { PopularCategories } from '@/components/PopularCategories';
 import { GuestBanner } from '@/components/GuestBanner';
 import { LoginModal } from '@/components/modals/LoginModal';
@@ -48,7 +48,7 @@ const UnifiedHomepage = () => {
     attemptedAction,
     setAttemptedAction
   } = useGuestMode();
-  const [searchQuery, setSearchQuery] = useState('');
+  
   const {
     logEvent
   } = useAppEvents();
@@ -298,16 +298,6 @@ const UnifiedHomepage = () => {
       navigate('/onboarding/welcome');
     }
   };
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
 
   // Dynamic content based on auth state
   const userName = user?.user_metadata?.full_name?.split(' ')[0] || 'אורח';
@@ -327,9 +317,12 @@ const UnifiedHomepage = () => {
           {/* Hero Section */}
           <HeroSection href={ctaHref} onCTAClick={handleHeroCTA} showCTA={isGuest} />
         
-          {/* Search Section */}
+          {/* Search Section with Autocomplete */}
           <div className="w-full px-0 py-4">
-            <SearchInput type="text" placeholder="חפש ספקים, שירותים ומוצרים..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} onKeyDown={handleSearchKeyDown} onClear={() => setSearchQuery('')} className="text-right rounded-xl" dir="rtl" />
+            <SearchAutocomplete 
+              placeholder="חפש ספקים וקטגוריות..."
+              className="w-full"
+            />
           </div>
 
           <div className="w-full">

@@ -4,7 +4,7 @@ import { Star, MapPin, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SafeImage } from '@/utils/imageErrorHandling';
-import type { SearchableItem } from '@/data/searchData';
+import type { SearchableItem } from '@/hooks/useSearch';
 
 interface SearchResultsProps {
   results: SearchableItem[];
@@ -49,7 +49,6 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   const getTypeLabel = (type: string) => {
     switch (type) {
       case 'supplier': return 'ספק';
-      case 'service': return 'שירות';
       case 'category': return 'קטגוריה';
       default: return '';
     }
@@ -58,7 +57,6 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   const getTypeBadgeVariant = (type: string) => {
     switch (type) {
       case 'supplier': return 'blue';
-      case 'service': return 'green';
       case 'category': return 'purple';
       default: return 'secondary';
     }
@@ -129,10 +127,10 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
               
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  {item.rating && (
+                  {item.rating && item.rating > 0 && (
                     <div className="flex items-center gap-1">
                       <Star className="fill-yellow-400 text-yellow-400" size={12} />
-                      <span>{item.rating}</span>
+                      <span>{item.rating.toFixed(1)}</span>
                     </div>
                   )}
                 </div>
