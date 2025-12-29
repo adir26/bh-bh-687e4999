@@ -512,6 +512,9 @@ export default function QuoteBuilder() {
     }
   };
 
+  // Check if quote has a recipient (either from state or saved in quote)
+  const hasRecipient = selectedClientValue || quote?.lead_id || quote?.client_id;
+
   const handleMarkAsSent = async () => {
     // Comprehensive validation
     if (!title.trim()) {
@@ -522,7 +525,7 @@ export default function QuoteBuilder() {
       showToast.error('יש להוסיף לפחות פריט אחד');
       return;
     }
-    if (!selectedClientValue) {
+    if (!hasRecipient) {
       showToast.error('נא לבחור לקוח או ליד לפני שליחה');
       return;
     }
@@ -549,7 +552,7 @@ export default function QuoteBuilder() {
       });
       
       setQuote(updated);
-      const isLead = selectedClientValue.startsWith('lead:');
+      const isLead = selectedClientValue.startsWith('lead:') || currentQuote.lead_id;
       showToast.success(
         `✅ הצעת המחיר מוכנה לשליחה! ${isLead ? 'הליד' : 'הלקוח'} יוכל לאשר/לדחות דרך הקישור.`
       );
@@ -1027,14 +1030,29 @@ export default function QuoteBuilder() {
 
               {/* סמן כנשלח - רק אם עדיין לא נשלח */}
               {(!quote?.status || quote.status === 'draft') && (
-                <Button
-                  onClick={handleMarkAsSent}
-                  disabled={saving || !title.trim() || items.length === 0 || !selectedClientValue}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                >
-                  <CheckCircle className="w-4 h-4 ml-1" />
-                  סמן כ"מוכן לשליחה"
-                </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="w-full">
+                        <Button
+                          onClick={handleMarkAsSent}
+                          disabled={saving || !title.trim() || items.length === 0 || !hasRecipient}
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                        >
+                          <CheckCircle className="w-4 h-4 ml-1" />
+                          סמן כ"מוכן לשליחה"
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {(!title.trim() || items.length === 0 || !hasRecipient) && (
+                      <TooltipContent>
+                        {!title.trim() ? 'חסרה כותרת' : 
+                         items.length === 0 ? 'חסרים פריטים' : 
+                         !hasRecipient ? 'נא לבחור לקוח או ליד' : ''}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               )}
 
               {/* צור קישור - רק אם נשלח */}
