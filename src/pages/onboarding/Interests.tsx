@@ -77,7 +77,7 @@ const languages = [
 
 export default function OnboardingInterests() {
   const navigate = useNavigate();
-  const { user, updateOnboardingStep } = useAuth();
+  const { user, profile, updateOnboardingStep } = useAuth();
   const { skipOnboarding, completeOnboarding } = useOnboardingSkip();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
@@ -124,33 +124,28 @@ export default function OnboardingInterests() {
     };
     
     try {
-      // Update onboarding step with data
+      // Update onboarding step with interests data
       await updateOnboardingStep(5, interestsData);
       
-      // Get additional onboarding data from localStorage (backward compatibility)
-      const homeDetails = localStorage.getItem('homeDetails');
-      const projectPlanning = localStorage.getItem('projectPlanning');
-      const documents = localStorage.getItem('documents');
-      
-      const fullOnboardingData = {
-        ...interestsData,
-        homeDetails: homeDetails ? JSON.parse(homeDetails) : undefined,
-        projectPlanning: projectPlanning ? JSON.parse(projectPlanning) : undefined,
-        documents: documents ? JSON.parse(documents) : undefined
-      };
-      
-      // Import the service
+      // Get onboarding data from profile (saved by previous steps via updateOnboardingStep)
+      // The profile.onboarding_data now contains all the accumulated data from previous steps
       const { onboardingService } = await import('@/services/onboardingService');
       
-      if (user) {
+      if (user && profile) {
+        // Build full onboarding data from profile's accumulated data
+        const profileData = (profile as any).onboarding_data || {};
+        
+        const fullOnboardingData = {
+          ...interestsData,
+          homeDetails: profileData.homeDetails,
+          projectPlanning: profileData.projectPlanning,
+          documents: profileData.documents
+        };
+        
+        console.log('[ONBOARDING] Saving full data to DB:', fullOnboardingData);
+        
         const result = await onboardingService.saveClientOnboarding(user.id, fullOnboardingData);
         if (result.success) {
-          // Clear localStorage after successful save
-          localStorage.removeItem('userInterests');
-          localStorage.removeItem('homeDetails');
-          localStorage.removeItem('projectPlanning');
-          localStorage.removeItem('documents');
-          
           toast.success('הרישום הושלם בהצלחה!');
           
           // Complete onboarding and navigate to home

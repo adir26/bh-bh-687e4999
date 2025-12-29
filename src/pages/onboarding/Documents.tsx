@@ -87,11 +87,15 @@ export default function OnboardingDocuments() {
   };
 
   const handleNext = async () => {
-    localStorage.setItem('uploadedDocuments', JSON.stringify(uploadedFiles));
+    // Save to DB via updateOnboardingStep instead of localStorage
+    const documentsData = {
+      hasDocuments: Object.keys(uploadedFiles).length > 0,
+      documentTypes: Object.keys(uploadedFiles).filter(key => (uploadedFiles[key] || []).length > 0),
+      files: uploadedFiles
+    };
     
-    // Update onboarding step to 5 when moving to interests
     if (updateOnboardingStep) {
-      await updateOnboardingStep(5);
+      await updateOnboardingStep(5, { documents: documentsData });
     }
     
     navigate('/onboarding/interests');
