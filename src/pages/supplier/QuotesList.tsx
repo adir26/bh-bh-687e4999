@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { quotesService, Quote } from '@/services/quotesService';
 import { Button } from '@/components/ui/button';
@@ -8,16 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Edit, Eye, Send } from 'lucide-react';
+import { Plus, Edit, Eye, Send, Trash2 } from 'lucide-react';
 import { showToast } from '@/utils/toast';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { withTimeout } from '@/lib/withTimeout';
 import { SupplierHeader } from '@/components/SupplierHeader';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 export default function QuotesList() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'draft' | 'sent' | 'accepted' | 'rejected'>('all');
+  const [quoteToDelete, setQuoteToDelete] = useState<Quote | null>(null);
 
   const { data: quotes = [], isLoading, error } = useQuery({
     queryKey: ['supplier-quotes', profile?.id],
@@ -32,6 +35,26 @@ export default function QuotesList() {
     retry: 1,
     staleTime: 30_000,
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (quoteId: string) => quotesService.deleteQuote(quoteId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['supplier-quotes'] });
+      showToast.success('הצעת המחיר נמחקה בהצלחה');
+      setQuoteToDelete(null);
+    },
+    onError: (error: any) => {
+      showToast.error(error.message || 'שגיאה במחיקת הצעת המחיר');
+    },
+  });
+
+  const handleDeleteQuote = (quote: Quote) => {
+    if (quote.status === 'sent' || quote.status === 'accepted') {
+      showToast.error('לא ניתן למחוק הצעת מחיר שנשלחה או אושרה');
+      return;
+    }
+    setQuoteToDelete(quote);
+  };
 
   const filteredQuotes = quotes.filter(quote => {
     if (activeTab === 'all') return true;
@@ -197,6 +220,17 @@ export default function QuotesList() {
                                   >
                                     <Eye className="w-4 h-4" />
                                   </Button>
+                                  {(quote.status === 'draft' || quote.status === 'rejected') && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleDeleteQuote(quote)}
+                                      title="מחק"
+                                      className="text-destructive hover:text-destructive"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  )}
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -210,6 +244,28 @@ export default function QuotesList() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!quoteToDelete} onOpenChange={(open) => !open && setQuoteToDelete(null)}>
+          <AlertDialogContent dir="rtl">
+            <AlertDialogHeader>
+              <AlertDialogTitle>מחיקת הצעת מחיר</AlertDialogTitle>
+              <AlertDialogDescription>
+                האם אתה בטוח שברצונך למחוק את הצעת המחיר "{quoteToDelete?.title}"?
+                פעולה זו לא ניתנת לביטול.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="flex-row-reverse gap-2">
+              <AlertDialogCancel>ביטול</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => quoteToDelete && deleteMutation.mutate(quoteToDelete.id)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleteMutation.isPending ? 'מוחק...' : 'מחק'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PageBoundary>
   );

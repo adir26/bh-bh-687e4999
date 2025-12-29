@@ -52,6 +52,8 @@ export interface UpdateQuotePayload {
   tax_amount?: number;
   total_amount?: number;
   status?: Quote['status'];
+  template?: string;
+  order_id?: string;
 }
 
 export interface CreateQuoteItemPayload {
