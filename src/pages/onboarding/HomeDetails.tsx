@@ -42,11 +42,10 @@ export default function OnboardingHomeDetails() {
 
   const onSubmit = async (data: HomeDetailsForm) => {
     console.log('Home details:', data);
-    localStorage.setItem('homeDetails', JSON.stringify(data));
     
-    // Update onboarding step to 3 when moving to project planning
+    // Save to DB via updateOnboardingStep instead of localStorage
     if (updateOnboardingStep) {
-      await updateOnboardingStep(3);
+      await updateOnboardingStep(3, { homeDetails: data });
     }
     
     navigate('/onboarding/project-planning');

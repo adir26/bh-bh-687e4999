@@ -68,11 +68,10 @@ export default function OnboardingProjectPlanning() {
 
   const onSubmit = async (data: ProjectPlanningForm) => {
     console.log('Project planning:', data);
-    localStorage.setItem('projectPlanning', JSON.stringify(data));
     
-    // Update onboarding step to 4 when moving to documents
+    // Save to DB via updateOnboardingStep instead of localStorage
     if (updateOnboardingStep) {
-      await updateOnboardingStep(4);
+      await updateOnboardingStep(4, { projectPlanning: data });
     }
     
     navigate('/onboarding/documents');
