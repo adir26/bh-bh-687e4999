@@ -549,13 +549,10 @@ export default function QuoteBuilder() {
     }
 
     try {
-      // Save first if needed
-      let currentQuote = quote;
-      if (!currentQuote) {
-        showToast.info('שומר את ההצעה...');
-        currentQuote = await handleSaveDraft();
-        if (!currentQuote) return;
-      }
+      // Always save to ensure lead_id/client_id is persisted before updating status
+      showToast.info('שומר את ההצעה...');
+      const currentQuote = await handleSaveDraft();
+      if (!currentQuote) return;
       
       // Update status to sent (no sent_at field in schema)
       const updated = await quotesService.updateQuote(currentQuote.id, {
@@ -656,6 +653,9 @@ export default function QuoteBuilder() {
         setClientEmail(client.email || '');
       }
     }
+    
+    // Trigger auto-save to persist lead/client selection to database
+    triggerAutoSave();
   };
 
   // Handle creating a new client (as a lead)
