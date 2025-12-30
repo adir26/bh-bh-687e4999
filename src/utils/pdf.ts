@@ -5,11 +5,32 @@ export function createPdfBlob(data: ArrayBuffer | Uint8Array | string | { type: 
   if (data && typeof data === 'object' && 'type' in data && data.type === 'Buffer' && Array.isArray((data as any).data)) {
     bytes = new Uint8Array((data as { type: 'Buffer'; data: number[] }).data);
   } else if (typeof data === 'string') {
-    const idx = data.indexOf('base64,');
-    const b64 = idx !== -1 ? data.slice(idx + 'base64,'.length) : data;
-    const bin = atob(b64);
-    bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    // Check if it's base64 encoded
+    const base64Match = data.match(/^data:[^;]+;base64,(.+)$/);
+    if (base64Match) {
+      // Data URL format
+      const b64 = base64Match[1];
+      const bin = atob(b64);
+      bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    } else if (/^[A-Za-z0-9+/=]+$/.test(data) && data.length > 100) {
+      // Looks like pure base64
+      try {
+        const bin = atob(data);
+        bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      } catch {
+        // Not valid base64, treat as raw binary string
+        bytes = new TextEncoder().encode(data);
+      }
+    } else {
+      // Raw binary string - convert each character to byte
+      // This handles the case where the PDF bytes are returned as a raw string
+      bytes = new Uint8Array(data.length);
+      for (let i = 0; i < data.length; i++) {
+        bytes[i] = data.charCodeAt(i) & 0xff;
+      }
+    }
   } else if (data instanceof ArrayBuffer) {
     bytes = new Uint8Array(data);
   } else {
