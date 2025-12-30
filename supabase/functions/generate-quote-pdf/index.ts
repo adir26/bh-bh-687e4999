@@ -14,6 +14,37 @@ interface GeneratePDFRequest {
   template?: string;
 }
 
+async function loadHebrewFonts(pdfDoc: any) {
+  try {
+    const regUrl = Deno.env.get('PDF_FONT_HE_REGULAR_URL');
+    const boldUrl = Deno.env.get('PDF_FONT_HE_BOLD_URL');
+    if (!regUrl || !boldUrl) {
+      throw new Error('PDF fonts env vars not set');
+    }
+    const [regResp, boldResp] = await Promise.all([
+      fetch(regUrl),
+      fetch(boldUrl),
+    ]);
+    if (!regResp.ok || !boldResp.ok) {
+      throw new Error(`Failed to fetch fonts: ${regResp.status}, ${boldResp.status}`);
+    }
+    const [regBuffer, boldBuffer] = await Promise.all([
+      regResp.arrayBuffer(),
+      boldResp.arrayBuffer(),
+    ]);
+    const regFont = await pdfDoc.embedFont(regBuffer);
+    const boldFont = await pdfDoc.embedFont(boldBuffer);
+    console.log('[generate-quote-pdf] Hebrew fonts loaded successfully');
+    return { font: regFont, boldFont };
+  } catch (err) {
+    console.warn('[generate-quote-pdf] Failed to load Hebrew fonts, falling back to Helvetica:', err);
+    return {
+      font: await pdfDoc.embedFont(StandardFonts.Helvetica),
+      boldFont: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+    };
+  }
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -189,8 +220,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Create PDF
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const { font, boldFont } = await loadHebrewFonts(pdfDoc);
     
     const { width, height } = page.getSize();
     let y = height - 50;
