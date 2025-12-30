@@ -52,10 +52,51 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { quoteId, token, template = 'premium' }: GeneratePDFRequest = await req.json();
+    // Defensive request body parsing
+    let requestBody: GeneratePDFRequest = { template: 'premium' };
     
+    try {
+      const rawBody = await req.text();
+      console.log('[generate-quote-pdf] Raw request body length:', rawBody?.length || 0);
+      
+      if (!rawBody || !rawBody.trim()) {
+        console.error('[generate-quote-pdf] Empty request body received');
+        return new Response(
+          JSON.stringify({ error: 'Empty request body' }),
+          {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
+      }
+      
+      requestBody = JSON.parse(rawBody);
+    } catch (parseError: any) {
+      console.error('[generate-quote-pdf] JSON parse error:', parseError.message);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid JSON body', 
+          details: parseError.message 
+        }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+    
+    const { quoteId, token, template = 'premium' } = requestBody;
+    
+    // Validate required fields
     if (!quoteId && !token) {
-      throw new Error('Missing required field: quoteId or token');
+      console.error('[generate-quote-pdf] Missing required field: quoteId or token');
+      return new Response(
+        JSON.stringify({ error: 'Missing required field: quoteId or token' }),
+        {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
     }
 
     console.log('[generate-quote-pdf] Processing request:', { 
@@ -76,7 +117,13 @@ const handler = async (req: Request): Promise<Response> => {
       // Authenticated request - verify ownership
       const authHeader = req.headers.get('Authorization');
       if (!authHeader) {
-        throw new Error('חסר אימות');
+        return new Response(
+          JSON.stringify({ error: 'חסר אימות' }),
+          {
+            status: 401,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
       }
 
       const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -86,7 +133,13 @@ const handler = async (req: Request): Promise<Response> => {
       // Get user from auth header
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) {
-        throw new Error('אימות נכשל');
+        return new Response(
+          JSON.stringify({ error: 'אימות נכשל' }),
+          {
+            status: 401,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
       }
 
       // Fetch quote and verify ownership
@@ -99,7 +152,13 @@ const handler = async (req: Request): Promise<Response> => {
 
       if (quoteError || !quoteData) {
         console.error('[generate-quote-pdf] Quote not found or access denied:', quoteError);
-        throw new Error('הצעת מחיר לא נמצאה או אין הרשאה');
+        return new Response(
+          JSON.stringify({ error: 'הצעת מחיר לא נמצאה או אין הרשאה' }),
+          {
+            status: 404,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
       }
 
       quote = quoteData;
@@ -112,7 +171,14 @@ const handler = async (req: Request): Promise<Response> => {
         .order('sort_order', { ascending: true });
 
       if (itemsError) {
-        throw new Error('שגיאה בטעינת פריטי הצעת המחיר');
+        console.error('[generate-quote-pdf] Error fetching items:', itemsError);
+        return new Response(
+          JSON.stringify({ error: 'שגיאה בטעינת פריטי הצעת המחיר' }),
+          {
+            status: 500,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
       }
       items = itemsData || [];
 
@@ -146,13 +212,25 @@ const handler = async (req: Request): Promise<Response> => {
         .single();
 
       if (linkError || !shareLink) {
-        throw new Error('קישור לא נמצא או פג תוקף');
+        return new Response(
+          JSON.stringify({ error: 'קישור לא נמצא או פג תוקף' }),
+          {
+            status: 404,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
       }
 
       // Check expiration
       const expiresAt = new Date(shareLink.expires_at);
       if (expiresAt < new Date()) {
-        throw new Error('תוקף הקישור פג');
+        return new Response(
+          JSON.stringify({ error: 'תוקף הקישור פג' }),
+          {
+            status: 410,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
       }
 
       // Fetch quote
@@ -163,7 +241,13 @@ const handler = async (req: Request): Promise<Response> => {
         .single();
 
       if (quoteError || !quoteData) {
-        throw new Error('הצעת מחיר לא נמצאה');
+        return new Response(
+          JSON.stringify({ error: 'הצעת מחיר לא נמצאה' }),
+          {
+            status: 404,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
       }
       quote = quoteData;
 
@@ -175,7 +259,13 @@ const handler = async (req: Request): Promise<Response> => {
         .order('sort_order', { ascending: true });
 
       if (itemsError) {
-        throw new Error('שגיאה בטעינת פריטי הצעת המחיר');
+        return new Response(
+          JSON.stringify({ error: 'שגיאה בטעינת פריטי הצעת המחיר' }),
+          {
+            status: 500,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          }
+        );
       }
       items = itemsData || [];
 
@@ -208,11 +298,11 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Template color schemes
     const templates: Record<string, { primary: [number, number, number]; secondary: [number, number, number] }> = {
-      premium: { primary: [0.58, 0.27, 0.69], secondary: [0.95, 0.47, 0.67] }, // Purple-Pink
-      corporate: { primary: [0.3, 0.4, 0.5], secondary: [0.2, 0.3, 0.45] }, // Gray-Blue
-      modern: { primary: [0.08, 0.5, 0.75], secondary: [0, 0.7, 0.85] }, // Blue-Cyan
-      minimal: { primary: [0, 0, 0], secondary: [0.3, 0.3, 0.3] }, // Black-Gray
-      classic: { primary: [0.75, 0.5, 0], secondary: [0.85, 0.6, 0.2] } // Amber-Orange
+      premium: { primary: [0.58, 0.27, 0.69], secondary: [0.95, 0.47, 0.67] },
+      corporate: { primary: [0.3, 0.4, 0.5], secondary: [0.2, 0.3, 0.45] },
+      modern: { primary: [0.08, 0.5, 0.75], secondary: [0, 0.7, 0.85] },
+      minimal: { primary: [0, 0, 0], secondary: [0.3, 0.3, 0.3] },
+      classic: { primary: [0.75, 0.5, 0], secondary: [0.85, 0.6, 0.2] }
     };
 
     const colors = templates[template] || templates.premium;

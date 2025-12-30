@@ -77,25 +77,33 @@ export default function PublicQuoteView() {
     if (!token) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('generate-quote-pdf', {
+      const response = await supabase.functions.invoke('generate-quote-pdf', {
         body: { token, template: quoteData?.quote.template || 'premium' },
-        // חשוב: מבקשים בינארי ומגדירים כותרות מפורשות
-        responseType: 'arraybuffer' as any,
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/pdf',
-        },
-      } as any);
+      });
 
-      if (error) throw error;
-      if (!data || (data as ArrayBuffer).byteLength === 0) {
+      if (response.error) {
+        throw new Error(response.error.message || 'שגיאה ביצירת PDF');
+      }
+
+      const data = response.data;
+      
+      // Handle both ArrayBuffer and Blob responses
+      let pdfBlob: Blob;
+      if (data instanceof ArrayBuffer) {
+        pdfBlob = createPdfBlob(data);
+      } else if (data instanceof Blob) {
+        pdfBlob = data;
+      } else if (typeof data === 'object' && data?.error) {
+        throw new Error(data.error);
+      } else {
         throw new Error('שרת לא החזיר PDF תקין');
       }
 
-      // שימוש ביוצר ה-Blob הייעודי (אם בודק חתימת %PDF- זה בונוס בתוך util הזה)
-      const blob = createPdfBlob(data as ArrayBuffer);
+      if (pdfBlob.size === 0) {
+        throw new Error('שרת לא החזיר PDF תקין');
+      }
 
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `quote-${quoteData?.quote.id?.slice(0, 8) || token}.pdf`;
