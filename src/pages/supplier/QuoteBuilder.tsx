@@ -448,26 +448,57 @@ export default function QuoteBuilder() {
 
       const response = await supabase.functions.invoke('generate-quote-pdf', invokeOptions);
       
+      // TEMP debug logs
+      console.log('[PDF] response.error:', response.error);
+      console.log('[PDF] typeof data:', typeof response.data);
+      console.log('[PDF] data ctor:', response.data?.constructor?.name);
+      console.log('[PDF] data keys:', response.data && typeof response.data === 'object' ? Object.keys(response.data) : null);
+      
       if (response.error) {
         throw new Error(response.error.message || 'שגיאה ביצירת PDF');
       }
 
       const data = response.data;
       
-      // Handle both ArrayBuffer and Blob responses
+      // Check for error response
+      if (data && typeof data === 'object' && 'error' in data) {
+        throw new Error((data as { error: string }).error);
+      }
+      
+      // Handle various response types
       let pdfBlob: Blob;
-      if (data instanceof ArrayBuffer) {
-        pdfBlob = createPdfBlob(data);
-      } else if (data instanceof Blob) {
+      if (data instanceof Blob) {
         pdfBlob = data;
-      } else if (typeof data === 'object' && data?.error) {
-        throw new Error(data.error);
+      } else if (data instanceof ArrayBuffer) {
+        pdfBlob = createPdfBlob(data);
+      } else if (data instanceof Uint8Array) {
+        pdfBlob = createPdfBlob(data);
+      } else if (typeof data === 'string') {
+        pdfBlob = createPdfBlob(data);
+      } else if (
+        data && 
+        typeof data === 'object' && 
+        'type' in data && 
+        (data as any).type === 'Buffer' && 
+        Array.isArray((data as any).data)
+      ) {
+        // Node-style buffer object: { type: 'Buffer', data: number[] }
+        pdfBlob = createPdfBlob(new Uint8Array((data as { type: 'Buffer'; data: number[] }).data));
       } else {
-        throw new Error('שרת לא החזיר PDF תקין');
+        throw new Error(`Unexpected PDF response type: ${typeof data}, ctor: ${data?.constructor?.name}`);
       }
 
       if (pdfBlob.size === 0) {
-        throw new Error('שרת לא החזיר PDF תקין');
+        throw new Error('שרת לא החזיר PDF תקין - קובץ ריק');
+      }
+
+      // Validate PDF signature
+      const signatureSlice = pdfBlob.slice(0, 5);
+      const signatureText = await signatureSlice.text();
+      if (!signatureText.startsWith('%PDF-')) {
+        const debugSlice = pdfBlob.slice(0, 100);
+        const debugText = await debugSlice.text();
+        throw new Error(`Invalid PDF signature. First 50 chars: ${debugText.slice(0, 50)}`);
       }
 
       const url = URL.createObjectURL(pdfBlob);
