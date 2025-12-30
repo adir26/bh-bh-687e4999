@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { PDFDocument, rgb, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1';
+import { PDFDocument, rgb } from 'https://esm.sh/pdf-lib@1.17.1';
+import fontkit from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,35 +15,66 @@ interface GeneratePDFRequest {
   template?: string;
 }
 
-async function loadHebrewFonts(pdfDoc: any) {
-  try {
-    const regUrl = Deno.env.get('PDF_FONT_HE_REGULAR_URL');
-    const boldUrl = Deno.env.get('PDF_FONT_HE_BOLD_URL');
-    if (!regUrl || !boldUrl) {
-      throw new Error('PDF fonts env vars not set');
-    }
-    const [regResp, boldResp] = await Promise.all([
-      fetch(regUrl),
-      fetch(boldUrl),
-    ]);
-    if (!regResp.ok || !boldResp.ok) {
-      throw new Error(`Failed to fetch fonts: ${regResp.status}, ${boldResp.status}`);
-    }
-    const [regBuffer, boldBuffer] = await Promise.all([
-      regResp.arrayBuffer(),
-      boldResp.arrayBuffer(),
-    ]);
-    const regFont = await pdfDoc.embedFont(regBuffer);
-    const boldFont = await pdfDoc.embedFont(boldBuffer);
-    console.log('[generate-quote-pdf] Hebrew fonts loaded successfully');
-    return { font: regFont, boldFont };
-  } catch (err) {
-    console.warn('[generate-quote-pdf] Failed to load Hebrew fonts, falling back to Helvetica:', err);
-    return {
-      font: await pdfDoc.embedFont(StandardFonts.Helvetica),
-      boldFont: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
-    };
+interface FontLoadResult {
+  font: any;
+  boldFont: any;
+}
+
+async function loadHebrewFonts(pdfDoc: any): Promise<FontLoadResult> {
+  const regUrl = Deno.env.get('PDF_FONT_HE_REGULAR_URL');
+  const boldUrl = Deno.env.get('PDF_FONT_HE_BOLD_URL');
+  
+  console.log('[generate-quote-pdf] Font URLs configured:', {
+    regularUrlExists: !!regUrl,
+    boldUrlExists: !!boldUrl,
+  });
+  
+  if (!regUrl || !boldUrl) {
+    throw new Error('PDF_FONT_HE_REGULAR_URL or PDF_FONT_HE_BOLD_URL env vars not set');
   }
+  
+  console.log('[generate-quote-pdf] Fetching fonts...');
+  const [regResp, boldResp] = await Promise.all([
+    fetch(regUrl),
+    fetch(boldUrl),
+  ]);
+  
+  console.log('[generate-quote-pdf] Font fetch results:', {
+    regularStatus: regResp.status,
+    regularContentType: regResp.headers.get('content-type'),
+    boldStatus: boldResp.status,
+    boldContentType: boldResp.headers.get('content-type'),
+  });
+  
+  if (!regResp.ok) {
+    throw new Error(`Failed to fetch regular font: HTTP ${regResp.status}`);
+  }
+  if (!boldResp.ok) {
+    throw new Error(`Failed to fetch bold font: HTTP ${boldResp.status}`);
+  }
+  
+  const [regBuffer, boldBuffer] = await Promise.all([
+    regResp.arrayBuffer(),
+    boldResp.arrayBuffer(),
+  ]);
+  
+  console.log('[generate-quote-pdf] Font buffers loaded:', {
+    regularBytes: regBuffer.byteLength,
+    boldBytes: boldBuffer.byteLength,
+  });
+  
+  if (regBuffer.byteLength === 0 || boldBuffer.byteLength === 0) {
+    throw new Error('Font file is empty (0 bytes)');
+  }
+  
+  // Register fontkit for custom font embedding
+  pdfDoc.registerFontkit(fontkit);
+  
+  const font = await pdfDoc.embedFont(regBuffer);
+  const boldFont = await pdfDoc.embedFont(boldBuffer);
+  
+  console.log('[generate-quote-pdf] Hebrew fonts embedded successfully');
+  return { font, boldFont };
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -309,9 +341,29 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Create PDF
     const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
-    const { font, boldFont } = await loadHebrewFonts(pdfDoc);
     
+    // Load Hebrew fonts - fail hard if not available
+    let font: any;
+    let boldFont: any;
+    try {
+      const fonts = await loadHebrewFonts(pdfDoc);
+      font = fonts.font;
+      boldFont = fonts.boldFont;
+    } catch (fontError: any) {
+      console.error('[generate-quote-pdf] Failed to load Hebrew fonts:', fontError.message);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to load Hebrew fonts', 
+          details: fontError.message 
+        }),
+        {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        }
+      );
+    }
+    
+    const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
     const { width, height } = page.getSize();
     let y = height - 50;
 
@@ -450,16 +502,20 @@ const handler = async (req: Request): Promise<Response> => {
     });
     y -= 20;
 
+    // Currency symbol - use ILS abbreviation to avoid encoding issues
+    const currencySymbol = '₪';
+
     // Items
+    let currentPage = page;
     for (const item of items) {
       if (y < 100) {
         // Add new page if needed
-        const newPage = pdfDoc.addPage([595.28, 841.89]);
+        currentPage = pdfDoc.addPage([595.28, 841.89]);
         y = height - 50;
       }
 
       const itemName = item.name || item.description || 'Item';
-      page.drawText(itemName.substring(0, 35), {
+      currentPage.drawText(itemName.substring(0, 35), {
         x: 50,
         y,
         size: 10,
@@ -467,7 +523,7 @@ const handler = async (req: Request): Promise<Response> => {
         color: rgb(0, 0, 0),
       });
       
-      page.drawText(String(item.quantity), {
+      currentPage.drawText(String(item.quantity), {
         x: 300,
         y,
         size: 10,
@@ -475,7 +531,7 @@ const handler = async (req: Request): Promise<Response> => {
         color: rgb(0, 0, 0),
       });
       
-      page.drawText(`₪${Number(item.unit_price).toFixed(2)}`, {
+      currentPage.drawText(`${currencySymbol}${Number(item.unit_price).toFixed(2)}`, {
         x: 370,
         y,
         size: 10,
@@ -483,7 +539,7 @@ const handler = async (req: Request): Promise<Response> => {
         color: rgb(0, 0, 0),
       });
       
-      page.drawText(`₪${Number(item.subtotal).toFixed(2)}`, {
+      currentPage.drawText(`${currencySymbol}${Number(item.subtotal).toFixed(2)}`, {
         x: 470,
         y,
         size: 10,
@@ -497,7 +553,7 @@ const handler = async (req: Request): Promise<Response> => {
     y -= 10;
     
     // Totals section
-    page.drawLine({
+    currentPage.drawLine({
       start: { x: 350, y },
       end: { x: width - 50, y },
       thickness: 1,
@@ -506,14 +562,14 @@ const handler = async (req: Request): Promise<Response> => {
     y -= 20;
 
     // Subtotal
-    page.drawText('Subtotal:', {
+    currentPage.drawText('Subtotal:', {
       x: 370,
       y,
       size: 11,
       font,
       color: rgb(0, 0, 0),
     });
-    page.drawText(`₪${Number(quote.subtotal || 0).toFixed(2)}`, {
+    currentPage.drawText(`${currencySymbol}${Number(quote.subtotal || 0).toFixed(2)}`, {
       x: 470,
       y,
       size: 11,
@@ -527,14 +583,14 @@ const handler = async (req: Request): Promise<Response> => {
       ? ((Number(quote.tax_amount || 0) / Number(quote.subtotal)) * 100).toFixed(0)
       : '0';
     
-    page.drawText(`VAT (${vatPercentage}%):`, {
+    currentPage.drawText(`VAT (${vatPercentage}%):`, {
       x: 370,
       y,
       size: 11,
       font,
       color: rgb(0, 0, 0),
     });
-    page.drawText(`₪${Number(quote.tax_amount || 0).toFixed(2)}`, {
+    currentPage.drawText(`${currencySymbol}${Number(quote.tax_amount || 0).toFixed(2)}`, {
       x: 470,
       y,
       size: 11,
@@ -544,14 +600,14 @@ const handler = async (req: Request): Promise<Response> => {
     y -= 20;
 
     // Total
-    page.drawText('Total:', {
+    currentPage.drawText('Total:', {
       x: 370,
       y,
       size: 12,
       font: boldFont,
       color: rgb(0, 0, 0),
     });
-    page.drawText(`₪${Number(quote.total_amount || 0).toFixed(2)}`, {
+    currentPage.drawText(`${currencySymbol}${Number(quote.total_amount || 0).toFixed(2)}`, {
       x: 470,
       y,
       size: 12,
@@ -562,7 +618,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Notes
     if (quote.notes) {
-      page.drawText('Notes:', {
+      currentPage.drawText('Notes:', {
         x: 50,
         y,
         size: 11,
@@ -574,7 +630,7 @@ const handler = async (req: Request): Promise<Response> => {
       const notesLines = quote.notes.split('\n');
       for (const line of notesLines.slice(0, 5)) {
         if (y < 50) break;
-        page.drawText(line.substring(0, 70), {
+        currentPage.drawText(line.substring(0, 70), {
           x: 50,
           y,
           size: 9,
@@ -589,7 +645,7 @@ const handler = async (req: Request): Promise<Response> => {
     if (quote.terms_conditions) {
       y -= 15;
       if (y > 50) {
-        page.drawText('Terms & Conditions:', {
+        currentPage.drawText('Terms & Conditions:', {
           x: 50,
           y,
           size: 11,
@@ -601,7 +657,7 @@ const handler = async (req: Request): Promise<Response> => {
         const termsLines = quote.terms_conditions.split('\n');
         for (const line of termsLines.slice(0, 5)) {
           if (y < 50) break;
-          page.drawText(line.substring(0, 70), {
+          currentPage.drawText(line.substring(0, 70), {
             x: 50,
             y,
             size: 8,
@@ -616,7 +672,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Status and validity
     y -= 20;
     if (y > 50) {
-      page.drawText(`Status: ${quote.status || 'draft'}`, {
+      currentPage.drawText(`Status: ${quote.status || 'draft'}`, {
         x: 50,
         y,
         size: 9,
@@ -626,7 +682,7 @@ const handler = async (req: Request): Promise<Response> => {
       
       if (quote.valid_until) {
         const validUntil = new Date(quote.valid_until).toLocaleDateString('he-IL');
-        page.drawText(`Valid until: ${validUntil}`, {
+        currentPage.drawText(`Valid until: ${validUntil}`, {
           x: 50,
           y: y - 12,
           size: 9,
