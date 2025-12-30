@@ -450,9 +450,12 @@ export default function QuoteBuilder() {
       
       // TEMP debug logs
       console.log('[PDF] response.error:', response.error);
-      console.log('[PDF] typeof data:', typeof response.data);
-      console.log('[PDF] data ctor:', response.data?.constructor?.name);
-      console.log('[PDF] data keys:', response.data && typeof response.data === 'object' ? Object.keys(response.data) : null);
+      console.log('[PDF] data type:', typeof response.data, response.data?.constructor?.name);
+      if (typeof response.data === 'string') {
+        console.log('[PDF] data length:', response.data.length);
+        console.log('[PDF] first 100 chars:', response.data.slice(0, 100));
+        console.log('[PDF] first 10 char codes:', Array.from(response.data.slice(0, 10)).map(c => c.charCodeAt(0)));
+      }
       
       if (response.error) {
         throw new Error(response.error.message || 'שגיאה ביצירת PDF');
@@ -465,16 +468,20 @@ export default function QuoteBuilder() {
         throw new Error((data as { error: string }).error);
       }
       
-      // Handle various response types
-      let pdfBlob: Blob;
+      // Convert to Uint8Array first for validation
+      let pdfBytes: Uint8Array;
       if (data instanceof Blob) {
-        pdfBlob = data;
+        pdfBytes = new Uint8Array(await data.arrayBuffer());
       } else if (data instanceof ArrayBuffer) {
-        pdfBlob = createPdfBlob(data);
+        pdfBytes = new Uint8Array(data);
       } else if (data instanceof Uint8Array) {
-        pdfBlob = createPdfBlob(data);
+        pdfBytes = data;
       } else if (typeof data === 'string') {
-        pdfBlob = createPdfBlob(data);
+        // String response - convert each char to byte
+        pdfBytes = new Uint8Array(data.length);
+        for (let i = 0; i < data.length; i++) {
+          pdfBytes[i] = data.charCodeAt(i) & 0xff;
+        }
       } else if (
         data && 
         typeof data === 'object' && 
@@ -482,24 +489,22 @@ export default function QuoteBuilder() {
         (data as any).type === 'Buffer' && 
         Array.isArray((data as any).data)
       ) {
-        // Node-style buffer object: { type: 'Buffer', data: number[] }
-        pdfBlob = createPdfBlob(new Uint8Array((data as { type: 'Buffer'; data: number[] }).data));
+        pdfBytes = new Uint8Array((data as { type: 'Buffer'; data: number[] }).data);
       } else {
         throw new Error(`Unexpected PDF response type: ${typeof data}, ctor: ${data?.constructor?.name}`);
       }
 
-      if (pdfBlob.size === 0) {
-        throw new Error('שרת לא החזיר PDF תקין - קובץ ריק');
+      // Validate PDF signature
+      const signature = String.fromCharCode(...pdfBytes.slice(0, 5));
+      console.log('[PDF] signature:', signature, 'bytes:', Array.from(pdfBytes.slice(0, 5)));
+      
+      if (!signature.startsWith('%PDF-')) {
+        const preview = String.fromCharCode(...pdfBytes.slice(0, 200));
+        console.error('[PDF] Invalid signature! First 200 chars:', preview);
+        throw new Error(`Invalid PDF signature. First 200 chars: ${preview}`);
       }
 
-      // Validate PDF signature
-      const signatureSlice = pdfBlob.slice(0, 5);
-      const signatureText = await signatureSlice.text();
-      if (!signatureText.startsWith('%PDF-')) {
-        const debugSlice = pdfBlob.slice(0, 100);
-        const debugText = await debugSlice.text();
-        throw new Error(`Invalid PDF signature. First 50 chars: ${debugText.slice(0, 50)}`);
-      }
+      const pdfBlob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
 
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');

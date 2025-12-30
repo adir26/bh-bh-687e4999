@@ -697,6 +697,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('[generate-quote-pdf] PDF generated successfully, size:', pdfBytes.length);
 
+    // Validate PDF signature before returning
+    const signatureBytes = new Uint8Array(pdfBytes.slice(0, 5));
+    const signature = String.fromCharCode(...signatureBytes);
+    console.log('[generate-quote-pdf] PDF signature:', signature);
+    
+    if (!signature.startsWith('%PDF-')) {
+      console.error('[generate-quote-pdf] Invalid PDF signature! First 20 bytes:', 
+        Array.from(new Uint8Array(pdfBytes.slice(0, 20))).map(b => b.toString(16).padStart(2, '0')).join(' '));
+      throw new Error('Generated PDF has invalid signature');
+    }
+
     return new Response(pdfBytes, {
       status: 200,
       headers: {
