@@ -178,16 +178,19 @@ const PublicSupplierProfile: React.FC = () => {
     }
   };
 
-  // Get "Why Choose Us" items from supplier data or use defaults
+  // Get "Why Choose Us" items from supplier data - only show if supplier has added items
   const supplierAny = supplier as any;
   const whyChooseUsItems = (Array.isArray(supplierAny?.why_choose_us) && supplierAny.why_choose_us.length > 0)
     ? supplierAny.why_choose_us
-    : [
-        "ניסיון של מעל 15 שנה מול הקבלנים המובילים בישראל",
-        "ייצור עצמי במפעל המאפשר שליטה מלאה על האיכות והמחיר",
-        "ליווי אישי משלב התכנון ועד למסירת המפתח",
-        "אחריות מלאה על כל התקנה ושירות תיקונים מהיר",
-      ];
+    : [];
+
+  // Normalize phone to E.164 format with Israel country code
+  const normalizePhoneToE164 = (phone: string): string => {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.startsWith('972')) return digits;
+    if (digits.startsWith('0')) return '972' + digits.slice(1);
+    return '972' + digits;
+  };
 
   if (supplierLoading) {
     return (
@@ -416,25 +419,27 @@ const PublicSupplierProfile: React.FC = () => {
         </section>
       )}
 
-      {/* Why Choose Us Section */}
-      <section className="container max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 rounded-2xl p-6 sm:p-8">
-          <h2 className="text-2xl font-bold mb-6 text-primary">למה לבחור דווקא בנו?</h2>
-          <div className="space-y-4">
-            {whyChooseUsItems.map((item: string, index: number) => (
-              <div 
-                key={index}
-                className="flex items-center gap-4 bg-card/80 backdrop-blur-sm rounded-xl p-4 transition-all hover:bg-card"
-              >
-                <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
-                  <CheckCircle className="w-5 h-5 text-white" />
+      {/* Why Choose Us Section - Only show if supplier has added items */}
+      {whyChooseUsItems.length > 0 && (
+        <section className="container max-w-4xl mx-auto px-4 py-8">
+          <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 rounded-2xl p-6 sm:p-8">
+            <h2 className="text-2xl font-bold mb-6 text-primary">למה לבחור דווקא בנו?</h2>
+            <div className="space-y-4">
+              {whyChooseUsItems.map((item: string, index: number) => (
+                <div 
+                  key={index}
+                  className="flex items-center gap-4 bg-card/80 backdrop-blur-sm rounded-xl p-4 transition-all hover:bg-card"
+                >
+                  <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
+                    <CheckCircle className="w-5 h-5 text-white" />
+                  </div>
+                  <p className="font-medium text-foreground">{item}</p>
                 </div>
-                <p className="font-medium text-foreground">{item}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Products Section - Enhanced */}
       {productsData?.products && productsData.products.length > 0 && (
@@ -657,13 +662,15 @@ const PublicSupplierProfile: React.FC = () => {
               התקשר
             </a>
           )}
-          <a 
-            href={`https://wa.me/${supplier.phone?.replace(/\D/g, '')}`}
-            className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
-          >
-            <MessageCircle className="w-5 h-5" />
-            וואטסאפ
-          </a>
+          {supplier.phone && (
+            <a 
+              href={`https://wa.me/${normalizePhoneToE164(supplier.phone)}`}
+              className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <MessageCircle className="w-5 h-5" />
+              וואטסאפ
+            </a>
+          )}
         </div>
       </div>
 
