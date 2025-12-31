@@ -271,32 +271,25 @@ All colors MUST be HSL.
     -moz-osx-font-smoothing: grayscale;
     /* Prevent zoom on focus for iOS */
     font-size: 16px;
-    /* RTL support */
-    direction: ltr;
-  }
-
-  /* Admin panel RTL styling */
-  .admin-rtl {
+    /* RTL support - Hebrew is primary language */
     direction: rtl;
-    font-family: 'Heebo', 'Arial', sans-serif;
-  }
-
-  .admin-rtl * {
-    direction: rtl;
-  }
-
-  .admin-rtl .sidebar-trigger {
-    transform: scaleX(-1);
+    text-align: right;
   }
 
   /* Prevent zoom on input focus for iOS */
   input, select, textarea {
     font-size: 16px;
+    text-align: inherit;
   }
 
   /* Better touch scrolling */
   * {
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* RTL icon flipping for directional icons */
+  .rtl-flip {
+    transform: scaleX(-1);
   }
 }
 
@@ -483,22 +476,39 @@ All colors MUST be HSL.
   }
 
   /* RTL-specific utilities */
-  .admin-rtl .text-right {
+  .text-start {
     text-align: right;
   }
-
-  .admin-rtl .text-left {
+  
+  .text-end {
     text-align: left;
   }
-
-  .admin-rtl .ml-auto {
-    margin-left: auto;
-    margin-right: 0;
+  
+  /* Logical properties for RTL */
+  .ms-auto {
+    margin-inline-start: auto;
+  }
+  
+  .me-auto {
+    margin-inline-end: auto;
+  }
+  
+  .ps-4 {
+    padding-inline-start: 1rem;
+  }
+  
+  .pe-4 {
+    padding-inline-end: 1rem;
   }
 
-  .admin-rtl .mr-auto {
-    margin-right: auto;
-    margin-left: 0;
+  /* RTL icon flip utility */
+  .icon-rtl {
+    transform: scaleX(-1);
+  }
+  
+  /* Override for elements that should stay LTR (numbers, code) */
+  .ltr {
+    direction: ltr;
   }
 }
 

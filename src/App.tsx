@@ -217,7 +217,7 @@ const App = () => {
               <Toaster />
               <Sonner />
               {import.meta.env.DEV && new URLSearchParams(window.location.search).has('debug') && <QueryDebugOverlay />}
-              <div className="min-h-[100svh] flex w-full bg-white">
+              <div className="min-h-[100svh] flex w-full bg-background" dir="rtl">
                 <TabletNavigation />
                 <div className="flex-1 flex flex-col min-w-0">
                   <main 

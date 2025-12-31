@@ -15,13 +15,13 @@ export const SectionTitleWithButton: React.FC<SectionTitleWithButtonProps> = ({
   onButtonClick 
 }) => {
   return (
-    <div className="flex items-center justify-between w-full px-4 py-2">
-      <h2 className="text-[#121417] text-xl font-bold leading-8">{title}</h2>
+    <div className="flex items-center justify-between w-full px-3 xs:px-4 py-2">
+      <h2 className="text-foreground text-lg xs:text-xl font-bold leading-snug">{title}</h2>
       <Button 
         onClick={onButtonClick}
         variant="blue-secondary"
         size="sm"
-        className="flex items-center gap-1 h-auto px-3 py-1"
+        className="flex items-center gap-1 h-auto px-2 xs:px-3 py-1 text-xs xs:text-sm min-h-[44px]"
       >
         <span>{buttonText}</span>
         <ChevronLeft className="w-4 h-4" />
