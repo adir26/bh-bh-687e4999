@@ -125,34 +125,56 @@ const PublicSupplierProfile: React.FC = () => {
     }
   };
 
-  const handleShare = async () => {
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     // Build share URL using custom domain
     const shareUrl = `https://bh-bonimpo.com/s/${slug}`;
     
+    // Try native share first (mobile)
     if (navigator.share) {
       try {
         await navigator.share({
-          title: supplier?.name,
-          text: supplier?.description,
+          title: supplier?.name || 'ספק',
+          text: supplier?.description || '',
           url: shareUrl,
         });
-      } catch (error) {
-        // User cancelled sharing
+        return;
+      } catch (error: any) {
+        // User cancelled or not supported - fall through to clipboard
+        if (error?.name === 'AbortError') return;
       }
-    } else {
-      try {
+    }
+    
+    // Fallback to clipboard
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(shareUrl);
-        toast({
-          title: "הקישור הועתק",
-          description: "קישור הספק הועתק ללוח",
-        });
-      } catch (error) {
-        toast({
-          title: "שגיאה",
-          description: "לא ניתן להעתיק את הקישור",
-          variant: "destructive",
-        });
+      } else {
+        // Fallback for non-secure contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
       }
+      toast({
+        title: "הקישור הועתק",
+        description: "קישור הספק הועתק ללוח",
+      });
+    } catch (error) {
+      console.error('Share failed:', error);
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן להעתיק את הקישור",
+        variant: "destructive",
+      });
     }
   };
 
@@ -248,8 +270,9 @@ const PublicSupplierProfile: React.FC = () => {
               <Button 
                 variant="ghost" 
                 size="icon"
+                type="button"
                 className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-full"
-                onClick={handleShare}
+                onClick={(e) => handleShare(e)}
               >
                 <Share2 className="w-5 h-5" />
               </Button>
