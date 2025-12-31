@@ -53,7 +53,7 @@ export const TabletNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="hidden md:flex md:flex-col md:w-64 md:border-l md:bg-white md:p-4 md:gap-2 md:shrink-0">
+    <nav className="hidden md:flex md:flex-col md:w-64 md:border-s md:bg-card md:p-4 md:gap-2 md:shrink-0">
       <div className="mb-6">
         <h1 className="text-xl font-bold text-primary px-3">Bonimpo</h1>
       </div>
@@ -66,13 +66,13 @@ export const TabletNavigation: React.FC = () => {
           return (
             <button
               key={item.path}
-              className="flex items-center gap-3 py-3 px-4 rounded-lg text-muted-foreground hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-3 py-3 px-4 rounded-lg text-muted-foreground hover:bg-muted/50 transition-colors min-h-[44px]"
               onClick={(e) => handleNavClick(item, e)}
               aria-label={`${item.label} - נדרש חשבון`}
             >
               <Icon size={20} />
               <span className="text-sm font-medium">{item.label}</span>
-              <Lock className="mr-auto h-4 w-4" />
+              <Lock className="ms-auto h-4 w-4" />
             </button>
           );
         }
@@ -82,7 +82,7 @@ export const TabletNavigation: React.FC = () => {
             key={item.path}
             to={item.path}
             className={({ isActive }) => `
-              flex items-center gap-3 py-3 px-4 rounded-lg transition-colors
+              flex items-center gap-3 py-3 px-4 rounded-lg transition-colors min-h-[44px]
               ${isActive 
                 ? 'bg-primary/10 text-primary font-semibold' 
                 : 'text-muted-foreground hover:bg-muted/50'

@@ -76,7 +76,7 @@ export const BottomNavigation: React.FC = () => {
         bottom: "calc(var(--footer-h, 0px) + env(safe-area-inset-bottom, 0px))",
       }}
     >
-      <nav className="bg-white/95 backdrop-blur-lg border border-gray-200/50 rounded-3xl px-2 py-3 shadow-lg shadow-black/10 max-w-md w-full">
+      <nav className="bg-card/95 backdrop-blur-lg border border-border/50 rounded-3xl px-2 py-3 shadow-lg shadow-black/10 max-w-md w-full">
         <div className="flex justify-around items-center">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -92,14 +92,14 @@ export const BottomNavigation: React.FC = () => {
                   onClick={() => handleNavClick(item)}
                   aria-label={`${item.label} - נדרש חשבון`}
                 >
-                  <div className="p-2 rounded-full transition-all duration-200 text-gray-400 relative">
+                  <div className="p-2 rounded-full transition-all duration-200 text-muted-foreground relative">
                     <Icon 
                       size={20}
                       className="transition-colors duration-200"
                     />
-                    <Lock className="absolute -top-1 -right-1 h-3 w-3 text-gray-400" />
+                    <Lock className="absolute -top-1 -start-1 h-3 w-3 text-muted-foreground" />
                   </div>
-                  <span className="text-xs font-medium transition-colors duration-200 text-center text-gray-400">
+                  <span className="text-xs font-medium transition-colors duration-200 text-center text-muted-foreground">
                     {item.label}
                   </span>
                 </button>
@@ -117,7 +117,7 @@ export const BottomNavigation: React.FC = () => {
                 <div className={`p-2 rounded-full transition-all duration-200 ${
                   active 
                     ? 'bg-primary/15 text-primary scale-110' 
-                    : 'text-gray-500 hover:text-primary hover:bg-primary/5'
+                    : 'text-muted-foreground hover:text-primary hover:bg-primary/5'
                 }`}>
                   <Icon 
                     size={20}
@@ -126,7 +126,7 @@ export const BottomNavigation: React.FC = () => {
                 </div>
                 <span 
                   className={`text-xs font-medium transition-colors duration-200 text-center ${
-                    active ? 'text-primary' : 'text-gray-500'
+                    active ? 'text-primary' : 'text-muted-foreground'
                   }`}
                 >
                   {item.label}
