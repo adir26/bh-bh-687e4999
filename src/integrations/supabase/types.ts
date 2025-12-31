@@ -795,6 +795,7 @@ export type Database = {
           review_count: number | null
           services: Json | null
           slug: string
+          social_links: Json | null
           status: string | null
           tagline: string | null
           tax_id: string | null
@@ -833,6 +834,7 @@ export type Database = {
           review_count?: number | null
           services?: Json | null
           slug: string
+          social_links?: Json | null
           status?: string | null
           tagline?: string | null
           tax_id?: string | null
@@ -871,6 +873,7 @@ export type Database = {
           review_count?: number | null
           services?: Json | null
           slug?: string
+          social_links?: Json | null
           status?: string | null
           tagline?: string | null
           tax_id?: string | null

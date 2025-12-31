@@ -29,7 +29,10 @@ import {
   ArrowLeft,
   Calendar,
   MessageCircle,
-  Quote
+  Quote,
+  Clock,
+  Instagram,
+  Facebook
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { ScheduleMeetingModal } from '@/components/modals/ScheduleMeetingModal';
@@ -268,7 +271,13 @@ const PublicSupplierProfile: React.FC = () => {
               variant="ghost" 
               size="icon"
               className="bg-white/20 backdrop-blur-md text-white hover:bg-white/30 rounded-full"
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/');
+                }
+              }}
             >
               <ArrowRight className="w-5 h-5" />
             </Button>
@@ -386,33 +395,22 @@ const PublicSupplierProfile: React.FC = () => {
         </section>
       )}
 
-      {/* Services Section - Enhanced with description */}
+      {/* Services Section - Compact Design */}
       {supplier.services && supplier.services.length > 0 && (
         <section className="container max-w-4xl mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-2">השירותים שלנו</h2>
-            <div className="w-16 h-1 bg-amber-500 mx-auto rounded-full" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <h2 className="text-xl font-bold mb-4">השירותים שלנו</h2>
+          <div className="flex flex-wrap gap-2">
             {supplier.services.map((service: any, index: number) => {
               const serviceName = typeof service === 'string' ? service : service.name;
-              const serviceDescription = typeof service === 'object' ? service.description : null;
               
               return (
-                <div 
+                <Badge 
                   key={index} 
-                  className="group p-6 rounded-2xl bg-card border transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                  variant="secondary"
+                  className="px-4 py-2 text-sm font-medium bg-primary/10 text-primary border-0 hover:bg-primary/20 transition-colors"
                 >
-                  <div className="flex flex-col items-center text-center">
-                    <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0 mb-4 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                      <CheckCircle className="w-7 h-7 text-amber-600 group-hover:text-primary-foreground" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-2">{serviceName}</h3>
-                    {serviceDescription && (
-                      <p className="text-muted-foreground text-sm leading-relaxed">{serviceDescription}</p>
-                    )}
-                  </div>
-                </div>
+                  {serviceName}
+                </Badge>
               );
             })}
           </div>
@@ -440,6 +438,115 @@ const PublicSupplierProfile: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* Business Hours Section */}
+      {(supplier as any).business_hours && Object.keys((supplier as any).business_hours).length > 0 && (
+        <section className="container max-w-4xl mx-auto px-4 py-8">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-primary" />
+            שעות פעילות
+          </h2>
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(() => {
+                  const dayNames: Record<string, string> = {
+                    sunday: 'ראשון',
+                    monday: 'שני',
+                    tuesday: 'שלישי',
+                    wednesday: 'רביעי',
+                    thursday: 'חמישי',
+                    friday: 'שישי',
+                    saturday: 'שבת',
+                  };
+                  const hours = (supplier as any).business_hours as Record<string, { open: string; close: string; closed?: boolean }>;
+                  const daysOrder = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                  
+                  return daysOrder.map((day) => {
+                    const dayHours = hours[day];
+                    if (!dayHours) return null;
+                    
+                    return (
+                      <div key={day} className="flex items-center justify-between py-2 px-3 bg-muted/50 rounded-lg">
+                        <span className="font-medium">{dayNames[day]}</span>
+                        {dayHours.closed ? (
+                          <span className="text-muted-foreground text-sm">סגור</span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground" dir="ltr">
+                            {dayHours.open} - {dayHours.close}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  }).filter(Boolean);
+                })()}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
+      {/* Social Links Section */}
+      {(() => {
+        const socialLinks = (supplier as any).social_links || {};
+        const hasLinks = socialLinks.instagram || socialLinks.facebook || socialLinks.tiktok || supplier.website;
+        
+        if (!hasLinks) return null;
+        
+        return (
+          <section className="container max-w-4xl mx-auto px-4 py-8">
+            <h2 className="text-xl font-bold mb-4">עקבו אחרינו</h2>
+            <div className="flex flex-wrap gap-3">
+              {socialLinks.instagram && (
+                <a 
+                  href={socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90 transition-opacity"
+                >
+                  <Instagram className="w-5 h-5" />
+                  <span className="font-medium">אינסטגרם</span>
+                </a>
+              )}
+              {socialLinks.facebook && (
+                <a 
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 text-white hover:opacity-90 transition-opacity"
+                >
+                  <Facebook className="w-5 h-5" />
+                  <span className="font-medium">פייסבוק</span>
+                </a>
+              )}
+              {socialLinks.tiktok && (
+                <a 
+                  href={socialLinks.tiktok}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-black text-white hover:opacity-90 transition-opacity"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                  </svg>
+                  <span className="font-medium">טיקטוק</span>
+                </a>
+              )}
+              {supplier.website && (
+                <a 
+                  href={supplier.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+                >
+                  <Globe className="w-5 h-5" />
+                  <span className="font-medium">אתר</span>
+                </a>
+              )}
+            </div>
+          </section>
+        );
+      })()}
 
       {/* Products Section - Enhanced */}
       {productsData?.products && productsData.products.length > 0 && (
