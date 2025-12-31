@@ -38,6 +38,9 @@ const formSchema = z.object({
   address: z.string().optional(),
   city: z.string().optional(),
   area: z.string().optional(),
+  instagram: z.string().optional(),
+  facebook: z.string().optional(),
+  tiktok: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -95,6 +98,9 @@ export default function EditCompanyProfile() {
       address: company.address || '',
       city: company.city || '',
       area: company.area || '',
+      instagram: (company as any).social_links?.instagram || '',
+      facebook: (company as any).social_links?.facebook || '',
+      tiktok: (company as any).social_links?.tiktok || '',
     } : undefined,
   });
 
@@ -166,10 +172,12 @@ export default function EditCompanyProfile() {
         bannerUrl = publicUrl;
       }
 
+      const { instagram, facebook, tiktok, ...restData } = data;
+      
       const { data: updatedData, error } = await supabase
         .from('companies')
         .update({
-          ...data,
+          ...restData,
           logo_url: logoUrl,
           banner_url: bannerUrl,
           services,
@@ -177,6 +185,12 @@ export default function EditCompanyProfile() {
           business_hours: businessHours,
           meeting_availability: meetingAvailability,
           price_range: priceRange,
+          social_links: {
+            instagram: instagram || '',
+            facebook: facebook || '',
+            tiktok: tiktok || '',
+            website: restData.website || '',
+          },
         } as any)
         .eq('id', company.id)
         .select()
@@ -212,7 +226,7 @@ export default function EditCompanyProfile() {
   };
 
   const handleAddWhyChooseUs = () => {
-    if (newWhyChooseUs.trim() && !whyChooseUs.includes(newWhyChooseUs.trim())) {
+    if (newWhyChooseUs.trim() && !whyChooseUs.includes(newWhyChooseUs.trim()) && whyChooseUs.length < 4) {
       setWhyChooseUs([...whyChooseUs, newWhyChooseUs.trim()]);
       setNewWhyChooseUs('');
     }
@@ -530,13 +544,14 @@ export default function EditCompanyProfile() {
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4">
               <p className="text-sm text-muted-foreground">
-                הוסף יתרונות שמייחדים אותך מהמתחרים
+                הוסף עד 4 יתרונות שמייחדים אותך מהמתחרים ({whyChooseUs.length}/4)
               </p>
               <div className="flex gap-2">
                 <Input
                   value={newWhyChooseUs}
                   onChange={(e) => setNewWhyChooseUs(e.target.value)}
                   placeholder="למשל: ניסיון של מעל 15 שנה..."
+                  disabled={whyChooseUs.length >= 4}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -544,7 +559,12 @@ export default function EditCompanyProfile() {
                     }
                   }}
                 />
-                <Button type="button" onClick={handleAddWhyChooseUs} size="icon">
+                <Button 
+                  type="button" 
+                  onClick={handleAddWhyChooseUs} 
+                  size="icon"
+                  disabled={whyChooseUs.length >= 4}
+                >
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
@@ -563,6 +583,56 @@ export default function EditCompanyProfile() {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Social Links */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg sm:text-xl">קישורים חברתיים</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+              <FormField
+                control={form.control}
+                name="instagram"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>אינסטגרם</FormLabel>
+                    <FormControl>
+                      <Input {...field} dir="ltr" placeholder="https://instagram.com/username" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="facebook"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>פייסבוק</FormLabel>
+                    <FormControl>
+                      <Input {...field} dir="ltr" placeholder="https://facebook.com/page" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tiktok"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>טיקטוק</FormLabel>
+                    <FormControl>
+                      <Input {...field} dir="ltr" placeholder="https://tiktok.com/@username" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 
