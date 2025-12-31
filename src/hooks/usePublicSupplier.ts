@@ -22,6 +22,14 @@ export interface PublicSupplier {
   slug: string;
   services?: string[];
   gallery?: string[];
+  why_choose_us?: string[];
+  business_hours?: Record<string, { open: string; close: string; closed?: boolean }>;
+  social_links?: {
+    instagram?: string;
+    facebook?: string;
+    tiktok?: string;
+    website?: string;
+  };
 }
 
 export interface PublicProduct {
@@ -63,7 +71,10 @@ export const usePublicSupplier = (slug: string) => {
           verified,
           slug,
           services,
-          gallery
+          gallery,
+          why_choose_us,
+          business_hours,
+          social_links
         `)
         .eq('slug', slug)
         .eq('is_public', true)
