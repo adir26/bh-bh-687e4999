@@ -48,6 +48,8 @@ export default function EditCompanyProfile() {
   const queryClient = useQueryClient();
   const [newService, setNewService] = useState('');
   const [services, setServices] = useState<string[]>([]);
+  const [whyChooseUs, setWhyChooseUs] = useState<string[]>([]);
+  const [newWhyChooseUs, setNewWhyChooseUs] = useState('');
   const [businessHours, setBusinessHours] = useState<any>({});
   const [meetingAvailability, setMeetingAvailability] = useState<any>({
     available_days: [],
@@ -104,6 +106,13 @@ export default function EditCompanyProfile() {
         ? company.services.filter((s): s is string => typeof s === 'string')
         : [];
       setServices(servicesArray);
+      
+      // Handle why_choose_us - cast to any to access possibly missing field
+      const companyAny = company as any;
+      const whyChooseUsArray = Array.isArray(companyAny.why_choose_us) 
+        ? companyAny.why_choose_us.filter((s: any): s is string => typeof s === 'string')
+        : [];
+      setWhyChooseUs(whyChooseUsArray);
       
       setBusinessHours(company.business_hours || {});
       setMeetingAvailability(company.meeting_availability || {
@@ -164,10 +173,11 @@ export default function EditCompanyProfile() {
           logo_url: logoUrl,
           banner_url: bannerUrl,
           services,
+          why_choose_us: whyChooseUs,
           business_hours: businessHours,
           meeting_availability: meetingAvailability,
           price_range: priceRange,
-        })
+        } as any)
         .eq('id', company.id)
         .select()
         .single();
@@ -199,6 +209,17 @@ export default function EditCompanyProfile() {
 
   const handleRemoveService = (service: string) => {
     setServices(services.filter((s) => s !== service));
+  };
+
+  const handleAddWhyChooseUs = () => {
+    if (newWhyChooseUs.trim() && !whyChooseUs.includes(newWhyChooseUs.trim())) {
+      setWhyChooseUs([...whyChooseUs, newWhyChooseUs.trim()]);
+      setNewWhyChooseUs('');
+    }
+  };
+
+  const handleRemoveWhyChooseUs = (item: string) => {
+    setWhyChooseUs(whyChooseUs.filter((s) => s !== item));
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -497,6 +518,49 @@ export default function EditCompanyProfile() {
                       <X className="w-3 h-3" />
                     </button>
                   </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Why Choose Us */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg sm:text-xl">למה לבחור בנו?</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 sm:space-y-4">
+              <p className="text-sm text-muted-foreground">
+                הוסף יתרונות שמייחדים אותך מהמתחרים
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  value={newWhyChooseUs}
+                  onChange={(e) => setNewWhyChooseUs(e.target.value)}
+                  placeholder="למשל: ניסיון של מעל 15 שנה..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddWhyChooseUs();
+                    }
+                  }}
+                />
+                <Button type="button" onClick={handleAddWhyChooseUs} size="icon">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                {whyChooseUs.map((item, index) => (
+                  <div key={index} className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                    <span className="flex-1">{item}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveWhyChooseUs(item)}
+                      className="hover:text-destructive"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 ))}
               </div>
             </CardContent>

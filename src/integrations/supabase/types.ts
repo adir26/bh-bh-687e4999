@@ -805,6 +805,7 @@ export type Database = {
           verified_at: string | null
           verified_by: string | null
           website: string | null
+          why_choose_us: Json | null
         }
         Insert: {
           about_text?: string | null
@@ -842,6 +843,7 @@ export type Database = {
           verified_at?: string | null
           verified_by?: string | null
           website?: string | null
+          why_choose_us?: Json | null
         }
         Update: {
           about_text?: string | null
@@ -879,6 +881,7 @@ export type Database = {
           verified_at?: string | null
           verified_by?: string | null
           website?: string | null
+          why_choose_us?: Json | null
         }
         Relationships: [
           {

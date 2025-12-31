@@ -178,13 +178,16 @@ const PublicSupplierProfile: React.FC = () => {
     }
   };
 
-  // Default "Why Choose Us" items if not defined by supplier
-  const defaultWhyChooseUs = [
-    { title: "ניסיון של מעל 15 שנה מול הקבלנים המובילים בישראל" },
-    { title: "ייצור עצמי במפעל המאפשר שליטה מלאה על האיכות והמחיר" },
-    { title: "ליווי אישי משלב התכנון ועד למסירת המפתח" },
-    { title: "אחריות מלאה על כל התקנה ושירות תיקונים מהיר" },
-  ];
+  // Get "Why Choose Us" items from supplier data or use defaults
+  const supplierAny = supplier as any;
+  const whyChooseUsItems = (Array.isArray(supplierAny?.why_choose_us) && supplierAny.why_choose_us.length > 0)
+    ? supplierAny.why_choose_us
+    : [
+        "ניסיון של מעל 15 שנה מול הקבלנים המובילים בישראל",
+        "ייצור עצמי במפעל המאפשר שליטה מלאה על האיכות והמחיר",
+        "ליווי אישי משלב התכנון ועד למסירת המפתח",
+        "אחריות מלאה על כל התקנה ושירות תיקונים מהיר",
+      ];
 
   if (supplierLoading) {
     return (
@@ -418,7 +421,7 @@ const PublicSupplierProfile: React.FC = () => {
         <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 rounded-2xl p-6 sm:p-8">
           <h2 className="text-2xl font-bold mb-6 text-primary">למה לבחור דווקא בנו?</h2>
           <div className="space-y-4">
-            {defaultWhyChooseUs.map((item, index) => (
+            {whyChooseUsItems.map((item: string, index: number) => (
               <div 
                 key={index}
                 className="flex items-center gap-4 bg-card/80 backdrop-blur-sm rounded-xl p-4 transition-all hover:bg-card"
@@ -426,7 +429,7 @@ const PublicSupplierProfile: React.FC = () => {
                 <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
                   <CheckCircle className="w-5 h-5 text-white" />
                 </div>
-                <p className="font-medium text-foreground">{item.title}</p>
+                <p className="font-medium text-foreground">{item}</p>
               </div>
             ))}
           </div>
