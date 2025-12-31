@@ -126,21 +126,22 @@ const PublicSupplierProfile: React.FC = () => {
   };
 
   const handleShare = async () => {
-    const url = window.location.href;
+    // Build share URL using custom domain
+    const shareUrl = `https://bh-bonimpo.com/s/${slug}`;
     
     if (navigator.share) {
       try {
         await navigator.share({
           title: supplier?.name,
           text: supplier?.description,
-          url,
+          url: shareUrl,
         });
       } catch (error) {
         // User cancelled sharing
       }
     } else {
       try {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(shareUrl);
         toast({
           title: "הקישור הועתק",
           description: "קישור הספק הועתק ללוח",
@@ -154,6 +155,14 @@ const PublicSupplierProfile: React.FC = () => {
       }
     }
   };
+
+  // Default "Why Choose Us" items if not defined by supplier
+  const defaultWhyChooseUs = [
+    { title: "ניסיון של מעל 15 שנה מול הקבלנים המובילים בישראל" },
+    { title: "ייצור עצמי במפעל המאפשר שליטה מלאה על האיכות והמחיר" },
+    { title: "ליווי אישי משלב התכנון ועד למסירת המפתח" },
+    { title: "אחריות מלאה על כל התקנה ושירות תיקונים מהיר" },
+  ];
 
   if (supplierLoading) {
     return (
@@ -348,29 +357,58 @@ const PublicSupplierProfile: React.FC = () => {
         </section>
       )}
 
-      {/* Services Section - Enhanced */}
+      {/* Services Section - Enhanced with description */}
       {supplier.services && supplier.services.length > 0 && (
         <section className="container max-w-4xl mx-auto px-4 py-8">
-          <h2 className="text-xl font-bold mb-6">השירותים שלנו</h2>
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2">השירותים שלנו</h2>
+            <div className="w-16 h-1 bg-amber-500 mx-auto rounded-full" />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {supplier.services.map((service, index) => (
-              <div 
-                key={index} 
-                className="group p-5 rounded-2xl bg-card border transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                    <CheckCircle className="w-6 h-6 text-primary group-hover:text-primary-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">{service}</h3>
+            {supplier.services.map((service: any, index: number) => {
+              const serviceName = typeof service === 'string' ? service : service.name;
+              const serviceDescription = typeof service === 'object' ? service.description : null;
+              
+              return (
+                <div 
+                  key={index} 
+                  className="group p-6 rounded-2xl bg-card border transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0 mb-4 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                      <CheckCircle className="w-7 h-7 text-amber-600 group-hover:text-primary-foreground" />
+                    </div>
+                    <h3 className="font-bold text-lg mb-2">{serviceName}</h3>
+                    {serviceDescription && (
+                      <p className="text-muted-foreground text-sm leading-relaxed">{serviceDescription}</p>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
+
+      {/* Why Choose Us Section */}
+      <section className="container max-w-4xl mx-auto px-4 py-8">
+        <div className="bg-gradient-to-br from-primary/5 via-primary/10 to-secondary/5 rounded-2xl p-6 sm:p-8">
+          <h2 className="text-2xl font-bold mb-6 text-primary">למה לבחור דווקא בנו?</h2>
+          <div className="space-y-4">
+            {defaultWhyChooseUs.map((item, index) => (
+              <div 
+                key={index}
+                className="flex items-center gap-4 bg-card/80 backdrop-blur-sm rounded-xl p-4 transition-all hover:bg-card"
+              >
+                <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <p className="font-medium text-foreground">{item.title}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Products Section - Enhanced */}
       {productsData?.products && productsData.products.length > 0 && (
