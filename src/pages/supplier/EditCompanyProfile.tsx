@@ -199,8 +199,12 @@ export default function EditCompanyProfile() {
       if (error) throw error;
       return updatedData;
     },
-    onSuccess: () => {
+    onSuccess: (updatedData) => {
       queryClient.invalidateQueries({ queryKey: ['company', user?.id] });
+      // Invalidate public supplier cache so changes appear immediately
+      if (updatedData?.slug) {
+        queryClient.invalidateQueries({ queryKey: ['public-supplier', updatedData.slug] });
+      }
       showToast.success('הפרופיל עודכן בהצלחה');
       navigate('/supplier/profile');
     },
@@ -226,10 +230,21 @@ export default function EditCompanyProfile() {
   };
 
   const handleAddWhyChooseUs = () => {
-    if (newWhyChooseUs.trim() && !whyChooseUs.includes(newWhyChooseUs.trim()) && whyChooseUs.length < 4) {
-      setWhyChooseUs([...whyChooseUs, newWhyChooseUs.trim()]);
-      setNewWhyChooseUs('');
+    const trimmed = newWhyChooseUs.trim();
+    if (!trimmed) {
+      showToast.error('יש להזין טקסט');
+      return;
     }
+    if (whyChooseUs.includes(trimmed)) {
+      showToast.error('יתרון זה כבר קיים');
+      return;
+    }
+    if (whyChooseUs.length >= 4) {
+      showToast.error('ניתן להוסיף עד 4 יתרונות');
+      return;
+    }
+    setWhyChooseUs([...whyChooseUs, trimmed]);
+    setNewWhyChooseUs('');
   };
 
   const handleRemoveWhyChooseUs = (item: string) => {
