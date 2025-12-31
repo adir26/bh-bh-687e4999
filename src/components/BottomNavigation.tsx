@@ -71,9 +71,9 @@ export const BottomNavigation: React.FC = () => {
 
   return (
     <div 
-      className="md:hidden fixed inset-x-0 z-50 flex justify-center px-4" 
+      className="md:hidden fixed inset-x-0 z-50 flex justify-center px-2" 
       style={{
-        bottom: "calc(var(--footer-h, 0px) + env(safe-area-inset-bottom, 0px))",
+        bottom: "env(safe-area-inset-bottom, 4px)",
       }}
     >
       <nav className="bg-card/95 backdrop-blur-lg border border-border/50 rounded-3xl px-2 py-3 shadow-lg shadow-black/10 max-w-md w-full">
