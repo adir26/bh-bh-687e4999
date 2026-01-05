@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { InspectionReportPreview } from './InspectionReportPreview';
 import { useInspectionItems } from '@/hooks/useInspectionItems';
 import { useInspectionCosts } from '@/hooks/useInspectionCosts';
-import { createPdfBlob } from '@/utils/pdf';
+import { downloadInspectionPdf, previewInspectionPdf } from '@/services/inspectionPdfService';
 
 interface ReportTemplateTabProps {
   report: any;
@@ -60,24 +60,7 @@ export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTa
   const handleDownloadPDF = async () => {
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-inspection-pdf', {
-        body: {
-          reportId: report.id,
-          template: currentTemplate,
-          includeSignature: false,
-        },
-      });
-
-      if (error) throw error;
-
-      const blob = createPdfBlob(data);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `דוח-בדיקה-${report.id.slice(0, 8)}.pdf`;
-      link.click();
-      URL.revokeObjectURL(url);
-      
+      await downloadInspectionPdf(report.id, currentTemplate, false);
       toast.success('הדוח הורד בהצלחה');
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -90,20 +73,7 @@ export default function ReportTemplateTab({ report, onUpdate }: ReportTemplateTa
   const handleOpenPDF = async () => {
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-inspection-pdf', {
-        body: {
-          reportId: report.id,
-          template: currentTemplate,
-          includeSignature: false,
-        },
-      });
-
-      if (error) throw error;
-
-      const blob = createPdfBlob(data);
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      
+      await previewInspectionPdf(report.id, currentTemplate, false);
       toast.success('הדוח נפתח בחלון חדש');
     } catch (error) {
       console.error('Error generating PDF:', error);
