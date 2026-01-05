@@ -10,7 +10,7 @@ import { useInspectionItems } from '@/hooks/useInspectionItems';
 import { useInspectionCosts } from '@/hooks/useInspectionCosts';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { createPdfBlob } from '@/utils/pdf';
+import { downloadInspectionPdf } from '@/services/inspectionPdfService';
 
 interface ReportSignaturesTabProps {
   report: any;
@@ -39,22 +39,22 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
       toast.error('אנא חתום לפני השמירה');
       return;
     }
-    
+
     setIsSavingSignature(true);
     const dataUrl = sigCanvas.current?.toDataURL('image/png');
-    
+
     try {
       // Save signature to database
       const { error } = await supabase
         .from('inspection_reports')
-        .update({ 
+        .update({
           signature_data: dataUrl,
           updated_at: new Date().toISOString()
         })
         .eq('id', report.id);
 
       if (error) throw error;
-      
+
       setSignatureData(dataUrl);
       toast.success('חתימה נשמרה בהצלחה במערכת');
       onUpdate({ signature_data: dataUrl });
@@ -80,12 +80,7 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
 
       if (error) throw error;
 
-      // If upload was requested, data will contain both URL and bytes
-      if (upload && data.url) {
-        return { blob: createPdfBlob(data.bytes), url: data.url };
-      }
-
-      return { blob: createPdfBlob(data), url: null };
+      return { blob: null as unknown as Blob, url: data?.url || null };
     } catch (error) {
       console.error('Error generating PDF:', error);
       toast.error('שגיאה ביצירת PDF');
@@ -150,18 +145,19 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
   };
 
   const downloadPdf = async () => {
+    setIsGeneratingPdf(true);
     try {
-      const { blob } = await generatePdfBlob(!!signatureData, false);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `inspection-report-${report.id}.pdf`;
-      link.click();
-      URL.revokeObjectURL(url);
+      await downloadInspectionPdf(
+        report.id,
+        (report.template || 'classic') as any,
+        !!signatureData
+      );
       toast.success('PDF הורד בהצלחה');
     } catch (error) {
       console.error('Error downloading PDF:', error);
       toast.error('שגיאה בהורדת PDF');
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 

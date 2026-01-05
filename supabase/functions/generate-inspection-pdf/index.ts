@@ -134,30 +134,34 @@ async function handler(req: Request): Promise<Response> {
     // Load Hebrew fonts from Storage URLs (environment variables)
     let font: PDFFont;
     let boldFont: PDFFont;
-    
-    try {
-      const REG_URL = Deno.env.get('PDF_FONT_HE_REGULAR_URL');
-      const BOLD_URL = Deno.env.get('PDF_FONT_HE_BOLD_URL');
 
-      if (REG_URL && BOLD_URL) {
-        console.log('Loading Hebrew fonts from URLs...');
-        const [regRes, boldRes] = await Promise.all([fetch(REG_URL), fetch(BOLD_URL)]);
-        
-        if (regRes.ok && boldRes.ok) {
-          const regBytes = new Uint8Array(await regRes.arrayBuffer());
-          const boldBytes = new Uint8Array(await boldRes.arrayBuffer());
-          font = await pdfDoc.embedFont(regBytes);
-          boldFont = await pdfDoc.embedFont(boldBytes);
-          console.log('Hebrew fonts loaded successfully');
-        } else {
-          throw new Error(`Failed to fetch fonts: ${regRes.status}, ${boldRes.status}`);
-        }
-      } else {
-        throw new Error('PDF_FONT_HE_REGULAR_URL or PDF_FONT_HE_BOLD_URL not set');
+    try {
+      // New required names
+      const REG_URL = Deno.env.get('FONT_HEBREW_REGULAR_URL') || Deno.env.get('PDF_FONT_HE_REGULAR_URL');
+      const BOLD_URL = Deno.env.get('FONT_HEBREW_BOLD_URL') || Deno.env.get('PDF_FONT_HE_BOLD_URL');
+
+      if (!REG_URL || !BOLD_URL) {
+        throw new Error('FONT_HEBREW_REGULAR_URL / FONT_HEBREW_BOLD_URL not set');
       }
+
+      console.log('Loading Hebrew fonts from URLs...');
+      const [regRes, boldRes] = await Promise.all([fetch(REG_URL), fetch(BOLD_URL)]);
+
+      if (!regRes.ok || !boldRes.ok) {
+        throw new Error(`Failed to fetch fonts: ${regRes.status}, ${boldRes.status}`);
+      }
+
+      const regBytes = new Uint8Array(await regRes.arrayBuffer());
+      const boldBytes = new Uint8Array(await boldRes.arrayBuffer());
+      font = await pdfDoc.embedFont(regBytes);
+      boldFont = await pdfDoc.embedFont(boldBytes);
+      console.log('Hebrew fonts loaded successfully');
     } catch (fontError) {
       console.error('Failed to load Hebrew fonts:', fontError);
-      return new Response(JSON.stringify({ error: 'Failed to load Hebrew fonts for PDF generation' }), {
+      return new Response(JSON.stringify({
+        error: 'Failed to load Hebrew fonts for PDF generation',
+        hint: 'Check FONT_HEBREW_REGULAR_URL and FONT_HEBREW_BOLD_URL secrets'
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
