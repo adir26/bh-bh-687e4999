@@ -101,28 +101,30 @@ async function handler(req: Request): Promise<Response> {
       });
     }
 
-    // Fetch findings
-    const { data: findings = [] } = await supabase
+    // Fetch findings - ALWAYS normalize to array to prevent .filter() on null
+    const { data: findingsData } = await supabase
       .from('inspection_items')
       .select('*')
       .eq('report_id', reportId)
       .order('created_at');
+    const findings: InspectionItem[] = Array.isArray(findingsData) ? findingsData : [];
 
-    // Fetch costs
-    const { data: costs = [] } = await supabase
+    // Fetch costs - ALWAYS normalize to array to prevent .filter() on null
+    const { data: costsData } = await supabase
       .from('inspection_costs')
       .select('*')
       .eq('report_id', reportId);
+    const costs: InspectionCost[] = Array.isArray(costsData) ? costsData : [];
 
-    // Fetch media for findings
-    const findingIds = (findings || []).map((f: any) => f.id);
+    // Fetch media for findings - ALWAYS normalize to array
+    const findingIds = findings.map((f: InspectionItem) => f.id);
     let media: any[] = [];
     if (findingIds.length > 0) {
       const { data: mediaData } = await supabase
         .from('inspection_media')
         .select('*')
         .in('item_id', findingIds);
-      media = mediaData || [];
+      media = Array.isArray(mediaData) ? mediaData : [];
     }
 
     // Create PDF
@@ -280,11 +282,11 @@ async function handler(req: Request): Promise<Response> {
       drawRightAligned('ממצאים', yPosition, 14, boldFont, rgb(...colors.primary));
       yPosition -= 20;
 
-      for (const finding of findings as InspectionItem[]) {
+      for (const finding of findings) {
         if (yPosition < 100) break; // Prevent overflow (add pagination if needed)
 
-        const severityColor = SEVERITY_COLORS[(finding as any).severity] || [0.5, 0.5, 0.5];
-        const severityLabel = SEVERITY_LABELS[(finding as any).severity] || (finding as any).severity;
+        const severityColor = SEVERITY_COLORS[finding.severity] || [0.5, 0.5, 0.5];
+        const severityLabel = SEVERITY_LABELS[finding.severity] || finding.severity;
 
         // Draw severity badge
         page.drawRectangle({
@@ -303,7 +305,7 @@ async function handler(req: Request): Promise<Response> {
         });
 
         // Finding title
-        page.drawText(String((finding as any).title), {
+        page.drawText(String(finding.title || ''), {
           x: 450,
           y: yPosition,
           size: 10,
@@ -311,20 +313,20 @@ async function handler(req: Request): Promise<Response> {
         });
         yPosition -= 12;
 
-        if ((finding as any).description) {
-          const descSrc = String((finding as any).description);
+        if (finding.description) {
+          const descSrc = String(finding.description);
           const desc = descSrc.substring(0, 60) + (descSrc.length > 60 ? '...' : '');
           page.drawText(desc, { x: 450, y: yPosition, size: 8, font, color: rgb(0.3, 0.3, 0.3) });
           yPosition -= 12;
         }
 
-        if ((finding as any).location) {
-          page.drawText(`מיקום: ${String((finding as any).location)}`, { x: 450, y: yPosition, size: 8, font });
+        if (finding.location) {
+          page.drawText(`מיקום: ${String(finding.location)}`, { x: 450, y: yPosition, size: 8, font });
           yPosition -= 15;
         }
 
         // Finding media/images
-        const findingMedia = media.filter((m: any) => m.item_id === (finding as any).id && m.type === 'photo');
+        const findingMedia = media.filter((m: any) => m.item_id === finding.id && m.type === 'photo');
         for (const mediaItem of findingMedia) {
           if (yPosition < 150) break; // Need space for image
           try {
@@ -362,7 +364,7 @@ async function handler(req: Request): Promise<Response> {
         }
 
         // Associated costs
-        const findingCosts = (costs as InspectionCost[]).filter((c) => c.item_id === (finding as any).id);
+        const findingCosts = costs.filter((c) => c.item_id === finding.id);
         if (findingCosts.length > 0) {
           for (const cost of findingCosts) {
             page.drawText(`${String(cost.description)}: ₪${Number(cost.amount).toLocaleString()}`, {
@@ -382,7 +384,7 @@ async function handler(req: Request): Promise<Response> {
 
     // Cost summary
     yPosition -= 20;
-    const totalCost = (costs as InspectionCost[]).reduce((sum: number, c) => sum + Number(c.amount || 0), 0);
+    const totalCost = costs.reduce((sum: number, c) => sum + Number(c.amount || 0), 0);
     drawRightAligned('סיכום עלויות', yPosition, 14, boldFont, rgb(...colors.primary));
     yPosition -= 20;
     drawRightAligned(`סה"כ משוער: ₪${totalCost.toLocaleString()}`, yPosition, 12, boldFont);
