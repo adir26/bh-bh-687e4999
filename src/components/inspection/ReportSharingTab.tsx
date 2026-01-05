@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Copy, Send, LinkIcon, Check } from 'lucide-react';
+import { Copy, Share2, LinkIcon, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ReportSharingTabProps {
@@ -16,6 +16,7 @@ interface ReportSharingTabProps {
 
 export default function ReportSharingTab({ report }: ReportSharingTabProps) {
   const [copied, setCopied] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   
   // Generate public share URL using custom domain
   const shareUrl = `https://bh-bonimpo.com/public/inspection/${report.id}`;
@@ -27,23 +28,50 @@ export default function ReportSharingTab({ report }: ReportSharingTabProps) {
       toast.success('הקישור הועתק ללוח');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      toast.error('שגיאה בהעתקת הקישור');
+      // Fallback for non-secure contexts
+      const textArea = document.createElement('textarea');
+      textArea.value = shareUrl;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-9999px';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        toast.success('הקישור הועתק ללוח');
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        toast.error('שגיאה בהעתקת הקישור');
+      }
+      document.body.removeChild(textArea);
     }
   };
 
-  const handleWhatsAppShare = () => {
+  const handleShare = async () => {
+    setIsSharing(true);
     const projectName = report.project_name || 'דוח בדיקה';
-    const message = `שלום,\n\nמצורף דוח ${projectName}:\n${shareUrl}\n\nבברכה`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
+    const shareData = {
+      title: projectName,
+      text: `צפה בדוח: ${projectName}`,
+      url: shareUrl,
+    };
 
-  const handleEmailShare = () => {
-    const projectName = report.project_name || 'דוח בדיקה';
-    const subject = `דוח: ${projectName}`;
-    const body = `שלום,\n\nמצורף דוח ${projectName}:\n${shareUrl}\n\nבברכה`;
-    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoUrl;
+    try {
+      if (navigator.share && navigator.canShare?.(shareData)) {
+        await navigator.share(shareData);
+        toast.success('הדוח שותף בהצלחה');
+      } else {
+        // Fallback - copy to clipboard
+        await handleCopyLink();
+      }
+    } catch (error: any) {
+      // User cancelled share - don't show error
+      if (error?.name !== 'AbortError') {
+        await handleCopyLink();
+      }
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   return (
@@ -92,31 +120,23 @@ export default function ReportSharingTab({ report }: ReportSharingTabProps) {
         </CardContent>
       </Card>
 
-      {/* Quick Share Actions */}
+      {/* Share Action */}
       <Card>
         <CardHeader>
-          <CardTitle>שיתוף מהיר</CardTitle>
+          <CardTitle>שיתוף הדוח</CardTitle>
           <CardDescription>
-            שלחו את הדוח ישירות דרך האפליקציות המועדפות עליכם
+            שתפו את הדוח דרך כל אפליקציה במכשיר
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent>
           <Button
-            onClick={handleWhatsAppShare}
-            className="w-full justify-start gap-2"
-            variant="outline"
+            onClick={handleShare}
+            className="w-full gap-2"
+            size="lg"
+            disabled={isSharing}
           >
-            <Send className="h-4 w-4" />
-            שליחה ב-WhatsApp
-          </Button>
-
-          <Button
-            onClick={handleEmailShare}
-            className="w-full justify-start gap-2"
-            variant="outline"
-          >
-            <Send className="h-4 w-4" />
-            שליחה במייל
+            <Share2 className="h-5 w-5" />
+            {isSharing ? 'משתף...' : 'שתף דוח'}
           </Button>
         </CardContent>
       </Card>
@@ -129,7 +149,7 @@ export default function ReportSharingTab({ report }: ReportSharingTabProps) {
         <CardContent className="space-y-3 text-sm text-muted-foreground">
           <div className="flex gap-2">
             <div className="font-bold text-foreground">1.</div>
-            <div>העתיקו את הקישור או שלחו אותו ישירות דרך WhatsApp/מייל</div>
+            <div>לחצו על "שתף דוח" לשיתוף דרך WhatsApp, מייל או כל אפליקציה אחרת</div>
           </div>
           <div className="flex gap-2">
             <div className="font-bold text-foreground">2.</div>

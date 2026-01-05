@@ -36,8 +36,21 @@ export default function PublicInspectionReport() {
 
       if (findingsRes.error) throw findingsRes.error;
 
-      // Fetch costs for all findings in this report
+      // Fetch media for findings
       const findingIds = (findingsRes.data || []).map(f => f.id);
+      let mediaData: any[] = [];
+      if (findingIds.length > 0) {
+        const mediaRes = await supabase
+          .from('inspection_media')
+          .select('*')
+          .in('item_id', findingIds);
+        
+        if (!mediaRes.error) {
+          mediaData = mediaRes.data || [];
+        }
+      }
+
+      // Fetch costs for all findings in this report
       let mappedCosts: any[] = [];
       
       if (findingIds.length > 0) {
@@ -59,6 +72,7 @@ export default function PublicInspectionReport() {
         report: reportRes.data,
         findings: findingsRes.data || [],
         costs: mappedCosts,
+        media: mediaData,
       };
     },
     enabled: !!id,
@@ -115,6 +129,7 @@ export default function PublicInspectionReport() {
               report={data.report}
               findings={data.findings}
               costs={data.costs}
+              media={data.media}
               signature={data.report.signature_data}
               template={data.report.template || 'classic'}
               logoUrl={data.report.logo_url}
