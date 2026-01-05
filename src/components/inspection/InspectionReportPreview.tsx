@@ -7,6 +7,7 @@ interface InspectionReportPreviewProps {
   report: any;
   findings: any[];
   costs: any[];
+  media?: any[];
   signature?: string;
   template?: string;
   logoUrl?: string;
@@ -16,6 +17,7 @@ export const InspectionReportPreview: React.FC<InspectionReportPreviewProps> = (
   report,
   findings,
   costs,
+  media = [],
   signature,
   template = 'classic',
   logoUrl,
@@ -95,6 +97,17 @@ export const InspectionReportPreview: React.FC<InspectionReportPreviewProps> = (
       acc[cost.item_id] = [];
     }
     acc[cost.item_id].push(cost);
+    return acc;
+  }, {} as Record<string, any[]>);
+
+  // Group media by finding
+  const mediaByFinding = media.reduce((acc, m) => {
+    if (m.item_id) {
+      if (!acc[m.item_id]) {
+        acc[m.item_id] = [];
+      }
+      acc[m.item_id].push(m);
+    }
     return acc;
   }, {} as Record<string, any[]>);
 
@@ -233,6 +246,28 @@ export const InspectionReportPreview: React.FC<InspectionReportPreviewProps> = (
                       📍 מיקום: {finding.location || 'לא צוין'}
                       {finding.room && ` | 🏠 חדר: ${finding.room}`}
                     </p>
+
+                    {/* Media/Images for this finding */}
+                    {mediaByFinding[finding.id] && mediaByFinding[finding.id].length > 0 && (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {mediaByFinding[finding.id]
+                          .filter((m: any) => m.type === 'photo')
+                          .map((mediaItem: any) => (
+                            <div key={mediaItem.id} className="relative">
+                              <img
+                                src={mediaItem.url}
+                                alt={mediaItem.caption || 'תמונה'}
+                                className="w-32 h-24 object-cover rounded-lg border shadow-sm"
+                              />
+                              {mediaItem.caption && (
+                                <p className="text-xs text-muted-foreground mt-1 text-center max-w-[128px] truncate">
+                                  {mediaItem.caption}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                      </div>
+                    )}
 
                     {/* Costs for this finding */}
                     {costsByFinding[finding.id] && costsByFinding[finding.id].length > 0 && (

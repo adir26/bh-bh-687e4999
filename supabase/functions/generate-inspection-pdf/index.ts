@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { PDFDocument, rgb, PDFFont, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1';
+import fontkit from 'https://esm.sh/@pdf-lib/fontkit@1.1.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -113,8 +114,20 @@ async function handler(req: Request): Promise<Response> {
       .select('*')
       .eq('report_id', reportId);
 
+    // Fetch media for findings
+    const findingIds = (findings || []).map((f: any) => f.id);
+    let media: any[] = [];
+    if (findingIds.length > 0) {
+      const { data: mediaData } = await supabase
+        .from('inspection_media')
+        .select('*')
+        .in('item_id', findingIds);
+      media = mediaData || [];
+    }
+
     // Create PDF
     const pdfDoc = await PDFDocument.create();
+    pdfDoc.registerFontkit(fontkit);
     const page = pdfDoc.addPage([595, 842]); // A4 size
     const { width, height } = page.getSize();
 
@@ -143,17 +156,11 @@ async function handler(req: Request): Promise<Response> {
         throw new Error('PDF_FONT_HE_REGULAR_URL or PDF_FONT_HE_BOLD_URL not set');
       }
     } catch (fontError) {
-      console.warn('Failed to load Hebrew fonts, falling back to Helvetica:', fontError);
-      font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-      
-      const { error: evErr } = await supabase.from('pdf_events').insert({
-        report_id: reportId,
-        context: 'inspection',
-        event_type: 'font_load_error',
-        meta: { error: String(fontError) }
+      console.error('Failed to load Hebrew fonts:', fontError);
+      return new Response(JSON.stringify({ error: 'Failed to load Hebrew fonts for PDF generation' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
-      if (evErr) console.warn('pdf_events insert failed:', evErr);
     }
 
     // Helper function for right-aligned Hebrew text
@@ -310,6 +317,44 @@ async function handler(req: Request): Promise<Response> {
         if ((finding as any).location) {
           page.drawText(`מיקום: ${String((finding as any).location)}`, { x: 450, y: yPosition, size: 8, font });
           yPosition -= 15;
+        }
+
+        // Finding media/images
+        const findingMedia = media.filter((m: any) => m.item_id === (finding as any).id && m.type === 'photo');
+        for (const mediaItem of findingMedia) {
+          if (yPosition < 150) break; // Need space for image
+          try {
+            const imgResponse = await fetch(mediaItem.url);
+            if (imgResponse.ok) {
+              const imgBytes = await imgResponse.arrayBuffer();
+              const contentType = imgResponse.headers.get('content-type') || '';
+              
+              let embeddedImg;
+              if (contentType.includes('png')) {
+                embeddedImg = await pdfDoc.embedPng(imgBytes);
+              } else if (contentType.includes('jpg') || contentType.includes('jpeg')) {
+                embeddedImg = await pdfDoc.embedJpg(imgBytes);
+              }
+              
+              if (embeddedImg) {
+                const maxWidth = 150;
+                const maxHeight = 100;
+                const scale = Math.min(maxWidth / embeddedImg.width, maxHeight / embeddedImg.height);
+                const imgWidth = embeddedImg.width * scale;
+                const imgHeight = embeddedImg.height * scale;
+                
+                page.drawImage(embeddedImg, {
+                  x: width - imgWidth - 50,
+                  y: yPosition - imgHeight,
+                  width: imgWidth,
+                  height: imgHeight,
+                });
+                yPosition -= imgHeight + 10;
+              }
+            }
+          } catch (imgError) {
+            console.warn('Failed to embed media image:', imgError);
+          }
         }
 
         // Associated costs
