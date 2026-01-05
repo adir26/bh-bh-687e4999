@@ -10,7 +10,7 @@ import { useInspectionItems } from '@/hooks/useInspectionItems';
 import { useInspectionCosts } from '@/hooks/useInspectionCosts';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { downloadInspectionPdf } from '@/services/inspectionPdfService';
+import { downloadInspectionPdf, finalizeInspectionPdf } from '@/services/inspectionPdfService';
 
 interface ReportSignaturesTabProps {
   report: any;
@@ -66,28 +66,14 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
     }
   };
 
-  const generatePdfBlob = async (includeSignature = false, upload = false) => {
-    setIsGeneratingPdf(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-inspection-pdf', {
-        body: {
-          reportId: report.id,
-          template: report.template || 'classic',
-          includeSignature,
-          upload,
-        },
-      });
-
-      if (error) throw error;
-
-      return { blob: null as unknown as Blob, url: data?.url || null };
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      toast.error('שגיאה ביצירת PDF');
-      throw error;
-    } finally {
-      setIsGeneratingPdf(false);
+  // IMPORTANT: Never use supabase.functions.invoke for binary PDF responses.
+  // For upload mode (JSON response), use finalizeInspectionPdf from the service.
+  const uploadPdfAndGetUrl = async (): Promise<string> => {
+    const result = await finalizeInspectionPdf(report.id);
+    if (!result.ok || !result.url) {
+      throw new Error('Failed to upload PDF');
     }
+    return result.url;
   };
 
   const sendReportByEmail = async () => {
@@ -103,12 +89,8 @@ export default function ReportSignaturesTab({ report, onUpdate }: ReportSignatur
 
     setIsSending(true);
     try {
-      // Generate PDF with signature and upload directly
-      const { url: pdfUrl } = await generatePdfBlob(!!signatureData, true);
-
-      if (!pdfUrl) {
-        throw new Error('Failed to generate PDF URL');
-      }
+      // Upload PDF and get URL (uses JSON response path, which is correct)
+      const pdfUrl = await uploadPdfAndGetUrl();
 
       // Update report with PDF URL
       const { error: updateError } = await supabase
