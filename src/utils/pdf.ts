@@ -78,11 +78,21 @@ export async function validatePdfBlob(blob: Blob): Promise<void> {
 export async function createAndValidatePdfBlob(data: unknown): Promise<Blob> {
   let pdfBlob: Blob;
   
-  console.log('[PDF] typeof data:', typeof data);
-  console.log('[PDF] data ctor:', data?.constructor?.name);
-  console.log('[PDF] data keys:', data && typeof data === 'object' ? Object.keys(data as object) : null);
-  
-  if (data instanceof Blob) {
+  // Handle base64 JSON response from Edge Function
+  if (
+    data && 
+    typeof data === 'object' && 
+    'pdf' in data && 
+    typeof (data as { pdf: string }).pdf === 'string'
+  ) {
+    const base64Pdf = (data as { pdf: string }).pdf;
+    const binaryString = atob(base64Pdf);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    pdfBlob = new Blob([bytes], { type: 'application/pdf' });
+  } else if (data instanceof Blob) {
     pdfBlob = data;
   } else if (data instanceof ArrayBuffer) {
     pdfBlob = createPdfBlob(data);
