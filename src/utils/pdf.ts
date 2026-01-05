@@ -77,12 +77,21 @@ export async function validatePdfBlob(blob: Blob): Promise<void> {
  */
 export async function createAndValidatePdfBlob(data: unknown): Promise<Blob> {
   let pdfBlob: Blob;
-  
+
+  // Some callers may pass the full Supabase invoke response ({ data, error })
+  if (data && typeof data === 'object' && 'error' in data && (data as any).error) {
+    const err = (data as any).error;
+    throw new Error(err?.message || err?.error_description || err?.toString?.() || 'PDF generation failed');
+  }
+  if (data && typeof data === 'object' && 'data' in data && (data as any).data !== undefined) {
+    return createAndValidatePdfBlob((data as any).data);
+  }
+
   // Handle base64 JSON response from Edge Function
   if (
-    data && 
-    typeof data === 'object' && 
-    'pdf' in data && 
+    data &&
+    typeof data === 'object' &&
+    'pdf' in data &&
     typeof (data as { pdf: string }).pdf === 'string'
   ) {
     const base64Pdf = (data as { pdf: string }).pdf;
@@ -101,18 +110,19 @@ export async function createAndValidatePdfBlob(data: unknown): Promise<Blob> {
   } else if (typeof data === 'string') {
     pdfBlob = createPdfBlob(data);
   } else if (
-    data && 
-    typeof data === 'object' && 
-    'type' in data && 
-    (data as any).type === 'Buffer' && 
+    data &&
+    typeof data === 'object' &&
+    'type' in data &&
+    (data as any).type === 'Buffer' &&
     Array.isArray((data as any).data)
   ) {
     pdfBlob = createPdfBlob(new Uint8Array((data as { type: 'Buffer'; data: number[] }).data));
   } else {
-    throw new Error(`Unexpected PDF response type: ${typeof data}, constructor: ${data?.constructor?.name}`);
+    throw new Error(
+      `Unexpected PDF response type: ${typeof data}, constructor: ${data?.constructor?.name}`
+    );
   }
-  
-  // Validate PDF signature
+
   await validatePdfBlob(pdfBlob);
   
   return pdfBlob;
