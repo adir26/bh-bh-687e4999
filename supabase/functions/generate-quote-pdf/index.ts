@@ -708,14 +708,29 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('Generated PDF has invalid signature');
     }
 
-    return new Response(pdfBytes, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="quote-${quote.quote_number || quote.id}.pdf"`,
-        ...corsHeaders,
-      },
-    });
+    // Convert PDF bytes to base64 to avoid UTF-8 corruption by Supabase JS SDK
+    const uint8Array = new Uint8Array(pdfBytes);
+    let binaryString = '';
+    for (let i = 0; i < uint8Array.length; i++) {
+      binaryString += String.fromCharCode(uint8Array[i]);
+    }
+    const base64Pdf = btoa(binaryString);
+    
+    console.log('[generate-quote-pdf] Base64 length:', base64Pdf.length);
+
+    return new Response(
+      JSON.stringify({ 
+        pdf: base64Pdf,
+        filename: `quote-${quote.quote_number || quote.id}.pdf`
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders,
+        },
+      }
+    );
 
   } catch (error: any) {
     console.error('[generate-quote-pdf] Error:', error);

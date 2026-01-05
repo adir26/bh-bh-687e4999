@@ -81,15 +81,6 @@ export default function PublicQuoteView() {
         body: { token, template: quoteData?.quote.template || 'premium' },
       });
 
-      // TEMP debug logs
-      console.log('[PDF] response.error:', response.error);
-      console.log('[PDF] data type:', typeof response.data, response.data?.constructor?.name);
-      if (typeof response.data === 'string') {
-        console.log('[PDF] data length:', response.data.length);
-        console.log('[PDF] first 100 chars:', response.data.slice(0, 100));
-        console.log('[PDF] first 10 char codes:', Array.from(response.data.slice(0, 10)).map(c => c.charCodeAt(0)));
-      }
-
       if (response.error) {
         throw new Error(response.error.message || 'שגיאה ביצירת PDF');
       }
@@ -101,48 +92,33 @@ export default function PublicQuoteView() {
         throw new Error((data as { error: string }).error);
       }
       
-      // Convert to Uint8Array first for validation
-      let pdfBytes: Uint8Array;
-      if (data instanceof Blob) {
-        pdfBytes = new Uint8Array(await data.arrayBuffer());
-      } else if (data instanceof ArrayBuffer) {
-        pdfBytes = new Uint8Array(data);
-      } else if (data instanceof Uint8Array) {
-        pdfBytes = data;
-      } else if (typeof data === 'string') {
-        // String response - convert each char to byte
-        pdfBytes = new Uint8Array(data.length);
-        for (let i = 0; i < data.length; i++) {
-          pdfBytes[i] = data.charCodeAt(i) & 0xff;
-        }
-      } else if (
-        data && 
-        typeof data === 'object' && 
-        'type' in data && 
-        (data as any).type === 'Buffer' && 
-        Array.isArray((data as any).data)
-      ) {
-        pdfBytes = new Uint8Array((data as { type: 'Buffer'; data: number[] }).data);
-      } else {
-        throw new Error(`Unexpected PDF response type: ${typeof data}, ctor: ${data?.constructor?.name}`);
+      // Handle base64 PDF response
+      if (!data || typeof data !== 'object' || !('pdf' in data)) {
+        throw new Error('Invalid PDF response format');
+      }
+
+      const base64Pdf = (data as { pdf: string; filename?: string }).pdf;
+      const filename = (data as { pdf: string; filename?: string }).filename || `quote-${quoteData?.quote.id?.slice(0, 8) || token}.pdf`;
+
+      // Decode base64 to bytes
+      const binaryString = atob(base64Pdf);
+      const pdfBytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        pdfBytes[i] = binaryString.charCodeAt(i);
       }
 
       // Validate PDF signature
       const signature = String.fromCharCode(...pdfBytes.slice(0, 5));
-      console.log('[PDF] signature:', signature, 'bytes:', Array.from(pdfBytes.slice(0, 5)));
-      
       if (!signature.startsWith('%PDF-')) {
-        const preview = String.fromCharCode(...pdfBytes.slice(0, 200));
-        console.error('[PDF] Invalid signature! First 200 chars:', preview);
-        throw new Error(`Invalid PDF signature. First 200 chars: ${preview}`);
+        throw new Error('Invalid PDF signature');
       }
 
-      const pdfBlob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
 
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `quote-${quoteData?.quote.id?.slice(0, 8) || token}.pdf`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
