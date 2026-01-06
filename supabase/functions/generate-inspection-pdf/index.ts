@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { PDFDocument, rgb, PDFFont, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1';
+import { PDFDocument, rgb, PDFFont, PDFPage } from 'https://esm.sh/pdf-lib@1.17.1';
 import fontkit from 'https://esm.sh/@pdf-lib/fontkit@1.1.1';
 
 const corsHeaders = {
@@ -29,6 +29,11 @@ interface InspectionReport {
   logo_url?: string;
   template?: string;
   signature_data?: string;
+  title?: string;
+  property_address?: string;
+  client_name?: string;
+  address?: string;
+  project_name?: string;
 }
 
 interface InspectionItem {
@@ -37,28 +42,57 @@ interface InspectionItem {
   description?: string;
   location?: string;
   severity: string;
-  status: string;
+  status?: string;
+  category?: string;
 }
 
 interface InspectionCost {
   id: string;
   item_id?: string;
-  description: string;
-  amount: number;
+  description?: string;
+  quantity?: number;
+  unit?: string;
+  unit_price?: number;
+  total?: number;
 }
 
+// Theme colors for different templates
 const TEMPLATE_COLORS = {
-  classic: { primary: [0.2, 0.4, 0.8] as [number, number, number], secondary: [0.5, 0.5, 0.5] as [number, number, number] },
-  modern: { primary: [0.1, 0.6, 0.9] as [number, number, number], secondary: [0.3, 0.3, 0.3] as [number, number, number] },
-  elegant: { primary: [0.4, 0.2, 0.6] as [number, number, number], secondary: [0.6, 0.6, 0.6] as [number, number, number] },
-  premium: { primary: [0.8, 0.6, 0.2] as [number, number, number], secondary: [0.4, 0.4, 0.4] as [number, number, number] },
+  classic: { 
+    primary: [0.12, 0.23, 0.54] as [number, number, number], // Deep blue
+    secondary: [0.23, 0.51, 0.96] as [number, number, number], // Light blue
+    accent: [0.94, 0.96, 1.0] as [number, number, number], // Light blue bg
+    text: [0.12, 0.16, 0.23] as [number, number, number],
+    muted: [0.4, 0.45, 0.51] as [number, number, number],
+  },
+  modern: { 
+    primary: [0.42, 0.13, 0.55] as [number, number, number], // Purple
+    secondary: [0.58, 0.27, 0.73] as [number, number, number],
+    accent: [0.98, 0.95, 1.0] as [number, number, number],
+    text: [0.12, 0.16, 0.23] as [number, number, number],
+    muted: [0.4, 0.45, 0.51] as [number, number, number],
+  },
+  elegant: { 
+    primary: [0.13, 0.46, 0.42] as [number, number, number], // Emerald
+    secondary: [0.2, 0.6, 0.55] as [number, number, number],
+    accent: [0.94, 1.0, 0.98] as [number, number, number],
+    text: [0.12, 0.16, 0.23] as [number, number, number],
+    muted: [0.4, 0.45, 0.51] as [number, number, number],
+  },
+  premium: { 
+    primary: [0.88, 0.28, 0.35] as [number, number, number], // Rose
+    secondary: [0.92, 0.45, 0.5] as [number, number, number],
+    accent: [1.0, 0.95, 0.95] as [number, number, number],
+    text: [0.12, 0.16, 0.23] as [number, number, number],
+    muted: [0.4, 0.45, 0.51] as [number, number, number],
+  },
 };
 
 const SEVERITY_COLORS: Record<string, [number, number, number]> = {
-  critical: [0.9, 0.1, 0.1],
-  high: [0.9, 0.5, 0.1],
-  medium: [0.9, 0.8, 0.1],
-  low: [0.3, 0.7, 0.3],
+  critical: [0.86, 0.14, 0.14],
+  high: [0.92, 0.38, 0.08],
+  medium: [0.85, 0.65, 0.12],
+  low: [0.13, 0.55, 0.13],
 };
 
 const SEVERITY_LABELS: Record<string, string> = {
@@ -109,15 +143,20 @@ async function handler(req: Request): Promise<Response> {
       .order('created_at');
     const findings: InspectionItem[] = Array.isArray(findingsData) ? findingsData : [];
 
-    // Fetch costs - ALWAYS normalize to array to prevent .filter() on null
-    const { data: costsData } = await supabase
-      .from('inspection_costs')
-      .select('*')
-      .eq('report_id', reportId);
-    const costs: InspectionCost[] = Array.isArray(costsData) ? costsData : [];
+    // Get finding IDs first for fetching related data
+    const findingIds = findings.map((f: InspectionItem) => f.id);
+
+    // Fetch costs - via item_id (costs are linked to findings, not directly to reports)
+    let costs: InspectionCost[] = [];
+    if (findingIds.length > 0) {
+      const { data: costsData } = await supabase
+        .from('inspection_costs')
+        .select('*')
+        .in('item_id', findingIds);
+      costs = Array.isArray(costsData) ? costsData : [];
+    }
 
     // Fetch media for findings - ALWAYS normalize to array
-    const findingIds = findings.map((f: InspectionItem) => f.id);
     let media: any[] = [];
     if (findingIds.length > 0) {
       const { data: mediaData } = await supabase
@@ -130,15 +169,12 @@ async function handler(req: Request): Promise<Response> {
     // Create PDF
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
-    const page = pdfDoc.addPage([595, 842]); // A4 size
-    const { width, height } = page.getSize();
 
     // Load Hebrew fonts from Storage URLs (environment variables)
     let font: PDFFont;
     let boldFont: PDFFont;
 
     try {
-      // New required names
       const REG_URL = Deno.env.get('FONT_HEBREW_REGULAR_URL') || Deno.env.get('PDF_FONT_HE_REGULAR_URL');
       const BOLD_URL = Deno.env.get('FONT_HEBREW_BOLD_URL') || Deno.env.get('PDF_FONT_HE_BOLD_URL');
 
@@ -169,11 +205,24 @@ async function handler(req: Request): Promise<Response> {
       });
     }
 
-    // Helper function for right-aligned Hebrew text
-    const drawRightAligned = (text: string, y: number, size: number, useFont: PDFFont = font, color = rgb(0, 0, 0)) => {
-      const textWidth = useFont.widthOfTextAtSize(text, size);
-      page.drawText(text, {
-        x: width - textWidth - 24,
+    const colors = TEMPLATE_COLORS[template as keyof typeof TEMPLATE_COLORS] || TEMPLATE_COLORS.classic;
+    
+    // A4 dimensions
+    const pageWidth = 595;
+    const pageHeight = 842;
+    const marginLeft = 40;
+    const marginRight = 40;
+    const contentWidth = pageWidth - marginLeft - marginRight;
+
+    let page = pdfDoc.addPage([pageWidth, pageHeight]);
+    let yPosition = pageHeight - 50;
+
+    // Helper: Right-aligned text (for RTL Hebrew)
+    const drawRightAligned = (text: string, y: number, size: number, useFont: PDFFont = font, color = rgb(...colors.text)) => {
+      const safeText = String(text || '');
+      const textWidth = useFont.widthOfTextAtSize(safeText, size);
+      page.drawText(safeText, {
+        x: pageWidth - marginRight - textWidth,
         y,
         size,
         font: useFont,
@@ -181,22 +230,143 @@ async function handler(req: Request): Promise<Response> {
       });
     };
 
-    const colors = TEMPLATE_COLORS[template as keyof typeof TEMPLATE_COLORS] || TEMPLATE_COLORS.classic;
-    let yPosition = 800;
+    // Helper: Draw a filled rectangle (for section backgrounds)
+    const drawSectionBackground = (y: number, height: number, color: [number, number, number]) => {
+      page.drawRectangle({
+        x: marginLeft,
+        y: y - height + 10,
+        width: contentWidth,
+        height: height,
+        color: rgb(...color),
+        borderColor: rgb(...colors.secondary),
+        borderWidth: 0.5,
+      });
+    };
 
-    // Add watermark for premium template
+    // Helper: Draw section title with background
+    const drawSectionTitle = (title: string, y: number): number => {
+      const titleHeight = 30;
+      drawSectionBackground(y, titleHeight, colors.accent);
+      const textWidth = boldFont.widthOfTextAtSize(title, 14);
+      page.drawText(title, {
+        x: pageWidth - marginRight - textWidth - 10,
+        y: y - 18,
+        size: 14,
+        font: boldFont,
+        color: rgb(...colors.primary),
+      });
+      return y - titleHeight - 10;
+    };
+
+    // Helper: Add new page if needed
+    const checkPageBreak = (neededSpace: number): void => {
+      if (yPosition < neededSpace + 60) {
+        page = pdfDoc.addPage([pageWidth, pageHeight]);
+        yPosition = pageHeight - 50;
+      }
+    };
+
+    // Helper: Format currency
+    const formatCurrency = (amount: number): string => {
+      return `₪${amount.toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    };
+
+    // Helper: Format date
+    const formatDate = (dateStr: string): string => {
+      try {
+        return new Date(dateStr).toLocaleDateString('he-IL');
+      } catch {
+        return dateStr;
+      }
+    };
+
+    // ==================== HEADER SECTION ====================
+    // Draw header background with gradient effect
+    const headerHeight = 100;
+    page.drawRectangle({
+      x: marginLeft,
+      y: yPosition - headerHeight + 20,
+      width: contentWidth,
+      height: headerHeight,
+      color: rgb(...colors.accent),
+      borderColor: rgb(...colors.primary),
+      borderWidth: 2,
+    });
+
+    // Draw bottom border accent
+    page.drawRectangle({
+      x: marginLeft,
+      y: yPosition - headerHeight + 16,
+      width: contentWidth,
+      height: 4,
+      color: rgb(...colors.primary),
+    });
+
+    // Premium watermark
     if (template === 'premium') {
       page.drawText('PREMIUM', {
-        x: 200,
+        x: 180,
         y: 420,
-        size: 80,
+        size: 72,
         font: boldFont,
         color: rgb(0.95, 0.95, 0.95),
         rotate: { angle: -45, type: 'degrees' },
+        opacity: 0.15,
       });
     }
 
-    // Header section with logo on left
+    // Title on the right (RTL)
+    const mainTitle = 'דוח בדיקה מקצועי';
+    const titleWidth = boldFont.widthOfTextAtSize(mainTitle, 26);
+    page.drawText(mainTitle, {
+      x: pageWidth - marginRight - titleWidth - 15,
+      y: yPosition - 25,
+      size: 26,
+      font: boldFont,
+      color: rgb(...colors.primary),
+    });
+
+    // Date under title
+    const dateText = `תאריך: ${formatDate(report.created_at)}`;
+    const dateWidth = font.widthOfTextAtSize(dateText, 10);
+    page.drawText(dateText, {
+      x: pageWidth - marginRight - dateWidth - 15,
+      y: yPosition - 45,
+      size: 10,
+      font,
+      color: rgb(...colors.muted),
+    });
+
+    // Template badge
+    const templateLabels: Record<string, string> = {
+      premium: 'תבנית פרימיום',
+      modern: 'תבנית מודרנית',
+      elegant: 'תבנית אלגנטית',
+      classic: 'תבנית קלאסית',
+    };
+    const badgeText = templateLabels[template] || templateLabels.classic;
+    const badgeWidth = font.widthOfTextAtSize(badgeText, 9);
+    
+    page.drawRectangle({
+      x: pageWidth - marginRight - badgeWidth - 30,
+      y: yPosition - 68,
+      width: badgeWidth + 16,
+      height: 18,
+      color: rgb(...colors.primary),
+      borderRadius: 4,
+    });
+    page.drawText(badgeText, {
+      x: pageWidth - marginRight - badgeWidth - 22,
+      y: yPosition - 64,
+      size: 9,
+      font,
+      color: rgb(1, 1, 1),
+    });
+
+    // Inspector info on the left
+    let inspectorY = yPosition - 20;
+    
+    // Logo
     if (report.logo_url) {
       try {
         const logoResponse = await fetch(report.logo_url);
@@ -211,199 +381,532 @@ async function handler(req: Request): Promise<Response> {
         }
 
         if (logoImage) {
-          const logoDims = logoImage.scale(0.15);
+          const maxLogoWidth = 70;
+          const maxLogoHeight = 50;
+          const scale = Math.min(maxLogoWidth / logoImage.width, maxLogoHeight / logoImage.height);
           page.drawImage(logoImage, {
-            x: 50,
-            y: yPosition - 60,
-            width: Math.min(logoDims.width, 80),
-            height: Math.min(logoDims.height, 80),
+            x: marginLeft + 15,
+            y: inspectorY - 40,
+            width: logoImage.width * scale,
+            height: logoImage.height * scale,
           });
+          inspectorY -= 55;
         }
       } catch (error) {
         console.error('Failed to embed logo:', error);
       }
     }
 
-    // Inspector details on the left
-    if (report.inspector_name || report.inspector_company) {
-      let inspectorY = yPosition - 80;
-      page.drawText('פרטי הבודק', {
-        x: 50,
+    // Inspector details
+    if (report.inspector_name) {
+      page.drawText(String(report.inspector_name), {
+        x: marginLeft + 15,
         y: inspectorY,
-        size: 10,
+        size: 11,
         font: boldFont,
         color: rgb(...colors.primary),
       });
-      inspectorY -= 15;
-
-      if (report.inspector_name) {
-        page.drawText(String(report.inspector_name), { x: 50, y: inspectorY, size: 9, font });
-        inspectorY -= 12;
-      }
-      if (report.inspector_company) {
-        page.drawText(String(report.inspector_company), { x: 50, y: inspectorY, size: 8, font, color: rgb(0.4, 0.4, 0.4) });
-        inspectorY -= 12;
-      }
-      if (report.inspector_license) {
-        page.drawText(`רישיון: ${String(report.inspector_license)}`, { x: 50, y: inspectorY, size: 8, font });
-        inspectorY -= 12;
-      }
-      if (report.inspector_phone) {
-        page.drawText(`טלפון: ${String(report.inspector_phone)}`, { x: 50, y: inspectorY, size: 8, font });
-        inspectorY -= 12;
-      }
-      if (report.inspector_email) {
-        page.drawText(String(report.inspector_email), { x: 50, y: inspectorY, size: 8, font });
-      }
+      inspectorY -= 14;
+    }
+    if (report.inspector_company) {
+      page.drawText(String(report.inspector_company), {
+        x: marginLeft + 15,
+        y: inspectorY,
+        size: 9,
+        font,
+        color: rgb(...colors.muted),
+      });
+      inspectorY -= 12;
+    }
+    if (report.inspector_license) {
+      page.drawText(`רישיון: ${String(report.inspector_license)}`, {
+        x: marginLeft + 15,
+        y: inspectorY,
+        size: 8,
+        font,
+        color: rgb(...colors.muted),
+      });
+      inspectorY -= 11;
+    }
+    if (report.inspector_phone) {
+      page.drawText(`☎ ${String(report.inspector_phone)}`, {
+        x: marginLeft + 15,
+        y: inspectorY,
+        size: 8,
+        font,
+        color: rgb(...colors.muted),
+      });
+      inspectorY -= 11;
+    }
+    if (report.inspector_email) {
+      page.drawText(`✉ ${String(report.inspector_email)}`, {
+        x: marginLeft + 15,
+        y: inspectorY,
+        size: 8,
+        font,
+        color: rgb(...colors.muted),
+      });
     }
 
-    // Title on the right (Hebrew) - using right alignment
-    drawRightAligned('דוח בדק בית', yPosition, 24, boldFont, rgb(...colors.primary));
-    yPosition -= 30;
+    yPosition -= headerHeight + 20;
 
-    drawRightAligned(`תבנית: ${template}`, yPosition, 10, font, rgb(...colors.secondary));
+    // ==================== REPORT DETAILS SECTION ====================
+    yPosition = drawSectionTitle('פרטי הדוח', yPosition);
+
+    // Detail boxes in grid
+    const drawDetailBox = (label: string, value: string, x: number, y: number, boxWidth: number): void => {
+      const boxHeight = 40;
+      page.drawRectangle({
+        x,
+        y: y - boxHeight,
+        width: boxWidth,
+        height: boxHeight,
+        color: rgb(0.97, 0.97, 0.97),
+        borderColor: rgb(0.88, 0.88, 0.88),
+        borderWidth: 0.5,
+      });
+      
+      // Label
+      const labelWidth = boldFont.widthOfTextAtSize(label, 9);
+      page.drawText(label, {
+        x: x + boxWidth - labelWidth - 8,
+        y: y - 14,
+        size: 9,
+        font: boldFont,
+        color: rgb(...colors.text),
+      });
+      
+      // Value
+      const safeValue = String(value || 'לא צוין');
+      const valueWidth = font.widthOfTextAtSize(safeValue, 10);
+      page.drawText(safeValue, {
+        x: x + boxWidth - valueWidth - 8,
+        y: y - 30,
+        size: 10,
+        font,
+        color: rgb(...colors.muted),
+      });
+    };
+
+    const boxWidth = (contentWidth - 15) / 2;
+    const reportTitle = report.title || report.project_name || 'ללא כותרת';
+    const statusLabel = report.status === 'draft' ? 'טיוטה' : report.status === 'final' ? 'סופי' : 'הושלם';
+    
+    drawDetailBox('כותרת:', reportTitle, pageWidth - marginRight - boxWidth, yPosition, boxWidth);
+    drawDetailBox('סטטוס:', statusLabel, marginLeft, yPosition, boxWidth);
+    yPosition -= 50;
+
+    if (report.address || report.property_address) {
+      drawDetailBox('כתובת נכס:', report.address || report.property_address || '', pageWidth - marginRight - boxWidth, yPosition, boxWidth);
+    }
+    if (report.client_name) {
+      drawDetailBox('שם לקוח:', report.client_name, marginLeft, yPosition, boxWidth);
+    }
+    if (report.address || report.property_address || report.client_name) {
+      yPosition -= 50;
+    }
+
     yPosition -= 15;
 
-    const reportDate = new Date(report.created_at).toLocaleDateString('he-IL');
-    drawRightAligned(`תאריך: ${reportDate}`, yPosition, 10);
-    yPosition -= 40;
-
-    // Report details section
-    drawRightAligned('פרטי הדוח', yPosition, 14, boldFont, rgb(...colors.primary));
-    yPosition -= 20;
-
-    drawRightAligned(`סוג: ${String(report.report_type)}`, yPosition, 10);
-    yPosition -= 15;
-    drawRightAligned(`סטטוס: ${String(report.status)}`, yPosition, 10);
-    yPosition -= 30;
-
-    // Findings section
+    // ==================== FINDINGS SECTION ====================
     if (findings.length > 0) {
-      drawRightAligned('ממצאים', yPosition, 14, boldFont, rgb(...colors.primary));
-      yPosition -= 20;
+      yPosition = drawSectionTitle(`ממצאים (${findings.length})`, yPosition);
 
-      for (const finding of findings) {
-        if (yPosition < 100) break; // Prevent overflow (add pagination if needed)
+      for (let i = 0; i < findings.length; i++) {
+        const finding = findings[i];
+        checkPageBreak(120);
 
+        // Finding card background with colored left border
+        const findingHeight = 80;
         const severityColor = SEVERITY_COLORS[finding.severity] || [0.5, 0.5, 0.5];
-        const severityLabel = SEVERITY_LABELS[finding.severity] || finding.severity;
-
-        // Draw severity badge
+        
+        // Card background
         page.drawRectangle({
-          x: 500,
-          y: yPosition - 2,
-          width: 40,
-          height: 12,
+          x: marginLeft,
+          y: yPosition - findingHeight,
+          width: contentWidth,
+          height: findingHeight,
+          color: rgb(...colors.accent),
+          opacity: 0.3,
+        });
+
+        // Left border (RTL: appears on right)
+        page.drawRectangle({
+          x: pageWidth - marginRight - 4,
+          y: yPosition - findingHeight,
+          width: 4,
+          height: findingHeight,
           color: rgb(...severityColor),
         });
-        page.drawText(String(severityLabel), {
-          x: 505,
-          y: yPosition,
+
+        // Finding number and title
+        const findingTitle = `${i + 1}. ${finding.title || 'ללא כותרת'}`;
+        const titleFontWidth = boldFont.widthOfTextAtSize(findingTitle, 12);
+        page.drawText(findingTitle, {
+          x: pageWidth - marginRight - titleFontWidth - 12,
+          y: yPosition - 18,
+          size: 12,
+          font: boldFont,
+          color: rgb(...colors.text),
+        });
+
+        // Severity badge
+        const severityLabel = SEVERITY_LABELS[finding.severity] || finding.severity || 'לא ידוע';
+        const badgeLabelWidth = font.widthOfTextAtSize(severityLabel, 8);
+        page.drawRectangle({
+          x: marginLeft + 10,
+          y: yPosition - 22,
+          width: badgeLabelWidth + 12,
+          height: 16,
+          color: rgb(...severityColor),
+        });
+        page.drawText(severityLabel, {
+          x: marginLeft + 16,
+          y: yPosition - 18,
           size: 8,
           font: boldFont,
           color: rgb(1, 1, 1),
         });
 
-        // Finding title
-        page.drawText(String(finding.title || ''), {
-          x: 450,
-          y: yPosition,
-          size: 10,
-          font: boldFont,
-        });
-        yPosition -= 12;
-
+        // Description
         if (finding.description) {
-          const descSrc = String(finding.description);
-          const desc = descSrc.substring(0, 60) + (descSrc.length > 60 ? '...' : '');
-          page.drawText(desc, { x: 450, y: yPosition, size: 8, font, color: rgb(0.3, 0.3, 0.3) });
-          yPosition -= 12;
+          const desc = String(finding.description);
+          const truncatedDesc = desc.length > 80 ? desc.substring(0, 80) + '...' : desc;
+          const descWidth = font.widthOfTextAtSize(truncatedDesc, 9);
+          page.drawText(truncatedDesc, {
+            x: pageWidth - marginRight - descWidth - 12,
+            y: yPosition - 38,
+            size: 9,
+            font,
+            color: rgb(...colors.muted),
+          });
         }
 
-        if (finding.location) {
-          page.drawText(`מיקום: ${String(finding.location)}`, { x: 450, y: yPosition, size: 8, font });
-          yPosition -= 15;
-        }
+        // Location
+        const locationText = `📍 מיקום: ${finding.location || 'לא צוין'}`;
+        const locationWidth = font.widthOfTextAtSize(locationText, 8);
+        page.drawText(locationText, {
+          x: pageWidth - marginRight - locationWidth - 12,
+          y: yPosition - 55,
+          size: 8,
+          font,
+          color: rgb(...colors.muted),
+        });
+
+        yPosition -= findingHeight + 10;
 
         // Finding media/images
         const findingMedia = media.filter((m: any) => m.item_id === finding.id && m.type === 'photo');
-        for (const mediaItem of findingMedia) {
-          if (yPosition < 150) break; // Need space for image
-          try {
-            const imgResponse = await fetch(mediaItem.url);
-            if (imgResponse.ok) {
-              const imgBytes = await imgResponse.arrayBuffer();
-              const contentType = imgResponse.headers.get('content-type') || '';
-              
-              let embeddedImg;
-              if (contentType.includes('png')) {
-                embeddedImg = await pdfDoc.embedPng(imgBytes);
-              } else if (contentType.includes('jpg') || contentType.includes('jpeg')) {
-                embeddedImg = await pdfDoc.embedJpg(imgBytes);
-              }
-              
-              if (embeddedImg) {
-                const maxWidth = 150;
-                const maxHeight = 100;
-                const scale = Math.min(maxWidth / embeddedImg.width, maxHeight / embeddedImg.height);
-                const imgWidth = embeddedImg.width * scale;
-                const imgHeight = embeddedImg.height * scale;
+        if (findingMedia.length > 0) {
+          checkPageBreak(90);
+          let mediaX = pageWidth - marginRight - 10;
+          
+          for (const mediaItem of findingMedia.slice(0, 3)) {
+            try {
+              const imgResponse = await fetch(mediaItem.url);
+              if (imgResponse.ok) {
+                const imgBytes = await imgResponse.arrayBuffer();
+                const contentType = imgResponse.headers.get('content-type') || '';
                 
-                page.drawImage(embeddedImg, {
-                  x: width - imgWidth - 50,
-                  y: yPosition - imgHeight,
-                  width: imgWidth,
-                  height: imgHeight,
-                });
-                yPosition -= imgHeight + 10;
+                let embeddedImg;
+                if (contentType.includes('png')) {
+                  embeddedImg = await pdfDoc.embedPng(imgBytes);
+                } else if (contentType.includes('jpg') || contentType.includes('jpeg')) {
+                  embeddedImg = await pdfDoc.embedJpg(imgBytes);
+                }
+                
+                if (embeddedImg) {
+                  const maxWidth = 100;
+                  const maxHeight = 70;
+                  const scale = Math.min(maxWidth / embeddedImg.width, maxHeight / embeddedImg.height);
+                  const imgWidth = embeddedImg.width * scale;
+                  const imgHeight = embeddedImg.height * scale;
+                  
+                  mediaX -= imgWidth + 10;
+                  page.drawImage(embeddedImg, {
+                    x: mediaX,
+                    y: yPosition - imgHeight,
+                    width: imgWidth,
+                    height: imgHeight,
+                  });
+                  
+                  // Image border
+                  page.drawRectangle({
+                    x: mediaX - 1,
+                    y: yPosition - imgHeight - 1,
+                    width: imgWidth + 2,
+                    height: imgHeight + 2,
+                    borderColor: rgb(0.85, 0.85, 0.85),
+                    borderWidth: 1,
+                  });
+                }
               }
+            } catch (imgError) {
+              console.warn('Failed to embed media image:', imgError);
             }
-          } catch (imgError) {
-            console.warn('Failed to embed media image:', imgError);
+          }
+          
+          if (findingMedia.length > 0) {
+            yPosition -= 80;
           }
         }
 
-        // Associated costs
+        // Costs for this finding
         const findingCosts = costs.filter((c) => c.item_id === finding.id);
         if (findingCosts.length > 0) {
-          for (const cost of findingCosts) {
-            page.drawText(`${String(cost.description)}: ₪${Number(cost.amount).toLocaleString()}`, {
-              x: 460,
-              y: yPosition,
+          checkPageBreak(60 + findingCosts.length * 18);
+
+          // Cost table header
+          const tableY = yPosition;
+          const colWidths = [180, 50, 60, 80, 80]; // description, qty, unit, unit_price, total
+          const tableWidth = colWidths.reduce((a, b) => a + b, 0);
+          const tableX = pageWidth - marginRight - tableWidth - 10;
+
+          page.drawRectangle({
+            x: tableX,
+            y: tableY - 20,
+            width: tableWidth,
+            height: 20,
+            color: rgb(...colors.accent),
+          });
+
+          const headers = ['תיאור', 'כמות', 'יחידה', 'מחיר יחידה', 'סה"כ'];
+          let headerX = tableX + tableWidth;
+          for (let h = 0; h < headers.length; h++) {
+            headerX -= colWidths[h];
+            const headerWidth = boldFont.widthOfTextAtSize(headers[h], 8);
+            page.drawText(headers[h], {
+              x: headerX + colWidths[h] - headerWidth - 5,
+              y: tableY - 14,
               size: 8,
-              font,
-              color: rgb(0.5, 0.5, 0.5),
+              font: boldFont,
+              color: rgb(...colors.text),
             });
-            yPosition -= 12;
           }
+
+          yPosition -= 22;
+
+          // Cost rows
+          for (const cost of findingCosts) {
+            const total = cost.total ?? (Number(cost.quantity || 0) * Number(cost.unit_price || 0));
+            const rowData = [
+              String(cost.description || ''),
+              String(cost.quantity || 1),
+              String(cost.unit || 'יח\''),
+              formatCurrency(Number(cost.unit_price || 0)),
+              formatCurrency(total),
+            ];
+
+            page.drawRectangle({
+              x: tableX,
+              y: yPosition - 16,
+              width: tableWidth,
+              height: 16,
+              borderColor: rgb(0.9, 0.9, 0.9),
+              borderWidth: 0.5,
+            });
+
+            let cellX = tableX + tableWidth;
+            for (let c = 0; c < rowData.length; c++) {
+              cellX -= colWidths[c];
+              const cellText = rowData[c].length > 25 ? rowData[c].substring(0, 22) + '...' : rowData[c];
+              const cellFont = c === 4 ? boldFont : font;
+              const cellWidth = cellFont.widthOfTextAtSize(cellText, 8);
+              page.drawText(cellText, {
+                x: cellX + colWidths[c] - cellWidth - 5,
+                y: yPosition - 12,
+                size: 8,
+                font: cellFont,
+                color: rgb(...colors.text),
+              });
+            }
+            yPosition -= 18;
+          }
+          yPosition -= 10;
         }
 
-        yPosition -= 5;
+        yPosition -= 10;
       }
-    }
-
-    // Cost summary
-    yPosition -= 20;
-    const totalCost = costs.reduce((sum: number, c) => sum + Number(c.amount || 0), 0);
-    drawRightAligned('סיכום עלויות', yPosition, 14, boldFont, rgb(...colors.primary));
-    yPosition -= 20;
-    drawRightAligned(`סה"כ משוער: ₪${totalCost.toLocaleString()}`, yPosition, 12, boldFont);
-
-    // Signature
-    if (includeSignature && (report as InspectionReport).signature_data) {
+    } else {
+      // No findings message
+      yPosition = drawSectionTitle('ממצאים', yPosition);
+      const noFindingsText = 'לא נמצאו ממצאים בדוח זה';
+      const noFindingsWidth = font.widthOfTextAtSize(noFindingsText, 11);
+      page.drawText(noFindingsText, {
+        x: pageWidth - marginRight - noFindingsWidth - 10,
+        y: yPosition - 20,
+        size: 11,
+        font,
+        color: rgb(...colors.muted),
+      });
       yPosition -= 40;
-      drawRightAligned('חתימה דיגיטלית', yPosition, 12, boldFont);
-      yPosition -= 15;
-      drawRightAligned('[חתימה]', yPosition, 10, font, rgb(0.5, 0.5, 0.5));
     }
 
-    // Footer
-    page.drawText(`נוצר באמצעות המערכת - ${new Date().toLocaleDateString('he-IL')}`, {
-      x: 50,
-      y: 30,
+    // ==================== COST SUMMARY SECTION ====================
+    if (costs.length > 0) {
+      checkPageBreak(120);
+      
+      // Summary box
+      const summaryHeight = 100;
+      page.drawRectangle({
+        x: marginLeft,
+        y: yPosition - summaryHeight,
+        width: contentWidth,
+        height: summaryHeight,
+        color: rgb(...colors.accent),
+        borderColor: rgb(...colors.primary),
+        borderWidth: 2,
+      });
+
+      // Title
+      const summaryTitle = 'סיכום עלויות';
+      const summaryTitleWidth = boldFont.widthOfTextAtSize(summaryTitle, 16);
+      page.drawText(summaryTitle, {
+        x: pageWidth - marginRight - summaryTitleWidth - 15,
+        y: yPosition - 25,
+        size: 16,
+        font: boldFont,
+        color: rgb(...colors.primary),
+      });
+
+      // Stats
+      const findingsCountText = `מספר ממצאים: ${findings.length}`;
+      const findingsCountWidth = font.widthOfTextAtSize(findingsCountText, 10);
+      page.drawText(findingsCountText, {
+        x: pageWidth - marginRight - findingsCountWidth - 15,
+        y: yPosition - 45,
+        size: 10,
+        font,
+        color: rgb(...colors.primary),
+      });
+
+      const costsCountText = `סה"כ פריטי עלות: ${costs.length}`;
+      const costsCountWidth = font.widthOfTextAtSize(costsCountText, 10);
+      page.drawText(costsCountText, {
+        x: pageWidth - marginRight - costsCountWidth - 15,
+        y: yPosition - 60,
+        size: 10,
+        font,
+        color: rgb(...colors.primary),
+      });
+
+      // Total line
+      page.drawRectangle({
+        x: marginLeft + 15,
+        y: yPosition - 75,
+        width: contentWidth - 30,
+        height: 2,
+        color: rgb(...colors.primary),
+      });
+
+      // Total amount
+      const totalCost = costs.reduce((sum: number, c) => {
+        const lineTotal = c.total ?? (Number(c.quantity || 0) * Number(c.unit_price || 0));
+        return sum + lineTotal;
+      }, 0);
+      const totalText = `סה"כ עלות משוערת: ${formatCurrency(totalCost)}`;
+      const totalWidth = boldFont.widthOfTextAtSize(totalText, 14);
+      page.drawText(totalText, {
+        x: pageWidth - marginRight - totalWidth - 15,
+        y: yPosition - 95,
+        size: 14,
+        font: boldFont,
+        color: rgb(...colors.primary),
+      });
+
+      yPosition -= summaryHeight + 20;
+    }
+
+    // ==================== SIGNATURE SECTION ====================
+    if (includeSignature && (report as InspectionReport).signature_data) {
+      checkPageBreak(100);
+
+      const sigHeight = 80;
+      page.drawRectangle({
+        x: marginLeft,
+        y: yPosition - sigHeight,
+        width: contentWidth,
+        height: sigHeight,
+        color: rgb(0.97, 0.97, 0.97),
+        borderColor: rgb(...colors.primary),
+        borderWidth: 2,
+      });
+
+      const sigTitle = 'חתימה דיגיטלית';
+      const sigTitleWidth = boldFont.widthOfTextAtSize(sigTitle, 14);
+      page.drawText(sigTitle, {
+        x: pageWidth - marginRight - sigTitleWidth - 15,
+        y: yPosition - 20,
+        size: 14,
+        font: boldFont,
+        color: rgb(...colors.primary),
+      });
+
+      // Try to embed signature image
+      try {
+        const sigData = (report as InspectionReport).signature_data!;
+        if (sigData.startsWith('data:image')) {
+          const base64Data = sigData.split(',')[1];
+          const sigBytes = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+          const sigImage = await pdfDoc.embedPng(sigBytes);
+          const sigScale = Math.min(80 / sigImage.width, 40 / sigImage.height);
+          page.drawImage(sigImage, {
+            x: pageWidth - marginRight - sigImage.width * sigScale - 15,
+            y: yPosition - 70,
+            width: sigImage.width * sigScale,
+            height: sigImage.height * sigScale,
+          });
+        }
+      } catch (sigError) {
+        console.warn('Failed to embed signature:', sigError);
+        page.drawText('✓ [חתימה]', {
+          x: pageWidth - marginRight - 60,
+          y: yPosition - 50,
+          size: 10,
+          font,
+          color: rgb(...colors.muted),
+        });
+      }
+
+      const sigDateText = `✓ נחתם בתאריך: ${formatDate(new Date().toISOString())}`;
+      const sigDateWidth = font.widthOfTextAtSize(sigDateText, 9);
+      page.drawText(sigDateText, {
+        x: pageWidth - marginRight - sigDateWidth - 15,
+        y: yPosition - sigHeight + 10,
+        size: 9,
+        font,
+        color: rgb(...colors.muted),
+      });
+
+      yPosition -= sigHeight + 20;
+    }
+
+    // ==================== FOOTER ====================
+    const footerY = 35;
+    page.drawRectangle({
+      x: marginLeft,
+      y: footerY - 5,
+      width: contentWidth,
+      height: 1,
+      color: rgb(0.85, 0.85, 0.85),
+    });
+
+    const footerLine1 = 'דוח זה נוצר באופן אוטומטי על ידי מערכת הבדיקה המקצועית';
+    const footerLine2 = `תאריך הפקה: ${formatDate(new Date().toISOString())}`;
+    
+    page.drawText(footerLine1, {
+      x: (pageWidth - font.widthOfTextAtSize(footerLine1, 8)) / 2,
+      y: footerY - 20,
       size: 8,
       font,
-      color: rgb(0.5, 0.5, 0.5),
+      color: rgb(...colors.muted),
+    });
+    page.drawText(footerLine2, {
+      x: (pageWidth - font.widthOfTextAtSize(footerLine2, 8)) / 2,
+      y: footerY - 32,
+      size: 8,
+      font,
+      color: rgb(...colors.muted),
     });
 
     const pdfBytes = await pdfDoc.save();
@@ -420,13 +923,11 @@ async function handler(req: Request): Promise<Response> {
           .from('inspection-reports')
           .getPublicUrl(fileName);
 
-        // Update report with PDF path
         await supabase
           .from('inspection_reports')
           .update({ final_pdf_path: fileName })
           .eq('id', reportId);
 
-        // Log analytics event
         const { error: evErr } = await supabase.from('pdf_events').insert({
           report_id: reportId,
           context: 'inspection',
@@ -441,7 +942,6 @@ async function handler(req: Request): Promise<Response> {
       }
     }
 
-    // Log analytics event
     const { error: evErr } = await supabase.from('pdf_events').insert({
       report_id: reportId,
       context: 'inspection',
@@ -460,7 +960,6 @@ async function handler(req: Request): Promise<Response> {
   } catch (error) {
     console.error('Error generating inspection PDF:', error);
     
-    // Log error event
     try {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
