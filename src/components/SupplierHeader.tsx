@@ -26,8 +26,8 @@ export const SupplierHeader: React.FC<SupplierHeaderProps> = ({
   const unreadNotifications = 3;
 
   return (
-    <div className="bg-white border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
-      <div className="max-w-7xl mx-auto px-4 py-4">
+    <div className="bg-background border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
+      <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {showBackButton && (
@@ -41,10 +41,10 @@ export const SupplierHeader: React.FC<SupplierHeaderProps> = ({
                 חזור
               </Button>
             )}
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">{title}</h1>
               {subtitle && (
-                <p className="text-muted-foreground">{subtitle}</p>
+                <p className="text-sm text-muted-foreground truncate">{subtitle}</p>
               )}
             </div>
           </div>
