@@ -78,26 +78,32 @@ function RecentSignupsTable() {
   };
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="text-right">שם</TableHead>
-          <TableHead className="text-right">אימייל</TableHead>
-          <TableHead className="text-right">תפקיד</TableHead>
-          <TableHead className="text-right">תאריך הצטרפות</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {recentUsers.map((user) => (
-          <TableRow key={user.id}>
-            <TableCell className="text-right font-medium">{user.full_name || 'משתמש'}</TableCell>
-            <TableCell className="text-right">{user.email}</TableCell>
-            <TableCell className="text-right">{getRoleBadge(user.role)}</TableCell>
-            <TableCell className="text-right">{formatDate(user.created_at)}</TableCell>
+    <div className="overflow-x-auto -mx-3 sm:mx-0">
+      <Table className="min-w-[500px]">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-right text-xs sm:text-sm p-2 sm:p-4">שם</TableHead>
+            <TableHead className="text-right text-xs sm:text-sm p-2 sm:p-4 hidden sm:table-cell">אימייל</TableHead>
+            <TableHead className="text-right text-xs sm:text-sm p-2 sm:p-4">תפקיד</TableHead>
+            <TableHead className="text-right text-xs sm:text-sm p-2 sm:p-4">תאריך</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {recentUsers.map((user) => (
+            <TableRow key={user.id}>
+              <TableCell className="text-right font-medium text-xs sm:text-sm p-2 sm:p-4">
+                <div className="max-w-[120px] sm:max-w-none truncate">{user.full_name || 'משתמש'}</div>
+              </TableCell>
+              <TableCell className="text-right text-xs sm:text-sm p-2 sm:p-4 hidden sm:table-cell">
+                <div className="max-w-[180px] truncate">{user.email}</div>
+              </TableCell>
+              <TableCell className="text-right p-2 sm:p-4">{getRoleBadge(user.role)}</TableCell>
+              <TableCell className="text-right text-xs sm:text-sm p-2 sm:p-4 whitespace-nowrap">{formatDate(user.created_at)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
@@ -201,77 +207,85 @@ export default function AdminDashboard() {
       />
 
       {/* Recent Activity Tables */}
-      <div className="responsive-grid-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
         {/* Top Suppliers */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-right font-hebrew">ספקים מובילים</CardTitle>
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-right font-hebrew text-base sm:text-lg">ספקים מובילים</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-4 md:p-6 pt-0">
             {isLoading ? (
-              <div className="space-y-2">
+              <div className="space-y-2 p-3 sm:p-0">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton key={i} className="h-10 w-full" />
                 ))}
               </div>
             ) : topSuppliers && topSuppliers.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">ספק</TableHead>
-                    <TableHead className="text-right">הזמנות</TableHead>
-                    <TableHead className="text-right">דירוג</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {topSuppliers.slice(0, 5).map((supplier, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="text-right font-medium">{supplier.name || 'ללא שם'}</TableCell>
-                      <TableCell className="text-right">{supplier.orders || 0}</TableCell>
-                      <TableCell className="text-right">N/A</TableCell>
+              <div className="overflow-x-auto">
+                <Table className="min-w-[300px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right text-xs sm:text-sm p-2 sm:p-4">ספק</TableHead>
+                      <TableHead className="text-right text-xs sm:text-sm p-2 sm:p-4">הזמנות</TableHead>
+                      <TableHead className="text-right text-xs sm:text-sm p-2 sm:p-4 hidden sm:table-cell">דירוג</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {topSuppliers.slice(0, 5).map((supplier, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="text-right font-medium text-xs sm:text-sm p-2 sm:p-4">
+                          <div className="max-w-[100px] sm:max-w-none truncate">{supplier.name || 'ללא שם'}</div>
+                        </TableCell>
+                        <TableCell className="text-right text-xs sm:text-sm p-2 sm:p-4">{supplier.orders || 0}</TableCell>
+                        <TableCell className="text-right text-xs sm:text-sm p-2 sm:p-4 hidden sm:table-cell">N/A</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">אין נתונים</div>
+              <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">אין נתונים</div>
             )}
           </CardContent>
         </Card>
 
         {/* Top Categories */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-right font-hebrew">קטגוריות פופולריות</CardTitle>
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-right font-hebrew text-base sm:text-lg">קטגוריות פופולריות</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-4 md:p-6 pt-0">
             {isLoading ? (
-              <div className="space-y-2">
+              <div className="space-y-2 p-3 sm:p-0">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <Skeleton key={i} className="h-10 w-full" />
                 ))}
               </div>
             ) : topCategories && topCategories.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-right">קטגוריה</TableHead>
-                    <TableHead className="text-right">ספקים</TableHead>
-                    <TableHead className="text-right">לידים</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {topCategories.slice(0, 5).map((category, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="text-right font-medium">{category.category_name || 'ללא שם'}</TableCell>
-                      <TableCell className="text-right">-</TableCell>
-                      <TableCell className="text-right">{category.orders || 0}</TableCell>
+              <div className="overflow-x-auto">
+                <Table className="min-w-[300px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-right text-xs sm:text-sm p-2 sm:p-4">קטגוריה</TableHead>
+                      <TableHead className="text-right text-xs sm:text-sm p-2 sm:p-4 hidden sm:table-cell">ספקים</TableHead>
+                      <TableHead className="text-right text-xs sm:text-sm p-2 sm:p-4">לידים</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {topCategories.slice(0, 5).map((category, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="text-right font-medium text-xs sm:text-sm p-2 sm:p-4">
+                          <div className="max-w-[100px] sm:max-w-none truncate">{category.category_name || 'ללא שם'}</div>
+                        </TableCell>
+                        <TableCell className="text-right text-xs sm:text-sm p-2 sm:p-4 hidden sm:table-cell">-</TableCell>
+                        <TableCell className="text-right text-xs sm:text-sm p-2 sm:p-4">{category.orders || 0}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">אין נתונים</div>
+              <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">אין נתונים</div>
             )}
           </CardContent>
         </Card>
@@ -279,12 +293,12 @@ export default function AdminDashboard() {
 
       {/* Recent Signups Table */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-right font-hebrew">משתמשים חדשים (10 אחרונים)</CardTitle>
+        <CardHeader className="p-3 sm:p-4 md:p-6">
+          <CardTitle className="text-right font-hebrew text-base sm:text-lg">משתמשים חדשים (10 אחרונים)</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0 sm:p-4 md:p-6 pt-0">
           {isLoading ? (
-            <div className="space-y-2">
+            <div className="space-y-2 p-3 sm:p-0">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Skeleton key={i} className="h-10 w-full" />
               ))}

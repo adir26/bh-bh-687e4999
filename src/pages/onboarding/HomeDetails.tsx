@@ -83,7 +83,7 @@ export default function OnboardingHomeDetails() {
       <OnboardingProgress currentStep={2} totalSteps={5} />
 
       {/* Building Image */}
-      <div className="relative h-48 mx-6 mb-6 rounded-2xl overflow-hidden">
+      <div className="relative h-40 sm:h-48 mx-4 sm:mx-6 mb-4 sm:mb-6 rounded-xl sm:rounded-2xl overflow-hidden">
         <img 
           src={luxuryBuilding}
           alt="בניין יוקרתי"
@@ -93,14 +93,14 @@ export default function OnboardingHomeDetails() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 pb-24">
+      <div className="flex-1 px-4 sm:px-6 pb-28 sm:pb-32">
         <div className="max-w-md mx-auto">
           {/* Title */}
-          <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-2">
+          <div className="mb-6 sm:mb-8 text-center">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-2">
               ספרו לנו על הבית שלכם
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm sm:text-base text-muted-foreground">
               נצטרך כמה פרטים בסיסיים על הנכס
             </p>
           </div>
@@ -203,12 +203,12 @@ export default function OnboardingHomeDetails() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-8 z-50">
-        <div className="max-w-md mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 sm:p-6 z-50">
+        <div className="max-w-md mx-auto pb-safe">
           <Button 
             type="submit" 
             onClick={form.handleSubmit(onSubmit)}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-base sm:text-lg rounded-xl h-12 sm:h-14 font-medium min-h-[48px]"
           >
             המשך
             <ArrowRight className="w-5 h-5 mr-2" />

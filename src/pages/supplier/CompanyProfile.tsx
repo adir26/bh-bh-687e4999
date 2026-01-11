@@ -176,18 +176,20 @@ export default function CompanyProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-screen bg-background pb-nav-safe" dir="rtl">
       {/* Header with Edit Button */}
       <div className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b pt-[max(env(safe-area-inset-top),12px)]">
-        <div className="container max-w-6xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold">פרופיל החברה</h1>
+        <div className="container max-w-6xl mx-auto px-3 sm:px-4 py-3">
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="text-base sm:text-lg font-semibold truncate">פרופיל החברה</h1>
             <Button
               onClick={() => navigate('/supplier/profile/edit')}
-              className="gap-2"
+              className="gap-1 sm:gap-2 text-xs sm:text-sm min-h-[44px] px-3 sm:px-4"
+              size="sm"
             >
-              <Edit2 className="w-4 h-4" />
-              ערוך פרופיל
+              <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden xs:inline">ערוך פרופיל</span>
+              <span className="xs:hidden">ערוך</span>
             </Button>
           </div>
         </div>
@@ -206,95 +208,93 @@ export default function CompanyProfile() {
 
       {/* Header Section */}
       <div className="bg-card border-b">
-        <div className="container max-w-6xl mx-auto px-4 py-6">
-          <div className="flex flex-col md:flex-row items-start gap-6">
+        <div className="container max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+          <div className="flex flex-col gap-4 sm:gap-6">
             {/* Company Info */}
-            <div className="flex items-start gap-4 flex-1">
+            <div className="flex items-start gap-3 sm:gap-4">
               {/* Logo */}
               {company.logo_url && (
                 <img
                   src={company.logo_url}
                   alt={company.name}
-                  className="w-20 h-20 rounded-lg object-cover border"
+                  className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border flex-shrink-0"
                 />
               )}
               
-              <div className="flex-1">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h1 className="text-2xl font-bold flex items-center gap-2">
-                      {company.name}
-                      {company.verified && (
-                        <Badge variant="secondary" className="gap-1">
-                          <CheckCircle className="w-3 h-3" />
-                          מאומת
-                        </Badge>
-                      )}
-                    </h1>
-                    
-                    {company.tagline && (
-                      <p className="text-lg text-muted-foreground mt-1">
-                        {company.tagline}
-                      </p>
-                    )}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg sm:text-2xl font-bold flex items-center gap-2 flex-wrap">
+                  <span className="truncate">{company.name}</span>
+                  {company.verified && (
+                    <Badge variant="secondary" className="gap-1 text-xs flex-shrink-0">
+                      <CheckCircle className="w-3 h-3" />
+                      מאומת
+                    </Badge>
+                  )}
+                </h1>
+                
+                {company.tagline && (
+                  <p className="text-sm sm:text-lg text-muted-foreground mt-1 line-clamp-2">
+                    {company.tagline}
+                  </p>
+                )}
 
-                    {company.description && (
-                      <p className="text-muted-foreground mt-2 max-w-2xl">
-                        {company.description}
-                      </p>
-                    )}
-
-                    {/* Rating & Location */}
-                    <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                      {company.area && (
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {company.area}
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2">
-                        <div className="flex">{renderStars(Math.round(company.rating))}</div>
-                        <span className="font-medium text-foreground">{company.rating.toFixed(1)}</span>
-                        <span>({company.review_count} ביקורות)</span>
-                      </div>
+                {/* Rating & Location */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-2 sm:mt-3 text-xs sm:text-sm text-muted-foreground">
+                  {company.area && (
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <span className="truncate max-w-[100px] sm:max-w-none">{company.area}</span>
                     </div>
+                  )}
+                  
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <div className="flex">{renderStars(Math.round(company.rating))}</div>
+                    <span className="font-medium text-foreground">{company.rating.toFixed(1)}</span>
+                    <span className="hidden xs:inline">({company.review_count} ביקורות)</span>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* Description - separate row on mobile */}
+            {company.description && (
+              <p className="text-sm sm:text-base text-muted-foreground line-clamp-3 sm:line-clamp-none">
+                {company.description}
+              </p>
+            )}
+
             {/* Action Buttons */}
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <Button variant="outline" size="sm" onClick={handleShare} className="gap-2 flex-1 md:flex-none">
-                <Share2 className="w-4 h-4" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Button variant="outline" size="sm" onClick={handleShare} className="gap-1.5 sm:gap-2 flex-1 sm:flex-none min-h-[44px] text-xs sm:text-sm">
+                <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 שתף
               </Button>
               
               <Button 
-                className="gap-2 flex-1 md:flex-none"
+                className="gap-1.5 sm:gap-2 flex-1 sm:flex-none min-h-[44px] text-xs sm:text-sm"
+                size="sm"
                 onClick={() => navigate(`/s/${company.slug}`)}
               >
-                <ExternalLink className="w-4 h-4" />
+                <ExternalLink className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 צפה כלקוח
               </Button>
             </div>
           </div>
 
           {/* Contact Info */}
-          <div className="mt-6 pt-6 border-t">
-            <div className="flex flex-wrap gap-6 text-sm">
+          <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t">
+            <div className="flex flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm">
               {company.phone && (
-                <a href={`tel:${company.phone}`} className="flex items-center gap-2 text-primary hover:underline">
-                  <Phone className="w-4 h-4" />
+                <a href={`tel:${company.phone}`} className="flex items-center gap-1.5 sm:gap-2 text-primary hover:underline min-h-[44px]">
+                  <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   {company.phone}
                 </a>
               )}
 
               {company.email && (
-                <a href={`mailto:${company.email}`} className="flex items-center gap-2 text-primary hover:underline">
-                  <Mail className="w-4 h-4" />
-                  {company.email}
+                <a href={`mailto:${company.email}`} className="flex items-center gap-1.5 sm:gap-2 text-primary hover:underline min-h-[44px] max-w-[200px] sm:max-w-none">
+                  <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="truncate">{company.email}</span>
                 </a>
               )}
 
@@ -303,9 +303,9 @@ export default function CompanyProfile() {
                   href={company.website} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-primary hover:underline"
+                  className="flex items-center gap-1.5 sm:gap-2 text-primary hover:underline min-h-[44px]"
                 >
-                  <Globe className="w-4 h-4" />
+                  <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   אתר האינטרנט
                 </a>
               )}
@@ -317,9 +317,9 @@ export default function CompanyProfile() {
       {/* About Section */}
       {company.about_text && (
         <div className="bg-background border-b">
-          <div className="container max-w-6xl mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold mb-4">אודות</h2>
-            <p className="text-muted-foreground whitespace-pre-wrap max-w-4xl">
+          <div className="container max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+            <h2 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4">אודות</h2>
+            <p className="text-sm sm:text-base text-muted-foreground whitespace-pre-wrap max-w-4xl">
               {company.about_text}
             </p>
           </div>
@@ -329,11 +329,11 @@ export default function CompanyProfile() {
       {/* Services Section */}
       {Array.isArray(company.services) && company.services.length > 0 && (
         <div className="bg-muted/30 border-b">
-          <div className="container max-w-6xl mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold mb-4">שירותים</h2>
-            <div className="flex flex-wrap gap-2">
+          <div className="container max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+            <h2 className="text-lg sm:text-2xl font-bold mb-3 sm:mb-4">שירותים</h2>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {company.services.filter((s): s is string => typeof s === 'string').map((service) => (
-                <Badge key={service} variant="secondary">
+                <Badge key={service} variant="secondary" className="text-xs sm:text-sm">
                   {service}
                 </Badge>
               ))}
