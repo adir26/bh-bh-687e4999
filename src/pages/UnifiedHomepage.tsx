@@ -24,26 +24,18 @@ import { LoginModal } from '@/components/modals/LoginModal';
 import { Supplier } from '@/data/suppliers';
 import { showToast } from '@/utils/toast';
 
-// Import local images - BONIMPO cohesive design system
-import kitchenImg from '@/assets/category-icon-kitchen.jpg';
-import bathroomImg from '@/assets/category-icon-bathroom.jpg';
-import furnitureImg from '@/assets/category-icon-furniture.jpg';
-import acImg from '@/assets/category-icon-ac.jpg';
-import renovationImg from '@/assets/category-icon-renovation.jpg';
-import movingImg from '@/assets/category-icon-moving.jpg';
-import mortgageImg from '@/assets/category-icon-mortgage.jpg';
-import loansImg from '@/assets/category-icon-loans.jpg';
-import exclusiveImg from '@/assets/category-icon-exclusive.jpg';
-import hotImg from '@/assets/category-icon-hot.jpg';
-import newImg from '@/assets/category-icon-new.jpg';
-import topImg from '@/assets/category-icon-top.jpg';
-import localDealsImg from '@/assets/category-local-deals.jpg';
-import exclusiveDealsImg from '@/assets/category-exclusive-deals.jpg';
-import hotNowImg from '@/assets/category-hot-now.jpg';
-import inspirationKitchenImg from '@/assets/inspiration-kitchen.jpg';
-import inspirationBathroomImg from '@/assets/inspiration-bathroom.jpg';
-import inspirationLivingImg from '@/assets/inspiration-living.jpg';
-import inspirationBalconyImg from '@/assets/inspiration-balcony.jpg';
+// Import local images
+import kitchenDesignImg from '@/assets/kitchen-design.jpg';
+import kitchenAccessoriesImg from '@/assets/kitchen-accessories.jpg';
+import kitchenModernImg from '@/assets/kitchen-modern.jpg';
+import kitchenHardwareImg from '@/assets/kitchen-hardware.jpg';
+import kitchenInstallationImg from '@/assets/kitchen-installation.jpg';
+import furnitureImg from '@/assets/furniture.jpg';
+import airConditioningImg from '@/assets/air-conditioning.jpg';
+import renovationImg from '@/assets/renovation.jpg';
+import mortgageAdvisorImg from '@/assets/mortgage-advisor.jpg';
+import movingServicesImg from '@/assets/moving-services.jpg';
+import homeLoansImg from '@/assets/home-loans.jpg';
 const UnifiedHomepage = () => {
   const navigate = useNavigate();
   const {
@@ -111,127 +103,127 @@ const UnifiedHomepage = () => {
     return () => clearInterval(interval);
   }, [queryClient]);
 
-  // Quick selection data - using BONIMPO cohesive icons
+  // Quick selection data
   const quickSelectionItems = [{
     id: '1',
     title: 'מטבחים',
-    image: kitchenImg
+    image: 'https://api.builder.io/api/v1/image/assets/TEMP/412b6930986355e60bd9ab81c33874aa5793c909?width=256'
   }, {
     id: '2',
     title: 'בלעדי לאפליקציה',
-    image: exclusiveImg
+    image: 'https://api.builder.io/api/v1/image/assets/TEMP/79cf482cde57d1401ddfb44ac7f4407b97b7a749?width=256'
   }, {
     id: '3',
     title: 'ספקים חדשים',
-    image: newImg
+    image: 'https://api.builder.io/api/v1/image/assets/TEMP/0e229886b939e7efe2eaf0ec52f96dd014bce76a?width=256'
   }, {
     id: '4',
     title: 'חם עכשיו',
-    image: hotImg
+    image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=256'
   }, {
     id: '5',
     title: 'המובילים בבונים פה',
-    image: topImg
+    image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=256'
   }];
 
-  // Kitchen categories data - using inspiration gallery images
+  // Kitchen categories data
   const kitchenCategories = [{
     id: '1',
     title: 'מטבחים מעוצבים',
     subtitle: 'מטבחים',
-    image: inspirationKitchenImg
+    image: kitchenModernImg
   }, {
     id: '2',
-    title: 'חדרי רחצה',
-    subtitle: 'חדרי רחצה',
-    image: inspirationBathroomImg
+    title: 'אבזור למטבח',
+    subtitle: 'מטבחים',
+    image: kitchenHardwareImg
   }, {
     id: '3',
-    title: 'סלון ומגורים',
-    subtitle: 'סלון',
-    image: inspirationLivingImg
+    title: 'התקנת מטבחים',
+    subtitle: 'מטבחים',
+    image: kitchenInstallationImg
   }, {
     id: '4',
-    title: 'מרפסות וגינות',
-    subtitle: 'גינות',
-    image: inspirationBalconyImg
+    title: 'עיצוב מטבחים',
+    subtitle: 'מטבחים',
+    image: kitchenDesignImg
   }, {
     id: '5',
-    title: 'שיפוצים כלליים',
-    subtitle: 'שיפוצים',
-    image: renovationImg
+    title: 'אביזרי מטבח',
+    subtitle: 'מטבחים',
+    image: kitchenAccessoriesImg
   }];
 
-  // Exclusive deals data - using cohesive BONIMPO images
+  // Exclusive deals data
   const exclusiveDeals = [{
     id: '1',
     title: 'מבצעים בלעדיים',
     subtitle: 'מבצעים',
-    image: exclusiveDealsImg
+    image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=480&h=480&fit=crop'
   }, {
     id: '2',
     title: 'הצעות מיוחדות',
     subtitle: 'מבצעים',
-    image: exclusiveImg
+    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=480&h=480&fit=crop'
   }, {
     id: '3',
     title: 'הנחות לזמן מוגבל',
     subtitle: 'מבצעים',
-    image: hotNowImg
+    image: 'https://images.unsplash.com/photo-1556742111-a301076d9d18?w=480&h=480&fit=crop'
   }];
 
-  // Local deals data - using cohesive images
+  // Local deals data
   const localDeals = [{
     id: '1',
     title: 'מבצעים מקומיים',
     subtitle: 'מבצעים מקומיים',
-    image: localDealsImg
+    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop'
   }, {
     id: '2',
     title: 'הצעות בקרבת מקום',
     subtitle: 'מבצעים מקומיים',
-    image: exclusiveDealsImg
+    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=480&h=480&fit=crop'
   }, {
     id: '3',
     title: 'מבצעי קהילה',
     subtitle: 'מבצעים מקומיים',
-    image: inspirationLivingImg
+    image: 'https://images.unsplash.com/photo-1607083206325-cad9886eacb8?w=480&h=480&fit=crop'
   }];
 
-  // Hot now items data - using cohesive images
+  // Hot now items data
   const hotNowItems = [{
     id: '1',
     title: 'מוצרים חמים ביותר',
     subtitle: 'חם עכשיו',
-    image: hotNowImg
+    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop'
   }, {
     id: '2',
-    title: 'קטגוריות מבוקשות',
+    title: 'קטגוריות מחופשות',
     subtitle: 'חם עכשיו',
-    image: inspirationKitchenImg
+    image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
   }, {
     id: '3',
     title: 'ספקים פופולרים',
     subtitle: 'חם עכשיו',
-    image: topImg
+    image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=480&h=480&fit=crop'
   }];
 
-  // Trending items data - using cohesive images
+  // Trending items data
   const trendingItems = [{
     id: '1',
     title: 'חמים באזור שלך',
     subtitle: 'פופולרי עכשיו',
-    image: localDealsImg
+    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=480&h=480&fit=crop'
   }, {
     id: '2',
     title: 'מבצעים מיוחדים',
     subtitle: 'פופולרי עכשיו',
-    image: exclusiveDealsImg
+    image: 'https://images.unsplash.com/photo-1556909114-3ba38b3becf0?w=480&h=480&fit=crop'
   }, {
     id: '3',
     title: 'המבוקשים ביותר',
     subtitle: 'פופולרי עכשיו',
-    image: hotNowImg
+    image: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=480&h=480&fit=crop'
   }];
 
   // Get suppliers from database for each category
