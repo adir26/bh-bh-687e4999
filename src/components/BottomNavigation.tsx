@@ -71,12 +71,9 @@ export const BottomNavigation: React.FC = () => {
 
   return (
     <div 
-      className="md:hidden fixed inset-x-0 z-50 flex justify-center px-2" 
-      style={{
-        bottom: "env(safe-area-inset-bottom, 4px)",
-      }}
+      className="md:hidden fixed inset-x-0 bottom-0 z-50 flex justify-center px-2 pb-safe" 
     >
-      <nav className="bg-card/95 backdrop-blur-lg border border-border/50 rounded-3xl px-2 py-3 shadow-lg shadow-black/10 max-w-md w-full">
+      <nav className="bg-card/95 backdrop-blur-lg border border-border/50 rounded-3xl px-2 py-2 shadow-lg shadow-black/10 max-w-md w-full mb-1">
         <div className="flex justify-around items-center">
           {navItems.map((item) => {
             const Icon = item.icon;
