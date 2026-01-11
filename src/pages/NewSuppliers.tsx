@@ -224,7 +224,6 @@ const NewSuppliers = () => {
           <div className="w-full">
             <SectionTitleWithButton 
               title="קבלני שיפוצים חדשים" 
-              buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('renovation-contractors')}
             />
             <CategorySection 
@@ -236,7 +235,6 @@ const NewSuppliers = () => {
           <div className="w-full">
             <SectionTitleWithButton 
               title="חשמלאים חדשים" 
-              buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('electricians')}
             />
             <CategorySection 
@@ -248,7 +246,6 @@ const NewSuppliers = () => {
           <div className="w-full">
             <SectionTitleWithButton 
               title="אינסטלטורים חדשים" 
-              buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('plumbers')}
             />
             <CategorySection 
@@ -260,7 +257,6 @@ const NewSuppliers = () => {
           <div className="w-full">
             <SectionTitleWithButton 
               title="מתקיני מיזוג אוויר חדשים" 
-              buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('air-conditioning')}
             />
             <CategorySection 
@@ -272,7 +268,6 @@ const NewSuppliers = () => {
           <div className="w-full">
             <SectionTitleWithButton 
               title="נגרים חדשים" 
-              buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('carpenters')}
             />
             <CategorySection 
@@ -284,7 +279,6 @@ const NewSuppliers = () => {
           <div className="w-full">
             <SectionTitleWithButton 
               title="מעצבי פנים חדשים" 
-              buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('interior-designers')}
             />
             <CategorySection 
@@ -296,7 +290,6 @@ const NewSuppliers = () => {
           <div className="w-full">
             <SectionTitleWithButton 
               title="אדריכלים חדשים" 
-              buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('architects')}
             />
             <CategorySection 
@@ -308,7 +301,6 @@ const NewSuppliers = () => {
           <div className="w-full">
             <SectionTitleWithButton 
               title="מתכנני מטבחים חדשים" 
-              buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('kitchen-designers')}
             />
             <CategorySection 
@@ -320,7 +312,6 @@ const NewSuppliers = () => {
           <div className="w-full">
             <SectionTitleWithButton 
               title="חברות ניקיון חדשות" 
-              buttonText="לכל הספקים"
               onButtonClick={() => handleAllSuppliersClick('cleaning-companies')}
             />
             <CategorySection 

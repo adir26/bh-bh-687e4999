@@ -332,12 +332,12 @@ const UnifiedHomepage = () => {
 
           {/* Popular Categories Section */}
           <div className="w-full">
-            <SectionTitleWithButton title="קטגוריות נפוצות" buttonText="כל הקטגוריות" onButtonClick={() => navigate('/categories')} />
+            <SectionTitleWithButton title="קטגוריות נפוצות" onButtonClick={() => navigate('/categories')} />
             <PopularCategories />
           </div>
 
           <div className="w-full">
-            <SectionTitleWithButton title="מטבחים" buttonText="לכל הספקים" onButtonClick={() => handleAllSuppliersClick('kitchens')} />
+            <SectionTitleWithButton title="מטבחים" onButtonClick={() => handleAllSuppliersClick('kitchens')} />
             <CategorySection items={kitchenCategories} onItemClick={handleCategoryClick} fixedWidth={true} />
           </div>
 
@@ -348,7 +348,7 @@ const UnifiedHomepage = () => {
 
           {/* Featured Suppliers from CMS */}
           <div className="w-full">
-            <SectionTitleWithButton title="ספקים מובילים" buttonText="לכל הספקים" onButtonClick={() => navigate('/top-suppliers')} />
+            <SectionTitleWithButton title="ספקים מובילים" onButtonClick={() => navigate('/top-suppliers')} />
             {isFeaturedLoading ? <div className="flex gap-4 overflow-x-auto pb-4">
                 {Array.from({
               length: 3
@@ -359,7 +359,7 @@ const UnifiedHomepage = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitleWithButton title="ריהוט" buttonText="לכל הספקים" onButtonClick={() => handleAllSuppliersClick('furniture')} />
+            <SectionTitleWithButton title="ריהוט" onButtonClick={() => handleAllSuppliersClick('furniture')} />
             <CategorySection items={furnitureSuppliers.map(supplier => ({
             id: supplier.id,
             title: supplier.name,
@@ -372,7 +372,7 @@ const UnifiedHomepage = () => {
           <AdBanner onAdClick={handleAdClick} />
 
           <div className="w-full">
-            <SectionTitleWithButton title="מיזוג אוויר" buttonText="לכל הספקים" onButtonClick={() => handleAllSuppliersClick('air-conditioning')} />
+            <SectionTitleWithButton title="מיזוג אוויר" onButtonClick={() => handleAllSuppliersClick('air-conditioning')} />
             <CategorySection items={airConditioningSuppliers.map(supplier => ({
             id: supplier.id,
             title: supplier.name,
@@ -382,7 +382,7 @@ const UnifiedHomepage = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitleWithButton title="שיפוצים" buttonText="לכל הספקים" onButtonClick={() => handleAllSuppliersClick('renovation')} />
+            <SectionTitleWithButton title="שיפוצים" onButtonClick={() => handleAllSuppliersClick('renovation')} />
             <CategorySection items={renovationSuppliers.map(supplier => ({
             id: supplier.id,
             title: supplier.name,
@@ -392,7 +392,7 @@ const UnifiedHomepage = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitleWithButton title="יועצי משכנתאות וביטוח" buttonText="לכל היועצים" onButtonClick={() => handleAllSuppliersClick('mortgage-advisors')} />
+            <SectionTitleWithButton title="יועצי משכנתאות וביטוח" onButtonClick={() => handleAllSuppliersClick('mortgage-advisors')} />
             <CategorySection items={mortgageAdvisorsData.map(supplier => ({
             id: supplier.id,
             title: supplier.name,
@@ -406,7 +406,7 @@ const UnifiedHomepage = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitleWithButton title="הובלות" buttonText="לכל חברות ההובלה" onButtonClick={() => handleAllSuppliersClick('moving-services')} />
+            <SectionTitleWithButton title="הובלות" onButtonClick={() => handleAllSuppliersClick('moving-services')} />
             <CategorySection items={movingServicesData.map(supplier => ({
             id: supplier.id,
             title: supplier.name,
@@ -420,7 +420,7 @@ const UnifiedHomepage = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitleWithButton title="הלוואות" buttonText="לכל ספקי ההלוואות" onButtonClick={() => handleAllSuppliersClick('home-loans')} />
+            <SectionTitleWithButton title="הלוואות" onButtonClick={() => handleAllSuppliersClick('home-loans')} />
             <CategorySection items={homeLoansData.map(supplier => ({
             id: supplier.id,
             title: supplier.name,
@@ -434,17 +434,17 @@ const UnifiedHomepage = () => {
           </div>
 
           <div className="w-full">
-            <SectionTitleWithButton title="מבצעים בסביבה" buttonText="לכל המבצעים" onButtonClick={() => navigate('/local-deals')} />
+            <SectionTitleWithButton title="מבצעים בסביבה" onButtonClick={() => navigate('/local-deals')} />
             <CategorySection items={localDeals} onItemClick={handleCategoryClick} />
           </div>
 
           <div className="w-full">
-            <SectionTitleWithButton title="חם עכשיו" buttonText="לכל הפרויקטים" onButtonClick={() => navigate('/hot-now')} />
+            <SectionTitleWithButton title="חם עכשיו" onButtonClick={() => navigate('/hot-now')} />
             <CategorySection items={hotNowItems} onItemClick={handleCategoryClick} />
           </div>
 
           <div className="w-full">
-            <SectionTitleWithButton title="פופולרי עכשיו" buttonText="לכל הספקים" onButtonClick={() => navigate('/popular-now')} />
+            <SectionTitleWithButton title="פופולרי עכשיו" onButtonClick={() => navigate('/popular-now')} />
             <CategorySection items={trendingItems} onItemClick={handleCategoryClick} />
           </div>
           

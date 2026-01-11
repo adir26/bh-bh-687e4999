@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 
 interface SectionTitleWithButtonProps {
   title: string;
-  buttonText: string;
+  buttonText?: string;
   onButtonClick: () => void;
 }
 
 export const SectionTitleWithButton: React.FC<SectionTitleWithButtonProps> = ({ 
   title, 
-  buttonText, 
+  buttonText = "עוד", 
   onButtonClick 
 }) => {
   return (
