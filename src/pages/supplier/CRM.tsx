@@ -239,7 +239,7 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
 
   const Kanban = () => (
     <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 overflow-x-auto pb-4">
         {STATUSES.map((status) => (
           <div key={status} id={status}>
             <Card>
@@ -274,52 +274,52 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
 
   const List = () => (
     <Card>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+      <CardContent className="p-0 sm:p-4">
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <table className="w-full text-sm min-w-[800px]">
             <thead>
-              <tr className="border-b">
-                 <th className="p-3 text-left">Name</th>
-                 <th className="p-3 text-left">Phone</th>
-                 <th className="p-3 text-left">Email</th>
-                 <th className="p-3 text-left">Status</th>
-                 <th className="p-3 text-left">SLA</th>
-                 <th className="p-3 text-left">Assigned</th>
-                 <th className="p-3 text-left">Last Contact</th>
-                 <th className="p-3 text-left">Actions</th>
+              <tr className="border-b bg-muted/50">
+                 <th className="p-2 sm:p-3 text-right font-medium">שם</th>
+                 <th className="p-2 sm:p-3 text-right font-medium">טלפון</th>
+                 <th className="p-2 sm:p-3 text-right font-medium hidden md:table-cell">אימייל</th>
+                 <th className="p-2 sm:p-3 text-right font-medium">סטטוס</th>
+                 <th className="p-2 sm:p-3 text-right font-medium hidden lg:table-cell">SLA</th>
+                 <th className="p-2 sm:p-3 text-right font-medium hidden lg:table-cell">הקצאה</th>
+                 <th className="p-2 sm:p-3 text-right font-medium hidden md:table-cell">פנייה אחרונה</th>
+                 <th className="p-2 sm:p-3 text-right font-medium">פעולות</th>
               </tr>
             </thead>
             <tbody>
               {leads.map((l) => (
                 <tr 
                   key={l.id} 
-                  className="border-b cursor-pointer hover:bg-muted/50"
+                  className="border-b cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => setSelectedLeadId(l.id)}
                 >
-                   <td className="p-3">{l.name || '—'}</td>
-                   <td className="p-3">
+                   <td className="p-2 sm:p-3 font-medium">{l.name || '—'}</td>
+                   <td className="p-2 sm:p-3">
                      {l.contact_phone ? (
-                       <a href={`tel:${l.contact_phone}`} className="underline">{l.contact_phone}</a>
+                       <a href={`tel:${l.contact_phone}`} className="underline text-primary">{l.contact_phone}</a>
                      ) : '—'}
                    </td>
-                   <td className="p-3">
+                   <td className="p-2 sm:p-3 hidden md:table-cell">
                      {l.contact_email ? (
-                       <a href={`mailto:${l.contact_email}`} className="underline">{l.contact_email}</a>
+                       <a href={`mailto:${l.contact_email}`} className="underline text-primary truncate max-w-[150px] block">{l.contact_email}</a>
                      ) : '—'}
                    </td>
-                   <td className="p-3"><Badge className={getStatusBadgeClass(l.status)}>{statusLabel(l.status)}</Badge></td>
-                   <td className="p-3">
+                   <td className="p-2 sm:p-3"><Badge className={getStatusBadgeClass(l.status)}>{statusLabel(l.status)}</Badge></td>
+                   <td className="p-2 sm:p-3 hidden lg:table-cell">
                      <SLABadge lead={l} />
                    </td>
-                   <td className="p-3">
+                   <td className="p-2 sm:p-3 hidden lg:table-cell">
                      <LeadAssignmentDropdown 
                        leadId={l.id} 
                        currentAssignee={l.assigned_to} 
                        onAssign={assignLead}
                      />
                    </td>
-                   <td className="p-3">{l.last_contact_date ? format(new Date(l.last_contact_date), 'dd/MM/yy HH:mm') : '—'}</td>
-                   <td className="p-3">
+                   <td className="p-2 sm:p-3 hidden md:table-cell text-muted-foreground text-xs">{l.last_contact_date ? format(new Date(l.last_contact_date), 'dd/MM/yy HH:mm') : '—'}</td>
+                   <td className="p-2 sm:p-3">
                      <QuickActionsMenu 
                        leadId={l.id}
                        onAddNote={addNote}
@@ -337,21 +337,23 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
   );
 
   return (
-    <main className="mx-auto max-w-7xl space-y-4 p-4 pt-[max(env(safe-area-inset-top),16px)]">
-      <header className="space-y-4 sticky top-0 z-10 bg-background py-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold">ניהול לידים - CRM</h1>
-            <p className="text-sm text-muted-foreground">נהל את הלידים שלך: גרור בין שלבים, לחץ לפרטים מלאים</p>
+    <main className="mx-auto max-w-7xl space-y-4 px-3 sm:px-4 lg:px-6 pt-[max(env(safe-area-inset-top),16px)] pb-nav-safe" dir="rtl">
+      <header className="space-y-3 sm:space-y-4 sticky top-0 z-10 bg-background py-2 -mx-3 sm:-mx-4 lg:-mx-6 px-3 sm:px-4 lg:px-6 border-b border-border/50">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-semibold truncate">ניהול לידים - CRM</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">נהל את הלידים שלך: גרור בין שלבים, לחץ לפרטים מלאים</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setImportWizardOpen(true)}>
-              <Upload className="mr-2 h-4 w-4" />
-              ייבוא מקובץ
+          <div className="flex gap-2 flex-shrink-0">
+            <Button variant="outline" size="sm" className="text-xs sm:text-sm" onClick={() => setImportWizardOpen(true)}>
+              <Upload className="ml-1 sm:ml-2 h-4 w-4" />
+              <span className="hidden xs:inline">ייבוא מקובץ</span>
+              <span className="xs:hidden">ייבוא</span>
             </Button>
-            <Button variant="blue" onClick={() => setAddLeadDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              הוסף ליד
+            <Button variant="blue" size="sm" className="text-xs sm:text-sm" onClick={() => setAddLeadDialogOpen(true)}>
+              <Plus className="ml-1 sm:ml-2 h-4 w-4" />
+              <span className="hidden xs:inline">הוסף ליד</span>
+              <span className="xs:hidden">הוסף</span>
             </Button>
           </div>
         </div>
@@ -374,29 +376,30 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
       />
 
       {/* Tabs for Leads vs Import History */}
-      <div className="border-b">
-        <div className="flex gap-4">
+      <div className="border-b overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+        <div className="flex gap-1 sm:gap-4 min-w-max">
           <button
-            className={`px-4 py-2 border-b-2 transition-colors ${
+            className={`px-3 sm:px-4 py-2 sm:py-3 border-b-2 transition-colors text-sm sm:text-base min-h-[44px] ${
               activeTab === 'leads'
                 ? 'border-primary text-primary font-medium'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
             onClick={() => setActiveTab('leads')}
           >
-            <Users className="w-4 h-4 inline ml-2" />
+            <Users className="w-4 h-4 inline ml-1 sm:ml-2" />
             לידים
           </button>
           <button
-            className={`px-4 py-2 border-b-2 transition-colors ${
+            className={`px-3 sm:px-4 py-2 sm:py-3 border-b-2 transition-colors text-sm sm:text-base min-h-[44px] ${
               activeTab === 'history'
                 ? 'border-primary text-primary font-medium'
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
             onClick={() => setActiveTab('history')}
           >
-            <History className="w-4 h-4 inline ml-2" />
-            היסטוריית ייבואים
+            <History className="w-4 h-4 inline ml-1 sm:ml-2" />
+            <span className="hidden sm:inline">היסטוריית ייבואים</span>
+            <span className="sm:hidden">היסטוריה</span>
           </button>
         </div>
       </div>
@@ -407,38 +410,40 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
         </div>
       ) : (
         <>
-          <section className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-1 items-center gap-2">
-          <Input placeholder="Search by name, email, phone" value={search} onChange={(e) => setSearch(e.target.value)} />
-          <Button variant="ghost" onClick={() => setSort(sort === 'newest' ? 'oldest' : 'newest')}>
-            <ArrowUpDown className="mr-2 h-4 w-4" /> {sort === 'newest' ? 'Newest' : 'Oldest'}
+          <section className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <div className="flex-1">
+            <Input placeholder="חיפוש לפי שם, אימייל, טלפון..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full" />
+          </div>
+          <Button variant="ghost" size="sm" className="shrink-0 min-h-[44px]" onClick={() => setSort(sort === 'newest' ? 'oldest' : 'newest')}>
+            <ArrowUpDown className="ml-1 sm:ml-2 h-4 w-4" /> {sort === 'newest' ? 'חדש לישן' : 'ישן לחדש'}
           </Button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[140px]"><SelectValue placeholder="סטטוס" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="all">כל הסטטוסים</SelectItem>
               {STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>{statusLabel(s)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as any)}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Source" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[140px]"><SelectValue placeholder="מקור" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All sources</SelectItem>
-              <SelectItem value="website">Website</SelectItem>
-              <SelectItem value="facebook_paid">Facebook Paid</SelectItem>
-              <SelectItem value="whatsapp">WhatsApp</SelectItem>
-              <SelectItem value="word_of_mouth">Word of Mouth</SelectItem>
-              <SelectItem value="referral">Referral</SelectItem>
+              <SelectItem value="all">כל המקורות</SelectItem>
+              <SelectItem value="website">אתר</SelectItem>
+              <SelectItem value="facebook_paid">פייסבוק ממומן</SelectItem>
+              <SelectItem value="whatsapp">וואטסאפ</SelectItem>
+              <SelectItem value="word_of_mouth">פה לאוזן</SelectItem>
+              <SelectItem value="referral">הפניה</SelectItem>
             </SelectContent>
           </Select>
-          <Tabs value={view} onValueChange={(v) => setView(v as any)}>
-            <TabsList>
-              <TabsTrigger value="kanban">Kanban</TabsTrigger>
-              <TabsTrigger value="list">List</TabsTrigger>
+          <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full sm:w-auto">
+            <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex">
+              <TabsTrigger value="kanban" className="text-xs sm:text-sm">לוח קנבן</TabsTrigger>
+              <TabsTrigger value="list" className="text-xs sm:text-sm">רשימה</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>

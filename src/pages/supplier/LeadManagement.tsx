@@ -163,52 +163,59 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
-      <div className="bg-white border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+      <div className="bg-card border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/supplier/dashboard')}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1 sm:gap-2 shrink-0 min-h-[44px] px-2 sm:px-3"
               >
                 <ArrowLeft className="w-4 h-4" />
-                חזור לדשבורד
+                <span className="hidden sm:inline">חזור לדשבורד</span>
+                <span className="sm:hidden">חזור</span>
               </Button>
-              <h1 className="text-2xl font-bold text-foreground">ניהול לידים</h1>
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground truncate">ניהול לידים</h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-end sm:self-auto">
               <Button
                 variant="blue"
                 size="sm"
                 onClick={() => setAddLeadDialogOpen(true)}
+                className="min-h-[44px]"
               >
                 <Plus className="w-4 h-4 ml-1" />
-                הוסף ליד
+                <span className="hidden xs:inline">הוסף ליד</span>
+                <span className="xs:hidden">הוסף</span>
               </Button>
-              <Button
-                variant={viewMode === 'cards' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('cards')}
-              >
-                כרטיסים
-              </Button>
-              <Button
-                variant={viewMode === 'table' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-              >
-                טבלה
-              </Button>
+              <div className="flex border rounded-lg overflow-hidden">
+                <Button
+                  variant={viewMode === 'cards' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('cards')}
+                  className="rounded-none min-h-[44px] px-3"
+                >
+                  כרטיסים
+                </Button>
+                <Button
+                  variant={viewMode === 'table' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('table')}
+                  className="rounded-none min-h-[44px] px-3"
+                >
+                  טבלה
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 pb-nav-safe">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-nav-safe">
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex flex-col gap-3 mb-4 sm:mb-6">
           <div className="flex-1">
             <SearchInput
               placeholder="חפש לפי שם לקוח או שירות..."
@@ -249,29 +256,29 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
             : 0;
 
           return (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
               <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-green-600">{stats.new}</div>
-                  <div className="text-sm text-muted-foreground">לידים חדשים</div>
+                <CardContent className="p-3 sm:p-4 text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.new}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">לידים חדשים</div>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
-                  <div className="text-sm text-muted-foreground">בטיפול</div>
+                <CardContent className="p-3 sm:p-4 text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.inProgress}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">בטיפול</div>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-gray-600">{stats.closed}</div>
-                  <div className="text-sm text-muted-foreground">נסגרו</div>
+                <CardContent className="p-3 sm:p-4 text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-muted-foreground">{stats.closed}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">נסגרו</div>
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-primary">{conversionRate}%</div>
-                  <div className="text-sm text-muted-foreground">שיעור המרה</div>
+                <CardContent className="p-3 sm:p-4 text-center">
+                  <div className="text-xl sm:text-2xl font-bold text-primary">{conversionRate}%</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">שיעור המרה</div>
                 </CardContent>
               </Card>
             </div>
@@ -290,25 +297,26 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
             }}
           />
         ) : viewMode === 'cards' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-4">
             {leads.map((lead) => (
               <Card 
                 key={lead.id} 
                 className="hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => setSelectedLeadId(lead.id)}
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                     <div className="space-y-1">
-                       <CardTitle className="text-lg flex items-center gap-2">
-                         <User className="w-4 h-4" />
-                         {lead.name || 'לקוח ללא שם'}
+                <CardHeader className="pb-2 sm:pb-3 p-3 sm:p-4">
+                  <div className="flex items-start justify-between gap-2">
+                     <div className="space-y-1 min-w-0 flex-1">
+                       <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                         <User className="w-4 h-4 flex-shrink-0" />
+                         <span className="truncate">{lead.name || 'לקוח ללא שם'}</span>
                        </CardTitle>
-                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                       <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                          {lead.contact_phone && (
                            <a 
                              href={`tel:${lead.contact_phone.startsWith('+') ? lead.contact_phone : `+972${lead.contact_phone.replace(/^0/, '')}`}`}
                              className="flex items-center gap-1 hover:text-primary transition-colors"
+                             onClick={(e) => e.stopPropagation()}
                            >
                              <Phone className="w-3 h-3" />
                              {lead.contact_phone}
@@ -320,28 +328,28 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                          </span>
                        </div>
                      </div>
-                    <Badge className={getStatusColor(lead.status)}>
+                    <Badge className={`${getStatusColor(lead.status)} shrink-0 text-xs`}>
                       {getStatusText(lead.status)}
                     </Badge>
                   </div>
                 </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 p-3 sm:p-4 pt-0">
                    {lead.campaign_name && (
                      <div>
-                       <h4 className="font-medium text-sm text-muted-foreground mb-1">קמפיין:</h4>
-                       <p className="font-medium text-primary">{lead.campaign_name}</p>
+                       <h4 className="font-medium text-xs text-muted-foreground mb-1">קמפיין:</h4>
+                       <p className="font-medium text-primary text-sm">{lead.campaign_name}</p>
                      </div>
                    )}
                    {lead.source_key && (
                      <div>
-                       <h4 className="font-medium text-sm text-muted-foreground mb-1">מקור:</h4>
-                       <p className="font-medium">{getSourceLabel(lead.source_key)}</p>
+                       <h4 className="font-medium text-xs text-muted-foreground mb-1">מקור:</h4>
+                       <p className="font-medium text-sm">{getSourceLabel(lead.source_key)}</p>
                      </div>
                    )}
                    {lead.last_activity_note && (
                      <div>
-                       <h4 className="font-medium text-sm text-muted-foreground mb-1">הערה אחרונה:</h4>
-                       <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">
+                       <h4 className="font-medium text-xs text-muted-foreground mb-1">הערה אחרונה:</h4>
+                       <p className="text-xs sm:text-sm text-foreground bg-muted/50 p-2 sm:p-3 rounded-lg line-clamp-2">
                          {lead.last_activity_note}
                        </p>
                        {lead.last_activity_date && (
@@ -357,22 +365,24 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                        )}
                      </div>
                    )}
-                   <div className="flex gap-2 pt-2">
+                   <div className="flex flex-wrap gap-2 pt-2">
                     <Button 
                       variant="blue" 
                       size="sm" 
-                      className="flex-1"
+                      className="flex-1 min-w-[120px] min-h-[44px] text-xs sm:text-sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate('/supplier/quotes');
                       }}
                     >
                       <FileText className="w-4 h-4 ml-1" />
-                      שלח הצעת מחיר
+                      <span className="hidden xs:inline">שלח הצעת מחיר</span>
+                      <span className="xs:hidden">הצעה</span>
                     </Button>
                      <Button 
                        variant="outline" 
                        size="sm"
+                       className="min-h-[44px] min-w-[44px]"
                        onClick={(e) => {
                          e.stopPropagation();
                          handleCall(lead.contact_phone);
@@ -384,6 +394,7 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                     <Button 
                       variant="outline" 
                       size="sm"
+                      className="min-h-[44px] min-w-[44px]"
                       onClick={(e) => {
                         e.stopPropagation();
                         showToast.comingSoon('צ\'אט עם לקוח');
@@ -394,6 +405,7 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
                     <Button 
                       variant="destructive" 
                       size="sm"
+                      className="min-h-[44px] min-w-[44px]"
                       onClick={(e) => handleDeleteClick(e, lead)}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -407,16 +419,16 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
           <Card>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="border-b">
+                <table className="w-full min-w-[600px]">
+                  <thead className="border-b bg-muted/50">
                     <tr>
-                       <th className="text-right p-4 font-medium">שם לקוח</th>
-                       <th className="text-right p-4 font-medium">תאריך</th>
-                       <th className="text-right p-4 font-medium">סטטוס</th>
-                       <th className="text-right p-4 font-medium">טלפון</th>
-                       <th className="text-right p-4 font-medium">מקור</th>
-                       <th className="text-right p-4 font-medium">קמפיין</th>
-                       <th className="text-right p-4 font-medium">פעולות</th>
+                       <th className="text-right p-3 sm:p-4 font-medium text-xs sm:text-sm">שם לקוח</th>
+                       <th className="text-right p-3 sm:p-4 font-medium text-xs sm:text-sm">תאריך</th>
+                       <th className="text-right p-3 sm:p-4 font-medium text-xs sm:text-sm">סטטוס</th>
+                       <th className="text-right p-3 sm:p-4 font-medium text-xs sm:text-sm hidden sm:table-cell">טלפון</th>
+                       <th className="text-right p-3 sm:p-4 font-medium text-xs sm:text-sm hidden md:table-cell">מקור</th>
+                       <th className="text-right p-3 sm:p-4 font-medium text-xs sm:text-sm hidden lg:table-cell">קמפיין</th>
+                       <th className="text-right p-3 sm:p-4 font-medium text-xs sm:text-sm">פעולות</th>
                     </tr>
                   </thead>
                    <tbody>
