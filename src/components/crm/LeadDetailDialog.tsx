@@ -192,21 +192,21 @@ export function LeadDetailDialog({ leadId, open, onOpenChange }: LeadDetailDialo
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent className="max-w-4xl w-[95vw] sm:w-full max-h-[85vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <User className="w-5 h-5" />
-              {lead?.name || 'פרטי ליד'}
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <User className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span className="truncate">{lead?.name || 'פרטי ליד'}</span>
             </DialogTitle>
           </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="details">פרטים</TabsTrigger>
-            <TabsTrigger value="notes">הערות</TabsTrigger>
-            <TabsTrigger value="tasks">משימות</TabsTrigger>
-            <TabsTrigger value="meetings">פגישות</TabsTrigger>
-            <TabsTrigger value="history">היסטוריה</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 h-auto">
+            <TabsTrigger value="details" className="text-xs sm:text-sm px-1 sm:px-3 py-2">פרטים</TabsTrigger>
+            <TabsTrigger value="notes" className="text-xs sm:text-sm px-1 sm:px-3 py-2">הערות</TabsTrigger>
+            <TabsTrigger value="tasks" className="text-xs sm:text-sm px-1 sm:px-3 py-2">משימות</TabsTrigger>
+            <TabsTrigger value="meetings" className="text-xs sm:text-sm px-1 sm:px-3 py-2">פגישות</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs sm:text-sm px-1 sm:px-3 py-2">היסטוריה</TabsTrigger>
           </TabsList>
 
           {/* Details Tab */}
@@ -369,7 +369,7 @@ function LeadDetailsForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div className="space-y-2">
           <Label htmlFor="name">שם הלקוח</Label>
           <Input
@@ -402,7 +402,7 @@ function LeadDetailsForm({
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <div className="space-y-2">
           <Label htmlFor="status">סטטוס</Label>
           <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v as LeadStatus })}>
@@ -583,12 +583,12 @@ function TasksTab({
         
         <div className="space-y-2">
           <Label>תאריך ושעה</Label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="flex-1 justify-start text-left font-normal"
+                  className="w-full sm:flex-1 justify-start text-right font-normal min-h-[44px]"
                 >
                   <CalendarIcon className="ml-2 h-4 w-4" />
                   {format(taskDate, 'dd/MM/yyyy', { locale: he })}
@@ -609,7 +609,7 @@ function TasksTab({
               type="time"
               value={taskTime}
               onChange={(e) => setTaskTime(e.target.value)}
-              className="w-32"
+              className="w-full sm:w-32"
             />
           </div>
         </div>
@@ -713,12 +713,12 @@ function MeetingsTab({
         
         <div className="space-y-2">
           <Label>תאריך ושעה</Label>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="flex-1 justify-start text-left font-normal"
+                  className="w-full sm:flex-1 justify-start text-right font-normal min-h-[44px]"
                 >
                   <CalendarIcon className="ml-2 h-4 w-4" />
                   {format(meetingDate, 'dd/MM/yyyy', { locale: he })}
@@ -739,7 +739,7 @@ function MeetingsTab({
               type="time"
               value={meetingTime}
               onChange={(e) => setMeetingTime(e.target.value)}
-              className="w-32"
+              className="w-full sm:w-32"
             />
           </div>
         </div>
