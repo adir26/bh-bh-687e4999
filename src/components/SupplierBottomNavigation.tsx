@@ -111,12 +111,9 @@ export const SupplierBottomNavigation: React.FC = () => {
 
   return (
     <div 
-      className="fixed inset-x-0 z-50 flex justify-center px-4 md:hidden" 
-      style={{
-        bottom: "calc(var(--footer-h, 0px) + env(safe-area-inset-bottom, 0px))",
-      }}
+      className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-safe md:hidden" 
     >
-      <nav className="bg-card/95 backdrop-blur-lg border border-border/50 rounded-3xl px-4 py-3 shadow-lg shadow-black/10 max-w-sm w-full">
+      <nav className="bg-card/95 backdrop-blur-lg border border-border/50 rounded-3xl px-4 py-2 shadow-lg shadow-black/10 max-w-sm w-full mb-1">
         <div className="flex items-center justify-between gap-4">
           {/* First two nav items */}
           {navItems.slice(0, 2).map((item) => {
