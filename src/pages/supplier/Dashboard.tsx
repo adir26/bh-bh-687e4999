@@ -236,68 +236,70 @@ return (
           backUrl="/"
         />
 
-        <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 pb-nav-safe">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-nav-safe">
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
             {(statsQuery.data ?? []).map((stat, index) => (
               <Card key={index} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">{stat.title}</p>
-                      <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <CardContent className="p-3 sm:p-4 md:p-6">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate">{stat.title}</p>
+                      <p className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate">{stat.value}</p>
                     </div>
-                    <stat.icon className={`w-8 h-8 ${stat.color}`} />
+                    <stat.icon className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 flex-shrink-0 ${stat.color}`} />
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
             {/* Quick Actions */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5" />
+              <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 sm:pb-3">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" />
                   פעולות מהירות
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {quickActions.map((action, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => navigate(action.path)}
-                  >
-                    <action.icon className="w-4 h-4 ml-2" />
-                    {action.title}
-                  </Button>
-                ))}
+              <CardContent className="p-3 sm:p-4 md:p-6 pt-0 space-y-2 sm:space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-1 gap-2">
+                  {quickActions.map((action, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      className="w-full justify-start h-10 sm:h-11 text-xs sm:text-sm min-h-[44px]"
+                      onClick={() => navigate(action.path)}
+                    >
+                      <action.icon className="w-4 h-4 ml-1 sm:ml-2 flex-shrink-0" />
+                      <span className="truncate">{action.title}</span>
+                    </Button>
+                  ))}
+                </div>
               </CardContent>
             </Card>
 
             {/* Mini Chart */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="w-5 h-5" />
+              <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 sm:pb-3">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
                   צפיות בפרופיל השבוע
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="h-32 flex items-end justify-between gap-2">
+              <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
+                <div className="h-24 sm:h-32 flex items-end justify-between gap-1 sm:gap-2">
                   {(profileViewsQuery.data ?? []).map((height, index) => (
                     <div
                       key={index}
-                      className="bg-primary/20 hover:bg-primary/30 transition-colors flex-1 rounded-t"
+                      className="bg-primary/20 hover:bg-primary/30 transition-colors flex-1 rounded-t min-w-[20px]"
                       style={{ height: `${Math.max(height, 5)}%` }}
                       title={`${height}% מהמקסימום`}
                     />
                   ))}
                 </div>
-                <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                <div className="flex justify-between text-[10px] sm:text-xs text-muted-foreground mt-2">
                   <span>א'</span>
                   <span>ב'</span>
                   <span>ג'</span>
@@ -311,17 +313,17 @@ return (
 
             {/* Needs Attention */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-orange-600">
-                  <AlertCircle className="w-5 h-5" />
+              <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 sm:pb-3">
+                <CardTitle className="flex items-center gap-2 text-orange-600 text-base sm:text-lg">
+                  <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                   דורש תשומת לב
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="p-3 sm:p-4 md:p-6 pt-0 space-y-2 sm:space-y-3">
                 {(needsAttentionQuery.data ?? []).map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <span className="text-sm">{item.title}</span>
-                    <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                  <div key={index} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/50 gap-2">
+                    <span className="text-xs sm:text-sm truncate flex-1">{item.title}</span>
+                    <span className={`text-xs sm:text-sm font-medium px-2 py-1 rounded-full flex-shrink-0 ${
                       item.urgent ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
                     }`}>
                       {item.count}
@@ -334,21 +336,21 @@ return (
 
           {/* Suggestions */}
           <Card>
-            <CardHeader>
-              <CardTitle>המלצות לשיפור</CardTitle>
+            <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 sm:pb-3">
+              <CardTitle className="text-base sm:text-lg">המלצות לשיפור</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
               <div className="space-y-2">
                 {(suggestionsQuery.data ?? []).map((suggestion, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
-                    <span className="text-sm text-blue-800">{suggestion}</span>
+                  <div key={index} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-blue-50 border border-blue-200">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5" />
+                    <span className="text-xs sm:text-sm text-blue-800">{suggestion}</span>
                   </div>
                 ))}
               </div>
               <Button 
                 variant="outline" 
-                className="mt-4"
+                className="mt-3 sm:mt-4 w-full sm:w-auto min-h-[44px]"
                 onClick={() => showToast.comingSoon("המלצות מתקדמות")}
               >
                 צפה בכל ההמלצות

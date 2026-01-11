@@ -55,7 +55,7 @@ export default function OnboardingWelcome() {
       {/* Content */}
       <div className="flex-1 flex flex-col pb-nav-safe">
         {/* Hero Image */}
-        <div className="relative h-64 mx-6 mb-6 rounded-2xl overflow-hidden">
+        <div className="relative h-48 sm:h-64 mx-4 sm:mx-6 mb-4 sm:mb-6 rounded-xl sm:rounded-2xl overflow-hidden">
           <img 
             src={welcomeImage}
             alt="ברוכים הבאים לתהליך האונבורדינג"
@@ -65,12 +65,12 @@ export default function OnboardingWelcome() {
         </div>
 
         {/* Text Content */}
-        <div className="flex-1 px-6 flex flex-col justify-center text-center">
-          <div className="max-w-sm mx-auto space-y-4">
-            <h1 className="text-2xl font-bold text-foreground">
+        <div className="flex-1 px-4 sm:px-6 flex flex-col justify-center text-center">
+          <div className="max-w-sm mx-auto space-y-3 sm:space-y-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
               בואו נכיר את הפרויקט
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-base sm:text-lg text-muted-foreground">
               נתאים עבורכם את החוויה לפרויקט שלכם
             </p>
           </div>
@@ -78,11 +78,11 @@ export default function OnboardingWelcome() {
       </div>
 
       {/* Fixed Bottom Button */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-safe z-[70] pointer-events-auto">
-        <div className="max-w-md mx-auto">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4 sm:p-6 z-[70] pointer-events-auto">
+        <div className="max-w-md mx-auto pb-safe">
           <Button 
             onClick={handleStart}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-lg rounded-xl h-14 font-medium min-h-touch pointer-events-auto touch-manipulation"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 text-base sm:text-lg rounded-xl h-12 sm:h-14 font-medium min-h-touch pointer-events-auto touch-manipulation"
             style={{ touchAction: 'manipulation' }}
           >
             התחילו
