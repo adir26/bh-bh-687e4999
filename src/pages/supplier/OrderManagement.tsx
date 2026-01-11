@@ -68,37 +68,38 @@ function OrderManagementContent({ orders, selectedOrderId, setSelectedOrderId, u
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       {/* Header */}
-      <div className="bg-white border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+      <div className="bg-background border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/supplier/dashboard')}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 min-h-[44px] w-fit"
             >
               <ArrowLeft className="w-4 h-4" />
-              חזור לדשבורד
+              <span className="hidden sm:inline">חזור לדשבורד</span>
+              <span className="sm:hidden">חזור</span>
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">ניהול הזמנות</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">ניהול הזמנות</h1>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 pb-nav-safe">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-nav-safe">
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 xs:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 mb-4 sm:mb-6">
           {orderStatuses.map((status) => {
             const count = orders.filter(order => order.status === status.key).length;
             const StatusIcon = status.icon;
             return (
               <Card key={status.key}>
-                <CardContent className="p-4 text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <StatusIcon className="w-6 h-6 text-muted-foreground" />
+                <CardContent className="p-3 sm:p-4 text-center">
+                  <div className="flex items-center justify-center mb-1 sm:mb-2">
+                    <StatusIcon className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground" />
                   </div>
-                  <div className="text-2xl font-bold text-foreground">{count}</div>
-                  <div className="text-xs text-muted-foreground">{status.label}</div>
+                  <div className="text-xl sm:text-2xl font-bold text-foreground">{count}</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground leading-tight">{status.label}</div>
                 </CardContent>
               </Card>
             );
@@ -107,10 +108,10 @@ function OrderManagementContent({ orders, selectedOrderId, setSelectedOrderId, u
 
         {/* Orders Table */}
         <Card>
-          <CardHeader>
-            <CardTitle>הזמנות</CardTitle>
+          <CardHeader className="px-3 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl">הזמנות</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 sm:px-6">
             {orders.length === 0 ? (
               <EmptyState
                 icon={Package}
@@ -118,68 +119,69 @@ function OrderManagementContent({ orders, selectedOrderId, setSelectedOrderId, u
                 description="אין הזמנות להצגה כרגע."
               />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {orders.map((order) => {
                 const statusInfo = getStatusInfo(order.status);
                 const StatusIcon = statusInfo.icon;
                 
                 return (
-                  <div key={order.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="font-bold text-lg">הזמנה #{order.id}</div>
-                        <Badge className={statusInfo.color}>
+                  <div key={order.id} className="border rounded-lg p-3 sm:p-4 hover:bg-muted/50 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <div className="font-bold text-sm sm:text-lg">הזמנה #{order.id.slice(0, 8)}</div>
+                        <Badge className={`${statusInfo.color} text-xs`}>
                           <StatusIcon className="w-3 h-3 ml-1" />
                           {statusInfo.label}
                         </Badge>
                       </div>
-                       <div className="text-left">
-                         <div className="font-bold text-lg">₪{order.amount.toLocaleString('he-IL')}</div>
-                         <div className="text-sm text-muted-foreground">
+                       <div className="text-right sm:text-left">
+                         <div className="font-bold text-base sm:text-lg">₪{order.amount.toLocaleString('he-IL')}</div>
+                         <div className="text-xs sm:text-sm text-muted-foreground">
                            {new Date(order.created_at).toLocaleDateString('he-IL')}
                          </div>
                        </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <User className="w-4 h-4 text-muted-foreground" />
-                          <span className="font-medium">{order.clientName}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
+                      <div className="space-y-1 sm:space-y-2">
+                        <div className="flex items-center gap-2 text-xs sm:text-sm">
+                          <User className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <span className="font-medium truncate">{order.clientName}</span>
                         </div>
-                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                           <Phone className="w-4 h-4" />
+                         <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                           <Phone className="w-4 h-4 flex-shrink-0" />
                            <span>לא זמין</span>
                          </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Mail className="w-4 h-4" />
-                          <span>{order.clientEmail}</span>
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                          <Mail className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">{order.clientEmail}</span>
                         </div>
                       </div>
-                       <div className="space-y-2">
-                         <div className="flex items-start gap-2 text-sm">
+                       <div className="space-y-1 sm:space-y-2">
+                         <div className="flex items-start gap-2 text-xs sm:text-sm">
                            <div className="font-medium">{order.title}</div>
                          </div>
                          {order.description && (
-                           <div className="text-sm text-muted-foreground">
+                           <div className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
                              {order.description}
                            </div>
                          )}
                        </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-4">
                       <Dialog>
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
                             size="sm"
                             onClick={() => setSelectedOrderId(order.id)}
+                            className="min-h-[44px] text-sm"
                           >
                             צפה בפרטים
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl" dir="rtl">
+                        <DialogContent className="max-w-2xl w-[95vw] max-h-[85vh] overflow-y-auto" dir="rtl">
                           <DialogHeader>
                             <DialogTitle>פרטי הזמנה #{order.id}</DialogTitle>
                           </DialogHeader>
@@ -257,7 +259,7 @@ function OrderManagementContent({ orders, selectedOrderId, setSelectedOrderId, u
                         value={order.status} 
                         onValueChange={(value) => updateOrderStatus(order.id, value as OrderStatus)}
                       >
-                        <SelectTrigger className="w-48">
+                        <SelectTrigger className="w-full sm:w-48 min-h-[44px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

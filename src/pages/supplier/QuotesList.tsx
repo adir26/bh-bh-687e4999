@@ -140,27 +140,114 @@ export default function QuotesList() {
           backUrl="/supplier/dashboard"
         />
 
-        <div className="max-w-7xl mx-auto px-4 py-6 pb-nav-safe">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-nav-safe">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle>הצעות מחיר</CardTitle>
-              <Button onClick={() => navigate('/supplier/quote-builder')}>
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-3 sm:px-6">
+              <CardTitle className="text-lg sm:text-xl">הצעות מחיר</CardTitle>
+              <Button onClick={() => navigate('/supplier/quote-builder')} className="min-h-[44px] w-full sm:w-auto">
                 <Plus className="w-4 h-4 ml-1" />
-                הצעת מחיר חדשה
+                <span className="hidden sm:inline">הצעת מחיר חדשה</span>
+                <span className="sm:hidden">הצעה חדשה</span>
               </Button>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-3 sm:px-6">
               <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-                <TabsList className="grid w-full grid-cols-5 mb-4">
-                  <TabsTrigger value="all">הכל ({quotes.length})</TabsTrigger>
-                  <TabsTrigger value="draft">טיוטאות ({quotes.filter(q => q.status === 'draft').length})</TabsTrigger>
-                  <TabsTrigger value="sent">נשלחו ({quotes.filter(q => q.status === 'sent').length})</TabsTrigger>
-                  <TabsTrigger value="accepted">אושרו ({quotes.filter(q => q.status === 'accepted').length})</TabsTrigger>
-                  <TabsTrigger value="rejected">נדחו ({quotes.filter(q => q.status === 'rejected').length})</TabsTrigger>
-                </TabsList>
+                {/* Mobile: Scrollable tabs */}
+                <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 mb-4">
+                  <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-5 gap-1">
+                    <TabsTrigger value="all" className="text-xs sm:text-sm px-2 sm:px-4 min-h-[44px] whitespace-nowrap">
+                      הכל ({quotes.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="draft" className="text-xs sm:text-sm px-2 sm:px-4 min-h-[44px] whitespace-nowrap">
+                      טיוטאות ({quotes.filter(q => q.status === 'draft').length})
+                    </TabsTrigger>
+                    <TabsTrigger value="sent" className="text-xs sm:text-sm px-2 sm:px-4 min-h-[44px] whitespace-nowrap">
+                      נשלחו ({quotes.filter(q => q.status === 'sent').length})
+                    </TabsTrigger>
+                    <TabsTrigger value="accepted" className="text-xs sm:text-sm px-2 sm:px-4 min-h-[44px] whitespace-nowrap">
+                      אושרו ({quotes.filter(q => q.status === 'accepted').length})
+                    </TabsTrigger>
+                    <TabsTrigger value="rejected" className="text-xs sm:text-sm px-2 sm:px-4 min-h-[44px] whitespace-nowrap">
+                      נדחו ({quotes.filter(q => q.status === 'rejected').length})
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
                 
                 <TabsContent value={activeTab}>
-                  <div className="rounded-md border">
+                  {/* Mobile: Card view */}
+                  <div className="block sm:hidden space-y-3">
+                    {filteredQuotes.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        אין הצעות מחיר
+                      </div>
+                    ) : (
+                      filteredQuotes.map((quote) => (
+                        <div key={quote.id} className="border rounded-lg p-3 space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="font-medium text-sm">{quote.title}</div>
+                              <div className="font-mono text-xs text-muted-foreground">
+                                #{quote.id.slice(0, 8).toUpperCase()}
+                              </div>
+                            </div>
+                            <div className="text-left">
+                              <div className="font-bold text-sm">₪{quote.total_amount.toLocaleString('he-IL')}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {new Date(quote.created_at).toLocaleDateString('he-IL')}
+                              </div>
+                            </div>
+                          </div>
+                          <div>{getStatusBadge(quote)}</div>
+                          <div className="flex flex-wrap gap-2">
+                            {quote.status === 'draft' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => navigate(`/supplier/quote-builder?quoteId=${quote.id}`)}
+                                className="min-h-[40px] flex-1"
+                              >
+                                <Edit className="w-4 h-4 ml-1" />
+                                ערוך
+                              </Button>
+                            )}
+                            {(quote.status === 'accepted' || quote.status === 'rejected') && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleResendQuote(quote)}
+                                className="text-blue-600 hover:text-blue-700 min-h-[40px] flex-1"
+                              >
+                                <Send className="w-4 h-4 ml-1" />
+                                שלח מחדש
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handlePreviewClick(quote.id)}
+                              className="min-h-[40px] flex-1"
+                            >
+                              <Eye className="w-4 h-4 ml-1" />
+                              צפה
+                            </Button>
+                            {(quote.status === 'draft' || quote.status === 'rejected') && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleDeleteQuote(quote)}
+                                className="text-destructive hover:text-destructive min-h-[40px]"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Desktop: Table view */}
+                  <div className="hidden sm:block rounded-md border overflow-x-auto">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -168,7 +255,7 @@ export default function QuotesList() {
                           <TableHead className="text-right">כותרת</TableHead>
                           <TableHead className="text-right">סכום כולל</TableHead>
                           <TableHead className="text-right">סטטוס</TableHead>
-                          <TableHead className="text-right">תאריך יצירה</TableHead>
+                          <TableHead className="text-right hidden md:table-cell">תאריך יצירה</TableHead>
                           <TableHead className="text-right">פעולות</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -185,18 +272,19 @@ export default function QuotesList() {
                               <TableCell className="font-mono text-sm">
                                 {quote.id.slice(0, 8).toUpperCase()}
                               </TableCell>
-                              <TableCell className="font-medium">{quote.title}</TableCell>
+                              <TableCell className="font-medium max-w-[150px] truncate">{quote.title}</TableCell>
                               <TableCell>₪{quote.total_amount.toLocaleString('he-IL')}</TableCell>
                               <TableCell>{getStatusBadge(quote)}</TableCell>
-                              <TableCell>{new Date(quote.created_at).toLocaleDateString('he-IL')}</TableCell>
+                              <TableCell className="hidden md:table-cell">{new Date(quote.created_at).toLocaleDateString('he-IL')}</TableCell>
                               <TableCell>
-                                <div className="flex gap-2">
+                                <div className="flex gap-1">
                                   {quote.status === 'draft' && (
                                     <Button
                                       size="sm"
                                       variant="outline"
                                       onClick={() => navigate(`/supplier/quote-builder?quoteId=${quote.id}`)}
                                       title="ערוך"
+                                      className="min-h-[40px] min-w-[40px] p-2"
                                     >
                                       <Edit className="w-4 h-4" />
                                     </Button>
@@ -207,7 +295,7 @@ export default function QuotesList() {
                                       variant="outline"
                                       onClick={() => handleResendQuote(quote)}
                                       title="שלח מחדש"
-                                      className="text-blue-600 hover:text-blue-700"
+                                      className="text-blue-600 hover:text-blue-700 min-h-[40px] min-w-[40px] p-2"
                                     >
                                       <Send className="w-4 h-4" />
                                     </Button>
@@ -217,6 +305,7 @@ export default function QuotesList() {
                                     variant="outline"
                                     onClick={() => handlePreviewClick(quote.id)}
                                     title="תצוגה מקדימה"
+                                    className="min-h-[40px] min-w-[40px] p-2"
                                   >
                                     <Eye className="w-4 h-4" />
                                   </Button>
@@ -226,7 +315,7 @@ export default function QuotesList() {
                                       variant="outline"
                                       onClick={() => handleDeleteQuote(quote)}
                                       title="מחק"
-                                      className="text-destructive hover:text-destructive"
+                                      className="text-destructive hover:text-destructive min-h-[40px] min-w-[40px] p-2"
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </Button>

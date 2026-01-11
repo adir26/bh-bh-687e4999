@@ -303,12 +303,12 @@ const UnifiedHomepage = () => {
   const userName = user?.user_metadata?.full_name?.split(' ')[0] || 'אורח';
   const ctaText = isGuest ? 'הצטרפו חינם' : 'בואו נתחיל';
   const ctaHref = isGuest ? '/auth' : '/onboarding/welcome';
-  return <div className="flex w-full min-h-screen flex-col items-start bg-background">
+  return <div className="flex w-full min-h-screen flex-col items-center bg-background">
       {/* Guest Banner - Only for guests */}
       {isGuest && <GuestBanner />}
       
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl flex flex-col items-start w-full bg-muted/30 pb-nav-safe">
-        <div className="flex flex-col items-start w-full">
+      <main className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col items-center bg-muted/30 pb-nav-safe">
+        <div className="flex flex-col items-center w-full">
           <Header userName={isGuest ? undefined : userName} />
           
           {/* Onboarding Status Banner - Only for authenticated users */}
