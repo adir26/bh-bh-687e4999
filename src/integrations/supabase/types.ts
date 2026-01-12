@@ -3741,45 +3741,6 @@ export type Database = {
           },
         ]
       }
-      quick_selection_icons: {
-        Row: {
-          created_at: string
-          display_order: number
-          icon_key: string
-          id: string
-          image_url: string
-          is_active: boolean
-          link_target: string | null
-          link_type: string | null
-          title_he: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          display_order?: number
-          icon_key: string
-          id?: string
-          image_url: string
-          is_active?: boolean
-          link_target?: string | null
-          link_type?: string | null
-          title_he: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          display_order?: number
-          icon_key?: string
-          id?: string
-          image_url?: string
-          is_active?: boolean
-          link_target?: string | null
-          link_type?: string | null
-          title_he?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       quiet_hours_config: {
         Row: {
           created_at: string | null

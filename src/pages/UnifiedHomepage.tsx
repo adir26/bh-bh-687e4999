@@ -12,7 +12,7 @@ import { HeroSection } from '@/components/HeroSection';
 import { AdBanner } from '@/components/AdBanner';
 import { SectionTitle } from '@/components/SectionTitle';
 import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';
-import { QuickSelection, defaultQuickSelectionItems } from '@/components/QuickSelection';
+import { QuickSelection } from '@/components/QuickSelection';
 import { CategorySection } from '@/components/CategorySection';
 import { SupplierSection } from '@/components/SupplierSection';
 import { BottomCTA } from '@/components/BottomCTA';
@@ -103,8 +103,28 @@ const UnifiedHomepage = () => {
     return () => clearInterval(interval);
   }, [queryClient]);
 
-  // Use default quick selection items with icons
-  const quickSelectionItems = defaultQuickSelectionItems;
+  // Quick selection data
+  const quickSelectionItems = [{
+    id: '1',
+    title: 'מטבחים',
+    image: 'https://api.builder.io/api/v1/image/assets/TEMP/412b6930986355e60bd9ab81c33874aa5793c909?width=256'
+  }, {
+    id: '2',
+    title: 'בלעדי לאפליקציה',
+    image: 'https://api.builder.io/api/v1/image/assets/TEMP/79cf482cde57d1401ddfb44ac7f4407b97b7a749?width=256'
+  }, {
+    id: '3',
+    title: 'ספקים חדשים',
+    image: 'https://api.builder.io/api/v1/image/assets/TEMP/0e229886b939e7efe2eaf0ec52f96dd014bce76a?width=256'
+  }, {
+    id: '4',
+    title: 'חם עכשיו',
+    image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=256'
+  }, {
+    id: '5',
+    title: 'המובילים בבונים פה',
+    image: 'https://api.builder.io/api/v1/image/assets/TEMP/ad33659c33381eac40061641b81f19d65a13ad9f?width=256'
+  }];
 
   // Kitchen categories data
   const kitchenCategories = [{
