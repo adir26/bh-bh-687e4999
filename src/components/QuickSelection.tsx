@@ -1,11 +1,16 @@
 import React from 'react';
-import { ChefHat, Sparkles, UserPlus, Flame, Trophy, LucideIcon } from 'lucide-react';
+
+// Import 3D icons
+import kitchensIcon from '@/assets/quick-selection/kitchens.png';
+import appExclusiveIcon from '@/assets/quick-selection/app-exclusive.png';
+import newSuppliersIcon from '@/assets/quick-selection/new-suppliers.png';
+import hotNowIcon from '@/assets/quick-selection/hot-now.png';
+import topLeadersIcon from '@/assets/quick-selection/top-leaders.png';
 
 interface QuickSelectionItem {
   id: string;
   title: string;
-  icon: LucideIcon;
-  gradient: string;
+  image: string;
 }
 
 interface QuickSelectionProps {
@@ -13,37 +18,32 @@ interface QuickSelectionProps {
   onItemClick?: (item: QuickSelectionItem) => void;
 }
 
-// Default quick selection items with icons and gradients matching app style
+// Default quick selection items with 3D icons
 export const defaultQuickSelectionItems: QuickSelectionItem[] = [
   {
     id: '1',
     title: 'מטבחים',
-    icon: ChefHat,
-    gradient: 'from-primary to-primary/70'
+    image: kitchensIcon
   },
   {
     id: '2',
     title: 'בלעדי לאפליקציה',
-    icon: Sparkles,
-    gradient: 'from-accent to-accent/70'
+    image: appExclusiveIcon
   },
   {
     id: '3',
     title: 'ספקים חדשים',
-    icon: UserPlus,
-    gradient: 'from-secondary to-secondary/70'
+    image: newSuppliersIcon
   },
   {
     id: '4',
     title: 'חם עכשיו',
-    icon: Flame,
-    gradient: 'from-destructive to-destructive/70'
+    image: hotNowIcon
   },
   {
     id: '5',
     title: 'המובילים',
-    icon: Trophy,
-    gradient: 'from-chart-4 to-chart-4/70'
+    image: topLeadersIcon
   }
 ];
 
@@ -53,16 +53,19 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
       {/* Mobile: horizontal scroll */}
       <div className="md:hidden flex items-start gap-3 xs:gap-4 sm:gap-6 w-full overflow-x-auto smooth-scroll scrollbar-hide px-4 xs:px-5 sm:px-6 py-3 xs:py-4">
         {items.map((item) => {
-          const IconComponent = item.icon;
           return (
             <button
               key={item.id}
-              className="touch-target flex w-16 xs:w-20 min-w-16 xs:min-w-20 flex-col items-center gap-2 xs:gap-3 p-2 rounded-xl hover:bg-accent/50 mobile-transition focus-ring tap-highlight-transparent no-select group"
+              className="touch-target flex w-20 xs:w-24 min-w-20 xs:min-w-24 flex-col items-center gap-2 xs:gap-3 p-2 rounded-xl hover:bg-accent/50 mobile-transition focus-ring tap-highlight-transparent no-select group"
               onClick={() => onItemClick?.(item)}
               aria-label={item.title}
             >
-              <div className={`flex items-center justify-center w-12 h-12 xs:w-14 xs:h-14 rounded-2xl bg-gradient-to-br ${item.gradient} shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-200`}>
-                <IconComponent className="w-6 h-6 xs:w-7 xs:h-7 text-white" strokeWidth={2} />
+              <div className="flex items-center justify-center w-16 h-16 xs:w-20 xs:h-20 rounded-2xl bg-background group-hover:scale-105 transition-all duration-200">
+                <img 
+                  src={item.image} 
+                  alt={item.title}
+                  className="w-14 h-14 xs:w-18 xs:h-18 object-contain"
+                />
               </div>
               <span className="text-foreground text-center text-[10px] xs:text-xs font-medium leading-tight text-wrap-balance line-clamp-2">
                 {item.title}
@@ -75,7 +78,6 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
       {/* Tablet+: responsive grid */}
       <div className="hidden md:grid md:grid-cols-5 gap-4 px-4 xs:px-5 sm:px-6 py-3 xs:py-4">
         {items.map((item) => {
-          const IconComponent = item.icon;
           return (
             <button
               key={item.id}
@@ -83,8 +85,12 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
               onClick={() => onItemClick?.(item)}
               aria-label={item.title}
             >
-              <div className={`flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${item.gradient} shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-200`}>
-                <IconComponent className="w-8 h-8 text-white" strokeWidth={2} />
+              <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-background group-hover:scale-105 transition-all duration-200">
+                <img 
+                  src={item.image} 
+                  alt={item.title}
+                  className="w-16 h-16 object-contain"
+                />
               </div>
               <span className="text-foreground text-center text-sm font-medium leading-5 text-wrap-balance">
                 {item.title}
