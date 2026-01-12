@@ -60,7 +60,7 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
               onClick={() => onItemClick?.(item)}
               aria-label={item.title}
             >
-              <div className="flex items-center justify-center w-16 h-16 xs:w-20 xs:h-20 rounded-2xl bg-background group-hover:scale-105 transition-all duration-200">
+              <div className="flex items-center justify-center w-16 h-16 xs:w-20 xs:h-20 rounded-2xl bg-muted group-hover:scale-105 transition-all duration-200">
                 <img 
                   src={item.image} 
                   alt={item.title}
@@ -85,7 +85,7 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
               onClick={() => onItemClick?.(item)}
               aria-label={item.title}
             >
-              <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-background group-hover:scale-105 transition-all duration-200">
+              <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-muted group-hover:scale-105 transition-all duration-200">
                 <img 
                   src={item.image} 
                   alt={item.title}
