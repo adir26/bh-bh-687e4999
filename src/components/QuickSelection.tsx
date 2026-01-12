@@ -1,11 +1,11 @@
 import React from 'react';
 
 // Import 3D icons
-import kitchensIcon from '@/assets/quick-selection/kitchens-v6.png';
-import appExclusiveIcon from '@/assets/quick-selection/app-exclusive-v6.png';
-import newSuppliersIcon from '@/assets/quick-selection/new-suppliers-v6.png';
-import hotNowIcon from '@/assets/quick-selection/hot-now-v6.png';
-import topLeadersIcon from '@/assets/quick-selection/top-leaders-v6.png';
+import kitchensIcon from '@/assets/quick-selection/kitchens.png';
+import appExclusiveIcon from '@/assets/quick-selection/app-exclusive.png';
+import newSuppliersIcon from '@/assets/quick-selection/new-suppliers.png';
+import hotNowIcon from '@/assets/quick-selection/hot-now.png';
+import topLeadersIcon from '@/assets/quick-selection/top-leaders.png';
 
 interface QuickSelectionItem {
   id: string;
@@ -60,13 +60,11 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
               onClick={() => onItemClick?.(item)}
               aria-label={item.title}
             >
-              <div className="flex items-center justify-center w-16 h-16 xs:w-20 xs:h-20 group-hover:scale-105 transition-all duration-200">
+              <div className="flex items-center justify-center w-16 h-16 xs:w-20 xs:h-20 rounded-2xl bg-background group-hover:scale-105 transition-all duration-200">
                 <img 
                   src={item.image} 
                   alt={item.title}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-full object-contain"
+                  className="w-14 h-14 xs:w-18 xs:h-18 object-contain"
                 />
               </div>
               <span className="text-foreground text-center text-[10px] xs:text-xs font-medium leading-tight text-wrap-balance line-clamp-2">
@@ -87,13 +85,11 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
               onClick={() => onItemClick?.(item)}
               aria-label={item.title}
             >
-              <div className="flex items-center justify-center w-20 h-20 group-hover:scale-105 transition-all duration-200">
+              <div className="flex items-center justify-center w-20 h-20 rounded-2xl bg-background group-hover:scale-105 transition-all duration-200">
                 <img 
                   src={item.image} 
                   alt={item.title}
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-full object-contain"
+                  className="w-16 h-16 object-contain"
                 />
               </div>
               <span className="text-foreground text-center text-sm font-medium leading-5 text-wrap-balance">
