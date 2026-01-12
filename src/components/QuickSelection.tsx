@@ -1,11 +1,11 @@
 import React from 'react';
 
 // Import 3D icons
-import kitchensIcon from '@/assets/quick-selection/kitchens.png';
-import appExclusiveIcon from '@/assets/quick-selection/app-exclusive.png';
-import newSuppliersIcon from '@/assets/quick-selection/new-suppliers.png';
-import hotNowIcon from '@/assets/quick-selection/hot-now.png';
-import topLeadersIcon from '@/assets/quick-selection/top-leaders.png';
+import kitchensIcon from '@/assets/quick-selection/kitchens-v2.png';
+import appExclusiveIcon from '@/assets/quick-selection/app-exclusive-v2.png';
+import newSuppliersIcon from '@/assets/quick-selection/new-suppliers-v2.png';
+import hotNowIcon from '@/assets/quick-selection/hot-now-v2.png';
+import topLeadersIcon from '@/assets/quick-selection/top-leaders-v2.png';
 
 interface QuickSelectionItem {
   id: string;
