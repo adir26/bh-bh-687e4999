@@ -60,11 +60,11 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
               onClick={() => onItemClick?.(item)}
               aria-label={item.title}
             >
-              <div className="w-16 h-16 xs:w-20 xs:h-20 rounded-2xl overflow-hidden group-hover:scale-105 transition-all duration-200 shadow-sm">
+              <div className="w-16 h-16 xs:w-20 xs:h-20 rounded-2xl overflow-hidden bg-muted border border-border/50 group-hover:scale-105 transition-all duration-200 shadow-sm">
                 <img 
                   src={item.image} 
                   alt={item.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain p-2"
                 />
               </div>
               <span className="text-foreground text-center text-[10px] xs:text-xs font-medium leading-tight text-wrap-balance line-clamp-2">
@@ -85,11 +85,11 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
               onClick={() => onItemClick?.(item)}
               aria-label={item.title}
             >
-              <div className="w-20 h-20 rounded-2xl overflow-hidden group-hover:scale-105 transition-all duration-200 shadow-sm">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-muted border border-border/50 group-hover:scale-105 transition-all duration-200 shadow-sm">
                 <img 
                   src={item.image} 
                   alt={item.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain p-2"
                 />
               </div>
               <span className="text-foreground text-center text-sm font-medium leading-5 text-wrap-balance">
