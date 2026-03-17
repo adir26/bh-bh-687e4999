@@ -139,12 +139,7 @@ const PublicHomepage: React.FC = () => {
         onButtonClick={handleCTAClick}
       />
 
-      {/* Login Modal for Guest Actions */}
-      <LoginModal 
-        isOpen={showLoginModal} 
-        onClose={() => setShowLoginModal(false)}
-        attemptedAction={attemptedAction}
-      />
+      {/* LoginModal is now rendered globally in App.tsx */}
     </div>
   );
 };
