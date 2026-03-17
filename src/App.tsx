@@ -593,8 +593,9 @@ const App = () => {
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
-                  </main>
+                   </main>
                   <ConditionalNavigation />
+                  <GlobalLoginModal />
                   <SiteFooter />
                 </div>
               </div>
