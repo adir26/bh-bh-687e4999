@@ -72,7 +72,7 @@ const getStatusBadge = (status: string, type: 'lead' | 'order') => {
       'confirmed': { label: 'מאושר', variant: 'default', color: 'bg-blue-100 text-blue-800' },
       'in_progress': { label: 'בביצוע', variant: 'secondary', color: 'bg-orange-100 text-orange-800' },
       'completed': { label: 'הושלם', variant: 'default', color: 'bg-green-100 text-green-800' },
-      'canceled': { label: 'בוטל', variant: 'destructive', color: 'bg-red-100 text-red-800' },
+      'cancelled': { label: 'בוטל', variant: 'destructive', color: 'bg-red-100 text-red-800' },
     }
   };
 
