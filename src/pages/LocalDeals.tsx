@@ -13,18 +13,18 @@ const LocalDeals = () => {
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background" dir="rtl">
       {/* Header */}
-      <div className="bg-white px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10">
+      <div className="bg-card px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10 border-b border-border">
         <div className="flex items-center gap-4 mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate(-1)}
-            className="p-2 hover:bg-gray-100 rounded-xl"
+            className="p-2 hover:bg-muted rounded-xl min-h-[44px]"
           >
             <ArrowRight className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">ספקים בקרבתי</h1>
+            <h1 className="text-2xl font-bold text-foreground">ספקים בקרבתי</h1>
             {hasLocation && userLocation?.city && (
               <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                 <MapPin className="w-4 h-4" />

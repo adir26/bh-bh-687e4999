@@ -161,11 +161,11 @@ const Orders = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Package className="w-10 h-10 text-gray-400" />
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package className="w-10 h-10 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">אין הזמנות</h3>
-            <p className="text-gray-500 text-lg">
+            <h3 className="text-xl font-bold text-foreground mb-2">אין הזמנות</h3>
+            <p className="text-muted-foreground text-lg">
               {activeTab === 'active' ? 'אין לך הזמנות פעילות כרגע' : 'אין לך הזמנות קודמות'}
             </p>
           </div>
