@@ -21,9 +21,6 @@ export const SupplierHeader: React.FC<SupplierHeaderProps> = ({
   showNotifications = true
 }) => {
   const navigate = useNavigate();
-  
-  // Mock notification count - in real app this would come from context/API
-  const unreadNotifications = 3;
 
   return (
     <div className="bg-background border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
