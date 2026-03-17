@@ -47,7 +47,7 @@ import SupplierCompanyInfo from "./pages/onboarding/SupplierCompanyInfo";
 import SupplierBranding from "./pages/onboarding/SupplierBranding";
 import SupplierProducts from "./pages/onboarding/SupplierProducts";
 import SupplierSummary from "./pages/onboarding/SupplierSummary";
-import SupplierDashboard from "./pages/SupplierDashboard";
+
 import OrderStatus from "./pages/orders/OrderStatus";
 import LiveDeliveryTracking from "./pages/orders/LiveDeliveryTracking";
 import SupplierDashboardNew from "./pages/supplier/Dashboard";
