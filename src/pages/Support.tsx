@@ -108,7 +108,7 @@ const Support = () => {
 
         {/* Active Conversations */}
         <div>
-          <h2 className="text-lg font-bold text-gray-900 mb-4">שיחות פעילות</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">שיחות פעילות</h2>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
