@@ -97,6 +97,8 @@ import SupplierManagement from "./pages/admin/SupplierManagement";
 import CategoryManagement from "./pages/admin/CategoryManagement";
 import { HomepageContentManagement } from "./pages/admin/HomepageContentManagement";
 import PhotoManagement from "./pages/admin/PhotoManagement";
+import AdminOrders from "./pages/admin/OrdersManagement";
+import AdminSupport from "./pages/admin/SupportManagement";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminRouteGuard } from "./components/admin/AdminRouteGuard";
 import { AuthProvider } from "./contexts/AuthContext";
