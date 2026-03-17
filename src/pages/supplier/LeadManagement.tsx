@@ -256,7 +256,7 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
             : 0;
 
           return (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
               <Card>
                 <CardContent className="p-3 sm:p-4 text-center">
                   <div className="text-xl sm:text-2xl font-bold text-green-600">{stats.new}</div>
