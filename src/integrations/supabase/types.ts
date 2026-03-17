@@ -984,6 +984,39 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          last_message_text: string | null
+          participant_1: string
+          participant_2: string
+          unread_count_1: number | null
+          unread_count_2: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          last_message_text?: string | null
+          participant_1: string
+          participant_2: string
+          unread_count_1?: number | null
+          unread_count_2?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          last_message_text?: string | null
+          participant_1?: string
+          participant_2?: string
+          unread_count_1?: number | null
+          unread_count_2?: number | null
+        }
+        Relationships: []
+      }
       coupons: {
         Row: {
           company_id: string | null
@@ -2234,7 +2267,10 @@ export type Database = {
       messages: {
         Row: {
           content: string
+          conversation_id: string | null
           created_at: string
+          file_name: string | null
+          file_url: string | null
           id: string
           order_id: string | null
           project_id: string | null
@@ -2245,7 +2281,10 @@ export type Database = {
         }
         Insert: {
           content: string
+          conversation_id?: string | null
           created_at?: string
+          file_name?: string | null
+          file_url?: string | null
           id?: string
           order_id?: string | null
           project_id?: string | null
@@ -2256,7 +2295,10 @@ export type Database = {
         }
         Update: {
           content?: string
+          conversation_id?: string | null
           created_at?: string
+          file_name?: string | null
+          file_url?: string | null
           id?: string
           order_id?: string | null
           project_id?: string | null
@@ -2266,6 +2308,13 @@ export type Database = {
           status?: Database["public"]["Enums"]["message_status"]
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_order_id_fkey"
             columns: ["order_id"]
@@ -5304,6 +5353,10 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_or_create_conversation: {
+        Args: { other_user_id: string }
+        Returns: string
+      }
       get_or_create_supplier_webhook: {
         Args: { p_supplier_id: string }
         Returns: {
@@ -5401,6 +5454,7 @@ export type Database = {
         Returns: Database["public"]["Enums"]["project_status"]
       }
       mark_all_notifications_read: { Args: never; Returns: undefined }
+      mark_conversation_read: { Args: { conv_id: string }; Returns: undefined }
       mark_notification_read: {
         Args: { notification_id: string }
         Returns: undefined
