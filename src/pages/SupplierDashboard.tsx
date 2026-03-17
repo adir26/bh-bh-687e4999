@@ -128,8 +128,8 @@ export default function SupplierDashboard() {
   return (
     <div className="min-h-screen bg-background pb-safe" dir="rtl">
       {/* Header */}
-      <div className="mobile-padding border-b border-border pt-[max(env(safe-area-inset-top),12px)]">
-        <div className="mobile-container flex justify-between items-center">
+       <div className="mobile-padding border-b border-border pt-[max(env(safe-area-inset-top),12px)]">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <h1 className="text-lg xs:text-xl font-bold">לוח בקרה - ספק</h1>
           <Button
             variant="ghost"
@@ -143,7 +143,7 @@ export default function SupplierDashboard() {
       </div>
 
       <div className="mobile-padding space-y-6">
-        <div className="mobile-container max-w-none space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6">
           {/* Alerts */}
           {alerts.length > 0 && (
             <div className="space-y-3">

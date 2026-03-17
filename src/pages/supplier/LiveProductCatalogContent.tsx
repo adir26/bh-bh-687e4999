@@ -334,7 +334,7 @@ export default function LiveProductCatalogContent() {
       <div className="min-h-screen bg-background" dir="rtl">
         {/* Header */}
         <div className="bg-white border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
-          <div className="mobile-container px-4 xs:px-5 sm:px-6 py-3 xs:py-4">
+          <div className="max-w-7xl mx-auto px-4 xs:px-5 sm:px-6 md:px-8 py-3 xs:py-4">
             <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-3 xs:gap-4">
               <h1 className="text-lg xs:text-xl sm:text-2xl font-bold">קטלוג מוצרים ושירותים</h1>
               <div className="flex items-center gap-2">
@@ -366,7 +366,7 @@ export default function LiveProductCatalogContent() {
           </div>
         </div>
 
-        <div className="mobile-container px-4 xs:px-5 sm:px-6 py-4 xs:py-5 sm:py-6 pb-nav-safe">
+        <div className="max-w-7xl mx-auto px-4 xs:px-5 sm:px-6 md:px-8 py-4 xs:py-5 sm:py-6 pb-nav-safe">
           {/* Stats */}
           <div className="grid grid-cols-3 gap-2 xs:gap-3 sm:gap-4 mb-4 xs:mb-5 sm:mb-6">
             <Card className="mobile-card">

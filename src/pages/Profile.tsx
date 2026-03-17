@@ -249,7 +249,7 @@ const Profile = () => {
         onRetry={refreshProfile}
       >
         <div className="min-h-screen bg-background" dir="rtl">
-          <div className="max-w-md mx-auto bg-background">
+          <div className="max-w-md md:max-w-4xl lg:max-w-5xl mx-auto bg-background">
             {!user ? (
               <div className="text-center space-y-4 py-16 px-6">
                 <User className="h-12 w-12 text-muted-foreground mx-auto" />

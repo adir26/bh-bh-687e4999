@@ -160,7 +160,7 @@ const SupplierProfilePreview = () => {
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white pb-20">
+    <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col bg-white pb-20">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <button onClick={() => navigate('/supplier/dashboard')} className="p-2">
