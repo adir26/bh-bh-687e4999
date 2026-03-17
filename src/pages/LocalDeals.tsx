@@ -11,7 +11,7 @@ const LocalDeals = () => {
   const { userLocation, suppliersByCategory, isLoading, hasLocation } = useLocalSuppliers();
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background" dir="rtl">
+    <div className="flex w-full max-w-5xl mx-auto min-h-screen flex-col bg-background" dir="rtl">
       {/* Header */}
       <div className="bg-card px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10 border-b border-border">
         <div className="flex items-center gap-4 mb-4">

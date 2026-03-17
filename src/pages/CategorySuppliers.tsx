@@ -32,7 +32,7 @@ const CategorySuppliers = () => {
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background" dir="rtl">
+    <div className="flex w-full max-w-5xl mx-auto min-h-screen flex-col bg-background" dir="rtl">
       <SEO 
         title={`${getCategoryTitle(category || '')} – ספקים`}
         description={`מצאו את ספקי ה${getCategoryTitle(category || '')} הטובים ביותר בישראל – השוו מחירים וקראו חוות דעת`}

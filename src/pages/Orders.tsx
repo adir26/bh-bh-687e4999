@@ -117,7 +117,7 @@ const Orders = () => {
   }
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-muted/30 pb-nav-safe">
+    <div className="flex w-full max-w-5xl mx-auto min-h-screen flex-col bg-muted/30 pb-nav-safe">
       {/* Header */}
       <div className="bg-card px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10 border-b border-border">
         <div className="text-right">

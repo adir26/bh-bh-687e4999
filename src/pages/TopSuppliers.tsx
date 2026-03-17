@@ -44,7 +44,7 @@ const TopSuppliers = () => {
   );
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-background">
+    <div className="flex w-full max-w-5xl mx-auto min-h-screen flex-col items-start bg-background">
       <SEO 
         title="ספקים מובילים"
         description="הספקים המובילים בישראל לבנייה ועיצוב הבית – קבלנים, מעצבים ואנשי מקצוע מדורגים"
