@@ -14,7 +14,7 @@ import {
   Edit, Star, TrendingUp, Users, ShoppingBag, DollarSign,
   AlertCircle, Eye, FileText, Package2, Package, Briefcase,
   Settings, ClipboardCheck, Camera, ExternalLink, RefreshCw,
-  AlertTriangle, BarChart3
+  AlertTriangle, BarChart3, CalendarDays
 } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { withTimeout } from '@/lib/withTimeout';
