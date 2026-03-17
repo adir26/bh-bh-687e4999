@@ -161,9 +161,7 @@ const Orders = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <Package className="w-10 h-10 text-muted-foreground" />
-            </div>
+            <img src={emptyOrdersImg} alt="אין הזמנות" className="w-32 h-32 mx-auto mb-4 object-contain opacity-80" />
             <h3 className="text-xl font-bold text-foreground mb-2">אין הזמנות</h3>
             <p className="text-muted-foreground text-lg">
               {activeTab === 'active' ? 'אין לך הזמנות פעילות כרגע' : 'אין לך הזמנות קודמות'}

@@ -223,7 +223,7 @@ const PublicSupplierProfile: React.FC = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
-          <div className="text-6xl mb-4">🏪</div>
+          <img src={emptySupplierImg} alt="ספק לא נמצא" className="w-40 h-40 mx-auto mb-4 object-contain" />
           <h1 className="text-2xl font-bold mb-2">ספק לא נמצא</h1>
           <p className="text-muted-foreground mb-6">
             הספק שחיפשת אינו קיים או שאינו זמין כרגע

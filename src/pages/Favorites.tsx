@@ -116,7 +116,7 @@ const Favorites = () => {
             {/* Show empty state for non-authenticated users */}
             {!user || !profile ? (
               <div className="text-center space-y-4 py-16">
-                <Heart className="h-12 w-12 text-muted-foreground mx-auto" />
+                <img src={emptyFavoritesImg} alt="מועדפים ריקים" className="w-32 h-32 mx-auto object-contain opacity-80" />
                 <div>
                   <h3 className="font-semibold text-foreground">התחבר כדי לראות מועדפים</h3>
                   <p className="text-sm text-muted-foreground">
