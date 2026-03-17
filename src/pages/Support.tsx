@@ -217,15 +217,15 @@ const Support = () => {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
-                        <MessageCircle className="w-6 h-6 text-gray-400" />
+                      <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center">
+                        <MessageCircle className="w-6 h-6 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold text-gray-700 text-sm">{ticket.title}</h3>
-                          <span className="text-xs text-gray-500">{formatTimestamp(ticket.created_at)}</span>
+                          <h3 className="font-semibold text-muted-foreground text-sm">{ticket.title}</h3>
+                          <span className="text-xs text-muted-foreground">{formatTimestamp(ticket.created_at)}</span>
                         </div>
-                        <p className="text-gray-500 text-sm mb-2 line-clamp-1">{ticket.description}</p>
+                        <p className="text-muted-foreground text-sm mb-2 line-clamp-1">{ticket.description}</p>
                         <div className="flex items-center gap-2">
                           {getStatusIcon(ticket.status)}
                           <Badge className={`text-xs px-2 py-1 rounded-lg border ${getStatusColor(ticket.status)}`}>
