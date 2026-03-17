@@ -9,6 +9,8 @@ interface AuthState {
   returnPath: string | null;
   pendingAction: string | null;
   guestBannerDismissed: boolean;
+  showLoginModal: boolean;
+  loginModalAction: string | null;
   
   // Login tracking
   loginTracked: Record<string, boolean>;
@@ -21,6 +23,7 @@ interface AuthState {
   setReturnPath: (path: string | null) => void;
   setPendingAction: (action: string | null) => void;
   setGuestBannerDismissed: (dismissed: boolean) => void;
+  setShowLoginModal: (show: boolean, action?: string | null) => void;
   setLoginTracked: (userId: string, tracked: boolean) => void;
   setRedirected: (userId: string, redirected: boolean) => void;
   setHasSeenWelcome: (seen: boolean) => void;
@@ -38,6 +41,8 @@ export const useAuthStore = create<AuthState>()(
       returnPath: null,
       pendingAction: null,
       guestBannerDismissed: false,
+      showLoginModal: false,
+      loginModalAction: null,
       loginTracked: {},
       redirected: {},
       hasSeenWelcome: false,
@@ -52,6 +57,11 @@ export const useAuthStore = create<AuthState>()(
       setPendingAction: (action) => set({ pendingAction: action }),
       
       setGuestBannerDismissed: (dismissed) => set({ guestBannerDismissed: dismissed }),
+      
+      setShowLoginModal: (show, action) => set({ 
+        showLoginModal: show, 
+        loginModalAction: action !== undefined ? action : show ? get().loginModalAction : null 
+      }),
       
       setLoginTracked: (userId, tracked) => 
         set((state) => ({
@@ -71,6 +81,8 @@ export const useAuthStore = create<AuthState>()(
         returnPath: null,
         pendingAction: null,
         guestBannerDismissed: false,
+        showLoginModal: false,
+        loginModalAction: null,
         hasSeenWelcome: false,
       }),
       
@@ -90,6 +102,8 @@ export const useAuthStore = create<AuthState>()(
         returnPath: null,
         pendingAction: null,
         guestBannerDismissed: false,
+        showLoginModal: false,
+        loginModalAction: null,
         loginTracked: {},
         redirected: {},
         hasSeenWelcome: false,

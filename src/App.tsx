@@ -123,6 +123,8 @@ import AllCategories from "./pages/AllCategories";
 import { SiteFooter } from "./components/SiteFooter";
 import { useGuestMode } from "./hooks/useGuestMode";
 import { isPublicRoute } from "./utils/publicRoutes";
+import { LoginModal } from "./components/modals/LoginModal";
+import { useAuthStore } from "./stores/authStore";
 
 // Wrapper for onboarding routes that redirects guests to home
 const OnboardingRouteWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -591,8 +593,9 @@ const App = () => {
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
-                  </main>
+                   </main>
                   <ConditionalNavigation />
+                  <GlobalLoginModal />
                   <SiteFooter />
                 </div>
               </div>
@@ -624,6 +627,20 @@ const ConditionalNavigation = () => {
   
   // Show regular navigation for all other cases (including when non-suppliers access public supplier routes)
   return <BottomNavigation />;
+};
+
+const GlobalLoginModal = () => {
+  const showLoginModal = useAuthStore((state) => state.showLoginModal);
+  const loginModalAction = useAuthStore((state) => state.loginModalAction);
+  const setShowLoginModal = useAuthStore((state) => state.setShowLoginModal);
+  
+  return (
+    <LoginModal 
+      isOpen={showLoginModal} 
+      onClose={() => setShowLoginModal(false)} 
+      attemptedAction={loginModalAction} 
+    />
+  );
 };
 
 export default App;

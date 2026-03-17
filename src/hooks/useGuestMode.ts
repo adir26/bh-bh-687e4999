@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 
 export interface GuestModeState {
   isGuestMode: boolean;
-  isAppMode: boolean; // iOS app vs web browser
+  isAppMode: boolean;
   showLoginModal: boolean;
   setShowLoginModal: (show: boolean) => void;
   attemptedAction: string | null;
@@ -15,18 +15,19 @@ export interface GuestModeState {
 
 export const useGuestMode = (): GuestModeState => {
   const location = useLocation();
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [attemptedAction, setAttemptedAction] = useState<string | null>(null);
   
-  // Use Zustand store for all state
+  // Use Zustand store for ALL state including modal
   const guestMode = useAuthStore((state) => state.guestMode);
   const appMode = useAuthStore((state) => state.appMode);
   const returnPath = useAuthStore((state) => state.returnPath);
   const pendingAction = useAuthStore((state) => state.pendingAction);
+  const showLoginModal = useAuthStore((state) => state.showLoginModal);
+  const loginModalAction = useAuthStore((state) => state.loginModalAction);
   const setGuestModeStore = useAuthStore((state) => state.setGuestMode);
   const setAppModeStore = useAuthStore((state) => state.setAppMode);
   const setReturnPathStore = useAuthStore((state) => state.setReturnPath);
   const setPendingActionStore = useAuthStore((state) => state.setPendingAction);
+  const setShowLoginModalStore = useAuthStore((state) => state.setShowLoginModal);
   
   const urlParams = new URLSearchParams(location.search);
   const urlGuestMode = urlParams.get('guest') === '1';
@@ -50,20 +51,21 @@ export const useGuestMode = (): GuestModeState => {
       const fullPath = location.pathname + location.search;
       setReturnPathStore(fullPath);
       setPendingActionStore(actionParam);
-      setAttemptedAction(actionParam);
-      setShowLoginModal(true);
+      setShowLoginModalStore(true, actionParam);
     }
-  }, [actionParam, isGuestMode, location.pathname, location.search, setReturnPathStore, setPendingActionStore]);
+  }, [actionParam, isGuestMode, location.pathname, location.search, setReturnPathStore, setPendingActionStore, setShowLoginModalStore]);
 
   return {
     isGuestMode,
     isAppMode,
     showLoginModal,
-    setShowLoginModal,
-    attemptedAction: attemptedAction || pendingAction,
+    setShowLoginModal: (show: boolean) => setShowLoginModalStore(show),
+    attemptedAction: loginModalAction || pendingAction,
     setAttemptedAction: (action) => {
-      setAttemptedAction(action);
       setPendingActionStore(action);
+      if (action) {
+        setShowLoginModalStore(true, action);
+      }
     },
     returnPath: returnPath || null,
     setReturnPath: setReturnPathStore
