@@ -4,6 +4,7 @@ import { Star, MapPin, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SafeImage } from '@/utils/imageErrorHandling';
+import emptySearchImg from '@/assets/empty-search.png';
 import type { SearchableItem } from '@/hooks/useSearch';
 
 interface SearchResultsProps {
@@ -71,6 +72,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   if (results.length === 0 && query.trim()) {
     return (
       <div className="text-center py-12">
+        <img src={emptySearchImg} alt="לא נמצאו תוצאות" className="w-32 h-32 mx-auto mb-4 object-contain opacity-70" />
         <div className="text-muted-foreground mb-2 text-lg">
           לא נמצאו תוצאות עבור "{query}"
         </div>

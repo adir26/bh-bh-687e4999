@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { SEO } from '@/components/SEO';
+import faqHeroImg from '@/assets/faq-hero.jpg';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
@@ -128,6 +129,15 @@ const FAQ = () => {
         variant="minimal"
       />
 
+      {/* Hero Banner */}
+      <div className="relative h-40 sm:h-52 overflow-hidden">
+        <img src={faqHeroImg} alt="שאלות נפוצות" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+        <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">איך נוכל לעזור?</h2>
+          <p className="text-sm text-muted-foreground">מצאו תשובות לשאלות הנפוצות ביותר</p>
+        </div>
+      </div>
       {/* Content */}
       <div className="p-4 pb-nav-safe">
         {/* Search Bar */}
