@@ -208,7 +208,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Small delay to ensure all auth state is settled
     const timeoutId = setTimeout(handlePostAuthRedirect, 100);
     return () => clearTimeout(timeoutId);
-  }, [user?.id, profile?.id, loading, isLoggingOut]);
+  }, [user?.id, !!(profile as any)?.id, loading, isLoggingOut]);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
