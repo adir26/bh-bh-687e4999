@@ -219,7 +219,7 @@ export const ORDER_STATUS_LABELS = {
   confirmed: 'מאושר',
   in_progress: 'בטיפול',
   completed: 'הושלם',
-  canceled: 'בוטל'
+  cancelled: 'בוטל'
 } as const;
 
 export const PAYMENT_STATUS_LABELS = {
