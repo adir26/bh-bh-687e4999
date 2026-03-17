@@ -132,7 +132,7 @@ const Orders = () => {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white mx-4 mt-4 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-card mx-4 mt-4 rounded-2xl shadow-sm overflow-hidden border border-border/50">
         <div className="flex p-2">
           {tabs.map((tab) => (
             <Button
