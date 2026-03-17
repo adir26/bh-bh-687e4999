@@ -9,11 +9,16 @@ import { supplierService } from '@/services/supabaseService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { showToast } from '@/utils/toast';
-import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye, FileText, Package2, Package, Briefcase, Settings, ClipboardCheck } from 'lucide-react';
+import { Plus, Edit, Upload, Bell, Star, TrendingUp, Users, ShoppingBag, DollarSign, AlertCircle, Eye, FileText, Package2, Package, Briefcase, Settings, ClipboardCheck, Camera, ExternalLink, ImageIcon } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { withTimeout } from '@/lib/withTimeout';
+import { ProfileCompletionCard } from '@/components/supplier/ProfileCompletionCard';
+import { RecentActivityFeed } from '@/components/supplier/RecentActivityFeed';
+
 const quickActions = [
   { title: 'עריכת פרופיל חברה', icon: Edit, path: '/supplier/profile' },
+  { title: 'צפה בפרופיל הציבורי', icon: ExternalLink, path: '/supplier/profile', external: true },
+  { title: 'העלאת תמונות השראה', icon: Camera, path: '/supplier/my-photos' },
   { title: 'דוחות', icon: ClipboardCheck, path: '/inspection/dashboard' },
   { title: 'הצעות מחיר', icon: FileText, path: '/supplier/quotes' },
   { title: 'ניהול הזמנות', icon: Package2, path: '/supplier/orders' },
@@ -237,6 +242,9 @@ return (
         />
 
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-nav-safe">
+          {/* Profile Completion */}
+          <ProfileCompletionCard />
+
           {/* Stats Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
             {(statsQuery.data ?? []).map((stat, index) => (
@@ -314,7 +322,7 @@ return (
             {/* Needs Attention */}
             <Card>
               <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 sm:pb-3">
-                <CardTitle className="flex items-center gap-2 text-orange-600 text-base sm:text-lg">
+                <CardTitle className="flex items-center gap-2 text-destructive text-base sm:text-lg">
                   <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                   דורש תשומת לב
                 </CardTitle>
@@ -324,7 +332,7 @@ return (
                   <div key={index} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/50 gap-2">
                     <span className="text-xs sm:text-sm truncate flex-1">{item.title}</span>
                     <span className={`text-xs sm:text-sm font-medium px-2 py-1 rounded-full flex-shrink-0 ${
-                      item.urgent ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                      item.urgent ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'
                     }`}>
                       {item.count}
                     </span>
@@ -334,6 +342,9 @@ return (
             </Card>
           </div>
 
+          {/* Recent Activity */}
+          <RecentActivityFeed />
+
           {/* Suggestions */}
           <Card>
             <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 sm:pb-3">
@@ -342,9 +353,9 @@ return (
             <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
               <div className="space-y-2">
                 {(suggestionsQuery.data ?? []).map((suggestion, index) => (
-                  <div key={index} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-blue-50 border border-blue-200">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5" />
-                    <span className="text-xs sm:text-sm text-blue-800">{suggestion}</span>
+                  <div key={index} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-accent/50 border border-border">
+                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1.5" />
+                    <span className="text-xs sm:text-sm text-accent-foreground">{suggestion}</span>
                   </div>
                 ))}
               </div>
