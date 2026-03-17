@@ -102,6 +102,7 @@ const AllCategories: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col" dir="rtl">
+      <SEO title="כל הקטגוריות" description="כל קטגוריות הבנייה והעיצוב – מטבחים, ריהוט, שיפוצים, חשמל, אינסטלציה ועוד" canonical="/categories" />
       <Header />
       
       <main className="flex-1 pb-20">
