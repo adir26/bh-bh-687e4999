@@ -97,7 +97,7 @@ const Orders = () => {
   if (status === 'pending') {
     return (
       <PageBoundary>
-        <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-20 items-center justify-center">
+        <div className="flex w-full max-w-5xl mx-auto min-h-screen flex-col bg-gray-50 pb-20 items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           <p className="mt-4 text-muted-foreground">טוען הזמנות...</p>
         </div>
