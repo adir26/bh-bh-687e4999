@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.import-leads]
 verify_jwt = true
+
+[functions.send-meeting-reminders]
+verify_jwt = false

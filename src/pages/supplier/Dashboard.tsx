@@ -36,6 +36,7 @@ import {
 } from '@/hooks/useSupplierDashboard';
 
 const quickActions = [
+  { title: 'לוח פגישות', icon: CalendarDays, path: '/supplier/calendar' },
   { title: 'עריכת פרופיל חברה', icon: Edit, path: '/supplier/profile' },
   { title: 'צפה בפרופיל הציבורי', icon: ExternalLink, path: '/supplier/profile', external: true },
   { title: 'העלאת תמונות השראה', icon: Camera, path: '/supplier/my-photos' },

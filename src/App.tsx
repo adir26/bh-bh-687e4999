@@ -394,6 +394,11 @@ const App = () => {
                     <ProductCatalog />
                   </OnboardingGuard>
                 } />
+                <Route path="/supplier/calendar" element={
+                  <OnboardingGuard role="supplier">
+                    <SupplierCalendar />
+                  </OnboardingGuard>
+                } />
                 <Route path="/supplier/coupons" element={
                   <OnboardingGuard role="supplier">
                     <SupplierCoupons />
