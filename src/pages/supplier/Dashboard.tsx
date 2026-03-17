@@ -322,7 +322,7 @@ return (
             {/* Needs Attention */}
             <Card>
               <CardHeader className="p-3 sm:p-4 md:p-6 pb-2 sm:pb-3">
-                <CardTitle className="flex items-center gap-2 text-orange-600 text-base sm:text-lg">
+                <CardTitle className="flex items-center gap-2 text-destructive text-base sm:text-lg">
                   <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                   דורש תשומת לב
                 </CardTitle>
