@@ -75,21 +75,21 @@ const Support = () => {
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-nav-safe" dir="rtl">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-muted/30 pb-nav-safe" dir="rtl">
       {/* Header */}
-      <div className="bg-white px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10">
+      <div className="bg-card px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10 border-b border-border">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/profile')}
-            className="p-2 hover:bg-gray-100 rounded-xl"
+            className="p-2 hover:bg-muted rounded-xl min-h-[44px]"
           >
             <ArrowRight className="w-5 h-5" />
           </Button>
           <div className="text-right flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">תמיכה ועזרה</h1>
-            <p className="text-gray-600 text-sm">צ'אט עם הצוות שלנו</p>
+            <h1 className="text-2xl font-bold text-foreground mb-1">תמיכה ועזרה</h1>
+            <p className="text-muted-foreground text-sm">צ'אט עם הצוות שלנו</p>
           </div>
         </div>
       </div>
