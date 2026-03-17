@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import emptyOrdersImg from '@/assets/empty-orders.png';
 import { Package, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';

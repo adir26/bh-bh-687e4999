@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SEO } from '@/components/SEO';
+import emptySupplierImg from '@/assets/empty-supplier.png';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePublicSupplier, usePublicSupplierProducts, useSupplierCategories } from '@/hooks/usePublicSupplier';
 import { useSupplierPhotos } from '@/hooks/useSupplierPhotos';

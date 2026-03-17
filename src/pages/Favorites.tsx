@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import emptyFavoritesImg from '@/assets/empty-favorites.png';
 import { Heart, Star, Phone, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
