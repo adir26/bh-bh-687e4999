@@ -5328,6 +5328,18 @@ export type Database = {
           total_revenue: number
         }[]
       }
+      get_category_stats: {
+        Args: { _category_id?: string }
+        Returns: {
+          avg_rating: number
+          category_id: string
+          category_name: string
+          product_count: number
+          supplier_count: number
+          total_orders: number
+          total_revenue: number
+        }[]
+      }
       get_homepage_content: {
         Args: { _platform?: string }
         Returns: {
