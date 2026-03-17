@@ -758,12 +758,12 @@ const PublicSupplierProfile: React.FC = () => {
       </section>
 
       {/* Persistent Mobile CTA Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t px-4 py-3 z-50 pb-[max(env(safe-area-inset-bottom),12px)]">
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border px-4 py-3 z-[60] pb-[max(env(safe-area-inset-bottom),12px)] md:pb-3">
         <div className="flex gap-3 max-w-4xl mx-auto">
           {supplier.phone && (
             <a 
               href={`tel:${supplier.phone}`}
-              className="flex-1 bg-foreground text-background py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 bg-foreground text-background py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
             >
               <Phone className="w-5 h-5" />
               התקשר
@@ -772,7 +772,7 @@ const PublicSupplierProfile: React.FC = () => {
           {supplier.phone && (
             <a 
               href={`https://wa.me/${normalizePhoneToE164(supplier.phone)}`}
-              className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
             >
               <MessageCircle className="w-5 h-5" />
               וואטסאפ

@@ -116,17 +116,17 @@ const PopularNow = () => {
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-white">
-      <main className="flex flex-col items-start w-full bg-neutral-50 pb-nav-safe">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-background">
+      <main className="flex flex-col items-start w-full bg-muted/30 pb-nav-safe">
         <div className="flex flex-col items-start w-full">
           {/* Back Arrow Button */}
           <div className="w-full px-4 pt-4 pb-2">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-sm border hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center w-10 h-10 bg-card rounded-full shadow-sm border border-border hover:bg-muted transition-colors min-h-[44px] min-w-[44px]"
               aria-label="חזרה"
             >
-              <ArrowRight className="w-5 h-5 text-gray-600" />
+              <ArrowRight className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
           
