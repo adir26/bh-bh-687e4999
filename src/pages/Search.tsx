@@ -25,7 +25,6 @@ const Search = () => {
     hasResults
   } = useSearch();
 
-  // Initialize search from URL query parameter
   useEffect(() => {
     const urlQuery = searchParams.get('q');
     if (urlQuery && urlQuery.trim()) {
@@ -34,7 +33,6 @@ const Search = () => {
     }
   }, [searchParams]);
 
-  // Updated filters to match DB data (removed 'services' and 'products')
   const searchFilters = [
     { id: 'all', label: 'הכל' },
     { id: 'suppliers', label: 'ספקים' },
@@ -59,61 +57,64 @@ const Search = () => {
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background pb-nav-safe">
+    <div className="flex w-full min-h-screen flex-col bg-background pb-nav-safe">
       <SEO 
         title="חיפוש ספקים"
         description="חפשו ספקי בנייה ועיצוב הבית בישראל – קבלנים, מעצבים, חשמלאים ועוד"
         canonical="/search"
       />
-      {/* Header */}
-      <div className="bg-background border-b px-4 py-4 pt-[max(env(safe-area-inset-top),16px)] sticky top-0 z-10">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1">
-            <SearchInput
-              type="text"
-              placeholder="חפש ספקים וקטגוריות..."
-              value={query}
-              onChange={(e) => updateQuery(e.target.value)}
-              onKeyDown={handleInputKeyPress}
-              onClear={() => updateQuery("")}
-              className="text-right rounded-xl"
-              dir="rtl"
-            />
-          </div>
-          <Button variant="blue-secondary" size="icon" className="rounded-xl">
-            <Filter size={20} />
-          </Button>
-        </div>
 
-        {/* Location */}
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <MapPin size={16} />
-          <span className="text-sm">כל הארץ</span>
-          <Button variant="ghost" size="sm" className="text-button-secondary-foreground hover:text-button-primary">
-            שנה
-          </Button>
-        </div>
-      </div>
-
-      {/* Search Filters */}
-      <div className="px-4 py-3 border-b">
-        <div className="flex gap-2 overflow-x-auto">
-          {searchFilters.map((filter) => (
-            <Button
-              key={filter.id}
-              variant={selectedFilter === filter.id ? "blue" : "blue-secondary"}
-              size="sm"
-              onClick={() => updateSelectedFilter(filter.id)}
-              className="whitespace-nowrap"
-            >
-              {filter.label}
+      {/* Sticky Header */}
+      <div className="bg-background border-b sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pt-[max(env(safe-area-inset-top),16px)]">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1">
+              <SearchInput
+                type="text"
+                placeholder="חפש ספקים וקטגוריות..."
+                value={query}
+                onChange={(e) => updateQuery(e.target.value)}
+                onKeyDown={handleInputKeyPress}
+                onClear={() => updateQuery("")}
+                className="text-right rounded-xl"
+                dir="rtl"
+              />
+            </div>
+            <Button variant="blue-secondary" size="icon" className="rounded-xl min-h-[44px] min-w-[44px]">
+              <Filter size={20} />
             </Button>
-          ))}
+          </div>
+
+          {/* Location + Filters row on desktop */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <MapPin size={16} />
+              <span className="text-sm">כל הארץ</span>
+              <Button variant="ghost" size="sm" className="text-button-secondary-foreground hover:text-button-primary">
+                שנה
+              </Button>
+            </div>
+
+            {/* Search Filters */}
+            <div className="flex gap-2 overflow-x-auto">
+              {searchFilters.map((filter) => (
+                <Button
+                  key={filter.id}
+                  variant={selectedFilter === filter.id ? "blue" : "blue-secondary"}
+                  size="sm"
+                  onClick={() => updateSelectedFilter(filter.id)}
+                  className="whitespace-nowrap"
+                >
+                  {filter.label}
+                </Button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Search Results or Default Content */}
-      <div className="flex-1 px-4 py-4">
+      {/* Content */}
+      <div className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
         {query.trim() ? (
           <SearchResults
             results={results}
