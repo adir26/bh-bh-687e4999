@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Search, Lightbulb, Heart, User, Lock } from 'lucide-react';
+import { Home, Search, Lightbulb, Heart, User, Lock, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGuestMode } from '@/hooks/useGuestMode';
 
 export const TabletNavigation: React.FC = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { isGuestMode, setShowLoginModal, setAttemptedAction } = useGuestMode();
+  const isSupplier = profile?.role === 'supplier';
 
   const navItems = [
     {
@@ -44,7 +45,6 @@ export const TabletNavigation: React.FC = () => {
   ];
 
   const handleNavClick = (item: typeof navItems[0], e: React.MouseEvent) => {
-    // If guest mode and trying to access gated content, show login modal
     if (isGuestMode && !item.isPublic && item.gatedAction) {
       e.preventDefault();
       setAttemptedAction(item.gatedAction);
@@ -95,6 +95,27 @@ export const TabletNavigation: React.FC = () => {
           </NavLink>
         );
       })}
+
+      {/* Supplier dashboard link - only visible to suppliers */}
+      {isSupplier && user && (
+        <>
+          <div className="my-3 border-t border-border" />
+          <NavLink
+            to="/supplier/dashboard"
+            className={({ isActive }) => `
+              flex items-center gap-3 py-3 px-4 rounded-lg transition-colors min-h-[44px]
+              ${isActive 
+                ? 'bg-primary/10 text-primary font-semibold' 
+                : 'text-muted-foreground hover:bg-muted/50'
+              }
+            `}
+            aria-label="דשבורד ספק"
+          >
+            <LayoutDashboard size={20} />
+            <span className="text-sm font-medium">דשבורד ספק</span>
+          </NavLink>
+        </>
+      )}
     </nav>
   );
 };
