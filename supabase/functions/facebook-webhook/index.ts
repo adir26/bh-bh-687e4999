@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
         supplier_id: ownerUserId || null,
         company_id: supplierId,
         source: 'facebook',
-        source_key: 'facebook',
+        source_key: 'facebook_paid',
         lead_number: leadNumber,
         name: payload.full_name || 'ליד מפייסבוק',
         contact_email: payload.email || null,
