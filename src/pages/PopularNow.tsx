@@ -123,7 +123,7 @@ const PopularNow = () => {
           <div className="w-full px-4 pt-4 pb-2">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-sm border hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center w-10 h-10 bg-card rounded-full shadow-sm border border-border hover:bg-muted transition-colors min-h-[44px] min-w-[44px]"
               aria-label="חזרה"
             >
               <ArrowRight className="w-5 h-5 text-gray-600" />
