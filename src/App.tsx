@@ -602,7 +602,6 @@ const App = () => {
           </SecurityMiddleware>
         </AuthProvider>
       </BrowserRouter>
-    </QueryClientProvider>
   );
 };
 
