@@ -242,6 +242,9 @@ return (
         />
 
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-nav-safe">
+          {/* Profile Completion */}
+          <ProfileCompletionCard />
+
           {/* Stats Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
             {(statsQuery.data ?? []).map((stat, index) => (
@@ -329,7 +332,7 @@ return (
                   <div key={index} className="flex items-center justify-between p-2 sm:p-3 rounded-lg bg-muted/50 gap-2">
                     <span className="text-xs sm:text-sm truncate flex-1">{item.title}</span>
                     <span className={`text-xs sm:text-sm font-medium px-2 py-1 rounded-full flex-shrink-0 ${
-                      item.urgent ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                      item.urgent ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'
                     }`}>
                       {item.count}
                     </span>
@@ -338,6 +341,9 @@ return (
               </CardContent>
             </Card>
           </div>
+
+          {/* Recent Activity */}
+          <RecentActivityFeed />
 
           {/* Suggestions */}
           <Card>
