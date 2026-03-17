@@ -123,6 +123,8 @@ import AllCategories from "./pages/AllCategories";
 import { SiteFooter } from "./components/SiteFooter";
 import { useGuestMode } from "./hooks/useGuestMode";
 import { isPublicRoute } from "./utils/publicRoutes";
+import { LoginModal } from "./components/modals/LoginModal";
+import { useAuthStore } from "./stores/authStore";
 
 // Wrapper for onboarding routes that redirects guests to home
 const OnboardingRouteWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
