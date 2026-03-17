@@ -9,6 +9,8 @@ interface AuthState {
   returnPath: string | null;
   pendingAction: string | null;
   guestBannerDismissed: boolean;
+  showLoginModal: boolean;
+  loginModalAction: string | null;
   
   // Login tracking
   loginTracked: Record<string, boolean>;
@@ -21,6 +23,7 @@ interface AuthState {
   setReturnPath: (path: string | null) => void;
   setPendingAction: (action: string | null) => void;
   setGuestBannerDismissed: (dismissed: boolean) => void;
+  setShowLoginModal: (show: boolean, action?: string | null) => void;
   setLoginTracked: (userId: string, tracked: boolean) => void;
   setRedirected: (userId: string, redirected: boolean) => void;
   setHasSeenWelcome: (seen: boolean) => void;
