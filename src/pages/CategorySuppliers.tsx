@@ -46,7 +46,7 @@ const CategorySuppliers = () => {
           <ArrowRight className="w-5 h-5" />
         </Button>
         <span className="text-lg font-semibold text-foreground">
-          {category && getCategoryTitle(category)}
+          {categoryTitle}
         </span>
         <div className="w-10" />
       </div>
