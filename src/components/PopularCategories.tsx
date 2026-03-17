@@ -116,8 +116,8 @@ export const PopularCategories: React.FC = () => {
   }
 
   return (
-    <div className="w-full px-4 py-2" dir="rtl">
-      <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar md:grid md:grid-cols-6 md:gap-6">
+    <div className="w-full px-4 md:px-0 py-2" dir="rtl">
+      <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar md:grid md:grid-cols-6 md:gap-6 lg:gap-8">
         {categories.map((category) => {
           const IconComponent = categoryIconMap[category.slug] || ChefHat;
           

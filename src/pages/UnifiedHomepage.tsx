@@ -326,8 +326,8 @@ const UnifiedHomepage = () => {
       {/* Guest Banner - Only for guests */}
       {isGuest && <GuestBanner />}
       
-       <main className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 flex flex-col items-center bg-muted/30 pb-nav-safe">
-        <div className="flex flex-col items-center w-full space-y-2">
+       <main className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-8 lg:px-12 flex flex-col items-center bg-muted/30 pb-nav-safe">
+        <div className="flex flex-col items-center w-full space-y-2 md:space-y-4">
           <Header userName={isGuest ? undefined : userName} />
           
           {/* Onboarding Status Banner - Only for authenticated users */}
