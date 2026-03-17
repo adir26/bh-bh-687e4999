@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { SEO } from '@/components/SEO';
+import faqHeroImg from '@/assets/faq-hero.jpg';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
