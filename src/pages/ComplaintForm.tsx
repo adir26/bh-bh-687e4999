@@ -1,32 +1,26 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Upload, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
-
-interface Order {
-  id: string;
-  invoiceNumber: string;
-  supplierName: string;
-  serviceName: string;
-  totalAmount: number;
-  orderDate: string;
-}
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ComplaintForm = () => {
   const navigate = useNavigate();
   const { orderId } = useParams();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Get complaint type and IDs from URL params
-  const complaintType = searchParams.get('type'); // 'order' or 'review'
+  const complaintType = searchParams.get('type') || 'order';
   const reviewId = searchParams.get('reviewId');
   const supplierId = searchParams.get('supplierId');
   
@@ -39,15 +33,35 @@ const ComplaintForm = () => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock order data - in real app this would come from API
-  const order: Order = {
-    id: orderId || 'ORD-001',
-    invoiceNumber: '12A394',
-    supplierName: 'מטבחי פרימיום',
-    serviceName: 'עיצוב והתקנת מטבח',
-    totalAmount: 45000,
-    orderDate: '2024-01-15'
-  };
+  // Fetch real order data
+  const { data: order, isLoading } = useQuery({
+    queryKey: ['complaint-order', orderId],
+    enabled: !!orderId && complaintType !== 'review',
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('id, title, amount, created_at, supplier_id')
+        .eq('id', orderId!)
+        .single();
+
+      if (error) throw error;
+
+      const { data: company } = await supabase
+        .from('companies')
+        .select('name')
+        .eq('owner_id', data.supplier_id)
+        .maybeSingle();
+
+      return {
+        id: data.id,
+        supplierName: company?.name || 'ספק',
+        serviceName: data.title || 'הזמנה',
+        totalAmount: Number(data.amount) || 0,
+        orderDate: data.created_at,
+      };
+    },
+    staleTime: 60_000,
+  });
 
   const complaintReasons = complaintType === 'review' 
     ? [
@@ -68,42 +82,23 @@ const ComplaintForm = () => {
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
-    
-    // Validate files
     const validFiles: File[] = [];
     const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
 
     files.forEach(file => {
       if (!allowedTypes.includes(file.type)) {
-        toast({
-          title: 'סוג קובץ לא נתמך',
-          description: `הקובץ ${file.name} אינו נתמך. אנא העלה קובץ JPG, PNG או PDF`,
-          variant: 'destructive'
-        });
+        toast({ title: 'סוג קובץ לא נתמך', description: `הקובץ ${file.name} אינו נתמך`, variant: 'destructive' });
         return;
       }
-
       if (file.size > maxSize) {
-        toast({
-          title: 'הקובץ גדול מידי',
-          description: `הקובץ ${file.name} גדול מ-10MB`,
-          variant: 'destructive'
-        });
+        toast({ title: 'הקובץ גדול מדי', description: `${file.name} גדול מ-10MB`, variant: 'destructive' });
         return;
       }
-
       validFiles.push(file);
     });
 
     setUploadedFiles(prev => [...prev, ...validFiles]);
-    
-    if (validFiles.length > 0) {
-      toast({
-        title: 'קבצים הועלו בהצלחה',
-        description: `${validFiles.length} קבצים נוספו לתלונה`
-      });
-    }
   };
 
   const removeFile = (index: number) => {
@@ -114,197 +109,165 @@ const ComplaintForm = () => {
     e.preventDefault();
     
     if (!formData.reason) {
-      toast({
-        title: 'שדה חובה',
-        description: 'אנא בחר סיבת התלונה',
-        variant: 'destructive'
-      });
+      toast({ title: 'שדה חובה', description: 'אנא בחר סיבת התלונה', variant: 'destructive' });
       return;
     }
-
     if (!formData.description.trim()) {
-      toast({
-        title: 'שדה חובה',
-        description: 'אנא הוסף תיאור לתלונה',
-        variant: 'destructive'
-      });
+      toast({ title: 'שדה חובה', description: 'אנא הוסף תיאור לתלונה', variant: 'destructive' });
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const complaintId = `C${Math.floor(Math.random() * 9000) + 1000}`;
+      // Insert complaint to support_tickets table if exists, otherwise use events
+      const { error } = await supabase.from('events').insert({
+        entity: complaintType === 'review' ? 'review' : 'order',
+        entity_id: complaintType === 'review' ? (reviewId || '') : (orderId || ''),
+        type: 'complaint_submitted',
+        user_id: user?.id || null,
+        meta: {
+          reason: formData.reason,
+          description: formData.description,
+          request_refund: formData.requestRefund,
+          supplier_id: supplierId || order?.id,
+          files_count: uploadedFiles.length,
+        },
+      });
+
+      if (error) throw error;
       
       toast({
         title: 'התלונה נשלחה בהצלחה',
-        description: `מספר תלונה: ${complaintId}. נחזור אליך בהקדם`,
-        action: (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate(`/support/complaint/${complaintId}`)}
-          >
-            עקוב אחרי התלונה
-          </Button>
-        )
+        description: 'נחזור אליך בהקדם',
       });
 
-      // Navigate to support page
-      setTimeout(() => {
-        navigate('/support');
-      }, 1500);
-
+      setTimeout(() => navigate('/orders'), 1500);
     } catch (error) {
-      toast({
-        title: 'שגיאה בשליחת התלונה',
-        description: 'אנא נסה שוב או צור קשר עם התמיכה',
-        variant: 'destructive'
-      });
+      toast({ title: 'שגיאה בשליחת התלונה', description: 'אנא נסה שוב', variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-24" dir="rtl">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background pb-24" dir="rtl">
       {/* Header */}
-      <div className="bg-white px-6 py-6 rounded-b-3xl shadow-sm">
+      <div className="bg-card px-6 py-6 rounded-b-3xl shadow-sm border-b">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(`/orders/${order.id}/status`)}
-            className="p-2 hover:bg-gray-100 rounded-xl"
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-xl"
           >
             <ArrowRight className="w-5 h-5" />
           </Button>
           <div className="text-right flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">
+            <h1 className="text-2xl font-bold text-foreground mb-1">
               {complaintType === 'review' ? 'דווח על ביקורת' : 'דווח על בעיה'}
             </h1>
-            {complaintType !== 'review' && (
-              <p className="text-gray-600 text-sm">הזמנה #{order.invoiceNumber}</p>
-            )}
+            {order && <p className="text-muted-foreground text-sm">#{order.id.slice(0, 8)}</p>}
           </div>
         </div>
       </div>
 
       <div className="p-4 space-y-6">
-        {/* Order Details - Only show for order complaints */}
+        {/* Order Details */}
         {complaintType !== 'review' && (
-          <Card className="border-0 shadow-sm rounded-xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-gray-900">פרטי ההזמנה</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600">ספק:</span>
-              <span className="font-medium">{order.supplierName}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">שירות:</span>
-              <span className="font-medium">{order.serviceName}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">תאריך הזמנה:</span>
-              <span className="font-medium">{new Date(order.orderDate).toLocaleDateString('he-IL')}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">סכום:</span>
-              <span className="font-bold">₪{order.totalAmount.toLocaleString()}</span>
-            </div>
-          </CardContent>
-        </Card>
+          <Card className="border shadow-sm rounded-xl">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">פרטי ההזמנה</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {isLoading ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ) : order ? (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">ספק:</span>
+                    <span className="font-medium">{order.supplierName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">שירות:</span>
+                    <span className="font-medium">{order.serviceName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">תאריך:</span>
+                    <span className="font-medium">{new Date(order.orderDate).toLocaleDateString('he-IL')}</span>
+                  </div>
+                  {order.totalAmount > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">סכום:</span>
+                      <span className="font-bold">₪{order.totalAmount.toLocaleString()}</span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-muted-foreground text-sm">לא נמצאו פרטי הזמנה</p>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {/* Complaint Form */}
-        <Card className="border-0 shadow-sm rounded-xl">
+        <Card className="border shadow-sm rounded-xl">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg text-gray-900">פרטי התלונה</CardTitle>
+            <CardTitle className="text-lg">פרטי התלונה</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Reason Selection */}
               <div className="space-y-2">
-                <Label htmlFor="reason" className="text-sm font-medium text-gray-900">
-                  סיבת התלונה <span className="text-red-500">*</span>
+                <Label className="text-sm font-medium">
+                  סיבת התלונה <span className="text-destructive">*</span>
                 </Label>
                 <Select value={formData.reason} onValueChange={(value) => setFormData(prev => ({ ...prev, reason: value }))}>
-                  <SelectTrigger className="w-full rounded-xl border-gray-200">
+                  <SelectTrigger className="w-full rounded-xl">
                     <SelectValue placeholder="בחר סיבת התלונה" />
                   </SelectTrigger>
                   <SelectContent>
                     {complaintReasons.map((reason) => (
-                      <SelectItem key={reason.value} value={reason.value}>
-                        {reason.label}
-                      </SelectItem>
+                      <SelectItem key={reason.value} value={reason.value}>{reason.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm font-medium text-gray-900">
-                  תיאור הבעיה <span className="text-red-500">*</span>
+                <Label className="text-sm font-medium">
+                  תיאור הבעיה <span className="text-destructive">*</span>
                 </Label>
                 <Textarea
-                  id="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="אנא תאר את הבעיה בפירוט..."
-                  className="min-h-[120px] rounded-xl border-gray-200 resize-none"
+                  className="min-h-[120px] rounded-xl resize-none"
                 />
               </div>
 
               {/* File Upload */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-gray-900">
-                  צרף קבצים (אופציונלי)
-                </Label>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/jpeg,image/png,application/pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-12 border-dashed border-2 border-gray-300 hover:border-primary rounded-xl"
-                >
+                <Label className="text-sm font-medium">צרף קבצים (אופציונלי)</Label>
+                <input ref={fileInputRef} type="file" multiple accept="image/jpeg,image/png,application/pdf" onChange={handleFileUpload} className="hidden" />
+                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full h-12 border-dashed border-2 rounded-xl">
                   <Upload className="w-5 h-5 ml-2" />
-                  העלה תמונות או מסמכים (JPG, PNG, PDF)
+                  העלה תמונות או מסמכים
                 </Button>
 
-                {/* Uploaded Files */}
                 {uploadedFiles.length > 0 && (
                   <div className="space-y-2">
                     {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div className="flex items-center gap-2">
                           <CheckCircle className="w-4 h-4 text-green-600" />
-                          <span className="text-sm text-gray-700">{file.name}</span>
-                          <span className="text-xs text-gray-500">
-                            ({(file.size / 1024).toFixed(1)} KB)
-                          </span>
+                          <span className="text-sm">{file.name}</span>
+                          <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(1)} KB)</span>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFile(index)}
-                          className="p-1 h-auto text-red-500 hover:text-red-700"
-                        >
+                        <Button type="button" variant="ghost" size="sm" onClick={() => removeFile(index)} className="p-1 h-auto text-destructive">
                           <X className="w-4 h-4" />
                         </Button>
                       </div>
@@ -313,27 +276,19 @@ const ComplaintForm = () => {
                 )}
               </div>
 
-              {/* Refund Request */}
               <div className="flex items-center space-x-2 space-x-reverse">
                 <Checkbox
                   id="refund"
                   checked={formData.requestRefund}
                   onCheckedChange={(checked) => setFormData(prev => ({ ...prev, requestRefund: !!checked }))}
                 />
-                <Label htmlFor="refund" className="text-sm text-gray-700 cursor-pointer">
-                  אני מבקש החזר כספי
-                </Label>
+                <Label htmlFor="refund" className="text-sm cursor-pointer">אני מבקש החזר כספי</Label>
               </div>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-12 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl"
-              >
+              <Button type="submit" disabled={isSubmitting} className="w-full h-12 font-semibold rounded-xl" variant="destructive">
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     שולח תלונה...
                   </div>
                 ) : (
@@ -348,14 +303,14 @@ const ComplaintForm = () => {
         </Card>
 
         {/* Help Note */}
-        <Card className="border-0 shadow-sm rounded-xl bg-blue-50 border-blue-200">
+        <Card className="border rounded-xl bg-accent/50">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-primary mt-0.5" />
               <div>
-                <h4 className="font-medium text-blue-900 mb-1">לפני שליחת התלונה</h4>
-                <p className="text-sm text-blue-800">
-                  אנחנו ממליצים לנסות תחילה ליצור קשר ישיר עם הספק. 
+                <h4 className="font-medium mb-1">לפני שליחת התלונה</h4>
+                <p className="text-sm text-muted-foreground">
+                  אנחנו ממליצים לנסות תחילה ליצור קשר ישיר עם הספק.
                   רוב הבעיות ניתנות לפתרון במהירות בדרך זו.
                 </p>
               </div>
