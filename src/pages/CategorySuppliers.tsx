@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/SEO';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Heart } from 'lucide-react';
 import { showToast } from '@/utils/toast';
@@ -32,6 +33,11 @@ const CategorySuppliers = () => {
 
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background" dir="rtl">
+      <SEO 
+        title={`${getCategoryTitle(category || '')} – ספקים`}
+        description={`מצאו את ספקי ה${getCategoryTitle(category || '')} הטובים ביותר בישראל – השוו מחירים וקראו חוות דעת`}
+        canonical={`/category/${category}/suppliers`}
+      />
       {/* Header */}
       <div className="flex items-center justify-between p-4 pt-[max(env(safe-area-inset-top),12px)] border-b bg-card sticky top-0 z-50">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="min-h-[44px] min-w-[44px]">

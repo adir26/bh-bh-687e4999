@@ -1,4 +1,5 @@
 import React, { useState, Suspense, lazy } from 'react';
+import { SEO } from '@/components/SEO';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, Bookmark, Filter, Camera, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -147,6 +148,11 @@ export default function Inspiration() {
       isEmpty={photos.length === 0}
     >
     <div className="min-h-screen bg-background pb-nav-safe">
+      <SEO 
+        title="השראה לעיצוב הבית"
+        description="גלו רעיונות והשראה לעיצוב הבית – תמונות פרויקטים, סגנונות עיצוב וטיפים מקצועיים"
+        canonical="/inspiration"
+      />
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border pt-[max(env(safe-area-inset-top),12px)]">
         <div className="container mx-auto px-4 py-4">

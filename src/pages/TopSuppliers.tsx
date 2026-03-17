@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';
@@ -44,6 +45,11 @@ const TopSuppliers = () => {
 
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-start bg-background">
+      <SEO 
+        title="ספקים מובילים"
+        description="הספקים המובילים בישראל לבנייה ועיצוב הבית – קבלנים, מעצבים ואנשי מקצוע מדורגים"
+        canonical="/top-suppliers"
+      />
       <main className="flex flex-col items-start w-full bg-muted/30 pb-nav-safe space-y-2">
         <div className="flex flex-col items-start w-full">
           <Header userName="איתן" />

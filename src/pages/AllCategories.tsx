@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, ChefHat, Droplets, Sofa, Snowflake, Hammer, Truck, Banknote, FileText,
@@ -101,6 +102,7 @@ const AllCategories: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col" dir="rtl">
+      <SEO title="כל הקטגוריות" description="כל קטגוריות הבנייה והעיצוב – מטבחים, ריהוט, שיפוצים, חשמל, אינסטלציה ועוד" canonical="/categories" />
       <Header />
       
       <main className="flex-1 pb-20">

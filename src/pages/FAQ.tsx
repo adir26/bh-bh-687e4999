@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { SEO } from '@/components/SEO';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
@@ -107,6 +108,21 @@ const FAQ = () => {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
+      <SEO 
+        title="שאלות נפוצות" 
+        description="תשובות לשאלות הנפוצות ביותר על בונים פה – שימוש באפליקציה, ספקים, תשלומים ועוד" 
+        canonical="/faq"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          inLanguage: 'he',
+          mainEntity: faqData.flatMap(cat => cat.items.map(item => ({
+            '@type': 'Question',
+            name: item.question,
+            acceptedAnswer: { '@type': 'Answer', text: item.answer }
+          })))
+        }}
+      />
       <PageHeader 
         title="שאלות נפוצות" 
         variant="minimal"

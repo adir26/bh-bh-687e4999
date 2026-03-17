@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SEO } from '@/components/SEO';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePublicSupplier, usePublicSupplierProducts, useSupplierCategories } from '@/hooks/usePublicSupplier';
 import { useSupplierPhotos } from '@/hooks/useSupplierPhotos';
@@ -247,6 +248,29 @@ const PublicSupplierProfile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      <SEO 
+        title={supplier.name}
+        description={supplier.description || `${supplier.name} – ספק מוביל בתחום הבנייה והעיצוב בישראל. צפו בפרויקטים, קראו חוות דעת וצרו קשר`}
+        canonical={slug ? `/s/${slug}` : `/supplier/${supplier.id}`}
+        ogType="profile"
+        ogImage={supplier.banner_url || supplier.logo_url || undefined}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'LocalBusiness',
+          name: supplier.name,
+          description: supplier.description || '',
+          image: supplier.logo_url || '',
+          address: supplier.address ? { '@type': 'PostalAddress', streetAddress: supplier.address } : undefined,
+          telephone: supplier.phone || undefined,
+          email: supplier.email || undefined,
+          url: supplier.website || `https://bh-bh.lovable.app/s/${slug}`,
+          aggregateRating: supplier.rating ? {
+            '@type': 'AggregateRating',
+            ratingValue: supplier.rating,
+            reviewCount: supplier.review_count || 0
+          } : undefined
+        }}
+      />
       {/* Hero Section with Banner */}
       <section className="relative h-[45vh] min-h-[320px] overflow-hidden">
         {/* Background Image */}
