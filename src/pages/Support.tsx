@@ -147,10 +147,10 @@ const Support = () => {
                                   {unreadCount}
                                 </Badge>
                               )}
-                              <span className="text-xs text-gray-500">{formatTimestamp(ticket.created_at)}</span>
+                              <span className="text-xs text-muted-foreground">{formatTimestamp(ticket.created_at)}</span>
                             </div>
                           </div>
-                          <p className="text-gray-600 text-sm mb-2 line-clamp-1">{ticket.description}</p>
+                          <p className="text-muted-foreground text-sm mb-2 line-clamp-1">{ticket.description}</p>
                           <div className="flex items-center gap-2">
                             {getStatusIcon(ticket.status)}
                             <Badge className={`text-xs px-2 py-1 rounded-lg border ${getStatusColor(ticket.status)}`}>
