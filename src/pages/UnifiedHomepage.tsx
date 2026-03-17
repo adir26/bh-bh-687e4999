@@ -305,6 +305,24 @@ const UnifiedHomepage = () => {
   const ctaText = isGuest ? 'הצטרפו חינם' : 'בואו נתחיל';
   const ctaHref = isGuest ? '/auth' : '/onboarding/welcome';
   return <div className="flex w-full min-h-screen flex-col items-center bg-background">
+      <SEO 
+        title="דף הבית"
+        description="פלטפורמת הבנייה והעיצוב הגדולה בישראל – מצאו ספקים מובילים, השוו מחירים וקבלו הצעות מחיר לפרויקט שלכם"
+        canonical="/"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'BONIMPO - בונים פה',
+          url: 'https://bh-bh.lovable.app',
+          description: 'פלטפורמת הבנייה והעיצוב הגדולה בישראל',
+          inLanguage: 'he',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: 'https://bh-bh.lovable.app/search?q={search_term_string}',
+            'query-input': 'required name=search_term_string'
+          }
+        }}
+      />
       {/* Guest Banner - Only for guests */}
       {isGuest && <GuestBanner />}
       

@@ -60,6 +60,11 @@ const Search = () => {
 
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background pb-nav-safe">
+      <SEO 
+        title="חיפוש ספקים"
+        description="חפשו ספקי בנייה ועיצוב הבית בישראל – קבלנים, מעצבים, חשמלאים ועוד"
+        canonical="/search"
+      />
       {/* Header */}
       <div className="bg-background border-b px-4 py-4 pt-[max(env(safe-area-inset-top),16px)] sticky top-0 z-10">
         <div className="flex items-center gap-3 mb-4">
