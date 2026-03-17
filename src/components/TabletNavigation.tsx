@@ -48,7 +48,6 @@ export const TabletNavigation: React.FC = () => {
     if (isGuestMode && !item.isPublic && item.gatedAction) {
       e.preventDefault();
       setAttemptedAction(item.gatedAction);
-      setShowLoginModal(true);
     }
   };
 
