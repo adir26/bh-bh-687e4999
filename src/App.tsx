@@ -511,6 +511,7 @@ const App = () => {
                 <Route path="/hot-now" element={<PublicRouteWrapper><HotNow /></PublicRouteWrapper>} />
                 <Route path="/local-deals" element={<PublicRouteWrapper><LocalDeals /></PublicRouteWrapper>} />
                 <Route path="/popular-now" element={<PublicRouteWrapper><PopularNow /></PublicRouteWrapper>} />
+                <Route path="/deals" element={<PublicRouteWrapper><Deals /></PublicRouteWrapper>} />
                 <Route path="/supplier/:id" element={<PublicRouteWrapper><PublicSupplierProfile /></PublicRouteWrapper>} />
                 <Route path="/supplier/:id/products" element={<PublicRouteWrapper><SupplierProductsView /></PublicRouteWrapper>} />
                 <Route path="/supplier/:id/reviews" element={<PublicRouteWrapper><SupplierReviews /></PublicRouteWrapper>} />

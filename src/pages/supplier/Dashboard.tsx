@@ -43,6 +43,7 @@ const quickActions = [
   { title: 'הצעות מחיר', icon: FileText, path: '/supplier/quotes' },
   { title: 'ניהול הזמנות', icon: Package2, path: '/supplier/orders' },
   { title: 'נהל לידים', icon: Users, path: '/supplier/leads' },
+  { title: 'קופונים ומבצעים', icon: DollarSign, path: '/supplier/coupons' },
   { title: 'סטטיסטיקות', icon: TrendingUp, path: '/supplier/analytics' },
   { title: 'קטלוג מוצרים', icon: Package, path: '/supplier/catalog' },
   { title: 'CRM מתקדם', icon: Briefcase, path: '/supplier/crm' },

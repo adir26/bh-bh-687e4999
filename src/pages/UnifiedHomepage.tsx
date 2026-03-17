@@ -356,6 +356,9 @@ const UnifiedHomepage = () => {
             <PopularCategories />
           </div>
 
+          {/* Coupons & Deals Section */}
+          <CouponsSection />
+
           <div className="w-full">
             <SectionTitleWithButton title="מטבחים" onButtonClick={() => handleAllSuppliersClick('kitchens')} />
             <CategorySection items={kitchenCategories} onItemClick={handleCategoryClick} fixedWidth={true} />
