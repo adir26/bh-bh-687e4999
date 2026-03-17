@@ -138,7 +138,7 @@ const SupplierNotifications = () => {
       </header>
 
       {/* Summary and filters */}
-      <div className="p-4 bg-white border-b space-y-4">
+      <div className="p-4 bg-card border-b space-y-4">
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             {isLoading ? (
