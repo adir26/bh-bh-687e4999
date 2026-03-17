@@ -73,24 +73,7 @@ function OrderManagementContent({ orders, selectedOrderId, setSelectedOrderId, u
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      {/* Header */}
-      <div className="bg-background border-b border-border sticky top-0 z-10 pt-[max(env(safe-area-inset-top),12px)]">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/supplier/dashboard')}
-              className="flex items-center gap-2 min-h-[44px] w-fit"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">חזור לדשבורד</span>
-              <span className="sm:hidden">חזור</span>
-            </Button>
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground">ניהול הזמנות</h1>
-          </div>
-        </div>
-      </div>
+      <SupplierHeader title="ניהול הזמנות" showBackButton />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-nav-safe">
         {/* Stats */}
