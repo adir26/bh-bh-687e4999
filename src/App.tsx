@@ -211,7 +211,6 @@ const HomeWrapper: React.FC = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
           <SecurityMiddleware>
