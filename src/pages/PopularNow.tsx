@@ -126,7 +126,7 @@ const PopularNow = () => {
               className="flex items-center justify-center w-10 h-10 bg-card rounded-full shadow-sm border border-border hover:bg-muted transition-colors min-h-[44px] min-w-[44px]"
               aria-label="חזרה"
             >
-              <ArrowRight className="w-5 h-5 text-gray-600" />
+              <ArrowRight className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
           
