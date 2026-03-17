@@ -629,4 +629,18 @@ const ConditionalNavigation = () => {
   return <BottomNavigation />;
 };
 
+const GlobalLoginModal = () => {
+  const showLoginModal = useAuthStore((state) => state.showLoginModal);
+  const loginModalAction = useAuthStore((state) => state.loginModalAction);
+  const setShowLoginModal = useAuthStore((state) => state.setShowLoginModal);
+  
+  return (
+    <LoginModal 
+      isOpen={showLoginModal} 
+      onClose={() => setShowLoginModal(false)} 
+      attemptedAction={loginModalAction} 
+    />
+  );
+};
+
 export default App;
