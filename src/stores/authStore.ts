@@ -102,6 +102,8 @@ export const useAuthStore = create<AuthState>()(
         returnPath: null,
         pendingAction: null,
         guestBannerDismissed: false,
+        showLoginModal: false,
+        loginModalAction: null,
         loginTracked: {},
         redirected: {},
         hasSeenWelcome: false,
