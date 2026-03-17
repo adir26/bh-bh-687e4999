@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { SectionTitleWithButton } from '@/components/SectionTitleWithButton';

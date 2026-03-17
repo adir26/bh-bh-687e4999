@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/SEO';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, Star, Heart } from 'lucide-react';
 import { showToast } from '@/utils/toast';

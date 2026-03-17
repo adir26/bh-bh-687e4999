@@ -1,4 +1,5 @@
 import React from 'react';
+import { SEO } from '@/components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, ChefHat, Droplets, Sofa, Snowflake, Hammer, Truck, Banknote, FileText,

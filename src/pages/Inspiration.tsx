@@ -1,4 +1,5 @@
 import React, { useState, Suspense, lazy } from 'react';
+import { SEO } from '@/components/SEO';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Heart, Bookmark, Filter, Camera, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';

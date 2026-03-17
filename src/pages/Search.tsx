@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { SEO } from '@/components/SEO';
 import { useSearchParams } from 'react-router-dom';
 import { Filter, MapPin } from 'lucide-react';
 import { SearchInput } from '@/components/ui/search-input';

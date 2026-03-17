@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { SEO } from '@/components/SEO';
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SearchInput } from "@/components/ui/search-input";
