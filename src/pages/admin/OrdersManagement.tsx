@@ -135,7 +135,7 @@ export default function AdminOrders() {
             <SelectItem value="confirmed">מאושרת</SelectItem>
             <SelectItem value="in_progress">בביצוע</SelectItem>
             <SelectItem value="completed">הושלמה</SelectItem>
-            <SelectItem value="canceled">בוטלה</SelectItem>
+            <SelectItem value="cancelled">בוטלה</SelectItem>
           </SelectContent>
         </Select>
       </div>
