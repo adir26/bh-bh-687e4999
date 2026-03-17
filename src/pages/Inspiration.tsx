@@ -255,7 +255,7 @@ export default function Inspiration() {
                           e.preventDefault();
                           toggleLike(photo.id);
                         }}
-                        className="h-8 w-8 p-0"
+                        className="h-10 w-10 p-0 min-h-[44px] min-w-[44px]"
                         disabled={toggleLikeMutation.isPending}
                       >
                         <Heart className={`h-4 w-4 ${photo.is_liked ? 'fill-current' : ''}`} />
