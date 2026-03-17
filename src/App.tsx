@@ -106,6 +106,8 @@ import { CompletedOnboardingGuard } from "./components/CompletedOnboardingGuard"
 import MyMessages from "./pages/MyMessages";
 import MyMeetings from "./pages/MyMeetings";
 
+import SupplierCoupons from "./pages/supplier/Coupons";
+import Deals from "./pages/Deals";
 import SupplierProductsView from "./pages/SupplierProducts";
 import SupplierReviews from "./pages/SupplierReviews";
 import AppExclusive from "./pages/AppExclusive";
@@ -391,6 +393,11 @@ const App = () => {
                     <ProductCatalog />
                   </OnboardingGuard>
                 } />
+                <Route path="/supplier/coupons" element={
+                  <OnboardingGuard role="supplier">
+                    <SupplierCoupons />
+                  </OnboardingGuard>
+                } />
                 <Route path="/supplier/quotes" element={
                   <OnboardingGuard role="supplier">
                     <QuotesList />
@@ -505,6 +512,7 @@ const App = () => {
                 <Route path="/hot-now" element={<PublicRouteWrapper><HotNow /></PublicRouteWrapper>} />
                 <Route path="/local-deals" element={<PublicRouteWrapper><LocalDeals /></PublicRouteWrapper>} />
                 <Route path="/popular-now" element={<PublicRouteWrapper><PopularNow /></PublicRouteWrapper>} />
+                <Route path="/deals" element={<PublicRouteWrapper><Deals /></PublicRouteWrapper>} />
                 <Route path="/supplier/:id" element={<PublicRouteWrapper><PublicSupplierProfile /></PublicRouteWrapper>} />
                 <Route path="/supplier/:id/products" element={<PublicRouteWrapper><SupplierProductsView /></PublicRouteWrapper>} />
                 <Route path="/supplier/:id/reviews" element={<PublicRouteWrapper><SupplierReviews /></PublicRouteWrapper>} />

@@ -20,6 +20,7 @@ import { BottomCTA } from '@/components/BottomCTA';
 import { OnboardingStatusBanner } from '@/components/OnboardingStatusBanner';
 import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 import { PopularCategories } from '@/components/PopularCategories';
+import { CouponsSection } from '@/components/CouponsSection';
 import { GuestBanner } from '@/components/GuestBanner';
 import { LoginModal } from '@/components/modals/LoginModal';
 import { Supplier } from '@/data/suppliers';
@@ -354,6 +355,9 @@ const UnifiedHomepage = () => {
             <SectionTitleWithButton title="קטגוריות נפוצות" onButtonClick={() => navigate('/categories')} />
             <PopularCategories />
           </div>
+
+          {/* Coupons & Deals Section */}
+          <CouponsSection />
 
           <div className="w-full">
             <SectionTitleWithButton title="מטבחים" onButtonClick={() => handleAllSuppliersClick('kitchens')} />
