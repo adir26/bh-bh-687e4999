@@ -603,6 +603,8 @@ const App = () => {
                   <Route path="categories" element={<CategoryManagement />} />
                   <Route path="homepage-content" element={<HomepageContentManagement />} />
                   <Route path="photos" element={<PhotoManagement />} />
+                  <Route path="orders" element={<AdminOrders />} />
+                  <Route path="support" element={<AdminSupport />} />
                 </Route>
                  
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

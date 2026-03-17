@@ -10,14 +10,15 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Home, BarChart3, Users, Tag, Layout } from "lucide-react";
+import { Home, BarChart3, Users, Tag, Layout, ShoppingCart, MessageSquare, Image } from "lucide-react";
 
-// Hardcoded navigation - only 6 items allowed
 const navigationItems = [
   { id: "dashboard", label: "לוח בקרה", path: "/admin/dashboard", icon: Home },
   { id: "analytics", label: "אנליטיקה", path: "/admin/analytics", icon: BarChart3 },
   { id: "customers", label: "לקוחות", path: "/admin/customers", icon: Users },
   { id: "suppliers", label: "ספקים", path: "/admin/suppliers", icon: Users },
+  { id: "orders", label: "הזמנות", path: "/admin/orders", icon: ShoppingCart },
+  { id: "support", label: "תמיכה", path: "/admin/support", icon: MessageSquare },
   { id: "categories", label: "קטגוריות", path: "/admin/categories", icon: Tag },
   { id: "homepage", label: "עמוד הבית", path: "/admin/homepage-content", icon: Layout },
 ];
