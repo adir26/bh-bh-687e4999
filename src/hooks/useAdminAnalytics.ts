@@ -111,45 +111,75 @@ export const useAdminAnalytics = () => {
         color: colors[idx % colors.length]
       })) || [];
 
-      // Calculate user activity (hourly distribution - mock for now as we need real-time data)
-      const userActivity = [
-        { time: "00:00", active: Math.floor(profiles?.length * 0.1) || 20 },
-        { time: "04:00", active: Math.floor(profiles?.length * 0.07) || 15 },
-        { time: "08:00", active: Math.floor(profiles?.length * 0.25) || 50 },
-        { time: "12:00", active: Math.floor(profiles?.length * 0.35) || 80 },
-        { time: "16:00", active: Math.floor(profiles?.length * 0.32) || 70 },
-        { time: "20:00", active: Math.floor(profiles?.length * 0.28) || 60 },
-      ];
+      // Calculate user activity from real profile creation times
+      const hourBuckets = [0, 4, 8, 12, 16, 20];
+      const userActivity = hourBuckets.map(hour => {
+        const count = profiles?.filter(p => {
+          const h = new Date(p.created_at).getHours();
+          return h >= hour && h < hour + 4;
+        }).length || 0;
+        return { time: `${String(hour).padStart(2, '0')}:00`, active: count };
+      });
 
-      // Calculate metrics
+      // Calculate metrics with real previous period comparison
       const totalRevenue = orders?.reduce((sum, o) => sum + Number(o.amount || 0), 0) || 0;
       const completedOrders = orders?.filter(o => o.status === 'completed').length || 0;
       const activeUsers = profiles?.length || 0;
       const orderVolume = orders?.length || 0;
 
-      // Calculate previous period for comparison (simplified)
-      const prevPeriodRevenue = totalRevenue * 0.9; // Mock 10% growth
-      const prevUsers = activeUsers * 0.92; // Mock 8% growth
-      const prevOrders = orderVolume * 0.87; // Mock 13% growth
+      // Real previous period: compare first 3 months vs last 3 months
+      const midpoint = new Date();
+      midpoint.setMonth(midpoint.getMonth() - 3);
+      const midpointStr = midpoint.toISOString();
+
+      const prevOrders = orders?.filter(o => o.created_at < midpointStr) || [];
+      const currOrders = orders?.filter(o => o.created_at >= midpointStr) || [];
+      const prevRevenue = prevOrders.reduce((sum, o) => sum + Number(o.amount || 0), 0);
+      const currRevenue = currOrders.reduce((sum, o) => sum + Number(o.amount || 0), 0);
+
+      const prevUsers = profiles?.filter(p => p.created_at < midpointStr).length || 0;
+      const currUsers = profiles?.filter(p => p.created_at >= midpointStr).length || 0;
+
+      const calcChange = (curr: number, prev: number) => {
+        if (prev === 0) return curr > 0 ? '+100%' : '0%';
+        const pct = ((curr - prev) / prev * 100).toFixed(1);
+        return `${Number(pct) >= 0 ? '+' : ''}${pct}%`;
+      };
+
+      // Calculate real avg rating from reviews
+      const { data: reviewData } = await supabase
+        .from('reviews')
+        .select('rating')
+        .gte('created_at', sixMonthsAgo.toISOString());
+
+      const avgRating = reviewData && reviewData.length > 0
+        ? Number((reviewData.reduce((sum, r) => sum + (r.rating || 0), 0) / reviewData.length).toFixed(1))
+        : 0;
 
       const metrics = {
         totalRevenue,
-        revenueChange: `+${((totalRevenue - prevPeriodRevenue) / prevPeriodRevenue * 100).toFixed(1)}%`,
+        revenueChange: calcChange(currRevenue, prevRevenue),
         activeUsers,
-        usersChange: `+${((activeUsers - prevUsers) / prevUsers * 100).toFixed(1)}%`,
+        usersChange: calcChange(currUsers, prevUsers),
         orderVolume,
-        ordersChange: `+${((orderVolume - prevOrders) / prevOrders * 100).toFixed(1)}%`,
-        avgRating: 4.8,
-        ratingChange: '+0.2'
+        ordersChange: calcChange(currOrders.length, prevOrders.length),
+        avgRating,
+        ratingChange: '0',
       };
 
       const performance = {
         conversionRate: orderVolume > 0 ? (completedOrders / orderVolume * 100) : 0,
-        conversionChange: '+0.5%',
+        conversionChange: calcChange(
+          currOrders.filter(o => o.status === 'completed').length,
+          prevOrders.filter(o => o.status === 'completed').length
+        ),
         avgOrderValue: orderVolume > 0 ? totalRevenue / orderVolume : 0,
-        avgOrderChange: `+${Math.floor(totalRevenue / orderVolume * 0.15) || 45}`,
-        customerSatisfaction: 96,
-        satisfactionChange: '+2%'
+        avgOrderChange: calcChange(
+          currOrders.length > 0 ? currRevenue / currOrders.length : 0,
+          prevOrders.length > 0 ? prevRevenue / prevOrders.length : 0
+        ),
+        customerSatisfaction: avgRating > 0 ? Math.round(avgRating / 5 * 100) : 0,
+        satisfactionChange: '0%'
       };
 
       return {
