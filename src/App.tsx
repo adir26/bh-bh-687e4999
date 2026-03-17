@@ -3,7 +3,7 @@ import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClientProvider } from "@tanstack/react-query";
+// QueryClientProvider is in main.tsx - do NOT wrap again here
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
@@ -211,7 +211,6 @@ const HomeWrapper: React.FC = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
           <SecurityMiddleware>
@@ -603,7 +602,6 @@ const App = () => {
           </SecurityMiddleware>
         </AuthProvider>
       </BrowserRouter>
-    </QueryClientProvider>
   );
 };
 
