@@ -112,15 +112,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Centralized post-auth redirect logic - Task 1
-  useEffect(() => {
-    // Don't redirect if we're logging out
-    if (isLoggingOut) return;
-    
-    if (!user || !profile || loading) return;
+  // Ref to track if redirect already happened for this user session
+  const redirectDoneRef = useRef<string | null>(null);
 
-    // Use Zustand store instead of sessionStorage
-    const { guestMode: wasGuest, returnPath, pendingAction, setLoginTracked, setRedirected, loginTracked, redirected } = useAuthStore.getState();
+  // Centralized post-auth redirect logic - runs ONCE when user+profile become available
+  useEffect(() => {
+    if (isLoggingOut) return;
+    if (!user || !profile || loading) return;
+    
+    // Only redirect once per user session
+    if (redirectDoneRef.current === user.id) return;
+
+    const { guestMode: wasGuest, returnPath, pendingAction, setLoginTracked, loginTracked } = useAuthStore.getState();
 
     // Track login time once per session
     const trackLoginTime = async () => {
@@ -147,77 +150,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       userId: user.id,
       role: (profile as Profile)?.role,
       onboarding_completed: (profile as Profile)?.onboarding_completed,
-      onboarding_step: (profile as Profile)?.onboarding_step,
-      onboarding_status: (profile as Profile)?.onboarding_status,
       currentPath: location.pathname
     });
+
+    // Mark redirect as done for this user
+    redirectDoneRef.current = user.id;
 
     // Centralized post-auth redirect - single source of truth
     const handlePostAuthRedirect = () => {
       try {
         const currentPath = location.pathname;
         
-        // Skip redirect logic for certain paths to avoid loops
+        // Skip redirect logic for certain paths
         if (currentPath.startsWith('/onboarding') || 
             currentPath.startsWith('/admin') ||
             currentPath === '/auth/callback') {
           return;
         }
 
-        // Skip redirect for supplier-specific paths (inspection, supplier routes)
         const userRole = (profile as Profile)?.role;
+        
+        // Skip redirect for users already on valid paths
         if (userRole === 'supplier' && (currentPath.startsWith('/inspection') || currentPath.startsWith('/supplier'))) {
-          console.log('[AUTH] Supplier on valid supplier path, skipping redirect');
           return;
         }
-
-        // Skip redirect for client-specific paths
         if (userRole === 'client' && !currentPath.startsWith('/supplier') && !currentPath.startsWith('/inspection') && !currentPath.startsWith('/admin')) {
-          console.log('[AUTH] Client on valid client path, skipping redirect');
           return;
         }
 
         // Handle guest-to-authenticated transition
         if (wasGuest) {
-          console.log('[AUTH] Guest-to-authenticated transition detected');
-          
-          // Clear all guest and welcome state
           clearWelcomeState();
-          
-          // If there's a return path, go there without guest params
           if (returnPath && returnPath !== '/auth') {
-            console.log('[AUTH] Returning to path after guest login:', returnPath);
             useAuthStore.getState().setReturnPath(null);
             useAuthStore.getState().setPendingAction(null);
             navigate(returnPath, { replace: true });
             return;
           }
         } else {
-          // For normal logins/signups, also clear welcome state to prevent showing welcome again
           useAuthStore.getState().setHasSeenWelcome(false);
         }
 
-        // Get the destination based on current auth state using routeAfterLogin
         const destination = routeAfterLogin(profile);
 
-        console.log('[AUTH] Post-auth redirect decision:', {
-          currentPath,
-          destination,
-          shouldRedirect: currentPath !== destination,
-          wasGuest,
-          returnPath,
-          pendingAction
-        });
-
-        // Only navigate if we're not already at the correct destination
-        if (currentPath !== destination && !redirected[user.id]) {
+        if (currentPath !== destination) {
           console.log('[AUTH] Redirecting from', currentPath, 'to', destination);
-          setRedirected(user.id, true);
           navigate(destination, { replace: true });
         }
       } catch (error) {
         console.error('[AUTH] Navigation error:', error);
-        // Clear problematic flags on error
         if (user?.id) {
           clearUserSpecificFlags(user.id);
         }
@@ -225,17 +206,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     // Small delay to ensure all auth state is settled
-    const timeoutId = setTimeout(() => {
-      if (!isLoggingOut) {
-        handlePostAuthRedirect();
-      }
-    }, 100);
-    
-    // Cleanup timeout on unmount or dependency change
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, [user, profile, loading, location.pathname, navigate, isLoggingOut]);
+    const timeoutId = setTimeout(handlePostAuthRedirect, 100);
+    return () => clearTimeout(timeoutId);
+  }, [user?.id, profile?.id, loading, isLoggingOut]);
 
   const signUp = async (email: string, password: string, metadata?: any) => {
     try {
