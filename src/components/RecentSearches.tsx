@@ -18,10 +18,10 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
   onClearAll
 }) => {
   return (
-    <div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Recent Searches */}
       {searches.length > 0 && (
-        <div className="mb-6">
+        <div>
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-lg font-semibold text-right">חיפושים אחרונים</h3>
             <Button
@@ -34,18 +34,18 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
               מחק הכל
             </Button>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {searches.map((search, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between group hover:bg-muted/50 rounded-xl p-2 -m-2"
+                className="flex items-center justify-between group hover:bg-muted/50 rounded-xl p-2 -mx-2"
               >
                 <Button
                   variant="ghost"
-                  className="flex-1 justify-start text-right hover:bg-transparent p-0"
+                  className="flex-1 justify-start text-right hover:bg-transparent p-0 min-h-[44px]"
                   onClick={() => onSearchClick(search)}
                 >
-                  <SearchIcon size={16} className="ml-2 text-muted-foreground" />
+                  <SearchIcon size={16} className="ml-2 text-muted-foreground flex-shrink-0" />
                   <span className="truncate">{search}</span>
                 </Button>
                 <Button
@@ -55,7 +55,7 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
                     e.stopPropagation();
                     onRemoveSearch(search);
                   }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive min-h-[44px]"
                 >
                   <X size={14} />
                 </Button>
@@ -68,15 +68,15 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
       {/* Popular Searches */}
       <div>
         <h3 className="text-lg font-semibold mb-3 text-right">חיפושים פופולריים</h3>
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-1">
           {popularSearches.map((search, index) => (
             <Button
               key={index}
               variant="ghost"
-              className="w-full justify-start text-right hover:bg-muted rounded-xl"
+              className="w-full justify-start text-right hover:bg-muted rounded-xl min-h-[44px]"
               onClick={() => onSearchClick(search)}
             >
-              <SearchIcon size={16} className="ml-2 text-muted-foreground" />
+              <SearchIcon size={16} className="ml-2 text-muted-foreground flex-shrink-0" />
               {search}
             </Button>
           ))}
