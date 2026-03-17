@@ -39,7 +39,7 @@ export default function AdminOrders() {
         .range((page - 1) * limit, page * limit - 1);
 
       if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
+        query = query.eq('status', statusFilter as any);
       }
       if (searchTerm) {
         query = query.or(`title.ilike.%${searchTerm}%,customer_name.ilike.%${searchTerm}%`);
