@@ -41,7 +41,7 @@ const Support = () => {
       case 'resolved':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-400" />;
+        return <Clock className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -75,21 +75,21 @@ const Support = () => {
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-nav-safe" dir="rtl">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-muted/30 pb-nav-safe" dir="rtl">
       {/* Header */}
-      <div className="bg-white px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10">
+      <div className="bg-card px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10 border-b border-border">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/profile')}
-            className="p-2 hover:bg-gray-100 rounded-xl"
+            className="p-2 hover:bg-muted rounded-xl min-h-[44px]"
           >
             <ArrowRight className="w-5 h-5" />
           </Button>
           <div className="text-right flex-1">
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">תמיכה ועזרה</h1>
-            <p className="text-gray-600 text-sm">צ'אט עם הצוות שלנו</p>
+            <h1 className="text-2xl font-bold text-foreground mb-1">תמיכה ועזרה</h1>
+            <p className="text-muted-foreground text-sm">צ'אט עם הצוות שלנו</p>
           </div>
         </div>
       </div>
@@ -108,7 +108,7 @@ const Support = () => {
 
         {/* Active Conversations */}
         <div>
-          <h2 className="text-lg font-bold text-gray-900 mb-4">שיחות פעילות</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4">שיחות פעילות</h2>
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -140,17 +140,17 @@ const Support = () => {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
-                            <h3 className="font-semibold text-gray-900 text-sm">{ticket.title}</h3>
+                            <h3 className="font-semibold text-foreground text-sm">{ticket.title}</h3>
                             <div className="flex items-center gap-2">
                               {unreadCount > 0 && (
                                 <Badge className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                                   {unreadCount}
                                 </Badge>
                               )}
-                              <span className="text-xs text-gray-500">{formatTimestamp(ticket.created_at)}</span>
+                              <span className="text-xs text-muted-foreground">{formatTimestamp(ticket.created_at)}</span>
                             </div>
                           </div>
-                          <p className="text-gray-600 text-sm mb-2 line-clamp-1">{ticket.description}</p>
+                          <p className="text-muted-foreground text-sm mb-2 line-clamp-1">{ticket.description}</p>
                           <div className="flex items-center gap-2">
                             {getStatusIcon(ticket.status)}
                             <Badge className={`text-xs px-2 py-1 rounded-lg border ${getStatusColor(ticket.status)}`}>
@@ -170,7 +170,7 @@ const Support = () => {
         {/* Complaints & Disputes */}
         {complaints.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">תלונות ומחלוקות</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">תלונות ומחלוקות</h2>
             <div className="space-y-3">
               {complaints.map((complaint) => (
                 <Card 
@@ -185,10 +185,10 @@ const Support = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold text-gray-900 text-sm">{complaint.title}</h3>
-                          <span className="text-xs text-gray-500">{formatTimestamp(complaint.created_at)}</span>
+                          <h3 className="font-semibold text-foreground text-sm">{complaint.title}</h3>
+                          <span className="text-xs text-muted-foreground">{formatTimestamp(complaint.created_at)}</span>
                         </div>
-                        <p className="text-gray-600 text-sm mb-1 line-clamp-2">{complaint.description}</p>
+                        <p className="text-muted-foreground text-sm mb-1 line-clamp-2">{complaint.description}</p>
                         <div className="flex items-center gap-2">
                           {getStatusIcon(complaint.status)}
                           <Badge className={`text-xs px-2 py-1 rounded-lg border ${getStatusColor(complaint.status)}`}>
@@ -207,7 +207,7 @@ const Support = () => {
         {/* Chat History */}
         {closedTickets.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">היסטוריית שיחות</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">היסטוריית שיחות</h2>
             <div className="space-y-3">
               {closedTickets.map((ticket) => (
                 <Card 
@@ -217,15 +217,15 @@ const Support = () => {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
-                        <MessageCircle className="w-6 h-6 text-gray-400" />
+                      <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center">
+                        <MessageCircle className="w-6 h-6 text-muted-foreground" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold text-gray-700 text-sm">{ticket.title}</h3>
-                          <span className="text-xs text-gray-500">{formatTimestamp(ticket.created_at)}</span>
+                          <h3 className="font-semibold text-muted-foreground text-sm">{ticket.title}</h3>
+                          <span className="text-xs text-muted-foreground">{formatTimestamp(ticket.created_at)}</span>
                         </div>
-                        <p className="text-gray-500 text-sm mb-2 line-clamp-1">{ticket.description}</p>
+                        <p className="text-muted-foreground text-sm mb-2 line-clamp-1">{ticket.description}</p>
                         <div className="flex items-center gap-2">
                           {getStatusIcon(ticket.status)}
                           <Badge className={`text-xs px-2 py-1 rounded-lg border ${getStatusColor(ticket.status)}`}>

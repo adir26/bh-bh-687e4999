@@ -91,7 +91,7 @@ const SupplierNotifications = () => {
   if (error) {
     return (
       <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background">
-        <header className="flex items-center justify-between p-4 border-b bg-white">
+        <header className="flex items-center justify-between p-4 border-b bg-card">
           <Button onClick={handleBackClick} variant="ghost" size="sm" className="p-2">
             <ArrowRight className="w-5 h-5" />
           </Button>
@@ -113,7 +113,7 @@ const SupplierNotifications = () => {
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b bg-white">
+      <header className="flex items-center justify-between p-4 border-b bg-card">
         <Button onClick={handleBackClick} variant="ghost" size="sm" className="p-2">
           <ArrowRight className="w-5 h-5" />
         </Button>
@@ -138,7 +138,7 @@ const SupplierNotifications = () => {
       </header>
 
       {/* Summary and filters */}
-      <div className="p-4 bg-white border-b space-y-4">
+      <div className="p-4 bg-card border-b space-y-4">
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             {isLoading ? (

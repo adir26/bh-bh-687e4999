@@ -26,7 +26,7 @@ export const BottomCTA: React.FC<BottomCTAProps> = ({
   };
 
   return (
-    <div className="w-full mx-4 mb-6 rounded-2xl bg-gradient-to-br from-primary/5 via-secondary/10 to-accent/5 py-8 px-6 pb-nav-safe text-center relative z-[70] border border-border/50 shadow-sm">
+    <div className="w-full mb-6 mx-3 xs:mx-4 rounded-2xl bg-gradient-to-br from-primary/5 via-secondary/10 to-accent/5 py-8 px-6 pb-nav-safe text-center relative border border-border/50 shadow-sm">
       <h2 className="text-xl font-bold text-foreground mb-5">
         {title}
       </h2>

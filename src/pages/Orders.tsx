@@ -117,13 +117,13 @@ const Orders = () => {
   }
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-nav-safe">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-muted/30 pb-nav-safe">
       {/* Header */}
-      <div className="bg-white px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10">
+      <div className="bg-card px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10 border-b border-border">
         <div className="text-right">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">ההזמנות שלי</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-1">ההזמנות שלי</h1>
           {activeOrdersCount > 0 && (
-            <p className="text-gray-600 text-sm flex items-center justify-end gap-1">
+            <p className="text-muted-foreground text-sm flex items-center justify-end gap-1">
               <Heart className="w-4 h-4 text-red-400" />
               {activeOrdersCount} פרויקטים בעבודה
             </p>
@@ -132,7 +132,7 @@ const Orders = () => {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white mx-4 mt-4 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-card mx-4 mt-4 rounded-2xl shadow-sm overflow-hidden border border-border/50">
         <div className="flex p-2">
           {tabs.map((tab) => (
             <Button
@@ -141,7 +141,7 @@ const Orders = () => {
               className={`flex-1 rounded-xl font-semibold transition-all duration-200 ${
                 activeTab === tab.id 
                   ? 'bg-primary text-primary-foreground shadow-md' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
               onClick={() => setActiveTab(tab.id)}
             >
@@ -161,11 +161,11 @@ const Orders = () => {
           </div>
         ) : (
           <div className="text-center py-16">
-            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Package className="w-10 h-10 text-gray-400" />
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package className="w-10 h-10 text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">אין הזמנות</h3>
-            <p className="text-gray-500 text-lg">
+            <h3 className="text-xl font-bold text-foreground mb-2">אין הזמנות</h3>
+            <p className="text-muted-foreground text-lg">
               {activeTab === 'active' ? 'אין לך הזמנות פעילות כרגע' : 'אין לך הזמנות קודמות'}
             </p>
           </div>
