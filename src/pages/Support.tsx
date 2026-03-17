@@ -170,7 +170,7 @@ const Support = () => {
         {/* Complaints & Disputes */}
         {complaints.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">תלונות ומחלוקות</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">תלונות ומחלוקות</h2>
             <div className="space-y-3">
               {complaints.map((complaint) => (
                 <Card 
