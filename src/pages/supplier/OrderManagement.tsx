@@ -13,11 +13,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SupplierHeader } from '@/components/SupplierHeader';
-import { showToast } from '@/utils/toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { PageBoundary } from '@/components/system/PageBoundary';
-import { EmptyState } from '@/components/ui/empty-state';
 
 type OrderStatus = 'received' | 'production' | 'ready' | 'shipping' | 'delivered';
 
