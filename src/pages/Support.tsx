@@ -185,10 +185,10 @@ const Support = () => {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold text-gray-900 text-sm">{complaint.title}</h3>
-                          <span className="text-xs text-gray-500">{formatTimestamp(complaint.created_at)}</span>
+                          <h3 className="font-semibold text-foreground text-sm">{complaint.title}</h3>
+                          <span className="text-xs text-muted-foreground">{formatTimestamp(complaint.created_at)}</span>
                         </div>
-                        <p className="text-gray-600 text-sm mb-1 line-clamp-2">{complaint.description}</p>
+                        <p className="text-muted-foreground text-sm mb-1 line-clamp-2">{complaint.description}</p>
                         <div className="flex items-center gap-2">
                           {getStatusIcon(complaint.status)}
                           <Badge className={`text-xs px-2 py-1 rounded-lg border ${getStatusColor(complaint.status)}`}>
