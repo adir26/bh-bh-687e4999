@@ -117,13 +117,13 @@ const Orders = () => {
   }
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 pb-nav-safe">
+    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-muted/30 pb-nav-safe">
       {/* Header */}
-      <div className="bg-white px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10">
+      <div className="bg-card px-6 py-6 pt-[max(env(safe-area-inset-top),24px)] rounded-b-3xl shadow-sm sticky top-0 z-10 border-b border-border">
         <div className="text-right">
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">ההזמנות שלי</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-1">ההזמנות שלי</h1>
           {activeOrdersCount > 0 && (
-            <p className="text-gray-600 text-sm flex items-center justify-end gap-1">
+            <p className="text-muted-foreground text-sm flex items-center justify-end gap-1">
               <Heart className="w-4 h-4 text-red-400" />
               {activeOrdersCount} פרויקטים בעבודה
             </p>
