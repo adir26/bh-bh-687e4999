@@ -105,6 +105,7 @@ import { OnboardingGuard } from "./components/OnboardingGuard";
 import { CompletedOnboardingGuard } from "./components/CompletedOnboardingGuard";
 import MyMessages from "./pages/MyMessages";
 import MyMeetings from "./pages/MyMeetings";
+import SupplierCalendar from "./pages/supplier/Calendar";
 
 import SupplierCoupons from "./pages/supplier/Coupons";
 import Deals from "./pages/Deals";
