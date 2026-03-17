@@ -14,7 +14,7 @@ import {
   Edit, Star, TrendingUp, Users, ShoppingBag, DollarSign,
   AlertCircle, Eye, FileText, Package2, Package, Briefcase,
   Settings, ClipboardCheck, Camera, ExternalLink, RefreshCw,
-  AlertTriangle, BarChart3
+  AlertTriangle, BarChart3, CalendarDays
 } from 'lucide-react';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { withTimeout } from '@/lib/withTimeout';
@@ -36,6 +36,7 @@ import {
 } from '@/hooks/useSupplierDashboard';
 
 const quickActions = [
+  { title: 'לוח פגישות', icon: CalendarDays, path: '/supplier/calendar' },
   { title: 'עריכת פרופיל חברה', icon: Edit, path: '/supplier/profile' },
   { title: 'צפה בפרופיל הציבורי', icon: ExternalLink, path: '/supplier/profile', external: true },
   { title: 'העלאת תמונות השראה', icon: Camera, path: '/supplier/my-photos' },

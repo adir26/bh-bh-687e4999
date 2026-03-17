@@ -269,7 +269,10 @@ export type Database = {
           created_at: string
           ends_at: string
           id: string
+          location: string | null
+          meeting_type: string | null
           notes: string | null
+          reminder_sent_at: string | null
           starts_at: string
           status: string
           supplier_id: string
@@ -280,7 +283,10 @@ export type Database = {
           created_at?: string
           ends_at: string
           id?: string
+          location?: string | null
+          meeting_type?: string | null
           notes?: string | null
+          reminder_sent_at?: string | null
           starts_at: string
           status?: string
           supplier_id: string
@@ -291,7 +297,10 @@ export type Database = {
           created_at?: string
           ends_at?: string
           id?: string
+          location?: string | null
+          meeting_type?: string | null
           notes?: string | null
+          reminder_sent_at?: string | null
           starts_at?: string
           status?: string
           supplier_id?: string

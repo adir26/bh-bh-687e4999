@@ -105,6 +105,7 @@ import { OnboardingGuard } from "./components/OnboardingGuard";
 import { CompletedOnboardingGuard } from "./components/CompletedOnboardingGuard";
 import MyMessages from "./pages/MyMessages";
 import MyMeetings from "./pages/MyMeetings";
+import SupplierCalendar from "./pages/supplier/Calendar";
 
 import SupplierCoupons from "./pages/supplier/Coupons";
 import Deals from "./pages/Deals";
@@ -391,6 +392,11 @@ const App = () => {
                 <Route path="/supplier/catalog" element={
                   <OnboardingGuard role="supplier">
                     <ProductCatalog />
+                  </OnboardingGuard>
+                } />
+                <Route path="/supplier/calendar" element={
+                  <OnboardingGuard role="supplier">
+                    <SupplierCalendar />
                   </OnboardingGuard>
                 } />
                 <Route path="/supplier/coupons" element={
