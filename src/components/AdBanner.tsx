@@ -9,8 +9,8 @@ interface AdBannerProps {
 
 export const AdBanner: React.FC<AdBannerProps> = ({ onAdClick }) => {
   return (
-    <div className="w-full px-4 mb-6">
-      <div className="relative h-40 rounded-2xl overflow-hidden bg-gradient-to-r from-primary/5 to-accent/5 border border-border/50">
+    <div className="w-full px-4 md:px-0 mb-6 md:mb-8">
+      <div className="relative h-40 md:h-52 lg:h-60 rounded-2xl overflow-hidden bg-gradient-to-r from-primary/5 to-accent/5 border border-border/50">
         <SafeImage 
           src={adImage}
           alt="פרסומת מיוחדת"

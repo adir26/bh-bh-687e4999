@@ -44,7 +44,7 @@ export const QuickSelection: React.FC<QuickSelectionProps> = ({ items, onItemCli
       </div>
       
       {/* Tablet+: responsive grid */}
-      <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-5 gap-4 px-4 xs:px-5 sm:px-6 py-3 xs:py-4">
+      <div className="hidden md:grid md:grid-cols-5 gap-4 lg:gap-6 px-0 py-4">
         {items.map((item) => (
           <button
             key={item.id}

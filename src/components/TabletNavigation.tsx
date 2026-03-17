@@ -52,9 +52,10 @@ export const TabletNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="hidden md:flex md:flex-col md:w-64 md:border-s md:bg-card md:p-4 md:gap-2 md:shrink-0">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-primary px-3">Bonimpo</h1>
+    <nav className="hidden md:flex md:flex-col md:w-56 lg:w-64 md:border-s md:border-border/60 md:bg-card/50 md:backdrop-blur-sm md:p-3 lg:p-4 md:gap-1.5 md:shrink-0 md:sticky md:top-0 md:h-screen md:overflow-y-auto">
+      <div className="mb-8 pt-2">
+        <h1 className="text-2xl font-bold text-primary px-3 tracking-tight">Bonimpo</h1>
+        <p className="text-xs text-muted-foreground px-3 mt-1">בונים פה</p>
       </div>
       
       {navItems.map((item) => {

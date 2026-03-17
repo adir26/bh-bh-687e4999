@@ -15,8 +15,8 @@ export const SectionTitleWithButton: React.FC<SectionTitleWithButtonProps> = ({
   onButtonClick 
 }) => {
   return (
-    <div className="flex items-center justify-between w-full px-3 xs:px-4 py-2">
-      <h2 className="text-foreground text-lg xs:text-xl font-bold leading-snug">{title}</h2>
+    <div className="flex items-center justify-between w-full px-3 xs:px-4 md:px-0 py-2 md:py-3">
+      <h2 className="text-foreground text-lg xs:text-xl md:text-2xl font-bold leading-snug">{title}</h2>
       <Button 
         onClick={onButtonClick}
         variant="blue-secondary"
