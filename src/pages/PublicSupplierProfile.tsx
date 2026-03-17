@@ -763,7 +763,7 @@ const PublicSupplierProfile: React.FC = () => {
           {supplier.phone && (
             <a 
               href={`tel:${supplier.phone}`}
-              className="flex-1 bg-foreground text-background py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 bg-foreground text-background py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
             >
               <Phone className="w-5 h-5" />
               התקשר
