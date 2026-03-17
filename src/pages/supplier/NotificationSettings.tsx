@@ -66,7 +66,7 @@ const NotificationSettings = () => {
   return (
     <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 border-b bg-white">
+      <header className="flex items-center justify-between p-4 border-b bg-card">
         <Button onClick={handleBackClick} variant="ghost" size="sm" className="p-2">
           <ArrowRight className="w-5 h-5" />
         </Button>
