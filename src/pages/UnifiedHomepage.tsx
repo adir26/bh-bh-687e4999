@@ -337,10 +337,10 @@ const UnifiedHomepage = () => {
           <HeroSection href={ctaHref} onCTAClick={handleHeroCTA} showCTA={isGuest} />
         
           {/* Search Section with Autocomplete */}
-          <div className="w-full px-0 py-4">
+          <div className="w-full px-0 py-4 md:py-6">
             <SearchAutocomplete 
               placeholder="חפש ספקים וקטגוריות..."
-              className="w-full"
+              className="w-full md:max-w-2xl md:mx-auto"
             />
           </div>
 
