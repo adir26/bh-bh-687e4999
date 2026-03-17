@@ -41,6 +41,8 @@ export const useAuthStore = create<AuthState>()(
       returnPath: null,
       pendingAction: null,
       guestBannerDismissed: false,
+      showLoginModal: false,
+      loginModalAction: null,
       loginTracked: {},
       redirected: {},
       hasSeenWelcome: false,
@@ -55,6 +57,11 @@ export const useAuthStore = create<AuthState>()(
       setPendingAction: (action) => set({ pendingAction: action }),
       
       setGuestBannerDismissed: (dismissed) => set({ guestBannerDismissed: dismissed }),
+      
+      setShowLoginModal: (show, action) => set({ 
+        showLoginModal: show, 
+        loginModalAction: action !== undefined ? action : show ? get().loginModalAction : null 
+      }),
       
       setLoginTracked: (userId, tracked) => 
         set((state) => ({
