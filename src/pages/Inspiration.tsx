@@ -268,7 +268,7 @@ export default function Inspiration() {
                           e.preventDefault();
                           saveToIdeabook(photo);
                         }}
-                        className="h-8 w-8 p-0"
+                        className="h-10 w-10 p-0 min-h-[44px] min-w-[44px]"
                       >
                         <Bookmark className="h-4 w-4" />
                       </Button>

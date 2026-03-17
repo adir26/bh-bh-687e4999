@@ -772,7 +772,7 @@ const PublicSupplierProfile: React.FC = () => {
           {supplier.phone && (
             <a 
               href={`https://wa.me/${normalizePhoneToE164(supplier.phone)}`}
-              className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-transform hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
             >
               <MessageCircle className="w-5 h-5" />
               וואטסאפ
