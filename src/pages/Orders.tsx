@@ -141,7 +141,7 @@ const Orders = () => {
               className={`flex-1 rounded-xl font-semibold transition-all duration-200 ${
                 activeTab === tab.id 
                   ? 'bg-primary text-primary-foreground shadow-md' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
               }`}
               onClick={() => setActiveTab(tab.id)}
             >
