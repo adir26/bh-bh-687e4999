@@ -108,7 +108,7 @@ const Favorites = () => {
     <OnboardingGuard>
       <PageBoundary>
         <div className="min-h-screen bg-background" dir="rtl">
-          <div className="max-w-md mx-auto bg-background pb-nav-safe">
+          <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto bg-background pb-nav-safe">
             {/* Header */}
             <div className="bg-background border-b border-border px-6 py-6 pt-[max(env(safe-area-inset-top),24px)]">
               <h1 className="text-2xl font-bold text-foreground text-right">המועדפים שלי</h1>

@@ -107,7 +107,7 @@ const Orders = () => {
 
   if (status === 'error') {
     return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50 items-center justify-center">
+      <div className="flex w-full max-w-5xl mx-auto min-h-screen flex-col bg-gray-50 items-center justify-center">
         <div className="text-center p-6">
           <h3 className="text-lg font-semibold mb-2">שגיאה בטעינת ההזמנות</h3>
           <p className="text-muted-foreground mb-4">לא ניתן לטעון את ההזמנות כרגע</p>
