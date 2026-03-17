@@ -353,9 +353,9 @@ return (
             <CardContent className="p-3 sm:p-4 md:p-6 pt-0">
               <div className="space-y-2">
                 {(suggestionsQuery.data ?? []).map((suggestion, index) => (
-                  <div key={index} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-blue-50 border border-blue-200">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5" />
-                    <span className="text-xs sm:text-sm text-blue-800">{suggestion}</span>
+                  <div key={index} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-accent/50 border border-border">
+                    <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1.5" />
+                    <span className="text-xs sm:text-sm text-accent-foreground">{suggestion}</span>
                   </div>
                 ))}
               </div>
