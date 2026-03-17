@@ -19,7 +19,7 @@ const STATUS_MAP: Record<string, { label: string; className: string }> = {
   confirmed: { label: 'מאושרת', className: 'bg-primary/10 text-primary' },
   in_progress: { label: 'בביצוע', className: 'bg-chart-4/10 text-chart-4' },
   completed: { label: 'הושלמה', className: 'bg-chart-2/10 text-chart-2' },
-  canceled: { label: 'בוטלה', className: 'bg-destructive/10 text-destructive' },
+  cancelled: { label: 'בוטלה', className: 'bg-destructive/10 text-destructive' },
 };
 
 export default function AdminOrders() {
