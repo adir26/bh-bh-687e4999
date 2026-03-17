@@ -143,7 +143,7 @@ export default function SupplierDashboard() {
       </div>
 
       <div className="mobile-padding space-y-6">
-        <div className="mobile-container max-w-none space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6">
           {/* Alerts */}
           {alerts.length > 0 && (
             <div className="space-y-3">
