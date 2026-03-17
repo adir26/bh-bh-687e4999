@@ -4,6 +4,10 @@ import { Star, MapPin, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SafeImage } from '@/utils/imageErrorHandling';
+import emptySearchImg from '@/assets/empty-search.png';
+import type { SearchableItem } from '@/hooks/useSearch';
+import { Badge } from '@/components/ui/badge';
+import { SafeImage } from '@/utils/imageErrorHandling';
 import type { SearchableItem } from '@/hooks/useSearch';
 
 interface SearchResultsProps {
