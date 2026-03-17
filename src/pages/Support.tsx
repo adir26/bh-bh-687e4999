@@ -41,7 +41,7 @@ const Support = () => {
       case 'resolved':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-400" />;
+        return <Clock className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
