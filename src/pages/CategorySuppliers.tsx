@@ -1,12 +1,14 @@
 import React from 'react';
 import { SEO } from '@/components/SEO';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Star, Heart } from 'lucide-react';
 import { showToast } from '@/utils/toast';
 import { useCategorySuppliers } from '@/hooks/useCategorySuppliers';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
 const CategorySuppliers = () => {
   const { category } = useParams<{ category: string }>();
@@ -14,22 +16,22 @@ const CategorySuppliers = () => {
   
   const { data: suppliers = [], isLoading } = useCategorySuppliers(category || '');
 
-  const getCategoryTitle = (cat: string) => {
-    const titles: { [key: string]: string } = {
-      'kitchens': 'מטבחים',
-      'furniture': 'ריהוט',
-      'air-conditioning': 'מיזוג אוויר',
-      'renovation': 'שיפוצים',
-      'bathroom': 'חדרי רחצה',
-      'bedroom': 'חדרי שינה',
-      'garden': 'גינות',
-      'living-room': 'סלון',
-      'mortgage-advisors': 'יועצי משכנתאות',
-      'moving-services': 'הובלות',
-      'home-loans': 'הלוואות'
-    };
-    return titles[cat] || cat;
-  };
+  // Fetch category name from DB
+  const { data: categoryData } = useQuery({
+    queryKey: ['category-name', category],
+    enabled: !!category,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('slug', category!)
+        .maybeSingle();
+      return data;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const categoryTitle = categoryData?.name || category || '';
 
   return (
     <div className="flex w-full max-w-5xl mx-auto min-h-screen flex-col bg-background" dir="rtl">
