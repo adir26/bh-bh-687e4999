@@ -79,7 +79,7 @@ export const CouponCard: React.FC<CouponCardProps> = ({ coupon }) => {
         )}
 
         {timeLeft && (
-          <div className="flex items-center gap-1 text-xs text-amber-600">
+          <div className="flex items-center gap-1 text-xs text-destructive">
             <Clock className="h-3 w-3" />
             <span>נותרו {timeLeft}</span>
           </div>

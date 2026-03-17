@@ -40,11 +40,17 @@ function getCouponStatus(coupon: Coupon): { label: string; variant: 'default' | 
   return { label: 'פעיל', variant: 'default' };
 }
 
-const emptyCoupon = {
+const emptyCoupon: {
+  title: string; description: string; coupon_code: string;
+  discount_type: 'percentage' | 'fixed' | 'free_shipping' | 'gift';
+  discount_value: number; starts_at: string; ends_at: string;
+  max_uses: string; min_order_amount: number; is_active: boolean;
+  is_featured: boolean; image_url: string;
+} = {
   title: '',
   description: '',
   coupon_code: '',
-  discount_type: 'percentage' as const,
+  discount_type: 'percentage',
   discount_value: 0,
   starts_at: new Date().toISOString().slice(0, 16),
   ends_at: '',
