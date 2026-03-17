@@ -245,9 +245,9 @@ export default function Inspiration() {
                     </div>
                   </Link>
 
-                  {/* Action Buttons */}
+                    {/* Action Buttons - always visible on mobile, hover on desktop */}
                   {user && (
-                    <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-2 left-2 right-2 flex justify-between opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
                       <Button
                         size="sm"
                         variant={photo.is_liked ? "default" : "secondary"}

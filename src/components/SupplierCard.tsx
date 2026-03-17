@@ -21,7 +21,7 @@ export const SupplierCard: React.FC<SupplierCardProps> = ({
 
   return (
     <Card 
-      className="w-36 min-w-36 xs:w-40 xs:min-w-40 sm:w-44 sm:min-w-44 md:min-w-0 md:w-full mobile-card hover:shadow-md transition-shadow bg-white pointer-events-auto"
+      className="w-36 min-w-36 xs:w-40 xs:min-w-40 sm:w-44 sm:min-w-44 md:min-w-0 md:w-full mobile-card hover:shadow-md transition-shadow bg-card pointer-events-auto"
     >
       <CardContent className="p-3 xs:p-4 flex flex-col items-center gap-2 xs:gap-3">
         <div className="relative w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden bg-muted/30 flex items-center justify-center border-2 border-dashed border-muted-foreground/20">
