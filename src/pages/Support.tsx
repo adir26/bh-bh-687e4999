@@ -207,7 +207,7 @@ const Support = () => {
         {/* Chat History */}
         {closedTickets.length > 0 && (
           <div>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">היסטוריית שיחות</h2>
+            <h2 className="text-lg font-bold text-foreground mb-4">היסטוריית שיחות</h2>
             <div className="space-y-3">
               {closedTickets.map((ticket) => (
                 <Card 
