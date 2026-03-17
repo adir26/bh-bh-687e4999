@@ -62,7 +62,6 @@ export const BottomNavigation: React.FC = () => {
     // If guest mode and trying to access gated content, show login modal
     if (isGuestMode && !item.isPublic && item.gatedAction) {
       setAttemptedAction(item.gatedAction);
-      setShowLoginModal(true);
       return false; // Prevent navigation
     }
     
