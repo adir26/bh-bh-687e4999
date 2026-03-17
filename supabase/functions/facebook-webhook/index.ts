@@ -14,15 +14,14 @@ interface FacebookLeadPayload {
   adset_name?: string;
   ad_name?: string;
   form_id?: string;
+  form_name?: string;
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Only accept POST requests
   if (req.method !== 'POST') {
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
@@ -40,8 +39,6 @@ Deno.serve(async (req) => {
     const pathParts = url.pathname.split('/');
     const supplierIdIndex = pathParts.indexOf('facebook-webhook') + 1;
     const supplierId = pathParts[supplierIdIndex];
-
-    // Get token from query params
     const token = url.searchParams.get('token');
 
     if (!supplierId || !token) {
@@ -63,7 +60,6 @@ Deno.serve(async (req) => {
     if (webhookError || !webhookData) {
       console.error('Invalid token or webhook not found:', webhookError);
       
-      // Log failed attempt
       await supabase.from('webhook_logs').insert({
         supplier_id: supplierId,
         request_ip: req.headers.get('x-forwarded-for') || 'unknown',
@@ -80,7 +76,6 @@ Deno.serve(async (req) => {
     }
 
     if (!webhookData.is_active) {
-      console.error('Webhook is inactive');
       return new Response(
         JSON.stringify({ error: 'Webhook is inactive' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -89,24 +84,38 @@ Deno.serve(async (req) => {
 
     // Parse request body
     const payload: FacebookLeadPayload = await req.json();
-    console.log('Received Facebook lead:', payload);
+    console.log('Received Facebook lead:', JSON.stringify(payload));
 
     // Generate unique lead number
     const leadNumber = `FB-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-    // Insert lead into database
+    // Look up the company owner to set as supplier_id in leads table
+    const { data: companyData } = await supabase
+      .from('companies')
+      .select('owner_id')
+      .eq('id', supplierId)
+      .single();
+
+    const ownerUserId = companyData?.owner_id;
+
+    // Insert lead into database - use correct column names matching the leads table schema
     const { data: leadData, error: leadError } = await supabase
       .from('leads')
       .insert({
-        supplier_id: supplierId,
-        source_key: 'facebook',
+        supplier_id: ownerUserId || null,
+        company_id: supplierId,
+        source: 'facebook',
+        source_key: 'facebook_paid',
         lead_number: leadNumber,
-        name: payload.full_name || 'Unknown',
-        contact_email: payload.email,
-        contact_phone: payload.phone,
-        status_key: 'new',
+        name: payload.full_name || 'ליד מפייסבוק',
+        contact_email: payload.email || null,
+        contact_phone: payload.phone || null,
+        status: 'new',
         priority_key: 'high',
+        channel: 'facebook',
         campaign_name: payload.campaign_name || null,
+        form_name: payload.form_name || payload.form_id || null,
+        created_via: 'webhook',
         metadata: {
           campaign_id: payload.campaign_id,
           campaign_name: payload.campaign_name,
@@ -117,18 +126,17 @@ Deno.serve(async (req) => {
           received_at: new Date().toISOString()
         }
       })
-      .select()
+      .select('id')
       .single();
 
     if (leadError) {
       console.error('Error inserting lead:', leadError);
       
-      // Log error
       await supabase.from('webhook_logs').insert({
         supplier_id: supplierId,
         webhook_id: webhookData.id,
         request_ip: req.headers.get('x-forwarded-for') || 'unknown',
-        request_payload: payload,
+        request_payload: payload as Record<string, unknown>,
         response_status: 500,
         response_message: 'Error',
         error_message: leadError.message
@@ -151,27 +159,28 @@ Deno.serve(async (req) => {
       supplier_id: supplierId,
       webhook_id: webhookData.id,
       request_ip: req.headers.get('x-forwarded-for') || 'unknown',
-      request_payload: payload,
+      request_payload: payload as Record<string, unknown>,
       response_status: 200,
       response_message: 'Success'
     });
 
-    console.log('Lead created successfully:', leadData);
+    console.log('Lead created successfully:', leadData?.id);
 
     return new Response(
       JSON.stringify({ 
         status: 'success', 
         message: 'Lead created successfully',
-        lead_id: leadData.id 
+        lead_id: leadData?.id 
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error) {
-    console.error('Unexpected error:', error);
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Unexpected error:', errMsg);
     
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ error: 'Internal server error', details: errMsg }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

@@ -12,18 +12,29 @@ export interface SupplierWebhook {
   created_at: string;
 }
 
+const WEBHOOK_BASE_URL = 'https://yislkmhnitznvbxfpcxd.supabase.co/functions/v1/facebook-webhook';
+
+function generateToken(): string {
+  const arr = new Uint8Array(32);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function buildWebhookUrl(supplierId: string, token: string): string {
+  return `${WEBHOOK_BASE_URL}/${supplierId}?token=${token}`;
+}
+
 export function useSupplierWebhook(supplierId: string | null) {
   const queryClient = useQueryClient();
 
   const { data: webhook, isLoading, error: webhookError } = useQuery({
     queryKey: ['supplier-webhook', supplierId],
     enabled: !!supplierId,
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!supplierId) return null;
 
-      console.log('Fetching webhook for supplier:', supplierId);
-
-      // Try to get existing webhook first
+      // Try to get existing webhook
       const { data: existing, error: fetchError } = await supabase
         .from('supplier_webhooks')
         .select('*')
@@ -36,15 +47,12 @@ export function useSupplierWebhook(supplierId: string | null) {
       }
 
       if (existing) {
-        console.log('Found existing webhook:', existing);
         return existing as SupplierWebhook;
       }
 
-      // If not found, create it
-      console.log('Creating new webhook for supplier:', supplierId);
-      
-      const newToken = crypto.randomUUID() + crypto.randomUUID().replace(/-/g, '');
-      const newUrl = `https://yislkmhnitznvbxfpcxd.supabase.co/functions/v1/facebook-webhook/${supplierId}?token=${newToken}`;
+      // Create new webhook
+      const newToken = generateToken();
+      const newUrl = buildWebhookUrl(supplierId, newToken);
 
       const { data: newWebhook, error: insertError } = await supabase
         .from('supplier_webhooks')
@@ -62,7 +70,6 @@ export function useSupplierWebhook(supplierId: string | null) {
         throw insertError;
       }
 
-      console.log('Created new webhook:', newWebhook);
       return newWebhook as SupplierWebhook;
     },
   });
@@ -71,16 +78,9 @@ export function useSupplierWebhook(supplierId: string | null) {
     mutationFn: async () => {
       if (!supplierId) throw new Error('No supplier ID');
 
-      // Generate new token
-      const { data: tokenData, error: tokenError } = await supabase
-        .rpc('generate_webhook_token');
+      const newToken = generateToken();
+      const newUrl = buildWebhookUrl(supplierId, newToken);
 
-      if (tokenError) throw tokenError;
-
-      const newToken = tokenData as string;
-      const newUrl = `https://yislkmhnitznvbxfpcxd.supabase.co/functions/v1/facebook-webhook/${supplierId}?token=${newToken}`;
-
-      // Update webhook
       const { error } = await supabase
         .from('supplier_webhooks')
         .update({
@@ -108,7 +108,7 @@ export function useSupplierWebhook(supplierId: string | null) {
 
       const { error } = await supabase
         .from('supplier_webhooks')
-        .update({ is_active: isActive })
+        .update({ is_active: isActive, updated_at: new Date().toISOString() })
         .eq('supplier_id', supplierId);
 
       if (error) throw error;
@@ -126,6 +126,7 @@ export function useSupplierWebhook(supplierId: string | null) {
   return {
     webhook,
     isLoading,
+    webhookError,
     regenerateToken,
     toggleActive,
   };
