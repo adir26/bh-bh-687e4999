@@ -230,12 +230,14 @@ export default function SupplierDashboard() {
           subtitle="הנה מה שקורה השבוע"
           showBackButton={true}
           backUrl="/"
-          action={
+        />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pt-2">
+          <div className="flex justify-end">
             <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={metricsLoading}>
               <RefreshCw className={`h-4 w-4 ${metricsLoading ? 'animate-spin' : ''}`} />
             </Button>
-          }
-        />
+          </div>
+        </div>
 
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-nav-safe">
           {/* Alerts */}
