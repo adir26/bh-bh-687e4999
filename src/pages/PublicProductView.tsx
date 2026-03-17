@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import emptyOrdersImg from '@/assets/empty-orders.png';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { usePublicProduct, usePublicSupplier } from '@/hooks/usePublicSupplier';
 import { Button } from '@/components/ui/button';
