@@ -119,7 +119,7 @@ const PublicProductView: React.FC = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
-          <div className="text-6xl mb-4">📦</div>
+          <img src={emptyOrdersImg} alt="מוצר לא נמצא" className="w-32 h-32 mx-auto mb-4 object-contain opacity-70" />
           <h1 className="text-2xl font-bold mb-2">מוצר לא נמצא</h1>
           <p className="text-muted-foreground mb-6">
             המוצר שחיפשת אינו קיים או שאינו זמין כרגע
