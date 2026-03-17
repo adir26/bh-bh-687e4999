@@ -208,7 +208,7 @@ export default function OnboardingDocuments() {
       </div>
 
       {/* Fixed Bottom Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 pb-8 z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-6 z-50" style={{ paddingBottom: 'calc(24px + env(safe-area-inset-bottom))' }}>
         <div className="max-w-md mx-auto space-y-3">
           <Button 
             onClick={handleNext}
