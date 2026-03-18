@@ -90,7 +90,7 @@ const SupplierNotifications = () => {
 
   if (error) {
     return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background">
+      <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col bg-background">
         <header className="flex items-center justify-between p-4 border-b bg-card">
           <Button onClick={handleBackClick} variant="ghost" size="sm" className="p-2">
             <ArrowRight className="w-5 h-5" />
