@@ -136,7 +136,7 @@ const OrderStatus: React.FC = () => {
 
   if (!order) {
     return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-center justify-center bg-background" dir="rtl">
+      <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col items-center justify-center bg-background" dir="rtl">
         <p className="text-muted-foreground">ההזמנה לא נמצאה</p>
         <Button variant="outline" onClick={() => navigate('/orders')} className="mt-4">חזור להזמנות</Button>
       </div>
