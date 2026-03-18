@@ -151,7 +151,7 @@ const ComplaintForm = () => {
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background pb-24" dir="rtl">
+    <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col bg-background pb-24" dir="rtl">
       {/* Header */}
       <div className="bg-card px-6 py-6 rounded-b-3xl shadow-sm border-b">
         <div className="flex items-center gap-4">
