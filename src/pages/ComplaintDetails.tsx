@@ -154,7 +154,7 @@ const ComplaintDetails = () => {
   return (
     <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col bg-muted/30 pb-24" dir="rtl">
       {/* Header */}
-      <div className="bg-white px-6 py-6 rounded-b-3xl shadow-sm">
+      <div className="bg-card px-6 py-6 rounded-b-3xl shadow-sm border-b border-border">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
