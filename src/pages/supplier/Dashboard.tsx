@@ -328,7 +328,15 @@ export default function SupplierDashboard() {
                   <CardContent className="p-3 sm:p-4 md:p-6 pt-0 space-y-2 sm:space-y-3">
                     <div className="grid grid-cols-2 sm:grid-cols-1 gap-2">
                       {quickActions.map((action, index) => (
-                        <Button key={index} variant="outline" className="w-full justify-start h-10 sm:h-11 text-xs sm:text-sm min-h-[44px]" onClick={() => navigate(action.path)}>
+                        <Button key={index} variant="outline" className="w-full justify-start h-10 sm:h-11 text-xs sm:text-sm min-h-[44px]" onClick={() => {
+                          if (action.external && companySlug) {
+                            window.open(`/s/${companySlug}`, '_blank');
+                          } else if (action.external && !companySlug) {
+                            navigate('/supplier/profile');
+                          } else {
+                            navigate(action.path);
+                          }
+                        }}>
                           <action.icon className="w-4 h-4 ml-1 sm:ml-2 flex-shrink-0" />
                           <span className="truncate">{action.title}</span>
                         </Button>
