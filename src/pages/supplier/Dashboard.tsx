@@ -57,6 +57,21 @@ export default function SupplierDashboard() {
   const queryClient = useQueryClient();
   const supplierId = user?.id || '';
 
+  // Fetch company slug for public profile link
+  const { data: companySlug } = useQuery({
+    queryKey: ['company-slug', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('companies')
+        .select('slug')
+        .eq('owner_id', user!.id)
+        .maybeSingle();
+      return data?.slug || null;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
   // Analytics tab state
   const [dateRange, setDateRange] = useState<DateRange>('30d');
   const [granularity, setGranularity] = useState<Granularity>('day');
