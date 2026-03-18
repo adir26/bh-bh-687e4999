@@ -23,7 +23,7 @@ const SupplierProducts = () => {
 
   if (isLoading) {
     return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
+      <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col bg-background">
         <div className="flex items-center justify-between p-4 border-b">
           <Skeleton className="h-6 w-6" />
           <Skeleton className="h-6 w-32" />
@@ -42,7 +42,7 @@ const SupplierProducts = () => {
 
   if (isError || !id) {
     return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-center justify-center bg-white p-4">
+      <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col items-center justify-center bg-background p-4">
         <p className="text-lg font-semibold mb-2">שגיאה בטעינת המוצרים</p>
         <p className="text-sm text-muted-foreground mb-4">אנא נסה שנית מאוחר יותר</p>
         <Button onClick={() => navigate('/')} className="mt-4">
@@ -55,7 +55,7 @@ const SupplierProducts = () => {
   const products = productsData?.products || [];
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-white">
+    <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col bg-background">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <button onClick={() => navigate(-1)} className="p-2">

@@ -229,9 +229,9 @@ const SupportChat = () => {
   };
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gray-50" dir="rtl">
+    <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col bg-muted/30" dir="rtl">
       {/* Header */}
-      <div className="bg-white px-6 py-4 pt-[max(env(safe-area-inset-top),16px)] border-b border-gray-100 sticky top-0 z-10">
+      <div className="bg-card px-6 py-4 pt-[max(env(safe-area-inset-top),16px)] border-b border-border sticky top-0 z-10">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"

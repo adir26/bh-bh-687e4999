@@ -126,7 +126,7 @@ const OrderStatus: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background p-6 space-y-4" dir="rtl">
+      <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col bg-background p-6 space-y-4" dir="rtl">
         <Skeleton className="h-20 w-full rounded-xl" />
         <Skeleton className="h-32 w-full rounded-xl" />
         {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-xl" />)}
@@ -136,7 +136,7 @@ const OrderStatus: React.FC = () => {
 
   if (!order) {
     return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col items-center justify-center bg-background" dir="rtl">
+      <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col items-center justify-center bg-background" dir="rtl">
         <p className="text-muted-foreground">ההזמנה לא נמצאה</p>
         <Button variant="outline" onClick={() => navigate('/orders')} className="mt-4">חזור להזמנות</Button>
       </div>
@@ -144,7 +144,7 @@ const OrderStatus: React.FC = () => {
   }
 
   return (
-    <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-gradient-to-br from-background to-muted/30" dir="rtl">
+    <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col bg-gradient-to-br from-background to-muted/30" dir="rtl">
       {/* Header */}
       <div className="bg-card px-6 py-6 rounded-b-3xl shadow-lg border-b">
         <div className="flex items-center gap-4">
