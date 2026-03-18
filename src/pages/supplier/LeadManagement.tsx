@@ -46,50 +46,7 @@ function LeadManagementContent({ leads, viewMode, setViewMode, statusFilter, set
     window.location.href = `tel:${formattedPhone}`;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'new': return 'bg-green-100 text-green-800';
-      case 'no_answer': return 'bg-yellow-100 text-yellow-800';
-      case 'followup': return 'bg-blue-100 text-blue-800';
-      case 'no_answer_x5': return 'bg-orange-100 text-orange-800';
-      case 'not_relevant': return 'bg-gray-100 text-gray-800';
-      case 'error': return 'bg-red-100 text-red-800';
-      case 'denies_contact': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'new': return 'חדש';
-      case 'no_answer': return 'אין מענה';
-      case 'followup': return 'פולואפ';
-      case 'no_answer_x5': return 'אין מענה x5';
-      case 'not_relevant': return 'לא רלוונטי';
-      case 'error': return 'טעות';
-      case 'denies_contact': return 'מכחיש פנייה';
-      default: return status;
-    }
-  };
-
-  const getSourceLabel = (sourceKey: string | null | undefined) => {
-    if (!sourceKey) return '-';
-    
-    const labels: Record<string, string> = {
-      'website': 'אתר',
-      'referral': 'המלצה',
-      'social_media': 'מדיה חברתית',
-      'advertising': 'פרסום',
-      'direct': 'ישיר',
-      'facebook_paid': 'פייסבוק ממומן',
-      'facebook_organic': 'פייסבוק אורגני',
-      'whatsapp': 'וואטסאפ',
-      'word_of_mouth': 'פה לאוזן',
-      'other': 'אחר'
-    };
-    
-    return labels[sourceKey] || sourceKey;
-  };
+  // Use shared helpers from leadHelpers.ts
 
   const handleDeleteClick = (e: React.MouseEvent, lead: Lead) => {
     e.stopPropagation();

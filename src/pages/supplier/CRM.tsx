@@ -1,25 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { DragEndEvent } from '@dnd-kit/core';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
 import { leadsService, Lead, LeadStatus } from '@/services/leadsService';
 import { crmAutomationService } from '@/services/crmAutomationService';
-import { SLABadge } from '@/components/crm/SLABadge';
-import { LeadAssignmentDropdown } from '@/components/crm/LeadAssignmentDropdown';
-import { SLAMetricsWidget } from '@/components/crm/SLAMetricsWidget';
-import { QuickActionsMenu } from '@/components/crm/QuickActionsMenu';
-import { LeadScoreBadge } from '@/components/crm/LeadScoreBadge';
-import { Phone, Mail, StickyNote, MessageCircle, FileText, ArrowUpDown, AlertCircle, Users, Plus, Upload, History } from 'lucide-react';
-import { format } from 'date-fns';
+import { STATUSES } from '@/utils/leadHelpers';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { PageBoundary } from '@/components/system/PageBoundary';
@@ -28,85 +15,10 @@ import { AddLeadDialog } from '@/components/crm/AddLeadDialog';
 import { LeadDetailDialog } from '@/components/crm/LeadDetailDialog';
 import { LeadImportWizard } from '@/components/crm/LeadImportWizard';
 import { ImportHistoryTable } from '@/components/crm/ImportHistoryTable';
-
-const STATUSES: LeadStatus[] = ['new', 'no_answer', 'followup', 'no_answer_x5', 'not_relevant', 'error', 'denies_contact', 'project_in_process', 'project_completed'];
-
-function statusLabel(s: LeadStatus) {
-  switch (s) {
-    case 'new': return 'חדש';
-    case 'no_answer': return 'אין מענה';
-    case 'followup': return 'פולואפ';
-    case 'no_answer_x5': return 'אין מענה x5';
-    case 'not_relevant': return 'לא רלוונטי';
-    case 'error': return 'טעות';
-    case 'denies_contact': return 'מכחיש פנייה';
-    case 'project_in_process': return 'פרויקט בתהליך';
-    case 'project_completed': return 'פרויקט הסתיים';
-  }
-}
-
-function getStatusBadgeClass(status: LeadStatus): string {
-  const baseClass = "inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold";
-  switch (status) {
-    case 'new':
-      return `${baseClass} bg-blue-500 text-white hover:bg-blue-600`;
-    case 'no_answer':
-      return `${baseClass} bg-gray-400 text-white hover:bg-gray-500`;
-    case 'followup':
-      return `${baseClass} bg-amber-500 text-white hover:bg-amber-600`;
-    case 'no_answer_x5':
-      return `${baseClass} bg-red-500 text-white hover:bg-red-600`;
-    case 'not_relevant':
-      return `${baseClass} bg-gray-600 text-white hover:bg-gray-700`;
-    case 'error':
-      return `${baseClass} bg-red-400 text-white hover:bg-red-500`;
-    case 'denies_contact':
-      return `${baseClass} bg-purple-500 text-white hover:bg-purple-600`;
-    case 'project_in_process':
-      return `${baseClass} bg-emerald-500 text-white hover:bg-emerald-600`;
-    case 'project_completed':
-      return `${baseClass} bg-emerald-600 text-white hover:bg-emerald-700`;
-    default:
-      return `${baseClass} bg-gray-500 text-white`;
-  }
-}
-
-function priorityBadgeVariant(priority: string): 'default' | 'secondary' | 'outline' | 'destructive' {
-  switch (priority) {
-    case 'vip': return 'destructive';
-    case 'high': return 'destructive';
-    case 'medium': return 'secondary';
-    case 'low': return 'outline';
-    default: return 'outline';
-  }
-}
-
-function priorityLabel(priority: string): string {
-  switch (priority) {
-    case 'vip': return 'VIP';
-    case 'high': return 'חשוב';
-    case 'medium': return 'בינוני';
-    case 'low': return 'רגיל';
-    default: return priority;
-  }
-}
-
-function getSourceLabel(sourceKey: string | null | undefined): string {
-  const sourceLabels: Record<string, string> = {
-    'website': 'אתר',
-    'referral': 'הפניה',
-    'social_media': 'רשתות חברתיות',
-    'advertising': 'פרסום',
-    'direct': 'ישיר',
-    'other': 'אחר',
-    'facebook_paid': 'פייסבוק ממומן',
-    'facebook_organic': 'פייסבוק אורגני',
-    'word_of_mouth': 'פה לאוזן',
-    'whatsapp': 'וואטסאפ',
-  };
-  
-  return sourceLabels[sourceKey || 'other'] || sourceKey || 'אתר';
-}
+import { CRMHeader } from '@/components/crm/CRMHeader';
+import { KanbanBoard } from '@/components/crm/KanbanBoard';
+import { LeadListTable } from '@/components/crm/LeadListTable';
+import { statusLabel } from '@/utils/leadHelpers';
 
 function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFilter, setStatusFilter, sourceFilter, setSourceFilter, sort, setSort }: {
   leads: Lead[];
@@ -132,15 +44,8 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
 
   const leadsByStatus = useMemo(() => {
     const map: Record<LeadStatus, Lead[]> = { 
-      new: [], 
-      no_answer: [], 
-      followup: [], 
-      no_answer_x5: [], 
-      not_relevant: [], 
-      error: [], 
-      denies_contact: [],
-      project_in_process: [],
-      project_completed: []
+      new: [], no_answer: [], followup: [], no_answer_x5: [], not_relevant: [], 
+      error: [], denies_contact: [], project_in_process: [], project_completed: []
     };
     for (const l of leads) {
       if (STATUSES.includes(l.status)) {
@@ -155,22 +60,20 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
       leadsService.updateLeadStatus(leadId, newStatus),
     onSuccess: (_, { newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
-      toast({ title: 'Lead updated', description: `Status changed to ${statusLabel(newStatus)}` });
+      toast({ title: 'ליד עודכן', description: `הסטטוס שונה ל-${statusLabel(newStatus)}` });
     },
     onError: (error: any) => {
-      toast({ title: 'Failed to update status', description: error.message, variant: 'destructive' });
+      toast({ title: 'שגיאה בעדכון הסטטוס', description: error.message, variant: 'destructive' });
     }
   });
 
   const onDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
-
     const leadId = String(active.id);
     const newStatus = over.id as LeadStatus;
     const lead = leads.find((l) => l.id === leadId);
     if (!lead || lead.status === newStatus) return;
-
     updateStatusMutation.mutate({ leadId, newStatus });
   };
 
@@ -179,21 +82,21 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
       leadsService.addLeadNote(leadId, note),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
-      toast({ title: 'Note added' });
+      toast({ title: 'הערה נוספה' });
     },
     onError: (error: any) => {
-      toast({ title: 'Failed to add note', description: error.message, variant: 'destructive' });
+      toast({ title: 'שגיאה בהוספת הערה', description: error.message, variant: 'destructive' });
     }
   });
 
   const createQuoteMutation = useMutation({
     mutationFn: (leadId: string) => leadsService.createQuoteFromLead(leadId),
     onSuccess: () => {
-      toast({ title: 'Quote draft created' });
+      toast({ title: 'טיוטת הצעת מחיר נוצרה' });
       navigate('/supplier/quotes');
     },
     onError: (error: any) => {
-      toast({ title: 'Failed to create quote', description: error.message, variant: 'destructive' });
+      toast({ title: 'שגיאה ביצירת הצעת מחיר', description: error.message, variant: 'destructive' });
     }
   });
 
@@ -202,10 +105,10 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
       crmAutomationService.snoozeLead(leadId, hours),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
-      toast({ title: 'Lead snoozed' });
+      toast({ title: 'הליד נדחה' });
     },
     onError: (error: any) => {
-      toast({ title: 'Failed to snooze lead', description: error.message, variant: 'destructive' });
+      toast({ title: 'שגיאה בדחיית הליד', description: error.message, variant: 'destructive' });
     }
   });
 
@@ -214,151 +117,31 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
       crmAutomationService.assignLead(leadId, assigneeId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplier-leads'] });
-      toast({ title: 'Lead assigned' });
+      toast({ title: 'הליד הוקצה' });
     },
     onError: (error: any) => {
-      toast({ title: 'Failed to assign lead', description: error.message, variant: 'destructive' });
+      toast({ title: 'שגיאה בהקצאת הליד', description: error.message, variant: 'destructive' });
     }
   });
 
-  const addNote = (leadId: string, note: string) => {
-    addNoteMutation.mutate({ leadId, note });
-  };
-
-  const createQuote = (leadId: string) => {
-    createQuoteMutation.mutate(leadId);
-  };
-
-  const snoozeLead = (leadId: string, hours: number) => {
-    snoozeMutation.mutate({ leadId, hours });
-  };
-
-  const assignLead = (leadId: string, assigneeId: string) => {
-    assignMutation.mutate({ leadId, assigneeId });
-  };
-
-  const Kanban = () => (
-    <DndContext collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 overflow-x-auto pb-4">
-        {STATUSES.map((status) => (
-          <div key={status} id={status}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between text-base">
-                  <span>{statusLabel(status)}</span>
-                  <Badge className={getStatusBadgeClass(status)}>{leadsByStatus[status]?.length || 0}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                  <SortableContext items={(leadsByStatus[status] || []).map((l) => l.id)} strategy={verticalListSortingStrategy}>
-                    <div className="space-y-3">
-                      {(leadsByStatus[status] || []).map((lead) => (
-                        <div 
-                          key={lead.id} 
-                          onClick={() => setSelectedLeadId(lead.id)}
-                          className="cursor-pointer p-3 bg-card rounded-lg border hover:border-primary transition-colors"
-                        >
-                          <div className="font-medium">{lead.name}</div>
-                          <div className="text-sm text-muted-foreground">{lead.contact_phone}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </SortableContext>
-              </CardContent>
-            </Card>
-          </div>
-        ))}
-      </div>
-    </DndContext>
-  );
-
-  const List = () => (
-    <Card>
-      <CardContent className="p-0 sm:p-4">
-        <div className="overflow-x-auto -mx-4 sm:mx-0">
-          <table className="w-full text-sm min-w-[800px]">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                 <th className="p-2 sm:p-3 text-right font-medium">שם</th>
-                 <th className="p-2 sm:p-3 text-right font-medium">טלפון</th>
-                 <th className="p-2 sm:p-3 text-right font-medium hidden md:table-cell">אימייל</th>
-                 <th className="p-2 sm:p-3 text-right font-medium">סטטוס</th>
-                 <th className="p-2 sm:p-3 text-right font-medium hidden lg:table-cell">SLA</th>
-                 <th className="p-2 sm:p-3 text-right font-medium hidden lg:table-cell">הקצאה</th>
-                 <th className="p-2 sm:p-3 text-right font-medium hidden md:table-cell">פנייה אחרונה</th>
-                 <th className="p-2 sm:p-3 text-right font-medium">פעולות</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leads.map((l) => (
-                <tr 
-                  key={l.id} 
-                  className="border-b cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => setSelectedLeadId(l.id)}
-                >
-                   <td className="p-2 sm:p-3 font-medium">{l.name || '—'}</td>
-                   <td className="p-2 sm:p-3">
-                     {l.contact_phone ? (
-                       <a href={`tel:${l.contact_phone}`} className="underline text-primary">{l.contact_phone}</a>
-                     ) : '—'}
-                   </td>
-                   <td className="p-2 sm:p-3 hidden md:table-cell">
-                     {l.contact_email ? (
-                       <a href={`mailto:${l.contact_email}`} className="underline text-primary truncate max-w-[150px] block">{l.contact_email}</a>
-                     ) : '—'}
-                   </td>
-                   <td className="p-2 sm:p-3"><Badge className={getStatusBadgeClass(l.status)}>{statusLabel(l.status)}</Badge></td>
-                   <td className="p-2 sm:p-3 hidden lg:table-cell">
-                     <SLABadge lead={l} />
-                   </td>
-                   <td className="p-2 sm:p-3 hidden lg:table-cell">
-                     <LeadAssignmentDropdown 
-                       leadId={l.id} 
-                       currentAssignee={l.assigned_to} 
-                       onAssign={assignLead}
-                     />
-                   </td>
-                   <td className="p-2 sm:p-3 hidden md:table-cell text-muted-foreground text-xs">{l.last_contact_date ? format(new Date(l.last_contact_date), 'dd/MM/yy HH:mm') : '—'}</td>
-                   <td className="p-2 sm:p-3">
-                     <QuickActionsMenu 
-                       leadId={l.id}
-                       onAddNote={addNote}
-                       onCreateQuote={createQuote}
-                       onSnooze={snoozeLead}
-                     />
-                   </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  const addNote = (leadId: string, note: string) => addNoteMutation.mutate({ leadId, note });
+  const createQuote = (leadId: string) => createQuoteMutation.mutate(leadId);
+  const snoozeLead = (leadId: string, hours: number) => snoozeMutation.mutate({ leadId, hours });
+  const assignLead = (leadId: string, assigneeId: string) => assignMutation.mutate({ leadId, assigneeId });
 
   return (
     <main className="mx-auto max-w-7xl space-y-4 px-3 sm:px-4 lg:px-6 pt-[max(env(safe-area-inset-top),16px)] pb-nav-safe" dir="rtl">
-      <header className="space-y-3 sm:space-y-4 sticky top-0 z-10 bg-background py-2 -mx-3 sm:-mx-4 lg:-mx-6 px-3 sm:px-4 lg:px-6 border-b border-border/50">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-semibold truncate">ניהול לידים - CRM</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">נהל את הלידים שלך: גרור בין שלבים, לחץ לפרטים מלאים</p>
-          </div>
-          <div className="flex gap-2 flex-shrink-0">
-            <Button variant="outline" size="sm" className="text-xs sm:text-sm" onClick={() => setImportWizardOpen(true)}>
-              <Upload className="ml-1 sm:ml-2 h-4 w-4" />
-              <span className="hidden xs:inline">ייבוא מקובץ</span>
-              <span className="xs:hidden">ייבוא</span>
-            </Button>
-            <Button variant="blue" size="sm" className="text-xs sm:text-sm" onClick={() => setAddLeadDialogOpen(true)}>
-              <Plus className="ml-1 sm:ml-2 h-4 w-4" />
-              <span className="hidden xs:inline">הוסף ליד</span>
-              <span className="xs:hidden">הוסף</span>
-            </Button>
-          </div>
-        </div>
-        <SLAMetricsWidget supplierId={user?.id} />
-      </header>
+      <CRMHeader
+        supplierId={user?.id}
+        view={view} setView={setView}
+        search={search} setSearch={setSearch}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        sourceFilter={sourceFilter} setSourceFilter={setSourceFilter}
+        sort={sort} setSort={setSort}
+        activeTab={activeTab} setActiveTab={setActiveTab}
+        onAddLead={() => setAddLeadDialogOpen(true)}
+        onImport={() => setImportWizardOpen(true)}
+      />
 
       <AddLeadDialog open={addLeadDialogOpen} onOpenChange={setAddLeadDialogOpen} />
       <LeadDetailDialog 
@@ -375,99 +158,41 @@ function SupplierCRMContent({ leads, view, setView, search, setSearch, statusFil
         }}
       />
 
-      {/* Tabs for Leads vs Import History */}
-      <div className="border-b overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
-        <div className="flex gap-1 sm:gap-4 min-w-max">
-          <button
-            className={`px-3 sm:px-4 py-2 sm:py-3 border-b-2 transition-colors text-sm sm:text-base min-h-[44px] ${
-              activeTab === 'leads'
-                ? 'border-primary text-primary font-medium'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-            onClick={() => setActiveTab('leads')}
-          >
-            <Users className="w-4 h-4 inline ml-1 sm:ml-2" />
-            לידים
-          </button>
-          <button
-            className={`px-3 sm:px-4 py-2 sm:py-3 border-b-2 transition-colors text-sm sm:text-base min-h-[44px] ${
-              activeTab === 'history'
-                ? 'border-primary text-primary font-medium'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            }`}
-            onClick={() => setActiveTab('history')}
-          >
-            <History className="w-4 h-4 inline ml-1 sm:ml-2" />
-            <span className="hidden sm:inline">היסטוריית ייבואים</span>
-            <span className="sm:hidden">היסטוריה</span>
-          </button>
-        </div>
-      </div>
-
       {activeTab === 'history' ? (
         <div className="py-6">
           <ImportHistoryTable />
         </div>
       ) : (
         <>
-          <section className="flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <div className="flex-1">
-            <Input placeholder="חיפוש לפי שם, אימייל, טלפון..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full" />
-          </div>
-          <Button variant="ghost" size="sm" className="shrink-0 min-h-[44px]" onClick={() => setSort(sort === 'newest' ? 'oldest' : 'newest')}>
-            <ArrowUpDown className="ml-1 sm:ml-2 h-4 w-4" /> {sort === 'newest' ? 'חדש לישן' : 'ישן לחדש'}
-          </Button>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-            <SelectTrigger className="w-full sm:w-[140px]"><SelectValue placeholder="סטטוס" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">כל הסטטוסים</SelectItem>
-              {STATUSES.map((s) => (
-                <SelectItem key={s} value={s}>{statusLabel(s)}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as any)}>
-            <SelectTrigger className="w-full sm:w-[140px]"><SelectValue placeholder="מקור" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">כל המקורות</SelectItem>
-              <SelectItem value="website">אתר</SelectItem>
-              <SelectItem value="facebook_paid">פייסבוק ממומן</SelectItem>
-              <SelectItem value="whatsapp">וואטסאפ</SelectItem>
-              <SelectItem value="word_of_mouth">פה לאוזן</SelectItem>
-              <SelectItem value="referral">הפניה</SelectItem>
-            </SelectContent>
-          </Select>
-          <Tabs value={view} onValueChange={(v) => setView(v as any)} className="w-full sm:w-auto">
-            <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex">
-              <TabsTrigger value="kanban" className="text-xs sm:text-sm">לוח קנבן</TabsTrigger>
-              <TabsTrigger value="list" className="text-xs sm:text-sm">רשימה</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      </section>
-
-      <Separator />
-
-      {leads.length === 0 ? (
-        <div className="py-12">
-          <EmptyState
-            icon={Users}
-            title="אין לידים עדיין"
-            description="ברגע שלקוחות יתעניינו בשירותים שלך, הלידים יופיעו כאן. בינתיים אפשר להוסיף ליד ידנית."
-            action={{
-              label: 'הוסף ליד חדש',
-              onClick: () => setAddLeadDialogOpen(true)
-            }}
-          />
-        </div>
-      ) : view === 'kanban' ? (
-        <Kanban />
-      ) : (
-        <List />
-      )}
+          {leads.length === 0 ? (
+            <div className="py-12">
+              <EmptyState
+                icon={Users}
+                title="אין לידים עדיין"
+                description="ברגע שלקוחות יתעניינו בשירותים שלך, הלידים יופיעו כאן. בינתיים אפשר להוסיף ליד ידנית."
+                action={{
+                  label: 'הוסף ליד חדש',
+                  onClick: () => setAddLeadDialogOpen(true)
+                }}
+              />
+            </div>
+          ) : view === 'kanban' ? (
+            <KanbanBoard
+              leads={leads}
+              leadsByStatus={leadsByStatus}
+              onDragEnd={onDragEnd}
+              onLeadClick={(id) => setSelectedLeadId(id)}
+            />
+          ) : (
+            <LeadListTable
+              leads={leads}
+              onLeadClick={(id) => setSelectedLeadId(id)}
+              onAddNote={addNote}
+              onCreateQuote={createQuote}
+              onSnooze={snoozeLead}
+              onAssign={assignLead}
+            />
+          )}
         </>
       )}
     </main>
@@ -482,14 +207,16 @@ export default function SupplierCRM() {
   const [sourceFilter, setSourceFilter] = useState<string | 'all'>('all');
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
 
+  const debouncedSearch = useDebouncedValue(search, 400);
+
   const { data: leads = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['supplier-leads', user?.id, statusFilter, sourceFilter, search, sort],
+    queryKey: ['supplier-leads', user?.id, statusFilter, sourceFilter, debouncedSearch, sort],
     enabled: !!user?.id,
-    queryFn: async ({ signal }) => {
+    queryFn: async () => {
       const data = await leadsService.listLeads(user!.id, {
         status: statusFilter === 'all' ? undefined : statusFilter,
         source: sourceFilter === 'all' ? undefined : sourceFilter,
-        search,
+        search: debouncedSearch,
         sort,
       });
       return data;
@@ -507,122 +234,12 @@ export default function SupplierCRM() {
     >
       <SupplierCRMContent 
         leads={leads}
-        view={view}
-        setView={setView}
-        search={search}
-        setSearch={setSearch}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        sourceFilter={sourceFilter}
-        setSourceFilter={setSourceFilter}
-        sort={sort}
-        setSort={setSort}
+        view={view} setView={setView}
+        search={search} setSearch={setSearch}
+        statusFilter={statusFilter} setStatusFilter={setStatusFilter}
+        sourceFilter={sourceFilter} setSourceFilter={setSourceFilter}
+        sort={sort} setSort={setSort}
       />
     </PageBoundary>
-  );
-}
-
-function LeadCard({ 
-  lead, 
-  onAddNote, 
-  onCreateQuote, 
-  onSnooze, 
-  onAssign 
-}: { 
-  lead: Lead; 
-  onAddNote: (id: string, note: string) => void; 
-  onCreateQuote: (id: string) => void;
-  onSnooze: (id: string, hours: number) => void;
-  onAssign: (id: string, assigneeId: string) => void;
-}) {
-  return (
-    <div id={lead.id} className="rounded-md border p-3 shadow-sm">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <LeadScoreBadge 
-              score={lead.lead_score?.score ?? null}
-              breakdown={lead.lead_score?.breakdown}
-              hasConsent={lead.consent_to_share}
-              size="sm"
-            />
-          </div>
-          <div className="font-medium">{lead.name || '—'}</div>
-          <div className="mt-1 text-xs text-muted-foreground">
-            {getSourceLabel(lead.source_key)}
-          </div>
-          {lead.priority_key && (
-            <Badge variant={priorityBadgeVariant(lead.priority_key)} className="mt-1">
-              {priorityLabel(lead.priority_key)}
-            </Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <SLABadge lead={lead} />
-          <Badge>{statusLabel(lead.status)}</Badge>
-        </div>
-      </div>
-      <div className="mt-2">
-        <LeadAssignmentDropdown 
-          leadId={lead.id} 
-          currentAssignee={lead.assigned_to} 
-          onAssign={onAssign}
-        />
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-        {lead.contact_phone && (
-          <a className="inline-flex items-center gap-1 underline" href={`tel:${lead.contact_phone}`}><Phone className="h-4 w-4" />Call</a>
-        )}
-        {lead.contact_email && (
-          <a className="inline-flex items-center gap-1 underline" href={`mailto:${lead.contact_email}`}><Mail className="h-4 w-4" />Email</a>
-        )}
-      </div>
-      <div className="mt-3 flex items-center gap-2">
-        <QuickActionsMenu 
-          leadId={lead.id}
-          onAddNote={onAddNote}
-          onCreateQuote={onCreateQuote}
-          onSnooze={onSnooze}
-        />
-      </div>
-      {lead.last_contact_date && (
-        <div className="mt-2 text-xs text-muted-foreground">Last contact: {format(new Date(lead.last_contact_date), 'dd/MM/yy HH:mm')}</div>
-      )}
-    </div>
-  );
-}
-
-function AddNoteInline({ onSave }: { onSave: (note: string) => void }) {
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState('');
-
-  return (
-    <div>
-      {!open ? (
-        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-          <StickyNote className="mr-2 h-4 w-4" />
-          Add note
-        </Button>
-      ) : (
-        <div className="space-y-2">
-          <Textarea 
-            placeholder="Type your note..." 
-            value={value} 
-            onChange={(e) => setValue(e.target.value)}
-            className="min-h-[60px]"
-          />
-          <div className="flex gap-2">
-            <Button size="sm" onClick={() => {
-              if (value.trim()) {
-                onSave(value);
-                setValue('');
-                setOpen(false);
-              }
-            }}>Save</Button>
-            <Button size="sm" variant="ghost" onClick={() => { setValue(''); setOpen(false); }}>Cancel</Button>
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
