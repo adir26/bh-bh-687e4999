@@ -57,6 +57,21 @@ export default function SupplierDashboard() {
   const queryClient = useQueryClient();
   const supplierId = user?.id || '';
 
+  // Fetch company slug for public profile link
+  const { data: companySlug } = useQuery({
+    queryKey: ['company-slug', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('companies')
+        .select('slug')
+        .eq('owner_id', user!.id)
+        .maybeSingle();
+      return data?.slug || null;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
   // Analytics tab state
   const [dateRange, setDateRange] = useState<DateRange>('30d');
   const [granularity, setGranularity] = useState<Granularity>('day');
@@ -313,7 +328,15 @@ export default function SupplierDashboard() {
                   <CardContent className="p-3 sm:p-4 md:p-6 pt-0 space-y-2 sm:space-y-3">
                     <div className="grid grid-cols-2 sm:grid-cols-1 gap-2">
                       {quickActions.map((action, index) => (
-                        <Button key={index} variant="outline" className="w-full justify-start h-10 sm:h-11 text-xs sm:text-sm min-h-[44px]" onClick={() => navigate(action.path)}>
+                        <Button key={index} variant="outline" className="w-full justify-start h-10 sm:h-11 text-xs sm:text-sm min-h-[44px]" onClick={() => {
+                          if (action.external && companySlug) {
+                            window.open(`/s/${companySlug}`, '_blank');
+                          } else if (action.external && !companySlug) {
+                            navigate('/supplier/profile');
+                          } else {
+                            navigate(action.path);
+                          }
+                        }}>
                           <action.icon className="w-4 h-4 ml-1 sm:ml-2 flex-shrink-0" />
                           <span className="truncate">{action.title}</span>
                         </Button>
