@@ -11,6 +11,7 @@ import { ArrowLeft, Filter, MessageSquare, Phone, FileText, X, Calendar, MapPin,
 import { SearchInput } from '@/components/ui/search-input';
 import { showToast } from '@/utils/toast';
 import { leadsService, Lead, LeadStatus } from '@/services/leadsService';
+import { getStatusColor, statusLabel as getStatusText, getSourceLabel } from '@/utils/leadHelpers';
 import { useAuth } from '@/contexts/AuthContext';
 import { PageBoundary } from '@/components/system/PageBoundary';
 import { EmptyState } from '@/components/ui/empty-state';
