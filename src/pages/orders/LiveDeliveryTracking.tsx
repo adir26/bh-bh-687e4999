@@ -76,7 +76,7 @@ const LiveDeliveryTracking: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex w-full max-w-md mx-auto min-h-screen flex-col bg-background p-6 space-y-4" dir="rtl">
+      <div className="flex w-full max-w-md md:max-w-4xl lg:max-w-5xl mx-auto min-h-screen flex-col bg-background p-6 space-y-4" dir="rtl">
         <Skeleton className="h-16 w-full rounded-xl" />
         <Skeleton className="h-48 w-full rounded-xl" />
         <Skeleton className="h-32 w-full rounded-xl" />
